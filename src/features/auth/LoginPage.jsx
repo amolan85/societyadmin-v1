@@ -1,0 +1,41 @@
+// src/features/auth/LoginPage.jsx
+import { useState } from "react";
+import useAuth from "./useAuth";
+import { useNavigate } from "react-router-dom";
+
+export default function LoginPage() {
+  const { handleLogin } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await handleLogin(email, password);
+      navigate("/dashboard");
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  return (
+    <div style={{ padding: 50 }}>
+      <h2>Login</h2>
+      <form onSubmit={onSubmit}>
+        <input
+          placeholder="Email"
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <br /><br />
+        <input
+          type="password"
+          placeholder="Password"
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <br /><br />
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  );
+}
