@@ -4,3 +4,5 @@ sudo npm install recharts react-icons clsx
 sudo npm install recharts 
 sudo npm install axios react-router-dom
 sudo npm install 
+npm install bootstrap
+npm install react-select

@@ -1,0 +1,23 @@
+p{
+    font-size: 16px;
+    color: gray;
+}
+.noticeBadge {
+    /* position: absolute; */
+  top: -5px;
+  right: -8px;
+  background: red;
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 50%;
+}
+.icon-circle {
+  width: 29px;
+  height: 29px;
+  border-radius: 50%;
+  background-color: #e7f1ff; /* light primary */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
