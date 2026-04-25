@@ -7,13 +7,14 @@ import Dashboard from "../pages/Dashboard";
 import Broadcast from "../pages/Broadcast";
 import PrivateRoute from "./PrivateRoute";
 
+
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Login */}
         <Route path="/" element={<LoginPage />} />
-        <Route path="/broadcast" element={<Broadcast />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route
           path="/*"
           element={

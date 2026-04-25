@@ -8,3 +8,4 @@ sudo npm install
 npm install bootstrap
 npm install react-select
 npm install bootstrap react-icons
+npm install react-select
