@@ -1,0 +1,67 @@
+/* ===== Add Member Scoped ===== */
+
+.am-wrap .am-card {
+  max-width: 580px;
+  width: 100%;
+}
+
+/* Title */
+.am-wrap .am-title {
+  font-weight: 800;
+  margin-bottom: 0;
+}
+
+/* Close button */
+.am-wrap .am-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+/* Membership Type */
+.am-wrap .am-type-wrap {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 30px;
+  padding: 4px;
+}
+
+.am-wrap .am-type-btn {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  border-radius: 26px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--muted);
+}
+
+.am-wrap .am-type-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Phone */
+.am-wrap .am-code {
+  padding: 9px 12px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.am-wrap .am-phone {
+  border-radius: 0 10px 10px 0;
+  border-left: none;
+}
+
+/* Checkbox */
+.am-wrap .am-check {
+  font-size: 13px;
+}

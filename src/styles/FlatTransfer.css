@@ -1,0 +1,133 @@
+/* ===== Transfer Scoped ===== */
+
+.tr-wrap .tr-breadcrumb {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.tr-wrap .tr-title {
+  font-weight: 800;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tr-wrap .tr-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+/* Stepper */
+.tr-wrap .step-line {
+  background: var(--border);
+}
+
+.tr-wrap .step-line.active {
+  background: var(--accent);
+}
+
+.tr-wrap .step-circle {
+  background: #f1f5f9;
+  color: var(--muted);
+}
+
+.tr-wrap .step-circle.done {
+  background: var(--accent);
+  color: #fff;
+}
+
+.tr-wrap .step-circle.current {
+  background: #fff;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+}
+
+.tr-wrap .step-lbl {
+  color: var(--muted);
+}
+
+.tr-wrap .step-lbl.active {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* Sections */
+.tr-wrap .tr-section-title {
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+.tr-wrap .tr-link {
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--accent);
+}
+
+/* Owner */
+.tr-wrap .tr-role {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.tr-wrap .tr-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.tr-wrap .tr-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.tr-wrap .tr-muted {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Rows */
+.tr-wrap .tr-row {
+  font-size: 13px;
+}
+
+.tr-wrap .tr-ok {
+  font-weight: 600;
+}
+
+.tr-wrap .tr-bold {
+  font-weight: 700;
+}
+
+.tr-wrap .tr-muted-sm {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Workflow */
+.tr-wrap .tr-dot {
+  margin-top: 4px;
+}
+
+.tr-wrap .tr-work-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.tr-wrap .tr-work-title.pending {
+  color: var(--warning);
+}

@@ -1,0 +1,29 @@
+/* ===== Complaints Scoped ===== */
+
+.cp-wrap .cp-title {
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.cp-wrap .cp-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+/* Table */
+.cp-wrap .cp-table-wrap {
+  overflow-x: auto;
+}
+
+.cp-wrap .cp-id {
+  font-weight: 600;
+}
+
+.cp-wrap .cp-title-cell {
+  font-weight: 600;
+}
+
+.cp-wrap .cp-muted {
+  color: var(--muted);
+}

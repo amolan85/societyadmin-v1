@@ -1,0 +1,93 @@
+/* ===== Documents Scoped ===== */
+
+.dc-wrap .dc-title {
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.dc-wrap .dc-sub {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.dc-wrap .dc-section {
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+/* Cards */
+.dc-wrap .dc-card-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.dc-wrap .dc-card-desc {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.dc-wrap .dc-meta {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Empty */
+.dc-wrap .dc-empty {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Sidebar */
+.dc-wrap .dc-side-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.dc-wrap .dc-side-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+/* Letter */
+.dc-wrap .dc-letter-head {
+  text-align: center;
+  font-weight: 800;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.dc-wrap .dc-letter-sub {
+  text-align: center;
+  color: var(--muted);
+  font-size: 10px;
+  margin-bottom: 12px;
+}
+
+.dc-wrap .dc-letter-body {
+  font-size: 12px;
+}
+
+.dc-wrap .dc-muted {
+  color: var(--muted);
+}
+
+.dc-wrap .dc-approved {
+  text-align: right;
+  font-style: italic;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+.dc-wrap .dc-sign {
+  text-align: right;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+/* Verified box */
+.dc-wrap .dc-verified {
+  font-size: 13px;
+}

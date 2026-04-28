@@ -1,0 +1,59 @@
+/* ===== Registers Scoped ===== */
+
+.rg-wrap .rg-title {
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.rg-wrap .rg-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+/* Card */
+.rg-wrap .rg-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+}
+
+.rg-wrap .rg-menu {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+/* Text */
+.rg-wrap .rg-card-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.rg-wrap .rg-value {
+  font-weight: 800;
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+
+.rg-wrap .rg-desc {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+/* Footer */
+.rg-wrap .rg-meta {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rg-wrap .rg-link {
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--accent);
+}

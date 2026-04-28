@@ -1,0 +1,27 @@
+/* ===== Staff Attendance Scoped ===== */
+
+.sa-wrap .sa-title {
+  font-weight: 800;
+  margin-bottom: 0;
+}
+
+.sa-wrap .sa-date {
+  width: auto;
+}
+
+/* Table */
+.sa-wrap .sa-table-wrap {
+  overflow-x: auto;
+}
+
+.sa-wrap .sa-name {
+  font-weight: 600;
+}
+
+.sa-wrap .sa-muted {
+  color: var(--muted);
+}
+
+.sa-wrap .sa-time {
+  color: var(--text);
+}

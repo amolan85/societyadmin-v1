@@ -1,0 +1,88 @@
+/* ===== Rules Scoped ===== */
+
+.rl-wrap .rl-meta {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Title */
+.rl-wrap .rl-title {
+  font-weight: 800;
+  margin-bottom: 0;
+}
+
+/* Buttons */
+.rl-wrap .rl-btn {
+  font-size: 12px;
+  padding: 4px 12px;
+}
+
+/* Table */
+.rl-wrap .rl-table-wrap {
+  overflow-x: auto;
+}
+
+.rl-wrap .rl-rule-title {
+  font-weight: 600;
+}
+
+.rl-wrap .rl-sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.rl-wrap .rl-muted {
+  color: var(--muted);
+}
+
+.rl-wrap .rl-penalty {
+  font-weight: 500;
+}
+
+/* Footer */
+.rl-wrap .rl-footer {
+  text-align: center;
+  padding: 12px 0;
+}
+
+.rl-wrap .rl-link {
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+  color: var(--accent);
+}
+
+/* Sidebar */
+.rl-wrap .rl-side-title {
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+/* QA */
+.rl-wrap .rl-qa-ico {
+  flex-shrink: 0;
+}
+
+.rl-wrap .rl-qa-text {
+  flex: 1;
+}
+
+.rl-wrap .rl-qa-title {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.rl-wrap .rl-qa-sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.rl-wrap .rl-arrow {
+  color: var(--muted);
+}
+
+/* Violations */
+.rl-wrap .rl-violation-title {
+  font-weight: 600;
+  font-size: 13px;
+}

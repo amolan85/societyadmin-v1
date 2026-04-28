@@ -1,0 +1,140 @@
+.ov-title {
+  font-weight: 800;
+  font-size: 30px;
+  margin-bottom: 2px;
+}
+
+.ov-sub {
+  font-size: 13px;
+}
+
+/* Legend */
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+}
+
+.legend-box {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.legend-dot-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* FY Button */
+.fy-btn {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+/* Chart */
+.chart-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 140px;
+}
+
+.chart-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.chart-bars {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  width: 100%;
+}
+
+.chart-bar {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  min-height: 3px;
+}
+
+.chart-label {
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Radar */
+.radar-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.radar-grid {
+  fill: none;
+  stroke: #e2e8f0;
+  stroke-width: 1;
+  transform-origin: 100px 100px;
+}
+
+.radar-a {
+  fill: rgba(129, 140, 248, 0.3);
+  stroke: #818cf8;
+  stroke-width: 1.5;
+}
+
+.radar-b {
+  fill: rgba(251, 146, 60, 0.3);
+  stroke: #fb923c;
+  stroke-width: 1.5;
+}
+
+.radar-c {
+  fill: rgba(248, 113, 113, 0.3);
+  stroke: #f87171;
+  stroke-width: 1.5;
+}
+
+.radar-text {
+  font-size: 8px;
+  fill: var(--muted);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+/* Activity */
+.activity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.bordered {
+  border-bottom: 1px solid var(--border);
+}
+
+.activity-title {
+  font-weight: 600;
+}
+
+.activity-sub {
+  font-size: 12px;
+  color: var(--muted);
+}

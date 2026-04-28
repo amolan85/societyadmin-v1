@@ -1,23 +1,120 @@
-p{
-    font-size: 16px;
-    color: gray;
+/* ===== Noticeboard Scoped ===== */
+
+.nb-wrap .nb-post {
+  padding: 14px 0;
 }
-.noticeBadge {
-    /* position: absolute; */
-  top: -5px;
-  right: -8px;
-  background: red;
-  color: #fff;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 50%;
+
+.nb-wrap .nb-border {
+  border-bottom: 1px solid var(--border);
 }
-.icon-circle {
-  width: 29px;
-  height: 29px;
+
+/* Avatar */
+.nb-wrap .nb-avatar {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background-color: #e7f1ff; /* light primary */
+  background: #f1f5f9;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* Post */
+.nb-wrap .nb-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.nb-wrap .nb-locked {
+  font-size: 11px;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.nb-wrap .nb-content {
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.nb-wrap .nb-meta {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Stats */
+.nb-wrap .nb-stat-val {
+  font-weight: 800;
+  font-size: 22px;
+}
+
+.nb-wrap .nb-stat-label {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.nb-wrap .nb-bb {
+  border-bottom: 1px solid var(--border);
+}
+
+.nb-wrap .nb-br {
+  border-right: 1px solid var(--border);
+}
+
+/* Sidebar */
+.nb-wrap .nb-side-title {
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+/* Moderation */
+.nb-wrap .nb-mod-box {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.nb-wrap .nb-mod-name {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.nb-wrap .nb-mod-time {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.nb-wrap .nb-mod-text {
+  font-size: 12px;
+  color: #374141;
+  margin-bottom: 10px;
+}
+.NoticeBoardTabs {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  background: #f3f4f6;
+  border-radius: 30px;
+  padding: 3px;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+.NoticeBoardTabs-btn {
+  flex: 1;
+  padding: 8px 4px;
+  border: none;
+  border-radius: 26px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: 0.15s;
+  background: transparent;
+  color: var(--muted);
+}
+
+.NoticeBoardTabs-btn.active {
+  background: #111;
+  color: #fff;
 }
