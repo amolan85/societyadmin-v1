@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Badge } from '../../components/Common/ReusableFunction';
 import "../../styles/Overview.css"
 import {
@@ -6,8 +6,13 @@ import {
     ResponsiveContainer, RadarChart, Radar,
     PolarGrid, PolarAngleAxis, PieChart, Pie, Cell, CartesianGrid
 } from "recharts";
+import { OverviewApi } from './OverviewApi';
 
 const Overview = () => {
+    // const [barData, setBarData] = useState([])
+    const [totalVisits, setTotalVisits] = useState("")
+    const [pendingApproval, setPendingApproval] = useState("")
+
     const mo = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const ap = [54, 29, 54, 99, 52, 46, 15, 64, 33, 64, 23, 93];
     const pe = [48, 25, 56, 94, 52, 45, 13, 81, 30, 30, 55, 45];
@@ -34,6 +39,19 @@ const Overview = () => {
         { subject: "Mar", A: 40, B: 20, C: 60 },
         { subject: "Apr", A: 70, B: 40, C: 50 },
     ];
+
+    useEffect(() => {
+        GetDashboard()
+    }, [])
+
+    const GetDashboard = async () => {
+        const data = await OverviewApi()
+        // console.log(data)
+        // setBarData(data.monthly_data)
+        setTotalVisits(data.total_visits)
+        setPendingApproval(data.pending_visits)
+    }
+
     return (
         // <div className="pg">
         //     <h2 className="text-start" style={{ fontWeight: 800, fontSize: 30, marginBottom: 2 }}>Welcome Back!</h2>
@@ -167,8 +185,8 @@ const Overview = () => {
                 {/* 📊 Cards */}
                 {[
                     ["Active Complaints", "14"],
-                    ["Visits", "3,671"],
-                    ["Pending Approvals", "156"],
+                    ["Visits", /* "3,671" */ totalVisits],
+                    ["Pending Approvals", /* "156" */pendingApproval],
                     ["Staff Present", "48/50"]
                 ].map(([l, v]) => (
                     <div className="col-6 col-md-4 col-lg" key={l}>
@@ -196,7 +214,6 @@ const Overview = () => {
 
                             <span className="btn-ol fy-btn">F.Y. 2025 ▾</span>
                         </div>
-
                         <div className="chart-container">
                             {mo.map((m, i) => (
                                 <div key={m} className="chart-col">
@@ -231,15 +248,29 @@ const Overview = () => {
                                 <Bar dataKey="pending" fill="#F4A62A" />
                                 <Bar dataKey="rejected" fill="#EF5350" />
                             </BarChart>
+                            {/* <BarChart data={barData} >
+                                <XAxis
+                                    dataKey="month_name"
+                                    tick={{ fontSize: 12 }}
+                                />
+                                <YAxis
+                                    domain={[0, 100]}
+                                    ticks={[0, 20, 40, 60, 80, 100]}
+
+                                />
+                                <Tooltip />
+                                <Legend />
+                                <Bar dataKey="approved_visits" fill="#6C63FF" />
+                                <Bar dataKey="pending_visits" fill="#F4A62A" />
+                                <Bar dataKey="rejected_visits" fill="#EF5350" />
+                            </BarChart> */}
                         </ResponsiveContainer>
-
                     </div>
-
                 </div>
+
 
                 <div className="col-12 col-lg-4">
                     <div className="sv-card h-100 d-flex flex-column">
-
                         <div className="d-flex gap-3 mb-2 flex-wrap">
                             {[["#818cf8", "Approved"], ["#fb923c", "Pending"], ["#f87171", "Rejected"]].map(([c, l]) => (
                                 <span key={l} className="legend-dot-item">
@@ -256,6 +287,14 @@ const Overview = () => {
                                 <Radar dataKey="B" stroke="#F4A62A" fill="#F4A62A" fillOpacity={0.4} />
                                 <Radar dataKey="C" stroke="#EF5350" fill="#EF5350" fillOpacity={0.4} />
                             </RadarChart>
+
+                            {/* <RadarChart data={barData}>
+                                <PolarGrid />
+                                <PolarAngleAxis dataKey="month_name" />
+                                <Radar dataKey="approved_visits" stroke="#6C63FF" fill="#6C63FF" fillOpacity={0.4} />
+                                <Radar dataKey="pending_visits" stroke="#F4A62A" fill="#F4A62A" fillOpacity={0.4} />
+                                <Radar dataKey="rejected_visits" stroke="#EF5350" fill="#EF5350" fillOpacity={0.4} />
+                            </RadarChart> */}
                         </ResponsiveContainer>
                         {/* <div className="radar-wrap">
                             <svg viewBox="0 0 200 200" width="170" height="170">

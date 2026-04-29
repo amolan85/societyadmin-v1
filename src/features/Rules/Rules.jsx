@@ -1,8 +1,10 @@
-import React from 'react'
+import React,{useState, useEffect} from 'react'
 import "../../styles/Rules.css"
 import { Badge } from '../../components/Common/ReusableFunction';
+import { getRulesApi } from './RulesApi';
 
 const Rules = () => {
+  const [allRules, setAllRules] = useState([])
     const rules = [
         { title: "Quiet Hours Policy", sub: "10:00 PM to 6:00 AM daily", scope: "Entire Society", penalty: "₹500 / Offense", type: "BY-LAW" },
         { title: "Visitor Parking Limit", sub: "Max 4 hours without permit", scope: "Visitor Lot A & B", penalty: "Tow + ₹1500", type: "RULE" },
@@ -10,6 +12,16 @@ const Rules = () => {
         { title: "Pet Clean-up Policy", sub: "Immediate removal required", scope: "Entire Society", penalty: "₹150 Fine", type: "BY-LAW" },
         { title: "Renovation Hours", sub: "Mon-Fri 9AM-5PM only", scope: "Entire Society", penalty: "Stop Work Order", type: "RULE" },
     ];
+
+        useEffect(() => {
+            getRules()
+        }, [])
+    
+        const getRules = async () => {
+            const data = await getRulesApi()
+            setAllRules(data)
+        }
+
     return (
         // <div className="pg row g-4">
         //     <div className="col-12 col-lg-8">

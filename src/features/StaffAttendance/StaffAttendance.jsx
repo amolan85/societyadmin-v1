@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/StaffAttendance.css"
+import { getStaffAttendanceApi } from './StaffAttendanceApi';
 
 const StaffAttendance = () => {
     const [page, setPage] = useState(1);
+    const [allStaff, setAllStaff] = useState([])
     const all = [
         { name: "Ramesh Gupta", role: "Security Guard", shift: "Morning", st: "Present", sc: "green", time: "08:02 AM" },
         { name: "Suresh Patil", role: "Housekeeping", shift: "Morning", st: "Present", sc: "green", time: "08:15 AM" },
@@ -16,8 +18,23 @@ const StaffAttendance = () => {
         { name: "Sunita Das", role: "Housekeeping", shift: "Morning", st: "Late", sc: "orange", time: "09:45 AM" },
         { name: "Vikas Rao", role: "Maintenance", shift: "Morning", st: "Absent", sc: "red", time: "—" },
     ];
+
+    useEffect(() => {
+        getStaff()
+    }, [])
+
+    //function for get staff
+    const getStaff = async () => {
+        const data = await getStaffAttendanceApi()
+        setAllStaff(data)
+    }
+
     const per = 5, total = Math.ceil(all.length / per);
     const rows = all.slice((page - 1) * per, page * per);
+
+    // const per = 5, total = Math.ceil(allStaff.length / per);
+    // const rows = allStaff.slice((page - 1) * per, page * per);
+
 
     return (
         // <div className="pg">

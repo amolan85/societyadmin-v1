@@ -65,3 +65,12 @@
 .am-wrap .am-check {
   font-size: 13px;
 }
+
+.textError {
+  color: red;
+  font-size: "8px";
+}
+
+.error-input {
+  border-color: rgba(var(--bs-danger-rgb), 1) !important;
+}
