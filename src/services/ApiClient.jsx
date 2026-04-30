@@ -1,8 +1,6 @@
 import axios from "axios";
 import UrlData from "../utils/Url";
-
-
-// import { GetToken, SessionDestroy } from "./SessionManagement";
+import { GetToken, SessionDestroy } from "../utils/SessionManagement";
 
 
 const apiClient = axios.create({
@@ -13,8 +11,8 @@ const apiClient = axios.create({
 //  Request Interceptor for Bearer token
 apiClient.interceptors.request.use(
   async (config) => {
-    // const token = await GetToken();
-    const token = "30882aeddb31296d8576a9fd5bd78dfbdb60909fd0a69151b51ae4def1b25d87"
+    const token = await GetToken();
+    // const token = "9f5128b8fc6be4037769909f0f89c5db1dd303d160500ab21494364308dd6d99"
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -39,7 +37,7 @@ apiClient.interceptors.response.use(
       console.log("Session Expired");
       
       // Clear session data and token
-    //   SessionDestroy();
+      SessionDestroy();
 
       //Redirect to login screen
       // navigation.navigate("Login");

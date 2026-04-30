@@ -37,43 +37,7 @@ const StaffAttendance = () => {
 
 
     return (
-        // <div className="pg">
-        //     <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        //         <h4 style={{ fontWeight: 800, marginBottom: 0 }}>Staff Attendance</h4>
-        //         <div className="d-flex gap-2">
-        //             <input type="date" className="sv-in" defaultValue="2025-12-14" style={{ width: "auto" }} />
-        //             <button className="btn-ol">⬇ Export</button>
-        //         </div>
-        //     </div>
 
-        //     <div className="row g-3 mb-4">
-        //         {[["48", "Present", "tile-grn"], ["2", "Absent", "tile-red"], ["3", "Late", "tile-org"], ["50", "Total Staff", "tile-blu"]].map(([v, l, cls]) => (
-        //             <div className="col-6 col-md-3" key={l}>
-        //                 <div className={`tile ${cls}`}><div className="tile-val">{v}</div><div className="tile-lbl">{l}</div></div>
-        //             </div>
-        //         ))}
-        //     </div>
-
-        //     <div className="sv-card p-0 overflow-hidden">
-        //         <div style={{ overflowX: "auto" }}>
-        //             <table className="sv-tbl">
-        //                 <thead><tr>{["Name", "Role", "Shift", "Status", "Time In"].map(h => <th key={h}>{h}</th>)}</tr></thead>
-        //                 <tbody>
-        //                     {rows.map((s, i) => (
-        //                         <tr className='text-start' key={i}>
-        //                             <td style={{ fontWeight: 600 }}>{s.name}</td>
-        //                             <td style={{ color: "var(--muted)" }}>{s.role}</td>
-        //                             <td><Badge label={s.shift} c="gray" /></td>
-        //                             <td><Badge label={s.st} c={s.sc} /></td>
-        //                             <td style={{ color: s.st === "Absent" ? "var(--muted)" : "var(--text)" }}>{s.time}</td>
-        //                         </tr>
-        //                     ))}
-        //                 </tbody>
-        //             </table>
-        //         </div>
-        //         <Pagination page={page} total={total} onChange={setPage} />
-        //     </div>
-        // </div>
         <div className="pg sa-wrap">
 
             {/* Header */}

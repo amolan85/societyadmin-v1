@@ -3,8 +3,8 @@ import ErrorHandler from "../../utils/ErrorHandler";
 import UrlData from "../../utils/Url";
 
 
-//api function for get members
-export const getMembersApi = async () => {
+//api function for get broadcast
+export const getBroadcastApi = async () => {
     const url = UrlData + 'visitor/GetMonthlyVisitorSummary';
     const data = {
         society_id: "1",
@@ -18,14 +18,13 @@ export const getMembersApi = async () => {
     }).catch((error) => {
         console.log(error);
         const errors = ErrorHandler(error);
-        console.log(errors, "Errors get members");
+        console.log(errors, "Errors get broadcast");
         throw errors;
     });
 }
 
-
-//api for add member
-export const AddMemberApi = async (
+//api for create broadcast
+export const CreateBroadcastApi = async (
     firstName,
     lastName,
     mobileNo,
@@ -61,7 +60,7 @@ export const AddMemberApi = async (
         console.log(error);
 
         const errors = ErrorHandler(error);
-        console.log(errors, "Errors add member");
+        console.log(errors, "Errors create broadcast");
 
         throw errors;
     }

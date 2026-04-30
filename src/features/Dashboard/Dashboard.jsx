@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect } from "react";
 import Overview from "../Overview/Overview";
-import Broadcast from "../Broadcast/Broadcast";
+import CreateBroadcast from "../Broadcast/CreateBroadcast";
 import NoticeBoard from "../NoticeBoard/NoticeBoard";
 import Polls from "../Polls/Polls";
 import AddMember from "../AddMember/AddMember";
@@ -11,6 +11,8 @@ import StaffAttendance from "../StaffAttendance/StaffAttendance";
 import Register from "../Register/Register";
 import { APP_CSS } from "../../components/Common/GlobalCss";
 import Complaints from "../Complaints/Complaints";
+import Broadcast from "../Broadcast/Broadcast";
+import { GetSessionData } from "../../utils/SessionManagement";
 
 /* ══ OVERVIEW ══════════════════════════════════ */
 
@@ -36,7 +38,7 @@ const NAV = [
   },
   {
     sec: "Member Masters", items: [
-      { id: "addmember", icon: "👤", lbl: "Add Member" },
+      { id: "addmember", icon: "👤", lbl: "Members" },
       { id: "transfer", icon: "🔄", lbl: "Transfer Member" },
     ]
   },
@@ -61,9 +63,10 @@ const NAV = [
 const TITLES = {
   overview: ["Dashboards", "Overview"],
   broadcasting: ["Communication", "Broadcasting"],
+  createbroadcast: ["Communication", "Create Broadcast"],
   noticeboard: ["Communication", "Notice Board"],
   polls: ["Communication", "Polls & Voting"],
-  addmember: ["Member Masters", "Add Member"],
+  addmember: ["Member Masters", "Members"],
   transfer: ["Member Masters", "Transfer Member"],
   documents: ["Administration", "Documents & NOC"],
   flattransfer: ["Administration", "Flat Transfer"],
@@ -75,44 +78,15 @@ const TITLES = {
   staff: ["Operations", "Staff Attendance"],
 };
 
-const PAGES = {
-  overview: <Overview />,
-  broadcasting: <Broadcast />,
-  noticeboard: <NoticeBoard />,
-  polls: <Polls />,
-  addmember: <AddMember />,
-  transfer: <PlaceholderPage label="Transfer Member" />,
-  documents: <Documents />,
-  flattransfer: <FlatTransfer />,
-  registers: <Register />,
-  rules: <Rules />,
-  complaints: <Complaints />,
-  parking: <PlaceholderPage label="Parking" />,
-  rentals: <PlaceholderPage label="Rentals & Tenants" />,
-  staff: <StaffAttendance />,
-};
-
 /* ══ ROOT APP ══════════════════════════════════ */
 export default function App() {
   const [active, setActive] = useState("overview");
   const [collapsed, setCollapsed] = useState(false);
+  const [societyName, setSocietyName] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
 
-  // useEffect(() => {
-  //   /* 1. Bootstrap CSS */
-  //   if (!document.getElementById("bs-css")) {
-  //     const l = document.createElement("link");
-  //     l.id = "bs-css"; l.rel = "stylesheet";
-  //     l.href = "https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css";
-  //     document.head.insertBefore(l, document.head.firstChild);
-  //   }
-  //   /* 2. All app CSS in <style> tag */
-  //   if (!document.getElementById("sv-css")) {
-  //     const s = document.createElement("style");
-  //     s.id = "sv-css";
-  //     s.textContent = APP_CSS;
-  //     document.head.appendChild(s);
-  //   }
-  // }, []);
+
   useLayoutEffect(() => {
     if (!document.getElementById("bs-css")) {
       const l = document.createElement("link");
@@ -129,8 +103,40 @@ export default function App() {
       document.head.appendChild(s);
     }
   }, []);
+
+  const PAGES = {
+    overview: <Overview />,
+    broadcasting: <Broadcast setActive={setActive} />,
+    createbroadcast: <CreateBroadcast setActive={setActive} />,
+    noticeboard: <NoticeBoard />,
+    polls: <Polls />,
+    addmember: <AddMember />,
+    transfer: <PlaceholderPage label="Transfer Member" />,
+    documents: <Documents />,
+    flattransfer: <FlatTransfer />,
+    registers: <Register />,
+    rules: <Rules />,
+    complaints: <Complaints />,
+    parking: <PlaceholderPage label="Parking" />,
+    rentals: <PlaceholderPage label="Rentals & Tenants" />,
+    staff: <StaffAttendance />,
+  };
+
   const [sec, pg] = TITLES[active] || ["", ""];
 
+  useEffect(() => {
+    SessionData()
+  }, [])
+
+  const SessionData = async () => {
+    const data = await GetSessionData()
+    console.log(data.data)
+    const flats = data.data.flats[0]
+    setSocietyName(flats.society_name)
+    setFirstName(data.data.first_name)
+    setLastName(data.data.last_name)
+    
+  }
   return (
     <div className="app-shell">
 
@@ -139,7 +145,7 @@ export default function App() {
         <div className="sidebar-logo">
           <div className="logo-box">GV</div>
           <div>
-            <div className="logo-name">GreenValley</div>
+            <div className="logo-name">{societyName}</div>
             <div className="logo-sub text-start">Society Admin</div>
           </div>
         </div>
@@ -175,7 +181,7 @@ export default function App() {
             })}</span>
             <button className="tb-avatar">🔔</button>
             <button className="tb-avatar" style={{ background: "#e2e8f0", color: "var(--text)" }}>👤</button>
-            <span className="tb-name">Karan Sharma</span>
+            <span className="tb-name">{firstName} {lastName}</span>
           </div>
         </header>
 

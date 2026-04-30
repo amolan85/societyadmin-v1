@@ -2,6 +2,7 @@
 import { useState } from "react";
 import useAuth from "./useAuth";
 import { useNavigate } from "react-router-dom";
+import { LoginApi } from "./authService";
 
 export default function LoginPage() {
   const { handleLogin } = useAuth();
@@ -12,7 +13,9 @@ export default function LoginPage() {
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
-      await handleLogin(email, password);
+      // await handleLogin(email, password);
+      const data = await LoginApi(email, password)
+      console.log(data)
       navigate("/dashboard");
     } catch (err) {
       alert(err.message);
