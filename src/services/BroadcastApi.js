@@ -1,6 +1,6 @@
-import apiClient from "../../services/apiClient";
-import ErrorHandler from "../../utils/ErrorHandler";
-import UrlData from "../../utils/Url";
+import apiClient from "./apiClient";
+import ErrorHandler from "../utils/ErrorHandler";
+import UrlData from "../utils/Url";
 
 
 //api function for get broadcast
@@ -25,29 +25,15 @@ export const getBroadcastApi = async () => {
 
 //api for create broadcast
 export const CreateBroadcastApi = async (
-    firstName,
-    lastName,
-    mobileNo,
-    emailId,
-    wing,
-    flat,
-    memType,
-    residency,
-    date
+    societyId, subject, content, channel
 ) => {
     try {
-        const url = UrlData + "member/AddMembers";
+        const url = UrlData + "broadcast/CreateBroadcast";
         const data = {
-            society_id: "1",
-            first_name: firstName,
-            last_name: lastName,
-            email: emailId,
-            mobile: mobileNo,
-            block: wing,
-            flat_number: flat,
-            ownership_type: memType,
-            start_date: date,
-            residency: residency,
+            society_id: societyId,
+            title: subject,
+            message: content,
+            channel: channel,
         };
 
         const response = await apiClient({

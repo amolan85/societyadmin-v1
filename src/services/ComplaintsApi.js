@@ -1,6 +1,6 @@
-import apiClient from "../../services/apiClient";
-import ErrorHandler from "../../utils/ErrorHandler";
-import UrlData from "../../utils/Url";
+import apiClient from "./apiClient";
+import ErrorHandler from "../utils/ErrorHandler";
+import UrlData from "../utils/Url";
 
 
 //api function for get complaints

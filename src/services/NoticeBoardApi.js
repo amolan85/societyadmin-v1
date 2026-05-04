@@ -1,9 +1,10 @@
-import apiClient from "../../services/apiClient";
-import ErrorHandler from "../../utils/ErrorHandler";
-import UrlData from "../../utils/Url";
+import apiClient from "./apiClient";
+import ErrorHandler from "../utils/ErrorHandler";
+import UrlData from "../utils/Url";
 
-//api function for get staff attendance
-export const getStaffAttendanceApi = async () => {
+
+//api function for get noticeboard
+export const getNoticeBoardApi = async () => {
     const url = UrlData + 'visitor/GetMonthlyVisitorSummary';
     const data = {
         society_id: "1",
@@ -17,7 +18,7 @@ export const getStaffAttendanceApi = async () => {
     }).catch((error) => {
         console.log(error);
         const errors = ErrorHandler(error);
-        console.log(errors, "Errors from staff attendance");
+        console.log(errors, "Errors get NoticeBoard");
         throw errors;
     });
 }

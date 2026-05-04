@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/StaffAttendance.css"
-import { getStaffAttendanceApi } from './StaffAttendanceApi';
+import { getStaffAttendanceApi } from '../../services/StaffAttendanceApi';
 
 const StaffAttendance = () => {
     const [page, setPage] = useState(1);

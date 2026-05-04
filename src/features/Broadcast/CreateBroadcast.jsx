@@ -1,20 +1,39 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Badge } from '../../components/Common/ReusableFunction';
 import "../../styles/Broadcast.css"
+import { GetSessionData } from '../../utils/SessionManagement';
+import { CreateBroadcastApi } from '../../services/BroadcastApi';
 
 const CreateBroadcast = ({ setActive }) => {
     const [tab, setTab] = useState("Announcement");
     const [subject, setSubject] = useState("")
     const [content, setContent] = useState("")
     const [attchment, setAttchment] = useState("")
+    const [societyId, setSocietyId] = useState("")
     const tabs = [
         { id: "Announcement", icon: "📢" },
         { id: "Emergency", icon: "⚠️" },
         { id: "Circular", icon: "📄" },
         { id: "Event", icon: "📅" },
     ];
-    return (
 
+        useEffect(() => {
+            SessionData()
+        }, [])
+    
+        const SessionData = async () => {
+            const data = await GetSessionData()
+            console.log(data.data)
+            const flats = data.data.flats[0]
+            setSocietyId(flats.society_id)
+        }
+
+    const SubmitBroadcast = async () => {
+        const data = await CreateBroadcastApi(societyId, subject, content)
+        console.log(data);
+    }
+
+    return (
         <div className="pg row g-4 bc-wrap">
             {/* LEFT */}
             <div className="col-12 col-lg-8">
@@ -90,7 +109,7 @@ const CreateBroadcast = ({ setActive }) => {
                     <div className="d-flex gap-2 justify-content-end">
                         <button className="btn-ol">Preview</button>
                         <button className="btn-ol">Save Draft</button>
-                        <button className="btn-ac">Publish ✈</button>
+                        <button className="btn-ac" onClick={SubmitBroadcast}>Publish ✈</button>
                     </div>
 
                 </div>

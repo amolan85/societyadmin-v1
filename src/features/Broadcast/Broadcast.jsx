@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/StaffAttendance.css"
 import CreateBroadcast from './CreateBroadcast';
-import { getBroadcastApi } from './BroadcastApi';
+import { getBroadcastApi } from '../../services/BroadcastApi';
 
 
 const Broadcast = ({ setActive }) => {

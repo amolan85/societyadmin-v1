@@ -135,8 +135,8 @@ export default function App() {
     setSocietyName(flats.society_name)
     setFirstName(data.data.first_name)
     setLastName(data.data.last_name)
-    
   }
+  
   return (
     <div className="app-shell">
 

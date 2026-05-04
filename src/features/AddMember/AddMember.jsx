@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import "../../styles/AddMember.css"
-import { AddMemberApi, getMembersApi } from './AddMemberApi';
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
+import { GetSessionData } from '../../utils/SessionManagement';
+import { AddMemberApi, getMembersApi } from '../../services/AddMemberApi';
 
 const AddMember = () => {
     const [memType, setMemType] = useState("Owner");
@@ -11,38 +12,48 @@ const AddMember = () => {
     const [mobileNo, setMobileNo] = useState("")
     const [wing, setWing] = useState("")
     const [flat, setFlat] = useState("")
+    const [floor, setFloor] = useState("")
     const [residency, setResidency] = useState("")
     const [date, setDate] = useState("")
+    const [societyId, setSocietyId] = useState("")
+    const [userId, setUserId] = useState("")
     const [errors, setErrors] = useState({});
-
     const [show, setShow] = useState(false);
-
     const [page, setPage] = useState(1);
     const [allMembers, setAllMembers] = useState([])
-    const all = [
-        { firstName: "Ramesh", lastName: "Gupta", mobileNo: "1234567890", emailId: "abc@gmail.com", wing: "B", flat: "104", membershipType: "Owner", residencyStatus: "Resident", date: "01/05/2026" },
+    // const all = [
+    //     { firstName: "Ramesh", lastName: "Gupta", mobileNo: "1234567890", emailId: "abc@gmail.com", wing: "B", flat: "104", membershipType: "Owner", residencyStatus: "Resident", date: "01/05/2026" },
+    //     { firstName: "Suresh", lastName: "Patil", mobileNo: "9876543210", emailId: "suresh@gmail.com", wing: "A", flat: "203", membershipType: "Tenant", residencyStatus: "Resident", date: "15/04/2026" },
+    //     { firstName: "Kavita", lastName: "Sharma", mobileNo: "9123456780", emailId: "kavita@gmail.com", wing: "C", flat: "305", membershipType: "Family Member", residencyStatus: "Resident", date: "20/03/2026" },
+    //     { firstName: "Amit", lastName: "Verma", mobileNo: "9988776655", emailId: "amit@gmail.com", wing: "B", flat: "110", membershipType: "Owner", residencyStatus: "Non-Resident", date: "10/02/2026" },
+    //     { firstName: "Priya", lastName: "Nair", mobileNo: "8899776655", emailId: "priya@gmail.com", wing: "A", flat: "402", membershipType: "Tenant", residencyStatus: "Resident", date: "25/01/2026" }
+    // ];
 
-        { firstName: "Suresh", lastName: "Patil", mobileNo: "9876543210", emailId: "suresh@gmail.com", wing: "A", flat: "203", membershipType: "Tenant", residencyStatus: "Resident", date: "15/04/2026" },
 
-        { firstName: "Kavita", lastName: "Sharma", mobileNo: "9123456780", emailId: "kavita@gmail.com", wing: "C", flat: "305", membershipType: "Family Member", residencyStatus: "Resident", date: "20/03/2026" },
+    useEffect(() => {
+        SessionData()
 
-        { firstName: "Amit", lastName: "Verma", mobileNo: "9988776655", emailId: "amit@gmail.com", wing: "B", flat: "110", membershipType: "Owner", residencyStatus: "Non-Resident", date: "10/02/2026" },
+    }, [])
 
-        { firstName: "Priya", lastName: "Nair", mobileNo: "8899776655", emailId: "priya@gmail.com", wing: "A", flat: "402", membershipType: "Tenant", residencyStatus: "Resident", date: "25/01/2026" }
-    ];
+    const SessionData = async () => {
+        const data = await GetSessionData()
+        console.log(data.data)
+        const flats = data.data.flats[0]
+        setSocietyId(flats.society_id)
+        setUserId(flats.user_id)
+        setFloor(flats.floor)
+        getMembers(flats.society_id)
+    }
 
-    // useEffect(() => {
-    //     getMembers()
-    // }, [])
+    //function for get members
+    const getMembers = async (societyId) => {
+        const data = await getMembersApi(societyId)
+        setAllMembers(data.members)
+    }
 
-    // //function for get members
-    // const getMembers = async () => {
-    //     const data = await getMembersApi()
-    //     setAllMembers(data)
-    // }
 
-    const per = 5, total = Math.ceil(all.length / per);
-    const rows = all.slice((page - 1) * per, page * per);
+    const per = 5, total = Math.ceil(allMembers.length / per);
+    const rows = allMembers.slice((page - 1) * per, page * per);
 
     //function for validation
     const validateForm = () => {
@@ -88,8 +99,9 @@ const AddMember = () => {
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
         } else {
-            const data = await AddMemberApi(firstName, lastName, mobileNo, emailId, wing, flat, memType, residency, date)
+            const data = await AddMemberApi(societyId, userId, firstName, lastName, mobileNo, emailId, wing, flat, floor, memType, residency, date)
             console.log("Form Submitted ✅");
+            setShow(false)
         }
     };
 
@@ -119,15 +131,15 @@ const AddMember = () => {
                             <tbody>
                                 {rows.map((s, i) => (
                                     <tr className="text-start" key={i}>
-                                        <td className="sa-name">{s.firstName}</td>
-                                        <td className="sa-name">{s.lastName}</td>
-                                        <td className="sa-name">{s.mobileNo}</td>
-                                        <td className="sa-name">{s.emailId}</td>
-                                        <td className="sa-name">{s.wing}</td>
-                                        <td className="sa-name">{s.flat}</td>
-                                        <td ><Badge label={s.membershipType} c="gray" /></td>
+                                        <td className="sa-name">{s.first_name}</td>
+                                        <td className="sa-name">{s.last_name}</td>
+                                        <td className="sa-name">{s.mobile}</td>
+                                        <td className="sa-name">{s.email}</td>
+                                        <td className="sa-name">{s.block}</td>
+                                        <td className="sa-name">{s.flat_number}</td>
+                                        <td ><Badge label={s.occupancy_type} c="gray" /></td>
                                         <td><Badge label={s.residencyStatus} c="orange" /></td>
-                                        <td className="sa-name">{s.date}</td>
+                                        <td className="sa-name">{s.start_date}</td>
                                     </tr>
                                 ))}
                             </tbody>

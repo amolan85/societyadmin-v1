@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Badge } from '../../components/Common/ReusableFunction';
 import "../../styles/NoticeBoard.css"
-import { getNoticeBoardApi } from './NoticeBoardApi';
+import { getNoticeBoardApi } from '../../services/NoticeBoardApi';
 
 const NoticeBoard = () => {
     const [tab, setTab] = useState("All Posts");
