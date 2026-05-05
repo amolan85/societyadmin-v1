@@ -4,10 +4,10 @@ import UrlData from "../utils/Url";
 
 
 //api function for get broadcast
-export const getBroadcastApi = async () => {
-    const url = UrlData + 'visitor/GetMonthlyVisitorSummary';
+export const getBroadcastApi = async (societyId) => {
+    const url = UrlData + 'broadcast/GetBroadcasts';
     const data = {
-        society_id: "1",
+        society_id: societyId,
     }
     return await apiClient({
         method: 'post',
@@ -25,21 +25,24 @@ export const getBroadcastApi = async () => {
 
 //api for create broadcast
 export const CreateBroadcastApi = async (
-    societyId, subject, content, channel
+    societyId, subject, content, channel, status, type, attachment,scheduleDateTime 
 ) => {
     try {
         const url = UrlData + "broadcast/CreateBroadcast";
-        const data = {
-            society_id: societyId,
-            title: subject,
-            message: content,
-            channel: channel,
-        };
+        const formData = new FormData();
+        formData.append("society_id", societyId);
+        formData.append("title", subject);
+        formData.append("message", content);
+        formData.append("channel", channel);
+        formData.append("status", status);
+        formData.append("type", type);
+        formData.append("file", attachment);
+        formData.append("scheduled_at", scheduleDateTime)
 
         const response = await apiClient({
             method: "post",
             url: url,
-            data: data,
+            data: formData,
         });
         return response?.data?.data;
     } catch (error) {

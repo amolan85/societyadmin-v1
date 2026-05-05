@@ -12,6 +12,8 @@ const Overview = () => {
     const [barData, setBarData] = useState([])
     const [totalVisits, setTotalVisits] = useState("")
     const [pendingApproval, setPendingApproval] = useState("")
+    const [activeComplaints, setActiveComplaints] = useState("")
+    const [staffAttendance, setStaffAttendance] = useState({})
 
     const mo = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const ap = [54, 29, 54, 99, 52, 46, 15, 64, 33, 64, 23, 93];
@@ -47,13 +49,15 @@ const Overview = () => {
     const GetDashboard = async () => {
         const data = await OverviewApi()
         // console.log(data)
-        setBarData(data.monthly_data)
-        setTotalVisits(data.total_visits)
-        setPendingApproval(data.pending_visits)
+        setBarData(data.monthly_data || "")
+        setTotalVisits(data.total_visits || "")
+        setPendingApproval(data.pending_visits || "")
+        setActiveComplaints(data.active_complaints_count || "")
+        setStaffAttendance(data.staff_attendance || "")
     }
 
     return (
-        
+
         <div className="pg">
             <h2 className="ov-title text-start fw-bold">Welcome Back!</h2>
             <p className="ov-sub tx-muted mb-4 text-start">
@@ -99,10 +103,10 @@ const Overview = () => {
 
                 {/* 📊 Cards */}
                 {[
-                    ["Active Complaints", "14"],
+                    ["Active Complaints", activeComplaints],
                     ["Visits", /* "3,671" */ totalVisits],
                     ["Pending Approvals", /* "156" */pendingApproval],
-                    ["Staff Present", "48/50"]
+                   ["Staff Present", `${staffAttendance.present || ""} / ${staffAttendance.total || ""}`]
                 ].map(([l, v]) => (
                     <div className="col-6 col-md-4 col-lg" key={l}>
                         <div className="stat-card h-100 text-center">

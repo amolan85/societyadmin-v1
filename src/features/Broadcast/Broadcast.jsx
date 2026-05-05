@@ -3,12 +3,14 @@ import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/StaffAttendance.css"
 import CreateBroadcast from './CreateBroadcast';
 import { getBroadcastApi } from '../../services/BroadcastApi';
+import { GetSessionData } from '../../utils/SessionManagement';
 
 
 const Broadcast = ({ setActive }) => {
     const [page, setPage] = useState(1);
     const [allBroadcast, setAllBroadcast] = useState([])
     const [showCreate, setShowCreate] = useState(false);
+    const [societyId, setSocietyId] = useState("")
 
     const all = [
         {
@@ -43,18 +45,28 @@ const Broadcast = ({ setActive }) => {
         },
     ];
 
-    // useEffect(() => {
-    //     getBroadcast()
-    // }, [])
 
-    // //function for get broadcast
-    // const getBroadcast = async () => {
-    //     const data = await getBroadcastApi()
-    //     setAllBroadcast(data)
-    // }
+    useEffect(() => {
+        SessionData()
+    }, [])
 
-    const per = 5, total = Math.ceil(all.length / per);
-    const rows = all.slice((page - 1) * per, page * per);
+    const SessionData = async () => {
+        const data = await GetSessionData()
+        console.log(data.data)
+        const flats = data.data.flats[0]
+        setSocietyId(flats.society_id)
+        getBroadcast(flats.society_id)
+    }
+
+    //function for get broadcast
+    const getBroadcast = async (societyId) => {
+        const data = await getBroadcastApi(societyId)
+        setAllBroadcast(data)
+    }
+
+
+    const per = 5, total = Math.ceil(allBroadcast.length / per);
+    const rows = allBroadcast.slice((page - 1) * per, page * per);
 
     return (
         <>
@@ -76,22 +88,22 @@ const Broadcast = ({ setActive }) => {
                         <table className="sv-tbl">
                             <thead>
                                 <tr>
-                                    {["Subject", "Content", "Attachment", "Type",]
+                                    {["Subject", "Content", "Attachment", "Type", "Status"]
                                         .map(h => <th key={h}>{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {rows.map((s, i) => (
-                                    <tr className="text-start" key={i}>
+                                    <tr className="text-start" key={s.broadcast_id}>
 
-                                        <td className="sa-name">{s.subject}</td>
+                                        <td className="sa-name">{s.title}</td>
 
-                                        <td className="sa-muted">{s.content}</td>
-                                        <td className="sa-muted">{s.attachment}</td>
+                                        <td className="sa-muted">{s.message}</td>
+                                        <td className="sa-muted"><img src={s.file_url} height={50}/></td>
                                         <td>
                                             <Badge label={s.type} c="gray" />
                                         </td>
-
+<td className="sa-muted">{s.status}</td>
 
                                     </tr>
                                 ))}

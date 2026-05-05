@@ -13,6 +13,7 @@ import { APP_CSS } from "../../components/Common/GlobalCss";
 import Complaints from "../Complaints/Complaints";
 import Broadcast from "../Broadcast/Broadcast";
 import { GetSessionData } from "../../utils/SessionManagement";
+import CreatePoll from "../Polls/CreatePoll";
 
 /* ══ OVERVIEW ══════════════════════════════════ */
 
@@ -65,6 +66,7 @@ const TITLES = {
   broadcasting: ["Communication", "Broadcasting"],
   createbroadcast: ["Communication", "Create Broadcast"],
   noticeboard: ["Communication", "Notice Board"],
+  createPoll: ["Communication", "Create Poll"],
   polls: ["Communication", "Polls & Voting"],
   addmember: ["Member Masters", "Members"],
   transfer: ["Member Masters", "Transfer Member"],
@@ -109,7 +111,8 @@ export default function App() {
     broadcasting: <Broadcast setActive={setActive} />,
     createbroadcast: <CreateBroadcast setActive={setActive} />,
     noticeboard: <NoticeBoard />,
-    polls: <Polls />,
+    polls: <Polls setActive={setActive} />,
+    createPoll: <CreatePoll setActive={setActive} />,
     addmember: <AddMember />,
     transfer: <PlaceholderPage label="Transfer Member" />,
     documents: <Documents />,
@@ -136,7 +139,7 @@ export default function App() {
     setFirstName(data.data.first_name)
     setLastName(data.data.last_name)
   }
-  
+
   return (
     <div className="app-shell">
 

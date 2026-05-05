@@ -21,14 +21,6 @@ const AddMember = () => {
     const [show, setShow] = useState(false);
     const [page, setPage] = useState(1);
     const [allMembers, setAllMembers] = useState([])
-    // const all = [
-    //     { firstName: "Ramesh", lastName: "Gupta", mobileNo: "1234567890", emailId: "abc@gmail.com", wing: "B", flat: "104", membershipType: "Owner", residencyStatus: "Resident", date: "01/05/2026" },
-    //     { firstName: "Suresh", lastName: "Patil", mobileNo: "9876543210", emailId: "suresh@gmail.com", wing: "A", flat: "203", membershipType: "Tenant", residencyStatus: "Resident", date: "15/04/2026" },
-    //     { firstName: "Kavita", lastName: "Sharma", mobileNo: "9123456780", emailId: "kavita@gmail.com", wing: "C", flat: "305", membershipType: "Family Member", residencyStatus: "Resident", date: "20/03/2026" },
-    //     { firstName: "Amit", lastName: "Verma", mobileNo: "9988776655", emailId: "amit@gmail.com", wing: "B", flat: "110", membershipType: "Owner", residencyStatus: "Non-Resident", date: "10/02/2026" },
-    //     { firstName: "Priya", lastName: "Nair", mobileNo: "8899776655", emailId: "priya@gmail.com", wing: "A", flat: "402", membershipType: "Tenant", residencyStatus: "Resident", date: "25/01/2026" }
-    // ];
-
 
     useEffect(() => {
         SessionData()
