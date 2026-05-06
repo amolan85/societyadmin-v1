@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Badge } from '../../components/Common/ReusableFunction';
 import "../../styles/NoticeBoard.css"
 import { getNoticeBoardApi } from '../../services/NoticeBoardApi';
+import { GetSessionData } from '../../utils/SessionManagement';
 
 const NoticeBoard = () => {
     const [tab, setTab] = useState("All Posts");
@@ -13,17 +14,27 @@ const NoticeBoard = () => {
         { icon: "📋", title: "Found: Car Keys near Gate 2", tag: "Lost & Found", tc: "blue", author: "Security Office", time: "30 min ago", content: "A set of Honda car keys was found near Gate 2. Please collect from security." },
     ];
 
-        useEffect(() => {
-        getNoticeBoard()
+    useEffect(() => {
+        SessionData()
     }, [])
 
-    //function for get broadcast
-    const getNoticeBoard = async () => {
-        const data = await getNoticeBoardApi()
-        setAllNoticeBoard(data)
+    const SessionData = async () => {
+        const data = await GetSessionData()
+        console.log(data.data)
+        const flats = data.data.flats[0]
+        getNoticeBoard(flats.society_id)
+
     }
 
-    
+
+    //function for get broadcast
+    const getNoticeBoard = async (societyId) => {
+        const data = await getNoticeBoardApi(societyId)
+        console.log(data.list)
+        setAllNoticeBoard(data.list)
+    }
+
+
     return (
         <div className="pg row g-4 nb-wrap">
             {/* LEFT */}
@@ -53,7 +64,7 @@ const NoticeBoard = () => {
                             </button>
                         ))}
                     </div>
-                    {posts.map((p, i, arr) => (
+                    {allNoticeBoard.map((p, i, arr) => (
                         <div
                             key={i}
                             className={`nb-post text-start ${i < arr.length - 1 ? "nb-border" : ""}`}
@@ -68,17 +79,17 @@ const NoticeBoard = () => {
 
                                     <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
                                         <span className="nb-title">{p.title}</span>
-                                        <Badge label={p.tag} c={p.tc} />
+                                        <Badge label={p.notice_type} c={p.tc} />
 
                                         {p.locked && (
                                             <span className="nb-locked">🔒 Thread Locked</span>
                                         )}
                                     </div>
 
-                                    <p className="nb-content">{p.content}</p>
+                                    <p className="nb-content">{p.description}</p>
 
                                     <div className="nb-meta">
-                                        👤 {p.author} • {p.time}
+                                        👤 {p.author} • {p.created_at}
                                         {p.views && ` • 👁 ${p.views}`}
                                         {p.comments && ` • 💬 ${p.comments} Comments`}
                                     </div>

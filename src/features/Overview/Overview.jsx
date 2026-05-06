@@ -106,7 +106,7 @@ const Overview = () => {
                     ["Active Complaints", activeComplaints],
                     ["Visits", /* "3,671" */ totalVisits],
                     ["Pending Approvals", /* "156" */pendingApproval],
-                   ["Staff Present", `${staffAttendance.present || ""} / ${staffAttendance.total || ""}`]
+                   ["Staff Present", `${staffAttendance.present || 0} / ${staffAttendance.total || ""}`]
                 ].map(([l, v]) => (
                     <div className="col-6 col-md-4 col-lg" key={l}>
                         <div className="stat-card h-100 text-center">

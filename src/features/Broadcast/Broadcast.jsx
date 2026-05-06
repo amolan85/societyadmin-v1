@@ -4,6 +4,7 @@ import "../../styles/StaffAttendance.css"
 import CreateBroadcast from './CreateBroadcast';
 import { getBroadcastApi } from '../../services/BroadcastApi';
 import { GetSessionData } from '../../utils/SessionManagement';
+import { FiEdit } from 'react-icons/fi';
 
 
 const Broadcast = ({ setActive }) => {
@@ -11,6 +12,8 @@ const Broadcast = ({ setActive }) => {
     const [allBroadcast, setAllBroadcast] = useState([])
     const [showCreate, setShowCreate] = useState(false);
     const [societyId, setSocietyId] = useState("")
+    const [broadcastId, setBroadcastId] = useState("")
+    const [pendingId, setPendingId] = useState(null)
 
     const all = [
         {
@@ -56,6 +59,7 @@ const Broadcast = ({ setActive }) => {
         const flats = data.data.flats[0]
         setSocietyId(flats.society_id)
         getBroadcast(flats.society_id)
+
     }
 
     //function for get broadcast
@@ -64,6 +68,18 @@ const Broadcast = ({ setActive }) => {
         setAllBroadcast(data)
     }
 
+const getBroadcastById = (id) => {
+    setPendingId(id);      // pehle ID set karo
+};
+
+useEffect(() => {
+    if (pendingId !== null) {
+        setBroadcastId(pendingId);
+        setActive("createbroadcast");  // ID set hone ke baad navigate karo
+        setPendingId(null);
+        
+    }
+}, [pendingId]);
 
     const per = 5, total = Math.ceil(allBroadcast.length / per);
     const rows = allBroadcast.slice((page - 1) * per, page * per);
@@ -88,7 +104,7 @@ const Broadcast = ({ setActive }) => {
                         <table className="sv-tbl">
                             <thead>
                                 <tr>
-                                    {["Subject", "Content", "Attachment", "Type", "Status"]
+                                    {["Subject", "Content", "Attachment", "Type", "Schedule Date", "Status"]
                                         .map(h => <th key={h}>{h}</th>)}
                                 </tr>
                             </thead>
@@ -99,11 +115,12 @@ const Broadcast = ({ setActive }) => {
                                         <td className="sa-name">{s.title}</td>
 
                                         <td className="sa-muted">{s.message}</td>
-                                        <td className="sa-muted"><img src={s.file_url} height={50}/></td>
+                                        <td className="sa-muted"><img src={s.file_url} height={50} /></td>
                                         <td>
                                             <Badge label={s.type} c="gray" />
                                         </td>
-<td className="sa-muted">{s.status}</td>
+                                        <td className="sa-muted">{s.scheduled_at}</td>
+                                        <td className="sa-muted">{s.status === "draft" ? <FiEdit onClick={() => getBroadcastById(s.broadcast_id)} /> : s.status}</td>
 
                                     </tr>
                                 ))}

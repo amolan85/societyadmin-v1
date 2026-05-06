@@ -6,8 +6,8 @@ import { LoginApi } from "./authService";
 
 export default function LoginPage() {
   const { handleLogin } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("sohan1@gmail.com");
+  const [password, setPassword] = useState("123456");
   const navigate = useNavigate();
 
   const onSubmit = async (e) => {
@@ -27,6 +27,7 @@ export default function LoginPage() {
       <h2>Login</h2>
       <form onSubmit={onSubmit}>
         <input
+        value={email}
           placeholder="Email"
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -34,6 +35,7 @@ export default function LoginPage() {
         <input
           type="password"
           placeholder="Password"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
         <br /><br />

@@ -1,3 +1,5 @@
+
+
 // SET session data
 export const SetSession = (data) => {
   localStorage.setItem("data", JSON.stringify(data));
@@ -35,6 +37,7 @@ export const GetSessionData = () => {
 export const SessionDestroy = () => {
   localStorage.clear();
   console.log("Session destroyed, all data cleared.");
+
 };
 
 // GET access token

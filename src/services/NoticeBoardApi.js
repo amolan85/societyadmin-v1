@@ -4,10 +4,10 @@ import UrlData from "../utils/Url";
 
 
 //api function for get noticeboard
-export const getNoticeBoardApi = async () => {
-    const url = UrlData + 'visitor/GetMonthlyVisitorSummary';
+export const getNoticeBoardApi = async (societyId) => {
+    const url = UrlData + 'notice/GetAllNotices';
     const data = {
-        society_id: "1",
+        society_id: societyId,
     }
     return await apiClient({
         method: 'post',

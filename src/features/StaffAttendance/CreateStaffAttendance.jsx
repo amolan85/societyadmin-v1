@@ -3,10 +3,15 @@ import { Badge } from '../../components/Common/ReusableFunction';
 import "../../styles/Broadcast.css"
 import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi, getBroadcastByIdApi, UpdateBroadcastApi } from '../../services/BroadcastApi';
+import { createComplaintsApi } from '../../services/ComplaintsApi';
+import { createStaffApi } from '../../services/StaffAttendanceApi';
 
-const CreateBroadcast = ({ setActive, broadcastId }) => {
-    console.log(broadcastId, "id")
-    const [tab, setTab] = useState("announcement");
+const CreateStaffAttendance = ({ setActive, staffId }) => {
+    const [role, setRole] = useState("security");
+    const [firstName, setFirstName] = useState("")
+    const [lastName, setLastName] = useState("")
+    const [mobileNo, setMobileNo] = useState("")
+    const [emailId, setEmailId] = useState("")
     const [subject, setSubject] = useState("")
     const [content, setContent] = useState("")
     const [attchment, setAttchment] = useState(null)
@@ -18,10 +23,12 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
     const [bId, setBId] = useState("")
 
     const tabs = [
-        { id: "Announcement", icon: "📢", value: "announcement" },
-        { id: "Emergency", icon: "⚠️", value: "emergency" },
-        { id: "Circular", icon: "📄", value: "circular" },
-        { id: "Event", icon: "📅", value: "event" },
+        { id: "Security", icon: "📢", value: "security" },
+        { id: "Housekeeping", icon: "⚠️", value: "housekeeping" },
+        { id: "Manager", icon: "📄", value: "manager" },
+        { id: "Electrician", icon: "📅", value: "electrician" },
+        { id: "Plumber", icon: "📅", value: "plumber" },
+        { id: "Other", icon: "📅", value: "other" },
     ];
 
     useEffect(() => {
@@ -33,11 +40,11 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         console.log(data.data)
         const flats = data.data.flats[0]
         setSocietyId(flats.society_id)
-        GetBroadCastById()
+        // GetBroadCastById()
     }
 
     const GetBroadCastById = async () => {
-        const data = await getBroadcastByIdApi(broadcastId)
+        const data = await getBroadcastByIdApi(staffId)
         console.log(data)
         setSubject(data.title)
         setContent(data.message)
@@ -65,6 +72,18 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         e.preventDefault();
     };
 
+    const CreateStaff = async () => {
+        // const validationErrors = validateForm();
+
+        // if (Object.keys(validationErrors).length > 0) {
+        //     setErrors(validationErrors);
+        //     return; 
+        // }
+
+        const data = await createStaffApi(societyId, firstName, lastName, emailId, mobileNo, role)
+        console.log(data)
+        setActive(staff)
+    }
     const validateForm = () => {
         let errors = {};
 
@@ -149,10 +168,10 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
             <div className="col-12 col-lg-8">
                 <div className="sv-card text-start">
                     <div className="d-flex justify-content-between align-items-center">
-                        <h5 className="bc-title">📢 Create & Publish</h5>
+                        <h5 className="bc-title">Create Staff Attendance</h5>
                         <button
                             className="btn btn-sm btn-primary"
-                            onClick={() => setActive("broadcasting")}
+                            onClick={() => setActive("staff")}
                         >
                             Back
                         </button>
@@ -161,161 +180,56 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
                         {tabs.map((t) => (
                             <button
                                 key={t.id}
-                                onClick={() => setTab(t.value)}
-                                className={`broadcastTab-btn ${tab === t.value ? "active" : ""}`}
+                                onClick={() => setRole(t.value)}
+                                className={`broadcastTab-btn ${role === t.value ? "active" : ""}`}
                             >
                                 {t.icon} {t.id}
                             </button>
                         ))}
                     </div>
                     <div className='d-flex'>
-                        <label className="sv-lb">Subject / Title <span className='text-danger'>*</span></label>
-                        {errors.subject && <span className='text-danger mx-2 '>{errors.subject}</span>}
+                        <label className="sv-lb">First Name <span className='text-danger'>*</span></label>
+                        {errors.firstName && <span className='text-danger mx-2 '>{errors.firstName}</span>}
                     </div>
 
-                    <input className={`sv-in mb-3 ${errors.subject ? "error-input" : ""}`} placeholder="Example: Scheduled Maintenance of Lift B"
-                        value={subject}
-                        onChange={(e) => setSubject(e.target.value)} />
+                    <input className={`sv-in mb-3 ${errors.firstName ? "error-input" : ""}`} placeholder="Enter first name"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)} />
 
                     <div className='d-flex'>
-                        <label className="sv-lb">Content <span className='text-danger'>*</span></label>
-                        {errors.content && <span className='text-danger mx-2 '>{errors.content}</span>}
+                        <label className="sv-lb">Last Name <span className='text-danger'>*</span></label>
+                        {errors.lastName && <span className='text-danger mx-2 '>{errors.lastName}</span>}
                     </div>
 
-                    <div className={`bc-editor-box ${errors.content ? "error-input" : ""}`}>
-                        <div className="bc-editor-toolbar">
-                            {["B", "I", "U", "≡", "≔", "🔗"].map(b => (
-                                <button key={b} className={`bc-editor-btn ${b === "B" ? "bold" : ""}`}>
-                                    {b}
-                                </button>
-                            ))}
-                        </div>
+                    <input className={`sv-in mb-3 ${errors.lastName ? "error-input" : ""}`} placeholder="Enter last name"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)} />
 
-                        <textarea
-                            className="sv-ta bc-editor-textarea"
-                            placeholder="Type your announcement details here…"
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                        />
+
+                    <div className='d-flex'>
+                        <label className="sv-lb">Email Id<span className='text-danger'>*</span></label>
+                        {errors.emailId && <span className='text-danger mx-2 '>{errors.emailId}</span>}
                     </div>
 
-                    <label className="sv-lb">Attachment (Optional)</label>
-                    <div
-                        className="upload-zone mb-4"
-                        onDrop={handleDrop}
-                        onDragOver={handleDragOver}
-                        style={{ cursor: "pointer" }}
-                        onClick={() => document.getElementById("fileInput").click()}
-                    >
-                        <div className="bc-upload-icon">☁️</div>
-                        <div className="bc-upload-title">
-                            {attchment ? attchment.name : "Click to upload or drag files here"}
-                        </div>
-                        <div className="bc-upload-sub">PDF, JPG, PNG up to 10 MB</div>
+                    <input className={`sv-in mb-3 ${errors.emailId ? "error-input" : ""}`} placeholder="Enter email id"
+                        value={emailId}
+                        onChange={(e) => setEmailId(e.target.value)} />
 
-                        <input
-                            id="fileInput"
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            style={{ display: "none" }}
-                            onChange={handleFileChange}
-                        />
+
+
+                    <div className='d-flex'>
+                        <label className="sv-lb">Mobile No<span className='text-danger'>*</span></label>
+                        {errors.mobileNo && <span className='text-danger mx-2 '>{errors.mobileNo}</span>}
                     </div>
 
-                    <label className="sv-lb">Broadcasting Channels</label>
+                    <input className={`sv-in mb-3 ${errors.mobileNo ? "error-input" : ""}`} placeholder="Enter mobile no."
+                        value={mobileNo}
+                        onChange={(e) => setMobileNo(e.target.value)} />
 
-                    {/* <div className="d-flex gap-2 mb-4">
-                        <span className="bx bx-blue">☑ App Notification</span>
-                        <span className="bx bx-gray">⊕ Add Channel</span>
-                    </div> */}
-                    <div className="d-flex gap-3 mb-4">
-
-                        <label className="bx">
-                            <input
-                                type="radio"
-                                name="channel"
-                                value="whatsapp"
-                                checked={channel === "whatsapp"}
-                                onChange={(e) => setChannel(e.target.value)}
-                            />
-                            &nbsp; WhatsApp
-                        </label>
-
-                        <label className="bx">
-                            <input
-                                type="radio"
-                                name="channel"
-                                value="sms"
-                                checked={channel === "sms"}
-                                onChange={(e) => setChannel(e.target.value)}
-                            />
-                            &nbsp; SMS
-                        </label>
-
-                        <label className="bx">
-                            <input
-                                type="radio"
-                                name="channel"
-                                value="email"
-                                checked={channel === "email"}
-                                onChange={(e) => setChannel(e.target.value)}
-                            />
-                            &nbsp; Email
-                        </label>
-                        <label className="bx">
-                            <input
-                                type="radio"
-                                name="channel"
-                                value="push"
-                                checked={channel === "push"}
-                                onChange={(e) => setChannel(e.target.value)}
-                            />
-                            &nbsp; push
-                        </label>
-
-                    </div>
-                    <div className="d-flex gap-4 mb-4 bc-radio">
-                        {/* <label className="d-flex align-items-center gap-2">
-                            <input type="radio" defaultChecked />
-                            Send Now
-                        </label> */}
-                        <label className="bx">
-                            <input
-                                type="radio"
-                                name="schedule"
-                                value="sendNow"
-                                checked={schedule === "sendNow"}
-                                onChange={(e) => setSchedule(e.target.value)}
-                            />
-                            &nbsp; Send Now
-                        </label>
-                        <label className="bx">
-                            <input
-                                type="radio"
-                                name="schedule"
-                                value="scheduleLater"
-                                checked={schedule === "scheduleLater"}
-                                onChange={(e) => setSchedule(e.target.value)}
-                            />
-                            &nbsp; Schedule for Later
-                        </label>
-                        {schedule === "scheduleLater" && (
-                            <div className="mt-3">
-                                <label className="sv-lb">Select Date & Time</label>
-                                <input
-                                    type="datetime-local"
-                                    className="sv-in"
-                                    value={scheduleDateTime}
-                                    onChange={(e) => setScheduleDateTime(e.target.value)}
-                                />
-                            </div>
-                        )}
-                    </div>
 
                     <div className="d-flex gap-2 justify-content-end">
-                        <button className="btn-ol">Preview</button>
-                        <button className="btn-ol" onClick={() => { SubmitBroadcast("draft") }}>Save Draft</button>
-                        <button className="btn-ac" onClick={() => { scheduleDateTime ? SubmitBroadcast("scheduled") : SubmitBroadcast("sent") }}>Publish ✈</button>
+
+                        <button className="btn-ac" onClick={CreateStaff}>Create</button>
                     </div>
 
                 </div>
@@ -386,4 +300,4 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
 }
 
-export default CreateBroadcast
+export default CreateStaffAttendance

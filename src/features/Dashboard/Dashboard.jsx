@@ -12,8 +12,12 @@ import Register from "../Register/Register";
 import { APP_CSS } from "../../components/Common/GlobalCss";
 import Complaints from "../Complaints/Complaints";
 import Broadcast from "../Broadcast/Broadcast";
-import { GetSessionData } from "../../utils/SessionManagement";
+import { GetSessionData, SessionDestroy } from "../../utils/SessionManagement";
 import CreatePoll from "../Polls/CreatePoll";
+import CreateComplaints from "../Complaints/CreateComplaints";
+import CreateStaffAttendance from "../StaffAttendance/CreateStaffAttendance";
+import LoginPage from "../auth/LoginPage";
+import { useNavigate } from "react-router-dom";
 
 /* ══ OVERVIEW ══════════════════════════════════ */
 
@@ -75,6 +79,7 @@ const TITLES = {
   registers: ["Administration", "Registers"],
   rules: ["Administration", "Rules & By-laws"],
   complaints: ["Operations", "Complaints"],
+  createComplaints: ["Operations", "Create Complaints"],
   parking: ["Operations", "Parking"],
   rentals: ["Operations", "Rentals & Tenants"],
   staff: ["Operations", "Staff Attendance"],
@@ -82,11 +87,15 @@ const TITLES = {
 
 /* ══ ROOT APP ══════════════════════════════════ */
 export default function App() {
+  const navigation = useNavigate();
   const [active, setActive] = useState("overview");
   const [collapsed, setCollapsed] = useState(false);
   const [societyName, setSocietyName] = useState("")
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
+
+  const [broadcastId, setBroadcastId] = useState(null);
+  const [staffId, setStaffId] = useState(null)
 
 
   useLayoutEffect(() => {
@@ -108,8 +117,8 @@ export default function App() {
 
   const PAGES = {
     overview: <Overview />,
-    broadcasting: <Broadcast setActive={setActive} />,
-    createbroadcast: <CreateBroadcast setActive={setActive} />,
+    broadcasting: <Broadcast setActive={setActive} setBroadcastId={setBroadcastId} />,
+    createbroadcast: <CreateBroadcast setActive={setActive} broadcastId={broadcastId} />,
     noticeboard: <NoticeBoard />,
     polls: <Polls setActive={setActive} />,
     createPoll: <CreatePoll setActive={setActive} />,
@@ -119,10 +128,12 @@ export default function App() {
     flattransfer: <FlatTransfer />,
     registers: <Register />,
     rules: <Rules />,
-    complaints: <Complaints />,
+    complaints: <Complaints setActive={setActive} />,
+    createComplaints: <CreateComplaints setActive={setActive} />,
     parking: <PlaceholderPage label="Parking" />,
     rentals: <PlaceholderPage label="Rentals & Tenants" />,
-    staff: <StaffAttendance />,
+    staff: <StaffAttendance setActive={setActive} setBroadcastId={setBroadcastId} />,
+    createStaff: <CreateStaffAttendance setActive={setActive} broadcastId={broadcastId} />
   };
 
   const [sec, pg] = TITLES[active] || ["", ""];
@@ -140,6 +151,11 @@ export default function App() {
     setLastName(data.data.last_name)
   }
 
+  const LogoutData = async () => {
+    console.log("adbcd")
+    await SessionDestroy()
+    navigation("/")
+  }
   return (
     <div className="app-shell">
 
@@ -182,9 +198,11 @@ export default function App() {
               month: "short",
               year: "numeric",
             })}</span>
+
             <button className="tb-avatar">🔔</button>
             <button className="tb-avatar" style={{ background: "#e2e8f0", color: "var(--text)" }}>👤</button>
             <span className="tb-name">{firstName} {lastName}</span>
+            <button className="btn btn-secondary"><span className="tb-name" onClick={LogoutData}>Logout</span></button>
           </div>
         </header>
 
