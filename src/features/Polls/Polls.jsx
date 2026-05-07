@@ -5,7 +5,7 @@ import { GetSessionData } from '../../utils/SessionManagement';
 import { getPollApi, getPollOverviewApi } from '../../services/PollApi';
 
 const Polls = ({ setActive }) => {
-    const [tab, setTab] = useState("Active");
+    const [tab, setTab] = useState("");
     const [societyId, setSocietyId] = useState("")
     const [userId, setUserId] = useState("")
     const [allPolls, setAllPolls] = useState([])
@@ -17,7 +17,11 @@ const Polls = ({ setActive }) => {
     //     { icon: "🗓", title: "Visitor Parking Policy Revision", id: "#POLL-2024-006", meta: "Starts: Nov 20, 2024 (10:00 AM)", tags: ["Rules & Regulations", "Per Member"], status: "Scheduled", sc: "orange" },
     // ];
 
-
+    const tabs = [
+        { id: "Active", value: "ACTIVE" },
+        { id: "Upcoming", value: "UPCOMING" },
+        { id: "Expired", value: "EXPIRED" },
+    ];
     useEffect(() => {
         SessionData()
     }, [])
@@ -43,10 +47,10 @@ const Polls = ({ setActive }) => {
     }
 
     const statsData = [
-        [pollsOverview.active_polls, "Active Polls", ""],
-        [`${Math.round(pollsOverview.avg_turnout_percent * 100)}%`, "Avg Turnout", ""],
-        [pollsOverview.total_polls, "Total Polls (YTD)", ""],
-        [`${Math.round(pollsOverview.digital_adoption_percent)}%`, "Digital Adoption", "tx-success"]
+        [pollsOverview.active_polls || "", "Active Polls", ""],
+        [`${Math.round(pollsOverview.avg_turnout_percent || " " * 100)}%`, "Avg Turnout", ""],
+        [pollsOverview.total_polls || "", "Total Polls (YTD)", ""],
+        [`${Math.round(pollsOverview.digital_adoption_percent)}%` | "", "Digital Adoption", "tx-success"]
     ];
 
     const totalUsers = 300; // ⚠️ replace with API value if available
@@ -55,6 +59,10 @@ const Polls = ({ setActive }) => {
     const getTotalVotes = (options) => {
         return options.reduce((sum, o) => sum + o.votes, 0);
     };
+
+    const filteredData = tab === ""
+        ? allPolls
+        : allPolls.filter((item) => item.status === tab);
 
     return (
         <div className="pg row g-4 pl-wrap">
@@ -65,13 +73,14 @@ const Polls = ({ setActive }) => {
                 <div className="d-flex gap-2 flex-wrap mb-3 align-items-center ">
                     <div className="PollsTabs"
                     >
-                        {["Active", "Scheduled", "Closed", "Drafts"].map((t) => (
+                        {tabs.map((t) => (
                             <button
-                                key={t}
-                                onClick={() => setTab(t)}
-                                className={`PollsTabs-btn ${tab === t ? "active" : ""}`}
+                                key={t.id}
+                                onClick={() => setTab(t.value)}
+                                className={`PollsTabs-btn ${tab === t.value ? "active" : ""}`}
                             >
-                                {t}
+                                {t.id}
+
                             </button>
                         ))}
                     </div>
@@ -80,7 +89,7 @@ const Polls = ({ setActive }) => {
                     <button className="btn-ac" onClick={() => setActive("createPoll")}>+ Create Poll</button>
                 </div>
 
-                {allPolls.map((p, i) => {
+                {filteredData.map((p, i) => {
                     const totalVotes = getTotalVotes(p.options);
                     let expiryLabel = "";
 
@@ -137,11 +146,28 @@ const Polls = ({ setActive }) => {
                                     {p.status !== "ACTIVE" && (
                                         <>
                                             <div className="pl-result">
-                                                Result: <span className="tx-success pl-result-val">Yes (65%)</span> vs No (35%)
-                                                &nbsp;<span className="tx-muted">{p.totalVotes}</span>
+                                                {/* Result: <span className="tx-success pl-result-val">Yes (65%)</span> vs No (35%) */}
+                                                Result:{" "}
+
+                                                <span className="tx-success pl-result-val">
+                                                    {p.options.map((t, index) => (
+                                                        <span key={index}>
+                                                            {t.text} ({t.votes}%)
+                                                        </span>
+                                                    ))}
+                                                </span>
+
+                                                &nbsp;
+
+                                                <span className="tx-muted">
+                                                    {p.totalVotes}
+                                                </span>
                                             </div>
 
-                                            <Prog pct={65} color="var(--accent)" />
+                                            <Prog
+                                                pct={p.totalVotes || 0}
+                                                color="var(--accent)"
+                                            />
                                         </>
                                     )}
 

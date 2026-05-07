@@ -22,3 +22,71 @@ export const getNoticeBoardApi = async (societyId) => {
         throw errors;
     });
 }
+
+export const createNoticeApi = async (societyId, userId, title, description, noticeType, priority, status) => {
+    const url = UrlData + 'notice/CreateNotice';
+    const data = {
+        society_id: societyId,
+        created_by: userId,
+        title: title,
+        description: description,
+        notice_type: noticeType,
+        priority: priority,
+        status: status,
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors create NoticeBoard");
+        throw errors;
+    });
+}
+
+export const getNoticeBoardByIdApi = async (noticeId) => {
+    const url = UrlData + 'notice/GetNoticebyId';
+    const data = {
+        notice_id: noticeId,
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors get NoticeBoard by id");
+        throw errors;
+    });
+}
+
+export const updateNoticeApi = async (noticeId, title, description, noticeType, priority, status) => {
+    const url = UrlData + 'notice/UpdateNotice';
+    const data = {
+        notice_id: noticeId,
+        title: title,
+        description: description,
+        notice_type: noticeType,
+        priority: priority,
+        status: status,
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors update NoticeBoard");
+        throw errors;
+    });
+}

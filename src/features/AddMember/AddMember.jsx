@@ -64,11 +64,17 @@ const AddMember = () => {
         } else if (!/\S+@\S+\.\S+/.test(emailId)) {
             errors.emailId = "Invalid email";
         }
+        else{
+            errors.emailId = ""
+        }
 
         if (!mobileNo) {
             errors.mobileNo = "required";
         } else if (!/^[0-9]{10}$/.test(mobileNo)) {
             errors.mobileNo = "Invalid mobile no.";
+        }
+        else{
+            errors.mobileNo = ""
         }
 
         if (!wing) {

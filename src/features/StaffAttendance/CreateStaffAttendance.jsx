@@ -5,6 +5,7 @@ import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi, getBroadcastByIdApi, UpdateBroadcastApi } from '../../services/BroadcastApi';
 import { createComplaintsApi } from '../../services/ComplaintsApi';
 import { createStaffApi } from '../../services/StaffAttendanceApi';
+import { toast } from "react-toastify";
 
 const CreateStaffAttendance = ({ setActive, staffId }) => {
     const [role, setRole] = useState("security");
@@ -16,11 +17,14 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
     const [content, setContent] = useState("")
     const [attchment, setAttchment] = useState(null)
     const [channel, setChannel] = useState("")
+    const [salary, setSalary] = useState("")
+    const [joiningDate, setJoiningDate] = useState("")
     const [societyId, setSocietyId] = useState("")
     const [schedule, setSchedule] = useState("sendNow")
     const [errors, setErrors] = useState({})
     const [scheduleDateTime, setScheduleDateTime] = useState("");
     const [bId, setBId] = useState("")
+    const [errorText, setErrorText] = useState("")
 
     const tabs = [
         { id: "Security", icon: "📢", value: "security" },
@@ -40,117 +44,79 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
         console.log(data.data)
         const flats = data.data.flats[0]
         setSocietyId(flats.society_id)
-        // GetBroadCastById()
     }
 
-    const GetBroadCastById = async () => {
-        const data = await getBroadcastByIdApi(staffId)
-        console.log(data)
-        setSubject(data.title)
-        setContent(data.message)
-        setTab(data.type)
-        setChannel(data.channel)
-        setBId(data.broadcast_id)
-    }
-
-    const handleFileChange = (e) => {
-        const selected = e.target.files[0];
-        if (selected) {
-            setAttchment(selected);
-        }
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        const droppedFile = e.dataTransfer.files[0];
-        if (droppedFile) {
-            setAttchment(droppedFile);
-        }
-    };
-
-    const handleDragOver = (e) => {
-        e.preventDefault();
-    };
-
-    const CreateStaff = async () => {
-        // const validationErrors = validateForm();
-
-        // if (Object.keys(validationErrors).length > 0) {
-        //     setErrors(validationErrors);
-        //     return; 
-        // }
-
-        const data = await createStaffApi(societyId, firstName, lastName, emailId, mobileNo, role)
-        console.log(data)
-        setActive(staff)
-    }
     const validateForm = () => {
         let errors = {};
 
-        if (!subject) {
-            errors.subject = "required";
+        if (!firstName) {
+            errors.firstName = "required";
         }
 
-        if (!content) {
-            errors.content = "required";
+        if (!lastName) {
+            errors.lastName = "required";
         }
+        if (!emailId) {
+            errors.emailId = "required";
+        } else if (!/\S+@\S+\.\S+/.test(emailId)) {
+            errors.emailId = "Invalid email";
+        }
+   
+
+        if (!mobileNo) {
+            errors.mobileNo = "required";
+        } else if (!/^[0-9]{10}$/.test(mobileNo)) {
+            errors.mobileNo = "Invalid mobile no.";
+        }
+        // else {
+        //     errors.mobileNo = "";
+        // }
+
+        if (!joiningDate) {
+            errors.joiningDate = "required";
+        }
+
         return errors;
     };
 
-    const SubmitBroadcast = async (status) => {
+const CreateStaff = async () => {
+console.log("hi")
+    try {
+
         const validationErrors = validateForm();
 
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
-            return; // 👈 important
+            return;
         }
 
-        try {
-            let response;
-            console.log("Update Broadcast:", bId);
-            if (bId) {
-                // ✅ UPDATE CASE
-                console.log("Update Broadcast:", bId);
+        const data = await createStaffApi(
+            societyId,
+            firstName,
+            lastName,
+            emailId,
+            mobileNo,
+            role,
+            salary,
+            joiningDate
+        );
 
-                response = await UpdateBroadcastApi(
-                    bId,       // 👈 id add
-                    subject,
-                    content,
-                    channel,
-                    status,
-                    tab,
-                    attchment,
-                    scheduleDateTime
-                );
+        console.log(data);
 
-            } else {
-                // ✅ CREATE CASE
-                console.log("Create Broadcast");
+        toast.success("Staff created");
 
-                response = await CreateBroadcastApi(
-                    societyId,
-                    subject,
-                    content,
-                    channel,
-                    status,
-                    tab,
-                    attchment,
-                    scheduleDateTime
-                );
-            }
+        setActive("staff");
 
-            console.log("API Response:", response);
+    } catch (error) {
 
-            // 👉 optional: success ke baad redirect
-            // navigate("/broadcasting");
-            setActive("broadcasting")
+        console.log(error);
 
-        } catch (error) {
-            console.error("Submit Error:", error);
-        }
-    };
+        setErrorText(error
+        );
 
 
+    }
+};
 
     const handleChannelChange = (e) => {
         const { name, checked } = e.target;
@@ -196,6 +162,7 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)} />
 
+
                     <div className='d-flex'>
                         <label className="sv-lb">Last Name <span className='text-danger'>*</span></label>
                         {errors.lastName && <span className='text-danger mx-2 '>{errors.lastName}</span>}
@@ -226,6 +193,28 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
                         value={mobileNo}
                         onChange={(e) => setMobileNo(e.target.value)} />
 
+
+                    <div className='d-flex'>
+                        <label className="sv-lb">Salary</label>
+                        {errors.salary && <span className='text-danger mx-2 '>{errors.salary}</span>}
+                    </div>
+
+                    <input className={`sv-in mb-3 ${errors.salary ? "error-input" : ""}`} placeholder="Enter salary"
+                        value={salary}
+                        onChange={(e) => setSalary(e.target.value)} />
+
+
+                    <div className='d-flex'>
+                        <label className="sv-lb">Joining Date<span className='text-danger'>*</span></label>
+                        {errors.joiningDate && <span className='text-danger mx-2 '>{errors.joiningDate}</span>}
+                    </div>
+
+                    <input className={`sv-in mb-3 ${errors.joiningDate ? "error-input" : ""}`} placeholder="Enter salary"
+                        type='date'
+                        value={joiningDate}
+                        onChange={(e) => setJoiningDate(e.target.value)} />
+
+                    {errorText && <h6 className='text-danger'>{errorText}</h6>}
 
                     <div className="d-flex gap-2 justify-content-end">
 

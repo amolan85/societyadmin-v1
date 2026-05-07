@@ -139,7 +139,7 @@ const Complaints = ({ setActive }) => {
         <div className="row g-3 mb-4">
           {[
             [totalOpen, "Total Open", "tile-red"],
-            [totalProgress,"Total Progress", "tile-org"],
+            [totalProgress, "Total Progress", "tile-org"],
             [totalResolved, "Resolved Today", "tile-grn"],
             [avgResolution, "Avg Resolution", "tile-blu"]
           ].map(([v, l, cls]) => (
@@ -171,17 +171,18 @@ const Complaints = ({ setActive }) => {
                     <td className="cp-title-cell">{c.description}</td>
                     <td className="cp-muted">{c.unit}</td>
                     <td>
-                      <Badge label={c.category_name} c="gray" />
+                      <Badge label={c.category_name}  />
                     </td>
-                    <td style={{ cursor: "pointer" }}
-                      onClick={() => {
+                    <td
+                    // style={{ cursor: "pointer" }}
+                     /*  onClick={() => {
                         setSelectedData(c);
-                        setPriority(c.priority);   // 👈 yeh add karo
-                        setComments("");           // 👈 optional: reset comments
+                        setPriority(c.priority);  
+                        setComments("");          
                         setModalType("priority");
                         setComplaintId(c.complaint_id)
                         setShowModal(true);
-                      }}>
+                      }} */>
                       <Badge
                         label={c.priority}
                         c={
@@ -191,8 +192,6 @@ const Complaints = ({ setActive }) => {
                               ? "orange"
                               : "gray"
                         }
-
-
                       />
 
                     </td>

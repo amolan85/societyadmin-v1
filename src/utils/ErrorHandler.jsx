@@ -28,6 +28,7 @@ const ErrorHandler = (error, navigation) => {
             // return "Something went wrong on the server. Please try again later.";
             return error.response?.data?.message;
         } else {
+              navigation.navigate("/");
             return "Something went wrong on the server. Please try again later.";
         }
     } catch (e) {

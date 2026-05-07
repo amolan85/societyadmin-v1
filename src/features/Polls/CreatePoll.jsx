@@ -1,77 +1,10 @@
-// import React from 'react'
-// import "../../styles/polls.css"
-// import Select from 'react-select'
-// import { FiEdit } from "react-icons/fi";
-
-// const CreatePoll = ({ setActive }) => {
-//     const options = [
-//         { value: 'chocolate', label: 'Chocolate' },
-//         { value: 'strawberry', label: 'Strawberry' },
-//         { value: 'vanilla', label: 'Vanilla' }
-//     ]
-
-//     return (
-//         <>
-//             <div className='container-fluid'>
-//                 <div className="header mt-4">
-//                     <h5 className="text-start fw-bold d-flex align-items-center gap-2">
-//                         <FiEdit size={18} color='text-primary' />
-//                         Create Poll
-//                     </h5>
-//                 </div>
-//                 <div className='poll-details '>
-//                     <div className="row">
-//                         <div className="col-md-9">
-//                             <div className="card px-2">
-//                                 <div className="card-body text-start">
-//                                     <div className='form-group'>
-//                                         <label htmlFor='pollTitle' className="form-label fw-bold">Poll Title</label>
-//                                         <input type="text" id="pollTitle" className="form-control" placeholder='Example: Schedule Maintenance of Lift B' />
-//                                     </div>
-//                                     <div className='form-group mt-3'>
-//                                         <label htmlFor='pollCategory' className="form-label fw-bold">Category</label>
-//                                         <Select options={options} placeholder="Select Category" />
-//                                     </div>
-//                                     <div className='form-group mt-3'>
-//                                         <label htmlFor='pollDescription' className="form-label fw-bold">Description</label>
-//                                         <textarea type="text" id="pollDescription" className="form-control" rows="4" placeholder='Provide details about members are voting for...' />
-//                                     </div>
-//                                     <div className="form-group mt-3">
-//                                         <label className="form-label fw-bold">Attachment</label>
-
-//                                         <div className="upload-box">
-//                                             <input
-//                                                 type="file"
-//                                                 id="pollAttachment"
-//                                                 className="file-input"
-//                                                 onChange={(e) => console.log(e.target.files[0])}
-//                                             />
-
-//                                             <div className="upload-content">
-//                                                 <div className="upload-icon">☁️</div>
-//                                                 <p>Click to upload supporting documents (PDF, JPG)</p>
-//                                             </div>
-//                                         </div>
-//                                     </div>
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 </div>
-
-//             </div>
-//         </>
-//     )
-// }
-
-// export default CreatePoll
-
 import React, { useState, useEffect } from 'react'
 import { Badge } from '../../components/Common/ReusableFunction';
 import "../../styles/Broadcast.css"
 import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi } from '../../services/BroadcastApi';
 import { CreatePollApi } from '../../services/PollApi';
+import { toast } from "react-toastify";
 
 const CreatePoll = ({ setActive }) => {
     const [tab, setTab] = useState("Announcement");
@@ -83,6 +16,7 @@ const CreatePoll = ({ setActive }) => {
     const [userId, setUserId] = useState("")
     const [options, setOptions] = useState(new Array(4).fill(""));
     const [errors, setErrors] = useState({})
+    const [errorText, setErrorText] = useState("")
 
     const tabs = [
         { id: "Announcement", icon: "📢" },
@@ -143,17 +77,35 @@ const CreatePoll = ({ setActive }) => {
         return errors;
     };
 
-    const SubmitBroadcast = async () => {
-        const validationErrors = validateForm();
+    const SubmitPoll = async () => {
 
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
+        try {
+
+            const validationErrors = validateForm();
+
+            if (Object.keys(validationErrors).length > 0) {
+                setErrors(validationErrors);
+                return;
+            }
+
+            const data = await CreatePollApi(
+                societyId,
+                userId,
+                title,
+                description,
+                options,
+                getDateTime(startDate),
+                getDateTime(endDate)
+            );
+
+            toast.success("Poll created successfully!")
+
+        } catch (error) {
+
+            console.log(error);
+            setErrorText(error)
         }
-        else {
-            const data = await CreatePollApi(societyId, userId, title, description, options, getDateTime(startDate), getDateTime(endDate))
-            console.log(data);
-        }
-    }
+    };
 
 
     return (
@@ -244,8 +196,10 @@ const CreatePoll = ({ setActive }) => {
                                 onChange={(e) => setEndDate(e.target.value)} />
                         </div>
                     </div>
+
+                    {errorText && <h6 className='text-danger'>{errorText}</h6>}
                     <div className="d-flex gap-2 justify-content-end">
-                        <button className="btn-ac" onClick={SubmitBroadcast}>Create Poll</button>
+                        <button className="btn-ac" onClick={SubmitPoll}>Create Poll</button>
                     </div>
 
                 </div>

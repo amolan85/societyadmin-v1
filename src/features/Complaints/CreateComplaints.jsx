@@ -7,15 +7,16 @@ import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi } from '../../services/BroadcastApi';
 import { CreatePollApi } from '../../services/PollApi';
 import { createComplaintsApi, getFlatsAndCategoryApi } from '../../services/ComplaintsApi';
+import { toast } from "react-toastify";
 
 const CreateComplaints = ({ setActive }) => {
-    const [category, setCategory] = useState("1");
+    const [category, setCategory] = useState(1);
     const [title, setTitle] = useState("")
     const [allunits, setAllunits] = useState([])
     const [unit, setUnit] = useState("")
     const [description, setDescription] = useState("")
     const [allCategory, setAllCategory] = useState([])
-    const [priority, setPriority] = useState("high")
+    const [priority, setPriority] = useState("")
     const [attachment, setAttachment] = useState()
     const [startDate, setStartDate] = useState("")
     const [endDate, setEndDate] = useState("")
@@ -23,14 +24,7 @@ const CreateComplaints = ({ setActive }) => {
     const [userId, setUserId] = useState("")
     const [options, setOptions] = useState(new Array(4).fill(""));
     const [errors, setErrors] = useState({})
-
-    const tabs = [
-        { id: "Maintenance", icon: "📢", value: "1" },
-        { id: "Plumbing", icon: "⚠️", value: "2" },
-        { id: "Electrical", icon: "📄", value: "3" },
-        { id: "Parking", icon: "📅", value: "4" },
-        { id: "Noise", icon: "📅", value: "5" },
-    ];
+    const [errorText, setErrorText] = useState("")
 
 
     useEffect(() => {
@@ -110,21 +104,46 @@ const CreateComplaints = ({ setActive }) => {
             errors.description = "required";
         }
 
+        if (!priority) {
+            errors.priority = "required";
+        }
 
         return errors;
     };
 
     const CreateComplaint = async () => {
-        const validationErrors = validateForm();
 
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
+        try {
+
+            const validationErrors = validateForm();
+
+            if (Object.keys(validationErrors).length > 0) {
+                setErrors(validationErrors);
+                return;
+            }
+
+            const data = await createComplaintsApi(
+                societyId,
+                userId,
+                category,
+                unit.value,
+                title,
+                description,
+                unit,
+                priority,
+                attachment
+            );
+
+            console.log(data);
+            toast.success("Complaints created successfully!")
+            setActive("complaints");
+
+        } catch (error) {
+
+            console.log(error);
+            setErrorText(error)
         }
-        else {
-            const data = await createComplaintsApi(societyId, userId, category, unit.value, title, description, unit, priority, attachment)
-            setActive("complaints")
-        }
-    }
+    };
 
 
     return (
@@ -216,17 +235,17 @@ const CreateComplaints = ({ setActive }) => {
                             />
                         </div>
 
+                        <div className='d-flex'>
+                            <label className="sv-lb">Priority <span className='text-danger'>*</span></label>
+                            {errors.description && <span className='text-danger mx-2 '>{errors.description}</span>}
+                        </div>
 
-                        <label className="sv-lb">Priority</label>
 
-                        {/* <div className="d-flex gap-2 mb-4">
-                        <span className="bx bx-blue">☑ App Notification</span>
-                        <span className="bx bx-gray">⊕ Add Channel</span>
-                    </div> */}
                         <div className="d-flex gap-3 mb-4">
 
                             <label className="bx">
                                 <input
+
                                     type="radio"
                                     name="priority"
                                     value="high"
@@ -258,6 +277,7 @@ const CreateComplaints = ({ setActive }) => {
                                 &nbsp; Low
                             </label>
                         </div>
+                        {errorText && <h6 className='text-danger'>{errorText}</h6>}
                         <div className="d-flex gap-2 justify-content-end">
                             <button className="btn-ac" onClick={CreateComplaint}>Create Complaints</button>
                         </div>

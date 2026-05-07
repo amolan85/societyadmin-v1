@@ -3,10 +3,11 @@ import ErrorHandler from "../utils/ErrorHandler";
 import UrlData from "../utils/Url";
 
 //api function for get staff attendance
-export const getStaffAttendanceApi = async (societyId) => {
+export const getStaffAttendanceApi = async (societyId, date) => {
     const url = UrlData + 'staff/GetAllStaffAttendance';
     const data = {
         society_id: societyId,
+        date: date
     }
     return await apiClient({
         method: 'post',
@@ -23,7 +24,7 @@ export const getStaffAttendanceApi = async (societyId) => {
 }
 
 
-export const createStaffApi = async (societyId, firstName, lastName, emailId, mobileNo, role) => {
+export const createStaffApi = async (societyId, firstName, lastName, emailId, mobileNo, role, salary, joiningDate) => {
     const url = UrlData + 'staff/CreateStaff';
     const data = {
         society_id: societyId,
@@ -32,8 +33,8 @@ export const createStaffApi = async (societyId, firstName, lastName, emailId, mo
         mobile: mobileNo,
         email: emailId,
         role: role,
-        // "salary": 20000,
-        // "joining_date": "2026-05-01"
+        salary: salary,
+        joining_date: joiningDate
     }
     return await apiClient({
         method: 'post',
@@ -45,6 +46,30 @@ export const createStaffApi = async (societyId, firstName, lastName, emailId, mo
         console.log(error);
         const errors = ErrorHandler(error);
         console.log(errors, "Errors create staff");
+        throw errors;
+    });
+}
+
+export const markAttendanceStaffApi = async (staffId, societyId, date, status, checkIn, checkOut) => {
+    const url = UrlData + 'staff/mark_attendance';
+    const data = {
+        staff_id: staffId,
+        society_id: societyId,
+        date: date,
+        status: status,
+        check_in: checkIn,
+        check_out: checkOut
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors mark attendance staff");
         throw errors;
     });
 }

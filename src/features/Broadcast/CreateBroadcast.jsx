@@ -3,6 +3,7 @@ import { Badge } from '../../components/Common/ReusableFunction';
 import "../../styles/Broadcast.css"
 import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi, getBroadcastByIdApi, UpdateBroadcastApi } from '../../services/BroadcastApi';
+import { toast } from "react-toastify";
 
 const CreateBroadcast = ({ setActive, broadcastId }) => {
     console.log(broadcastId, "id")
@@ -16,6 +17,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
     const [errors, setErrors] = useState({})
     const [scheduleDateTime, setScheduleDateTime] = useState("");
     const [bId, setBId] = useState("")
+    const [errorText, setErrorText] = useState("")
 
     const tabs = [
         { id: "Announcement", icon: "📢", value: "announcement" },
@@ -33,18 +35,27 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         console.log(data.data)
         const flats = data.data.flats[0]
         setSocietyId(flats.society_id)
-        GetBroadCastById()
+
     }
 
+    useEffect(() => {
+        if (broadcastId) {
+            GetBroadCastById();
+        }
+    }, [broadcastId]);
+
     const GetBroadCastById = async () => {
-        const data = await getBroadcastByIdApi(broadcastId)
-        console.log(data)
-        setSubject(data.title)
-        setContent(data.message)
-        setTab(data.type)
-        setChannel(data.channel)
-        setBId(data.broadcast_id)
-    }
+
+        const data = await getBroadcastByIdApi(broadcastId);
+
+        console.log(data);
+
+        setSubject(data?.title || "");
+        setContent(data?.message || "");
+        setTab(data?.type || "");
+        setChannel(data?.channel || "");
+        setBId(data?.broadcast_id || null);
+    };
 
     const handleFileChange = (e) => {
         const selected = e.target.files[0];
@@ -88,11 +99,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
         try {
             let response;
-            console.log("Update Broadcast:", bId);
             if (bId) {
-                // ✅ UPDATE CASE
-                console.log("Update Broadcast:", bId);
-
                 response = await UpdateBroadcastApi(
                     bId,       // 👈 id add
                     subject,
@@ -103,10 +110,8 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
                     attchment,
                     scheduleDateTime
                 );
-
+                toast.success("Broadcast updated  successfully!");
             } else {
-                // ✅ CREATE CASE
-                console.log("Create Broadcast");
 
                 response = await CreateBroadcastApi(
                     societyId,
@@ -118,15 +123,15 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
                     attchment,
                     scheduleDateTime
                 );
+                toast.success("Broadcast created successfully!");
             }
 
             console.log("API Response:", response);
 
-            // 👉 optional: success ke baad redirect
-            // navigate("/broadcasting");
             setActive("broadcasting")
 
         } catch (error) {
+            setErrorText(error)
             console.error("Submit Error:", error);
         }
     };
@@ -275,10 +280,6 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
                     </div>
                     <div className="d-flex gap-4 mb-4 bc-radio">
-                        {/* <label className="d-flex align-items-center gap-2">
-                            <input type="radio" defaultChecked />
-                            Send Now
-                        </label> */}
                         <label className="bx">
                             <input
                                 type="radio"
@@ -299,19 +300,25 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
                             />
                             &nbsp; Schedule for Later
                         </label>
-                        {schedule === "scheduleLater" && (
-                            <div className="mt-3">
-                                <label className="sv-lb">Select Date & Time</label>
-                                <input
-                                    type="datetime-local"
-                                    className="sv-in"
-                                    value={scheduleDateTime}
-                                    onChange={(e) => setScheduleDateTime(e.target.value)}
-                                />
-                            </div>
-                        )}
+
+                    </div>
+                    <div className='d-flex'>
+                        <div className="gap-3">
+                            {schedule === "scheduleLater" && (
+                                <div className="">
+                                    <label className="sv-lb">Select Date & Time</label>
+                                    <input
+                                        type="datetime-local"
+                                        className="sv-in"
+                                        value={scheduleDateTime}
+                                        onChange={(e) => setScheduleDateTime(e.target.value)}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
 
+                    {errorText && <h6 className='text-danger'>{errorText}</h6>}
                     <div className="d-flex gap-2 justify-content-end">
                         <button className="btn-ol">Preview</button>
                         <button className="btn-ol" onClick={() => { SubmitBroadcast("draft") }}>Save Draft</button>

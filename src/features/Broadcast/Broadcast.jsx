@@ -7,12 +7,12 @@ import { GetSessionData } from '../../utils/SessionManagement';
 import { FiEdit } from 'react-icons/fi';
 
 
-const Broadcast = ({ setActive }) => {
+const Broadcast = ({ setActive, setBroadcastId }) => {
     const [page, setPage] = useState(1);
     const [allBroadcast, setAllBroadcast] = useState([])
     const [showCreate, setShowCreate] = useState(false);
     const [societyId, setSocietyId] = useState("")
-    const [broadcastId, setBroadcastId] = useState("")
+    // const [broadcastId, setBroadcastId] = useState("")
     const [pendingId, setPendingId] = useState(null)
 
     const all = [
@@ -68,18 +68,12 @@ const Broadcast = ({ setActive }) => {
         setAllBroadcast(data)
     }
 
-const getBroadcastById = (id) => {
-    setPendingId(id);      // pehle ID set karo
-};
+    const getBroadcastById = (id) => {
+        setBroadcastId(id);
+        setActive("createbroadcast");    // pehle ID set karo
+    };
 
-useEffect(() => {
-    if (pendingId !== null) {
-        setBroadcastId(pendingId);
-        setActive("createbroadcast");  // ID set hone ke baad navigate karo
-        setPendingId(null);
-        
-    }
-}, [pendingId]);
+
 
     const per = 5, total = Math.ceil(allBroadcast.length / per);
     const rows = allBroadcast.slice((page - 1) * per, page * per);
@@ -92,7 +86,7 @@ useEffect(() => {
                 <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                     <h4 className="sa-title">Broadcast</h4>
                     <div className="d-flex gap-2">
-                        <button className='btn btn-sm btn-primary' onClick={() => setActive("createbroadcast")}>Create</button>
+                        <button className='btn btn-sm btn-primary' onClick={() => { setActive("createbroadcast"); setBroadcastId("") }}>Create</button>
 
                         <button className="btn-ol">⬇ Export</button>
                     </div>
@@ -117,10 +111,22 @@ useEffect(() => {
                                         <td className="sa-muted">{s.message}</td>
                                         <td className="sa-muted"><img src={s.file_url} height={50} /></td>
                                         <td>
-                                            <Badge label={s.type} c="gray" />
+                                            <Badge label={s.type} c="gray"
+                                                c={
+                                                    s.type === "announcement"
+                                                        ? "red"
+                                                        : s.type === "emergency"
+                                                            ? "orange"
+                                                            : s.type === "circular"
+                                                                ? "green"
+                                                                : "gray"
+                                                }
+                                            />
                                         </td>
-                                        <td className="sa-muted">{s.scheduled_at}</td>
-                                        <td className="sa-muted">{s.status === "draft" ? <FiEdit onClick={() => getBroadcastById(s.broadcast_id)} /> : s.status}</td>
+                                        <td className="sa-muted">
+                                            {s.scheduled_at}
+                                        </td>
+                                        <td className="sa-muted" style={{ cursor: "pointer" }}>{s.status === "draft" ? <FiEdit onClick={() => getBroadcastById(s.broadcast_id)} /> : s.status}</td>
 
                                     </tr>
                                 ))}

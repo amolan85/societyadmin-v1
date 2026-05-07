@@ -5,13 +5,16 @@ import { getStaffAttendanceApi } from '../../services/StaffAttendanceApi';
 import { GetSessionData } from '../../utils/SessionManagement';
 import CreateStaff from './CreateStaffAttendance';
 
-const StaffAttendance = ({setActive, setStaffId}) => {
+const StaffAttendance = ({ setActive, setStaffId }) => {
     const [page, setPage] = useState(1);
+    const [societyId, setSocietyId] = useState("")
     const [allStaff, setAllStaff] = useState([])
+    const [date, setDate] = useState(new Date().toISOString().split("T")[0])
     const [totalStaff, setTotalStaff] = useState("")
     const [present, setPresent] = useState("")
     const [absent, setAbsent] = useState("")
     const [late, setLate] = useState("")
+
     // const all = [
     //     { name: "Ramesh Gupta", role: "Security Guard", shift: "Morning", st: "Present", sc: "green", time: "08:02 AM" },
     //     { name: "Suresh Patil", role: "Housekeeping", shift: "Morning", st: "Present", sc: "green", time: "08:15 AM" },
@@ -25,21 +28,22 @@ const StaffAttendance = ({setActive, setStaffId}) => {
     //     { name: "Vikas Rao", role: "Maintenance", shift: "Morning", st: "Absent", sc: "red", time: "—" },
     // ];
 
-      useEffect(() => {
+    useEffect(() => {
         SessionData()
-      }, [])
-    
-      const SessionData = async () => {
+    }, [])
+
+    const SessionData = async () => {
         const data = await GetSessionData()
         console.log(data.data)
         const flats = data.data.flats[0]
+        setSocietyId(flats.society_id)
         getStaff(flats.society_id)
-    
-      }
+
+    }
 
     //function for get staff
     const getStaff = async (societyId) => {
-        const data = await getStaffAttendanceApi(societyId)
+        const data = await getStaffAttendanceApi(societyId, date)
         console.log(data)
         setAllStaff(data.list)
         setTotalStaff(data.count)
@@ -50,7 +54,11 @@ const StaffAttendance = ({setActive, setStaffId}) => {
     const per = 5, total = Math.ceil(allStaff.length / per);
     const rows = allStaff.slice((page - 1) * per, page * per);
 
-
+    const dateHandleChange = async (e) => {
+        setDate(e.target.value)
+        const data = await getStaffAttendanceApi(societyId, e.target.value)
+        console.log(data)
+    }
 
     return (
 
@@ -61,11 +69,12 @@ const StaffAttendance = ({setActive, setStaffId}) => {
                 <h4 className="sa-title">Staff Attendance</h4>
 
                 <div className="d-flex gap-2">
-                     <button className="btn-ol" onClick={()=>setActive("createStaff")}>Create</button>
+                    <button className="btn  btn-primary" onClick={() => setActive("createStaff")}>Create</button>
                     <input
                         type="date"
                         className="sv-in sa-date"
-                        defaultValue="2025-12-14"
+                        value={date}
+                        onChange={dateHandleChange}
                     />
                     <button className="btn-ol">⬇ Export</button>
                 </div>
@@ -112,9 +121,16 @@ const StaffAttendance = ({setActive, setStaffId}) => {
                                     </td>
 
                                     <td>
-                                        <Badge label={s.status} c={s.sc} />
+                                        <Badge label={s.status} c={
+                                            s.status === "present"
+                                                ? "green"
+                                                : s.status === "absent"
+                                                    ? "red"
+                                                    : s.status === "late"
+                                                        ? "tile-org"
+                                                        : "gray"
+                                        } />
                                     </td>
-
                                     <td className={s.st === "Absent" ? "sa-muted" : "sa-time"}>
                                         {s.check_in}
                                     </td>

@@ -18,6 +18,7 @@ import CreateComplaints from "../Complaints/CreateComplaints";
 import CreateStaffAttendance from "../StaffAttendance/CreateStaffAttendance";
 import LoginPage from "../auth/LoginPage";
 import { useNavigate } from "react-router-dom";
+import CreateNoticeBoard from "../NoticeBoard/CreateNoticeBoard";
 
 /* ══ OVERVIEW ══════════════════════════════════ */
 
@@ -70,6 +71,7 @@ const TITLES = {
   broadcasting: ["Communication", "Broadcasting"],
   createbroadcast: ["Communication", "Create Broadcast"],
   noticeboard: ["Communication", "Notice Board"],
+  createNoticeBoard: ["Communication", "Create Notice Board"],
   createPoll: ["Communication", "Create Poll"],
   polls: ["Communication", "Polls & Voting"],
   addmember: ["Member Masters", "Members"],
@@ -83,6 +85,7 @@ const TITLES = {
   parking: ["Operations", "Parking"],
   rentals: ["Operations", "Rentals & Tenants"],
   staff: ["Operations", "Staff Attendance"],
+  createStaff: ["Operations", "Create Staff Attendance"],
 };
 
 /* ══ ROOT APP ══════════════════════════════════ */
@@ -96,6 +99,7 @@ export default function App() {
 
   const [broadcastId, setBroadcastId] = useState(null);
   const [staffId, setStaffId] = useState(null)
+  const [selectedNoticeData, setSelectedNoticeData] = useState()
 
 
   useLayoutEffect(() => {
@@ -119,7 +123,7 @@ export default function App() {
     overview: <Overview />,
     broadcasting: <Broadcast setActive={setActive} setBroadcastId={setBroadcastId} />,
     createbroadcast: <CreateBroadcast setActive={setActive} broadcastId={broadcastId} />,
-    noticeboard: <NoticeBoard />,
+
     polls: <Polls setActive={setActive} />,
     createPoll: <CreatePoll setActive={setActive} />,
     addmember: <AddMember />,
@@ -133,8 +137,11 @@ export default function App() {
     parking: <PlaceholderPage label="Parking" />,
     rentals: <PlaceholderPage label="Rentals & Tenants" />,
     staff: <StaffAttendance setActive={setActive} setBroadcastId={setBroadcastId} />,
-    createStaff: <CreateStaffAttendance setActive={setActive} broadcastId={broadcastId} />
+    createStaff: <CreateStaffAttendance setActive={setActive} broadcastId={broadcastId} />,
+    noticeboard: <NoticeBoard setActive={setActive} setSelectedNoticeData={setSelectedNoticeData} />,
+    createNoticeBoard: <CreateNoticeBoard setActive={setActive} selectedNoticeData={selectedNoticeData} />,
   };
+
 
   const [sec, pg] = TITLES[active] || ["", ""];
 
@@ -157,59 +164,64 @@ export default function App() {
     navigation("/")
   }
   return (
-    <div className="app-shell">
+    <>
+      <div className="app-shell">
 
-      {/* SIDEBAR */}
-      <nav className={`sidebar ${collapsed ? "collapsed" : ""} `}>
-        <div className="sidebar-logo">
-          <div className="logo-box">GV</div>
-          <div>
-            <div className="logo-name">{societyName}</div>
-            <div className="logo-sub text-start">Society Admin</div>
-          </div>
-        </div>
-        <div className="sidebar-nav ">
-          {NAV.map(({ sec: section, items }) => (
-            <div className="text-start" key={section}>
-              <div className="nav-section text-start">{section}</div>
-              {items.map(item => (
-                <button key={item.id} className={`nav-item ${active === item.id ? "active" : ""}`} onClick={() => setActive(item.id)}>
-                  <span className="ni">{item.icon}</span>
-                  <span className="nl">{item.lbl}</span>
-                </button>
-              ))}
+        {/* SIDEBAR */}
+        <nav className={`sidebar ${collapsed ? "collapsed" : ""} `}>
+          <div className="sidebar-logo">
+            <div className="logo-box">GV</div>
+            <div>
+              <div className="logo-name">{societyName}</div>
+              <div className="logo-sub text-start">Society Admin</div>
             </div>
-          ))}
+          </div>
+          <div className="sidebar-nav ">
+            {NAV.map(({ sec: section, items }) => (
+              <div className="text-start" key={section}>
+                <div className="nav-section text-start">{section}</div>
+                {items.map(item => (
+                  <button key={item.id} className={`nav-item ${active === item.id ? "active" : ""}`} onClick={() => setActive(item.id)}>
+                    <span className="ni">{item.icon}</span>
+                    <span className="nl">{item.lbl}</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </nav>
+
+        {/* MAIN */}
+        <div className="main-area">
+          <header className="topbar">
+            <button className="tb-toggle" onClick={() => setCollapsed(c => !c)}>☰</button>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+              <span style={{ color: "var(--muted)" }}>{sec}</span>
+              <span style={{ color: "var(--muted)" }}>/</span>
+              <span className="tx-blue" style={{ fontWeight: 600, color: "blue" }}>{pg}</span>
+            </div>
+            <div className="tb-right">
+              <span className="tb-date"> {new Date().toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}</span>
+
+              <button className="tb-avatar">🔔</button>
+              <button className="tb-avatar" style={{ background: "#e2e8f0", color: "var(--text)" }}>👤</button>
+              <span className="tb-name">{firstName} {lastName}</span>
+              <button className="btn btn-secondary"><span className="tb-name" onClick={LogoutData}>Logout</span></button>
+            </div>
+          </header>
+
+          <main className="page-wrap" key={active}>
+            {PAGES[active] ?? <PlaceholderPage label={pg} />}
+          </main>
         </div>
-      </nav>
-
-      {/* MAIN */}
-      <div className="main-area">
-        <header className="topbar">
-          <button className="tb-toggle" onClick={() => setCollapsed(c => !c)}>☰</button>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
-            <span style={{ color: "var(--muted)" }}>{sec}</span>
-            <span style={{ color: "var(--muted)" }}>/</span>
-            <span className="tx-blue" style={{ fontWeight: 600, color: "blue" }}>{pg}</span>
-          </div>
-          <div className="tb-right">
-            <span className="tb-date"> {new Date().toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })}</span>
-
-            <button className="tb-avatar">🔔</button>
-            <button className="tb-avatar" style={{ background: "#e2e8f0", color: "var(--text)" }}>👤</button>
-            <span className="tb-name">{firstName} {lastName}</span>
-            <button className="btn btn-secondary"><span className="tb-name" onClick={LogoutData}>Logout</span></button>
-          </div>
-        </header>
-
-        <main className="page-wrap" key={active}>
-          {PAGES[active] ?? <PlaceholderPage label={pg} />}
-        </main>
       </div>
-    </div>
+
+    </>
+
+
   );
 }
