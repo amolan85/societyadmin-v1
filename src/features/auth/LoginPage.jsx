@@ -17,10 +17,11 @@ export default function LoginPage() {
     try {
       // await handleLogin(email, password);
       const data = await LoginApi(email, password)
-      console.log(data)
+      //console.log(data)
+      SetSession(response.data.data);
       navigate("/dashboard");
     } catch (err) {
-      alert(err.message);
+      alert(err);
     }
   };
 

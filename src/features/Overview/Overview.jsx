@@ -47,18 +47,30 @@ const Overview = () => {
     }, [])
 
     const GetDashboard = async () => {
-        const data = await OverviewApi()
-        // console.log(data)
-        setBarData(data.monthly_data || "")
-        setTotalVisits(data.total_visits || "")
-        setPendingApproval(data.pending_visits || "")
-        setActiveComplaints(data.active_complaints_count || "")
-        setStaffAttendance(data.staff_attendance || "")
+        setLoading(true);
+        try {
+            const data = await OverviewApi()
+            // console.log(data)
+            setBarData(data.monthly_data || "")
+            setTotalVisits(data.total_visits || "")
+            setPendingApproval(data.pending_visits || "")
+            setActiveComplaints(data.active_complaints_count || "")
+            setStaffAttendance(data.staff_attendance || "")
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
-
-        <div className="pg">
+        <>
+            {loading ? (
+                <div className="loader">
+                    Loading...
+                </div>
+            ) : (
+                <div className="pg">
             <h2 className="ov-title text-start fw-bold">Welcome Back!</h2>
             <p className="ov-sub tx-muted mb-4 text-start">
                 Your Overview Statistics
@@ -266,6 +278,8 @@ const Overview = () => {
                 ))}
             </div>
         </div>
+        )}
+        </>
     );
 }
 

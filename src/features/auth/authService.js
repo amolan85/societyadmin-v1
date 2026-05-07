@@ -38,7 +38,7 @@ export const LoginApi = async (emailId, password,) => {
         },
       }
     );
-    SetSession(response.data.data);
+    
     return response.data;
 
   } catch (error) {
