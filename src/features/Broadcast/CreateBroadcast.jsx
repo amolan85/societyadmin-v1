@@ -4,6 +4,7 @@ import "../../styles/Broadcast.css"
 import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi, getBroadcastByIdApi, UpdateBroadcastApi } from '../../services/BroadcastApi';
 import { toast } from "react-toastify";
+import { useLoader } from "../../context/LoaderContext";
 
 const CreateBroadcast = ({ setActive, broadcastId }) => {
     console.log(broadcastId, "id")
@@ -18,6 +19,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
     const [scheduleDateTime, setScheduleDateTime] = useState("");
     const [bId, setBId] = useState("")
     const [errorText, setErrorText] = useState("")
+    const { setLoading } = useLoader();
 
     const tabs = [
         { id: "Announcement", icon: "📢", value: "announcement" },
@@ -46,15 +48,23 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
     const GetBroadCastById = async () => {
 
-        const data = await getBroadcastByIdApi(broadcastId);
+        try{
+            setLoading(true);
+            const data = await getBroadcastByIdApi(broadcastId);
 
-        console.log(data);
+            console.log(data);
 
-        setSubject(data?.title || "");
-        setContent(data?.message || "");
-        setTab(data?.type || "");
-        setChannel(data?.channel || "");
-        setBId(data?.broadcast_id || null);
+            setSubject(data?.title || "");
+            setContent(data?.message || "");
+            setTab(data?.type || "");
+            setChannel(data?.channel || "");
+            setBId(data?.broadcast_id || null);
+        }
+        catch (error) {
+            console.log(error);
+        }finally{
+            setLoading(false);
+        }
     };
 
     const handleFileChange = (e) => {
@@ -98,6 +108,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         }
 
         try {
+            setLoading(true);
             let response;
             if (bId) {
                 response = await UpdateBroadcastApi(
@@ -133,6 +144,8 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         } catch (error) {
             setErrorText(error)
             console.error("Submit Error:", error);
+        } finally {
+            setLoading(false);
         }
     };
 

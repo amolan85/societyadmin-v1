@@ -8,6 +8,7 @@ import { CreateBroadcastApi } from '../../services/BroadcastApi';
 import { CreatePollApi } from '../../services/PollApi';
 import { createComplaintsApi, getFlatsAndCategoryApi } from '../../services/ComplaintsApi';
 import { toast } from "react-toastify";
+import { useLoader } from "../../context/LoaderContext";
 
 const CreateComplaints = ({ setActive }) => {
     const [category, setCategory] = useState(1);
@@ -25,7 +26,7 @@ const CreateComplaints = ({ setActive }) => {
     const [options, setOptions] = useState(new Array(4).fill(""));
     const [errors, setErrors] = useState({})
     const [errorText, setErrorText] = useState("")
-
+    const { setLoading } = useLoader();
 
     useEffect(() => {
         SessionData()
@@ -58,15 +59,22 @@ const CreateComplaints = ({ setActive }) => {
     };
 
     const GetFlatsAndCategory = async (societyId) => {
-        const data = await getFlatsAndCategoryApi(societyId)
-        console.log(data)
-        setAllunits(
-            data.flats.map((item) => ({
-                value: item.flat_id,
-                label: item.flat_number,
-            }))
-        );
-        setAllCategory(data.categories)
+        setLoading(true)
+        try{
+            const data = await getFlatsAndCategoryApi(societyId)
+            console.log(data)
+            setAllunits(
+                data.flats.map((item) => ({
+                    value: item.flat_id,
+                    label: item.flat_number,
+                }))
+            );
+            setAllCategory(data.categories)
+        } catch (error) {
+            console.error("Error fetching flats and categories:", error)
+        } finally {
+            setLoading(false)
+        }
     }
 
     const handleFileChange = (e) => {
@@ -114,7 +122,7 @@ const CreateComplaints = ({ setActive }) => {
     const CreateComplaint = async () => {
 
         try {
-
+            setLoading(true)
             const validationErrors = validateForm();
 
             if (Object.keys(validationErrors).length > 0) {
@@ -142,6 +150,8 @@ const CreateComplaints = ({ setActive }) => {
 
             console.log(error);
             setErrorText(error)
+        }finally{
+            setLoading(false)
         }
     };
 

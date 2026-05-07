@@ -3,25 +3,27 @@ import { useState } from "react";
 import useAuth from "./useAuth";
 import { useNavigate } from "react-router-dom";
 import { LoginApi } from "./authService";
+import { useLoader } from "../../context/LoaderContext";
 
 export default function LoginPage() {
   const { handleLogin } = useAuth();
   const [email, setEmail] = useState("sohan1@gmail.com");
   const [password, setPassword] = useState("123456");
-  // const [email, setEmail] = useState("");
-  // const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { setLoading } = useLoader();
 
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
       // await handleLogin(email, password);
       const data = await LoginApi(email, password)
-      //console.log(data)
-      SetSession(response.data.data);
+      console.log(data)
       navigate("/dashboard");
     } catch (err) {
-      alert(err);
+      alert(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -30,7 +32,7 @@ export default function LoginPage() {
       <h2>Login</h2>
       <form onSubmit={onSubmit}>
         <input
-          value={email}
+        value={email}
           placeholder="Email"
           onChange={(e) => setEmail(e.target.value)}
         />

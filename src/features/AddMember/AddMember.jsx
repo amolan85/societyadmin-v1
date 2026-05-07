@@ -3,6 +3,7 @@ import "../../styles/AddMember.css"
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import { GetSessionData } from '../../utils/SessionManagement';
 import { AddMemberApi, getMembersApi } from '../../services/AddMemberApi';
+import { useLoader } from "../../context/LoaderContext";
 
 const AddMember = () => {
     const [memType, setMemType] = useState("Owner");
@@ -21,6 +22,7 @@ const AddMember = () => {
     const [show, setShow] = useState(false);
     const [page, setPage] = useState(1);
     const [allMembers, setAllMembers] = useState([])
+    const { setLoading } = useLoader();
 
     useEffect(() => {
         SessionData()
@@ -39,8 +41,17 @@ const AddMember = () => {
 
     //function for get members
     const getMembers = async (societyId) => {
-        const data = await getMembersApi(societyId)
-        setAllMembers(data.members)
+        setLoading(true)
+        try{
+            const data = await getMembersApi(societyId)
+            setAllMembers(data.members)
+        }
+        catch(error){
+            console.error("Error fetching members:", error)
+        }
+        finally{
+            setLoading(false)
+        }
     }
 
 

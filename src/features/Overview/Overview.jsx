@@ -7,8 +7,10 @@ import {
     PolarGrid, PolarAngleAxis, PieChart, Pie, Cell, CartesianGrid
 } from "recharts";
 import { OverviewApi } from '../../services/OverviewApi';
+import { useLoader } from "../../context/LoaderContext";
 
 const Overview = () => {
+    const { setLoading } = useLoader();
     const [barData, setBarData] = useState([])
     const [totalVisits, setTotalVisits] = useState("")
     const [pendingApproval, setPendingApproval] = useState("")
@@ -47,8 +49,10 @@ const Overview = () => {
     }, [])
 
     const GetDashboard = async () => {
-        setLoading(true);
+        
+        
         try {
+            setLoading(true);
             const data = await OverviewApi()
             // console.log(data)
             setBarData(data.monthly_data || "")
@@ -65,12 +69,12 @@ const Overview = () => {
 
     return (
         <>
-            {loading ? (
-                <div className="loader">
+            {/* {loading && (
+                <div className="fullscreen-loader">
                     Loading...
                 </div>
-            ) : (
-                <div className="pg">
+            )} */}
+            <div className="pg">
             <h2 className="ov-title text-start fw-bold">Welcome Back!</h2>
             <p className="ov-sub tx-muted mb-4 text-start">
                 Your Overview Statistics
@@ -278,7 +282,7 @@ const Overview = () => {
                 ))}
             </div>
         </div>
-        )}
+
         </>
     );
 }

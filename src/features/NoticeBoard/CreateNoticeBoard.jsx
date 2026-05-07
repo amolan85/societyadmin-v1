@@ -5,6 +5,7 @@ import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi, getBroadcastByIdApi, UpdateBroadcastApi } from '../../services/BroadcastApi';
 import { createNoticeApi, getNoticeBoardByIdApi, updateNoticeApi } from '../../services/NoticeBoardApi';
 import { toast } from "react-toastify";
+import { useLoader } from "../../context/LoaderContext";
 
 const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
     console.log(selectedNoticeData, "id")
@@ -20,6 +21,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
     const [scheduleDateTime, setScheduleDateTime] = useState("");
     const [noticeId, setNoticeId] = useState("")
     const [errorText, setErrorText] = useState("")
+    const { setLoading } = useLoader();
 
     const tabs = [
         { id: "General", icon: "📢", value: "general" },
@@ -73,13 +75,20 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
     }, [selectedNoticeData]);
 
     const GetNoticeBoardById = async () => {
-        const data = await getNoticeBoardByIdApi(selectedNoticeData);
-        console.log(data);
-        setSubject(data.title)
-        setDescription(data.description)
-        setPriority(data.priority)
-        setNoticeType(data.notice_type)
-        setNoticeId(data.notice_id)
+        try{
+            setLoading(true);
+            const data = await getNoticeBoardByIdApi(selectedNoticeData);
+            console.log(data);
+            setSubject(data.title)
+            setDescription(data.description)
+            setPriority(data.priority)
+            setNoticeType(data.notice_type)
+            setNoticeId(data.notice_id)
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setLoading(false);
+        }
     };
 
 
@@ -100,7 +109,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
 
     const submitNoticeBoard = async (status) => {
         const validationErrors = validateForm();
-
+        setLoading(true);
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
@@ -128,6 +137,8 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
         } catch (error) {
             console.error("Submit Error:", error);
             setErrorText(error)
+        } finally {
+            setLoading(false);
         }
     };
 

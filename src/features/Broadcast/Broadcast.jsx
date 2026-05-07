@@ -5,7 +5,7 @@ import CreateBroadcast from './CreateBroadcast';
 import { getBroadcastApi } from '../../services/BroadcastApi';
 import { GetSessionData } from '../../utils/SessionManagement';
 import { FiEdit } from 'react-icons/fi';
-
+import { useLoader } from "../../context/LoaderContext";
 
 const Broadcast = ({ setActive, setBroadcastId }) => {
     const [page, setPage] = useState(1);
@@ -14,6 +14,7 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
     const [societyId, setSocietyId] = useState("")
     // const [broadcastId, setBroadcastId] = useState("")
     const [pendingId, setPendingId] = useState(null)
+    const { setLoading } = useLoader();
 
     const all = [
         {
@@ -54,18 +55,25 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
     }, [])
 
     const SessionData = async () => {
-        const data = await GetSessionData()
-        console.log(data.data)
-        const flats = data.data.flats[0]
-        setSocietyId(flats.society_id)
-        getBroadcast(flats.society_id)
-
+            const data = await GetSessionData()
+            console.log(data.data)
+            const flats = data.data.flats[0]
+            setSocietyId(flats.society_id)
+            getBroadcast(flats.society_id)
+        
     }
 
     //function for get broadcast
     const getBroadcast = async (societyId) => {
-        const data = await getBroadcastApi(societyId)
-        setAllBroadcast(data)
+        try {
+            setLoading(true);
+            const data = await getBroadcastApi(societyId)
+            setAllBroadcast(data)
+        } catch (error) {
+            console.log(error)
+        } finally {
+            setLoading(false);
+        }
     }
 
     const getBroadcastById = (id) => {

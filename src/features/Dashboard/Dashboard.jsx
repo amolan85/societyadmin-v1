@@ -19,6 +19,8 @@ import CreateStaffAttendance from "../StaffAttendance/CreateStaffAttendance";
 import LoginPage from "../auth/LoginPage";
 import { useNavigate } from "react-router-dom";
 import CreateNoticeBoard from "../NoticeBoard/CreateNoticeBoard";
+import { Global } from "recharts";
+
 
 /* ══ OVERVIEW ══════════════════════════════════ */
 
@@ -101,7 +103,7 @@ export default function App() {
   const [staffId, setStaffId] = useState(null)
   const [selectedNoticeData, setSelectedNoticeData] = useState()
 
-
+  
   useLayoutEffect(() => {
     if (!document.getElementById("bs-css")) {
       const l = document.createElement("link");

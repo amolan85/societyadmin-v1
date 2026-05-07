@@ -4,6 +4,7 @@ import "../../styles/Complaints.css"
 import createComplaints from './CreateComplaints';
 import { getComplaintsApi, updateComplaintPriorityApi, updateComplaintStatusApi } from '../../services/ComplaintsApi';
 import { GetSessionData } from '../../utils/SessionManagement';
+import { useLoader } from "../../context/LoaderContext";
 
 const Complaints = ({ setActive }) => {
   const [societyId, setSocietyId] = useState("")
@@ -20,6 +21,8 @@ const Complaints = ({ setActive }) => {
   const [totalResolved, setTotalResolved] = useState("")
   const [avgResolution, setAvgResolution] = useState("")
   const [complaintId, setComplaintId] = useState("")
+  const { setLoading } = useLoader();
+  
   // const all = [
   //   { id: "#C-1042", title: "Lift B not working", unit: "A-201", cat: "Maintenance", pri: "High", st: "Open", sc: "red", time: "2h ago" },
   //   { id: "#C-1041", title: "Water leakage in corridor", unit: "B-305", cat: "Plumbing", pri: "Medium", st: "In Progress", sc: "orange", time: "5h ago" },
@@ -47,13 +50,20 @@ const Complaints = ({ setActive }) => {
 
   //function for get complaints
   const getComplaints = async (societyId) => {
-    const data = await getComplaintsApi(societyId)
-    setAllComplaints(data.list)
-    setTotalOpen(data.status_counts.open)
-    console.log(data.status_counts.open)
-    setTotalProgress(data.status_counts.in_progress)
-    setTotalResolved(data.status_counts.resolved)
-    setAvgResolution(data.avg_resolution_hours)
+    setLoading(true)
+    try{
+      const data = await getComplaintsApi(societyId)
+      setAllComplaints(data.list)
+      setTotalOpen(data.status_counts.open)
+      console.log(data.status_counts.open)
+      setTotalProgress(data.status_counts.in_progress)
+      setTotalResolved(data.status_counts.resolved)
+      setAvgResolution(data.avg_resolution_hours)
+    } catch (error) {
+      console.error("Error fetching complaints:", error)
+    }finally{
+      setLoading(false)
+    }
   }
 
   // Priority

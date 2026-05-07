@@ -5,8 +5,10 @@ import { getNoticeBoardApi } from '../../services/NoticeBoardApi';
 import { GetSessionData } from '../../utils/SessionManagement';
 import CreateNoticeBoard from './CreateNoticeBoard';
 import { FiEdit } from 'react-icons/fi';
+import { useLoader } from "../../context/LoaderContext";
 
 const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
+    const { setLoading } = useLoader();
 
     const [tab, setTab] = useState("");
     const [name, setName] = useState("")
@@ -33,22 +35,29 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
     }, [])
 
     const SessionData = async () => {
-        const data = await GetSessionData()
-        console.log(data.data)
-        const flats = data.data.flats[0]
-        console.log(data.data.first_name)
-        setName(data.data.first_name + " " + data.data.last_name)
+            const data = await GetSessionData()
+            console.log(data.data)
+            const flats = data.data.flats[0]
+            console.log(data.data.first_name)
+            setName(data.data.first_name + " " + data.data.last_name)
 
-        getNoticeBoard(flats.society_id)
-
+            getNoticeBoard(flats.society_id)
     }
 
 
     //function for get broadcast
     const getNoticeBoard = async (societyId) => {
-        const data = await getNoticeBoardApi(societyId)
-        console.log(data.list)
-        setAllNoticeBoard(data.list)
+        try{    
+            setLoading(true)
+            const data = await getNoticeBoardApi(societyId)
+            console.log(data.list)
+            setAllNoticeBoard(data.list)
+        } catch (error) {
+            console.log(error)
+        }finally{
+            setLoading(false)
+        }
+
     }
     const getNoticeBoardById = async (selectedData) => {
         setSelectedNoticeData(selectedData);
