@@ -28,26 +28,31 @@ const CreateComplaints = ({ setActive }) => {
     const [errorText, setErrorText] = useState("")
     const { setLoading } = useLoader();
 
+    // Load session data on component mount for get session data
     useEffect(() => {
         SessionData()
-
     }, [])
 
+    //fetch get session data
     const SessionData = async () => {
         const data = await GetSessionData()
         console.log(data.data)
         const flats = data.data.flats[0]
         setSocietyId(flats.society_id)
         setUserId(data.data.user_id)
+
+        //call get flats and category api
         GetFlatsAndCategory(flats.society_id)
     }
 
+    //handle change for options
     const handleOptionChange = (index, value) => {
         const updated = [...options];
         updated[index] = value;
         setOptions(updated);
     };
 
+    //get time function
     const getDateTime = (date) => {
         const now = new Date();
 
@@ -58,9 +63,10 @@ const CreateComplaints = ({ setActive }) => {
         return `${date} ${hours}:${minutes}:${seconds}`;
     };
 
+    //fetch get flats and category api
     const GetFlatsAndCategory = async (societyId) => {
         setLoading(true)
-        try{
+        try {
             const data = await getFlatsAndCategoryApi(societyId)
             console.log(data)
             setAllunits(
@@ -77,6 +83,7 @@ const CreateComplaints = ({ setActive }) => {
         }
     }
 
+    //handle change for file
     const handleFileChange = (e) => {
         const selected = e.target.files[0];
         if (selected) {
@@ -84,6 +91,7 @@ const CreateComplaints = ({ setActive }) => {
         }
     };
 
+    //handle change for drop file
     const handleDrop = (e) => {
         e.preventDefault();
         const droppedFile = e.dataTransfer.files[0];
@@ -92,11 +100,12 @@ const CreateComplaints = ({ setActive }) => {
         }
     };
 
+    //handle change for drag file
     const handleDragOver = (e) => {
         e.preventDefault();
     };
 
-
+    //validation for form
     const validateForm = () => {
         let errors = {};
 
@@ -119,8 +128,8 @@ const CreateComplaints = ({ setActive }) => {
         return errors;
     };
 
+    //create complaint function and fetch create complaint api
     const CreateComplaint = async () => {
-
         try {
             setLoading(true)
             const validationErrors = validateForm();
@@ -147,10 +156,9 @@ const CreateComplaints = ({ setActive }) => {
             setActive("complaints");
 
         } catch (error) {
-
             console.log(error);
             setErrorText(error)
-        }finally{
+        } finally {
             setLoading(false)
         }
     };

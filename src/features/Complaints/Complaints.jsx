@@ -5,8 +5,20 @@ import createComplaints from './CreateComplaints';
 import { getComplaintsApi, updateComplaintPriorityApi, updateComplaintStatusApi } from '../../services/ComplaintsApi';
 import { GetSessionData } from '../../utils/SessionManagement';
 import { useLoader } from "../../context/LoaderContext";
+import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import {
+  FiTag,
+  FiMapPin,
+  FiUser,
+  FiClock,
+  FiAlertCircle,
+} from "react-icons/fi";
 
 const Complaints = ({ setActive }) => {
+  const [tab, setTab] = useState("")
   const [societyId, setSocietyId] = useState("")
   const [page, setPage] = useState(1);
   const [allComplaints, setAllComplaints] = useState([])
@@ -21,8 +33,10 @@ const Complaints = ({ setActive }) => {
   const [totalResolved, setTotalResolved] = useState("")
   const [avgResolution, setAvgResolution] = useState("")
   const [complaintId, setComplaintId] = useState("")
+  const [show, setShow] = useState(false)
+  const [activeTab, setActiveTab] = useState("excel");
   const { setLoading } = useLoader();
-  
+
   // const all = [
   //   { id: "#C-1042", title: "Lift B not working", unit: "A-201", cat: "Maintenance", pri: "High", st: "Open", sc: "red", time: "2h ago" },
   //   { id: "#C-1041", title: "Water leakage in corridor", unit: "B-305", cat: "Plumbing", pri: "Medium", st: "In Progress", sc: "orange", time: "5h ago" },
@@ -34,24 +48,35 @@ const Complaints = ({ setActive }) => {
   //   { id: "#C-1035", title: "Gate door hinge broken", unit: "Gate 2", cat: "Maintenance", pri: "Low", st: "Resolved", sc: "green", time: "5d ago" },
   // ];
 
+  const tabs = [
+    { id: "All Items", value: "" },
+    { id: "Open", value: "open" },
+    { id: "In Progress", value: "in_progress" },
+    { id: "Resolved", value: "resolved" },
+    { id: "Closed", value: "closed" },
+  ];
+
+  // Load session data on component mount for get session data
   useEffect(() => {
     SessionData()
   }, [])
 
+  //fetch get session data
   const SessionData = async () => {
     const data = await GetSessionData()
     console.log(data.data)
     const flats = data.data.flats[0]
     setSocietyId(flats.society_id)
+
+    //call get complaints function
     getComplaints(flats.society_id)
 
   }
 
-
-  //function for get complaints
+  //function for fetch get complaints api
   const getComplaints = async (societyId) => {
     setLoading(true)
-    try{
+    try {
       const data = await getComplaintsApi(societyId)
       setAllComplaints(data.list)
       setTotalOpen(data.status_counts.open)
@@ -61,23 +86,24 @@ const Complaints = ({ setActive }) => {
       setAvgResolution(data.avg_resolution_hours)
     } catch (error) {
       console.error("Error fetching complaints:", error)
-    }finally{
+    } finally {
       setLoading(false)
     }
   }
 
-  // Priority
+  // Priority modal
   const openPriorityModal = () => {
     setModalType("priority");
     setShowModal(true);
   };
 
-  // Status
+  // Status modal
   const openStatusModal = () => {
     setModalType("status");
     setShowModal(true);
   };
 
+  //modal config
   const modalConfig = {
     priority: {
       title: "Update Priority",
@@ -112,6 +138,7 @@ const Complaints = ({ setActive }) => {
     },
   };
 
+  //update priority and status data using api
   const UpdateData = async () => {
 
     if (modalType === "priority") {
@@ -123,11 +150,149 @@ const Complaints = ({ setActive }) => {
       const data = await updateComplaintStatusApi(complaintId, status, comments)
       getComplaints(societyId)
     }
-
-
   }
-  const per = 5, total = Math.ceil(allComplaints.length / per);
-  const rows = allComplaints.slice((page - 1) * per, page * per);
+
+  const downloadExcel = () => {
+
+    // convert json to worksheet
+    const worksheet = XLSX.utils.json_to_sheet(allComplaints);
+
+    // create workbook
+    const workbook = XLSX.utils.book_new();
+
+    // append worksheet
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Complaints");
+
+    // download file
+    XLSX.writeFile(workbook, "ComplaintsData.xlsx");
+  };
+
+  const downloadCSV = () => {
+
+    // convert json data to worksheet
+    const worksheet = XLSX.utils.json_to_sheet(allComplaints);
+
+    // convert worksheet to csv
+    const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
+
+    // create blob
+    const blob = new Blob([csvOutput], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    // create download link
+    const link = document.createElement("a");
+
+    link.href = URL.createObjectURL(blob);
+
+    link.download = "ComplaintsData.csv";
+
+    link.click();
+  };
+
+  const downloadPDF = () => {
+
+    // landscape mode
+    const doc = new jsPDF("landscape");
+
+    // PDF Heading
+    doc.setFontSize(18);
+    doc.text("Complaints Report", 14, 15);
+
+    // table columns
+    const tableColumn = [
+      "ID", "Title", "Description", "Unit", "Category", "Priority", "Status", "Time"
+    ];
+
+    // table rows
+    const tableRows = allComplaints.map((item) => [
+      item.complaint_id,
+      item.title,
+      item.description,
+      item.unit,
+      item.category_name,
+      item.priority,
+      item.status,
+      item.created_at
+    ]);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+
+      // table start after heading
+      startY: 25,
+
+      styles: {
+        fontSize: 8,
+        cellPadding: 3,
+      },
+
+      headStyles: {
+        fillColor: [13, 110, 253],
+      },
+
+      theme: "grid",
+    });
+
+    doc.save("ComplaintsData.pdf");
+  };
+
+  const handleExport = () => {
+
+    if (activeTab === "excel") {
+      downloadExcel();
+      setShowModal(false)
+    }
+
+    else if (activeTab === "csv") {
+      downloadCSV();
+      setShowModal(false)
+    }
+
+    else if (activeTab === "pdf") {
+      downloadPDF();
+      setShowModal(false)
+    }
+  };
+
+  const timeAgo = (utcDate) => {
+
+    // UTC date convert
+    const past = new Date(utcDate);
+
+    // current UTC time
+    const now = new Date();
+
+    const seconds = Math.floor((now - past) / 1000);
+
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) {
+      return `${days} day${days > 1 ? "s" : ""} ago`;
+    }
+
+    if (hours > 0) {
+      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    }
+
+    if (minutes > 0) {
+      return `${minutes} min ago`;
+    }
+
+    return "Just now";
+  };
+
+
+  const filteredData = tab === ""
+    ? allComplaints
+    : allComplaints.filter((item) => item.status === tab);
+
+  //pagination 
+  const per = 5, total = Math.ceil(filteredData.length / per);
+  const rows = filteredData.slice((page - 1) * per, page * per);
 
   return (
     <>
@@ -141,8 +306,12 @@ const Complaints = ({ setActive }) => {
               Manage and track all society complaints
             </p>
           </div>
+          <div className='d-flex'>
+            <button className="btn-ol" onClick={() => setShow(true)}>⬇ Export</button>
+            <button className="btn btn-sm btn-ac ms-2" onClick={() => setActive("createComplaints")}>+ Log Complaint</button>
 
-          <button className="btn-ac" onClick={() => setActive("createComplaints")}>+ Log Complaint</button>
+          </div>
+
         </div>
 
         {/* Stats */}
@@ -162,81 +331,170 @@ const Complaints = ({ setActive }) => {
           ))}
         </div>
 
-        {/* Table */}
-        <div className="sv-card p-0 overflow-hidden">
-          <div className="cp-table-wrap">
-            <table className="sv-tbl">
-              <thead>
-                <tr>
-                  {["ID", "Title", "Description", "Unit", "Category", "Priority", "Status", "Time"]
-                    .map(h => <th key={h}>{h}</th>)}
-                </tr>
-              </thead>
-
-              <tbody>
-                {rows.map(c => (
-                  <tr key={c.complaint_id} className="text-start">
-                    <td className="tx-accent cp-id">{c.complaint_id}</td>
-                    <td className="cp-title-cell">{c.title}</td>
-                    <td className="cp-title-cell">{c.description}</td>
-                    <td className="cp-muted">{c.unit}</td>
-                    <td>
-                      <Badge label={c.category_name}  />
-                    </td>
-                    <td
-                    // style={{ cursor: "pointer" }}
-                     /*  onClick={() => {
-                        setSelectedData(c);
-                        setPriority(c.priority);  
-                        setComments("");          
-                        setModalType("priority");
-                        setComplaintId(c.complaint_id)
-                        setShowModal(true);
-                      }} */>
-                      <Badge
-                        label={c.priority}
-                        c={
-                          c.priority === "high"
-                            ? "red"
-                            : c.priority === "medium"
-                              ? "orange"
-                              : "gray"
-                        }
-                      />
-
-                    </td>
-                    <td style={{ cursor: "pointer" }}
-                      onClick={() => {
-                        setSelectedData(c);
-                        setStatus(c.status);       // 👈 yeh already sahi hai
-                        setComments("");           // 👈 optional: reset comments
-                        setModalType("status");
-                        setComplaintId(c.complaint_id)
-                        setShowModal(true);
-                      }}>
-                      <Badge label={c.status} c={
-                        c.status === "open"
-                          ? "red"
-                          : c.status === "resolved"
-                            ? "green"
-                            : "orange"
-                      } />
-                    </td>
-                    <td className="cp-muted">{c.time}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className='row'>
+          <div className='col-lg-7'>
+            <div className="NoticeBoardTabs mt-3 bg-white"
+            >
+              {tabs.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.value)}
+                  className={`NoticeBoardTabs-btn ${tab === t.value ? "active" : ""}`}
+                >
+                  {t.icon} {t.id}
+                </button>
+              ))}
+            </div>
           </div>
-
-          {/* Pagination */}
-          <Pagination
-            page={page}
-            total={total}
-            onChange={(p) => setPage(p)}
-          />
-
         </div>
+
+
+        {/* Table */}
+        {(tab !== "" && tab !== "open" && tab !== "in_progress") &&
+          <div className="sv-card p-0 overflow-hidden" >
+            <div className="cp-table-wrap">
+              <table className="sv-tbl">
+                <thead>
+                  <tr>
+                    {["ID", "Title", "Description", "Unit", "Category", "Priority", "Status", "Time"]
+                      .map(h => <th key={h}>{h}</th>)}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {filteredData.map(c => (
+                    <tr key={c.complaint_id} className="text-start">
+                      <td className="tx-accent cp-id">{c.complaint_id}</td>
+                      <td className="cp-title-cell">{c.title}</td>
+                      <td className="cp-title-cell">{c.description}</td>
+                      <td className="cp-muted">{c.unit}</td>
+                      <td>
+                        <Badge label={c.category_name} />
+                      </td>
+                      <td>
+                        <Badge
+                          label={c.priority}
+                          c={
+                            c.priority === "high"
+                              ? "red"
+                              : c.priority === "medium"
+                                ? "orange"
+                                : "gray"
+                          }
+                        />
+
+                      </td>
+                      <td style={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setSelectedData(c);
+                          setStatus(c.status);       // 👈 yeh already sahi hai
+                          setComments("");           // 👈 optional: reset comments
+                          setModalType("status");
+                          setComplaintId(c.complaint_id)
+                          setShowModal(true);
+                        }}>
+                        <Badge label={c.status} c={
+                          c.status === "open"
+                            ? "red"
+                            : c.status === "resolved"
+                              ? "green"
+                              : "orange"
+                        } />
+                      </td>
+                      <td className="cp-muted">{(c.created_at).split("T")[1]}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <Pagination
+              page={page}
+              total={total}
+              onChange={(p) => setPage(p)}
+            />
+
+          </div>
+        }
+
+        {
+          (tab === "" || tab === "open" || tab === "in_progress") &&
+
+          filteredData.map((data, index) => {
+            return (
+              <div className="card border-0 shadow-sm rounded-4 p-3 mt-2" key={data.complaint_id}>
+
+                {/* Top Section */}
+                <div className="d-flex justify-content-between align-items-start">
+
+                  <div>
+                    <p className="text-secondary fw-semibold mb-1 text-start">
+                      #CMP-2025-089
+                    </p>
+
+                    <h5 className="fw-bold mb-2">
+                      {data.title}
+                    </h5>
+                  </div>
+
+                  {/* Status */}
+
+                  <Badge label={data.status} />
+                </div>
+
+                {/* Details Row */}
+                <div className="d-flex flex-wrap gap-4 text-secondary small ">
+
+                  <div className="d-flex align-items-center gap-2">
+                    <FiTag />
+                    <span>{data.category_name}</span>
+                  </div>
+
+                  <div className="d-flex align-items-center gap-2">
+                    <FiMapPin />
+                    <span>{data.unit}</span>
+                  </div>
+
+                  <div className="d-flex align-items-center gap-2">
+                    <FiUser />
+                    <span>Rahul Sharma (A-401)</span>
+                  </div>
+
+                  <div className="d-flex align-items-center gap-2">
+                    <FiClock />
+                    <span>{timeAgo(data.created_at)}</span>
+                  </div>
+
+                  <div className="d-flex align-items-center gap-2 text-danger">
+                    <FiAlertCircle />
+                    <span>{data.priority}</span>
+                  </div>
+
+                </div>
+
+                <hr style={{ height: "2px" }} />
+
+                {/* Buttons */}
+                <div className="d-flex justify-content-end gap-3 ">
+                  <button className="btn btn-sm btn-outline-secondary">
+                    View Details
+                  </button>
+
+                  <button className="btn btn-sm btn-primary">
+                    Assign Staff
+                  </button>
+
+                </div>
+
+              </div>
+            )
+          })
+
+        }
+
+
+
       </div>
 
 
@@ -356,6 +614,169 @@ const Complaints = ({ setActive }) => {
           </div>
         </>
       )}
+
+      {show && (
+        <>
+
+          <div className="modal-backdrop fade show"></div>
+
+
+          <div className="modal show d-block">
+            <div className="modal-dialog modal-md">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h1 className="modal-title fs-5">Export Data</h1>
+
+
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShow(false)}
+                  ></button>
+                </div>
+
+
+                <div className="modal-body">
+                  <h6 className=" text-start" style={{ fontWeight: "bold" }}>Select Format</h6>
+                  <div className="row mb-4">
+
+                    {/* Excel */}
+                    <div className="col-md-4">
+                      <div
+                        className={`format-card text-center p-3 rounded-3 ${activeTab === "excel" ? "active-format" : ""
+                          }`}
+                        onClick={() => { setActiveTab("excel") }}
+                      >
+                        <BsFiletypeXls
+                          className={
+                            activeTab === "excel"
+                              ? "text-primary"
+                              : "text-secondary"
+                          }
+                          size={20}
+                        />
+
+                        <p
+                          className={`fw-semibold mb-0 mt-1 ${activeTab === "excel"
+                            ? "text-primary"
+                            : "text-secondary"
+                            }`}
+                        >
+                          Excel
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* CSV */}
+                    <div className="col-md-4">
+                      <div
+                        className={`format-card text-center p-3 rounded-3 ${activeTab === "csv" ? "active-format" : ""
+                          }`}
+                        onClick={() => { setActiveTab("csv") }}
+                      >
+                        <BsFiletypeCsv
+                          className={
+                            activeTab === "csv"
+                              ? "text-primary"
+                              : "text-secondary"
+                          }
+                          size={20}
+                        />
+
+                        <p
+                          className={`fw-semibold mb-0 mt-1 ${activeTab === "csv"
+                            ? "text-primary"
+                            : "text-secondary"
+                            }`}
+                        >
+                          CSV
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* PDF */}
+                    <div className="col-md-4">
+                      <div
+                        className={`format-card text-center p-3 rounded-3 ${activeTab === "pdf" ? "active-format" : ""
+                          }`}
+                        onClick={() => { setActiveTab("pdf") }}
+                      >
+                        <BsFiletypePdf
+                          className={
+                            activeTab === "pdf"
+                              ? "text-primary"
+                              : "text-secondary"
+                          }
+                          size={20}
+                        />
+
+                        <p
+                          className={`fw-semibold mb-0 mt-1 ${activeTab === "pdf"
+                            ? "text-primary"
+                            : "text-secondary"
+                            }`}
+                        >
+                          PDF
+                        </p>
+                      </div>
+                    </div>
+
+                  </div>
+
+
+                  <h6 className=" text-start fw-bold">Data Range</h6>
+
+
+                  <div className="range-card active-range d-flex justify-content-between align-items-center mb-3">
+                    <div className="d-flex align-items-center gap-3">
+                      <input className="form-check-input" type="radio" checked />
+                      <h6 className='fw-bold mt-1'>All Data</h6>
+                    </div>
+
+                    <span className="text-muted mt-1"><h6>{allComplaints.length} records</h6></span>
+                  </div>
+
+
+                  <div className="range-card d-flex justify-content-between align-items-center mb-3">
+                    <div className="d-flex align-items-center gap-3">
+                      <input className="form-check-input" type="radio" />
+                      <h6 className="fw-bold mt-1">Current Search results</h6>
+                    </div>
+
+                    <h6 className="text-muted mt-1">40 records</h6>
+                  </div>
+
+
+                  <div className="range-card d-flex align-items-center gap-3">
+                    <div className="d-flex align-items-center gap-3">
+                      <input className="form-check-input" type="radio" />
+                      <h6 className="fw-bold mt-1">Custom date range</h6>
+                    </div>
+
+                  </div>
+
+                </div>
+
+
+                <div className="modal-footer">
+
+                  <button className="btn-sm btn btn-outline-secondary" onClick={() => setShow(false)}>
+                    Cancel
+                  </button>
+
+                  <button className="btn btn-sm btn-primary" onClick={handleExport}>
+                    <i className="bi bi-download me-2"></i>
+                    Export Data
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+        </>
+      )}
+
     </>
 
   );

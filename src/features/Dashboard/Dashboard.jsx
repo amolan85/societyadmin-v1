@@ -20,6 +20,8 @@ import LoginPage from "../auth/LoginPage";
 import { useNavigate } from "react-router-dom";
 import CreateNoticeBoard from "../NoticeBoard/CreateNoticeBoard";
 import { Global } from "recharts";
+import { FiLogOut } from "react-icons/fi";
+import RegisterHistory from "../Register/RegisterHistory";
 
 
 /* ══ OVERVIEW ══════════════════════════════════ */
@@ -81,6 +83,7 @@ const TITLES = {
   documents: ["Administration", "Documents & NOC"],
   flattransfer: ["Administration", "Flat Transfer"],
   registers: ["Administration", "Registers"],
+  registerHistory: ["Administration", "Registers", "Member Register", "History"],
   rules: ["Administration", "Rules & By-laws"],
   complaints: ["Operations", "Complaints"],
   createComplaints: ["Operations", "Create Complaints"],
@@ -103,7 +106,7 @@ export default function App() {
   const [staffId, setStaffId] = useState(null)
   const [selectedNoticeData, setSelectedNoticeData] = useState()
 
-  
+
   useLayoutEffect(() => {
     if (!document.getElementById("bs-css")) {
       const l = document.createElement("link");
@@ -125,14 +128,14 @@ export default function App() {
     overview: <Overview />,
     broadcasting: <Broadcast setActive={setActive} setBroadcastId={setBroadcastId} />,
     createbroadcast: <CreateBroadcast setActive={setActive} broadcastId={broadcastId} />,
-
     polls: <Polls setActive={setActive} />,
     createPoll: <CreatePoll setActive={setActive} />,
     addmember: <AddMember />,
     transfer: <PlaceholderPage label="Transfer Member" />,
     documents: <Documents />,
     flattransfer: <FlatTransfer />,
-    registers: <Register />,
+    registers: <Register setActive={setActive} />,
+    registerHistory: <RegisterHistory setActive={setActive} />,
     rules: <Rules />,
     complaints: <Complaints setActive={setActive} />,
     createComplaints: <CreateComplaints setActive={setActive} />,
@@ -147,10 +150,12 @@ export default function App() {
 
   const [sec, pg] = TITLES[active] || ["", ""];
 
+  // Load session data on component mount for get session data
   useEffect(() => {
     SessionData()
   }, [])
 
+  //fetch get session data
   const SessionData = async () => {
     const data = await GetSessionData()
     console.log(data.data)
@@ -160,6 +165,7 @@ export default function App() {
     setLastName(data.data.last_name)
   }
 
+  //log out function
   const LogoutData = async () => {
     console.log("adbcd")
     await SessionDestroy()
@@ -211,8 +217,36 @@ export default function App() {
 
               <button className="tb-avatar">🔔</button>
               <button className="tb-avatar" style={{ background: "#e2e8f0", color: "var(--text)" }}>👤</button>
-              <span className="tb-name">{firstName} {lastName}</span>
-              <button className="btn btn-secondary"><span className="tb-name" onClick={LogoutData}>Logout</span></button>
+              {/* <span className="tb-name">{firstName} {lastName}</span> */}
+              <div className="dropdown">
+
+                {/* Name */}
+                <span
+                  className="tb-name dropdown-toggle"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  {firstName} {lastName}
+                </span>
+
+                {/* Dropdown */}
+                <ul className="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-3 ms-2 mr-0">
+
+                  <li>
+                    <button
+                      className="btn btn-sm btn-secondary dropdown-item"
+                      onClick={LogoutData}
+                    >
+                      <FiLogOut />
+                      Logout
+                    </button>
+                  </li>
+
+                </ul>
+
+              </div>
+              {/* <button className="btn btn-secondary"><span className="tb-name" onClick={LogoutData}>Logout</span></button> */}
             </div>
           </header>
 

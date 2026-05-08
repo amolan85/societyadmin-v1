@@ -2,11 +2,11 @@ import apiClient from "./apiClient";
 import ErrorHandler from "../utils/ErrorHandler";
 import UrlData from "../utils/Url";
 
-//api function for overview api
-export const OverviewApi = async () => {
+//api function for overview api for barchart- vistor monthly summary
+export const OverviewApi = async (societyId) => {
     const url = UrlData + 'visitor/GetMonthlyVisitorSummary';
     const data = {
-        society_id: "1",
+        society_id: societyId,
     }
     return await apiClient({
         method: 'post',

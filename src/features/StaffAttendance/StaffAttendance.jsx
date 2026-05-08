@@ -104,7 +104,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                     <table className="sv-tbl">
                         <thead>
                             <tr>
-                                {["Name", "Role", "Shift", "Status", "Time In"]
+                                {["Name", "Role", "Shift", "Status", "Time In", "Time Out"]
                                     .map(h => <th key={h}>{h}</th>)}
                             </tr>
                         </thead>
@@ -134,7 +134,9 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                                     <td className={s.st === "Absent" ? "sa-muted" : "sa-time"}>
                                         {s.check_in}
                                     </td>
-
+                                    <td className={s.st === "Absent" ? "sa-muted" : "sa-time"}>
+                                        {s.check_out}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

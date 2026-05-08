@@ -27,10 +27,12 @@ const CreatePoll = ({ setActive }) => {
         { id: "Event", icon: "📅" },
     ];
 
+     // Load session data on component mount for get session data
     useEffect(() => {
         SessionData()
     }, [])
 
+    //function for session data
     const SessionData = async () => {
         const data = await GetSessionData()
         console.log(data.data)
@@ -39,15 +41,16 @@ const CreatePoll = ({ setActive }) => {
         setUserId(data.data.user_id)
     }
 
+    //handle change for change
     const handleOptionChange = (index, value) => {
         const updated = [...options];
         updated[index] = value;
         setOptions(updated);
     };
 
+    //get date time 
     const getDateTime = (date) => {
         const now = new Date();
-
         const hours = String(now.getHours()).padStart(2, "0");
         const minutes = String(now.getMinutes()).padStart(2, "0");
         const seconds = String(now.getSeconds()).padStart(2, "0");
@@ -55,6 +58,8 @@ const CreatePoll = ({ setActive }) => {
         return `${date} ${hours}:${minutes}:${seconds}`;
     };
 
+
+    //validation form 
     const validateForm = () => {
         let errors = {};
 
@@ -79,6 +84,7 @@ const CreatePoll = ({ setActive }) => {
         return errors;
     };
 
+    //function for submit poll
     const SubmitPoll = async () => {
         setLoading(true);
         try {

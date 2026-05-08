@@ -7,7 +7,6 @@ import { toast } from "react-toastify";
 import { useLoader } from "../../context/LoaderContext";
 
 const CreateBroadcast = ({ setActive, broadcastId }) => {
-    console.log(broadcastId, "id")
     const [tab, setTab] = useState("announcement");
     const [subject, setSubject] = useState("")
     const [content, setContent] = useState("")
@@ -19,7 +18,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
     const [scheduleDateTime, setScheduleDateTime] = useState("");
     const [bId, setBId] = useState("")
     const [errorText, setErrorText] = useState("")
-    const { setLoading } = useLoader();
+    const {setLoading } = useLoader();
 
     const tabs = [
         { id: "Announcement", icon: "📢", value: "announcement" },
@@ -28,32 +27,31 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         { id: "Event", icon: "📅", value: "event" },
     ];
 
+    // Load session data on component mount for get session data
     useEffect(() => {
         SessionData()
     }, [])
 
+    //fetch get session data 
     const SessionData = async () => {
         const data = await GetSessionData()
         console.log(data.data)
         const flats = data.data.flats[0]
         setSocietyId(flats.society_id)
-
     }
 
+    //load getbroadcast by id data on component mount
     useEffect(() => {
         if (broadcastId) {
             GetBroadCastById();
         }
     }, [broadcastId]);
 
+    //function for fetch get broadcast by id api
     const GetBroadCastById = async () => {
-
-        try{
+        try {
             setLoading(true);
             const data = await getBroadcastByIdApi(broadcastId);
-
-            console.log(data);
-
             setSubject(data?.title || "");
             setContent(data?.message || "");
             setTab(data?.type || "");
@@ -62,11 +60,12 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         }
         catch (error) {
             console.log(error);
-        }finally{
+        } finally {
             setLoading(false);
         }
     };
 
+    //handle change for file attachment
     const handleFileChange = (e) => {
         const selected = e.target.files[0];
         if (selected) {
@@ -74,6 +73,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         }
     };
 
+    //handle for drop file attachment
     const handleDrop = (e) => {
         e.preventDefault();
         const droppedFile = e.dataTransfer.files[0];
@@ -82,37 +82,36 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         }
     };
 
+    //handle for drag file attachment
     const handleDragOver = (e) => {
         e.preventDefault();
     };
 
+    //validation for form
     const validateForm = () => {
         let errors = {};
-
         if (!subject) {
             errors.subject = "required";
         }
-
         if (!content) {
             errors.content = "required";
         }
         return errors;
     };
 
+    //function for submit broadcast
     const SubmitBroadcast = async (status) => {
         const validationErrors = validateForm();
-
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
-            return; // 👈 important
+            return; 
         }
-
         try {
             setLoading(true);
             let response;
             if (bId) {
                 response = await UpdateBroadcastApi(
-                    bId,       // 👈 id add
+                    bId,       
                     subject,
                     content,
                     channel,
@@ -123,7 +122,6 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
                 );
                 toast.success("Broadcast updated  successfully!");
             } else {
-
                 response = await CreateBroadcastApi(
                     societyId,
                     subject,
@@ -136,11 +134,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
                 );
                 toast.success("Broadcast created successfully!");
             }
-
-            console.log("API Response:", response);
-
             setActive("broadcasting")
-
         } catch (error) {
             setErrorText(error)
             console.error("Submit Error:", error);
@@ -149,11 +143,9 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         }
     };
 
-
-
+    //handle change for channel
     const handleChannelChange = (e) => {
         const { name, checked } = e.target;
-
         setChannel(prev => ({
             ...prev,
             [name]: checked

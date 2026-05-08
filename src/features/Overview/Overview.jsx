@@ -8,6 +8,7 @@ import {
 } from "recharts";
 import { OverviewApi } from '../../services/OverviewApi';
 import { useLoader } from "../../context/LoaderContext";
+import { GetSessionData } from '../../utils/SessionManagement';
 
 const Overview = () => {
     const { setLoading } = useLoader();
@@ -44,16 +45,22 @@ const Overview = () => {
         { subject: "Apr", A: 70, B: 40, C: 50 },
     ];
 
-    useEffect(() => {
-        GetDashboard()
-    }, [])
-
-    const GetDashboard = async () => {
-        
-        
+      useEffect(() => {
+        SessionData()
+      }, [])
+    
+      const SessionData = async () => {
+        const data = await GetSessionData()
+        console.log(data.data)
+        const flats = data.data.flats[0]
+        GetDashboard(flats.society_id)
+    
+      }
+    
+    const GetDashboard = async (societyId) => {        
         try {
             setLoading(true);
-            const data = await OverviewApi()
+            const data = await OverviewApi(societyId)
             // console.log(data)
             setBarData(data.monthly_data || "")
             setTotalVisits(data.total_visits || "")

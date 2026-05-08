@@ -56,6 +56,7 @@ export const CreatePollApi = async (
     }
 };
 
+//get poll overview api
 export const getPollOverviewApi = async (societyId, userId) => {
     const url = UrlData + 'poll/GetPollAnalytics';
     const data = {

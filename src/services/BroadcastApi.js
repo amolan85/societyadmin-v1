@@ -24,9 +24,7 @@ export const getBroadcastApi = async (societyId) => {
 }
 
 //api for create broadcast
-export const CreateBroadcastApi = async (
-    societyId, subject, content, channel, status, type, attachment, scheduleDateTime
-) => {
+export const CreateBroadcastApi = async (societyId, subject, content, channel, status, type, attachment, scheduleDateTime) => {
     try {
         const url = UrlData + "broadcast/CreateBroadcast";
         const formData = new FormData();
@@ -55,7 +53,7 @@ export const CreateBroadcastApi = async (
     }
 };
 
-
+//get broadcast by id api
 export const getBroadcastByIdApi = async (broadcastId) => {
     const url = UrlData + 'broadcast/GetBroadcastById';
     const data = {
@@ -75,6 +73,8 @@ export const getBroadcastByIdApi = async (broadcastId) => {
     });
 }
 
+
+//update broadcast api
 export const UpdateBroadcastApi = async (
     broadcastId, subject, content, channel, status, type, attachment, scheduleDateTime
 ) => {

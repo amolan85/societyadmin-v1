@@ -23,6 +23,7 @@ export const getNoticeBoardApi = async (societyId) => {
     });
 }
 
+//create notice board api
 export const createNoticeApi = async (societyId, userId, title, description, noticeType, priority, status) => {
     const url = UrlData + 'notice/CreateNotice';
     const data = {
@@ -48,6 +49,7 @@ export const createNoticeApi = async (societyId, userId, title, description, not
     });
 }
 
+//get notice board by id api
 export const getNoticeBoardByIdApi = async (noticeId) => {
     const url = UrlData + 'notice/GetNoticebyId';
     const data = {
@@ -67,6 +69,7 @@ export const getNoticeBoardByIdApi = async (noticeId) => {
     });
 }
 
+//update notice api
 export const updateNoticeApi = async (noticeId, title, description, noticeType, priority, status) => {
     const url = UrlData + 'notice/UpdateNotice';
     const data = {

@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/StaffAttendance.css"
-import CreateBroadcast from './CreateBroadcast';
+import "../../styles/Register.css"
 import { getBroadcastApi } from '../../services/BroadcastApi';
 import { GetSessionData } from '../../utils/SessionManagement';
+
 import { FiEdit } from 'react-icons/fi';
+import { FiSearch, FiCalendar, FiFilter } from "react-icons/fi";
 import { useLoader } from "../../context/LoaderContext";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const Broadcast = ({ setActive, setBroadcastId }) => {
+const RegisterHistory = ({ setActive }) => {
     const [page, setPage] = useState(1);
     const [allBroadcast, setAllBroadcast] = useState([])
     const [showCreate, setShowCreate] = useState(false);
@@ -20,6 +22,14 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
     const [show, setShow] = useState(false)
     const { setLoading } = useLoader();
     const [activeTab, setActiveTab] = useState("excel");
+
+      const all = [
+    { dateTime: "Today, 6:45 PM", type: "Access Log", title: "vehicle tesla model y", status: "allowed"},
+    { dateTime: "Oct 01,2025, 10:00 PM", type: "Payment", title: "vehicle tesla model y", status: "success"},
+    { dateTime: "Today, 6:45 PM", type: "Complaint", title: "vehicle tesla model y", status: "pending"},
+    { dateTime: "Today, 6:45 PM", type: "Profile Update", title: "vehicle tesla model y", status: "completed"},
+
+  ];
 
     // Load session data on component mount for get session data
     useEffect(() => {
@@ -162,58 +172,183 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
     };
 
     //for pagination
-    const per = 5, total = Math.ceil(allBroadcast.length / per);
-    const rows = allBroadcast.slice((page - 1) * per, page * per);
+    const per = 5, total = Math.ceil(all.length / per);
+    const rows = all.slice((page - 1) * per, page * per);
 
     return (
         <>
             <div className="pg sa-wrap">
 
                 {/* Header */}
-                <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                {/* <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                     <h4 className="sa-title">Broadcast</h4>
                     <div className="d-flex gap-2">
-                        <button className='btn btn-sm btn-primary' onClick={() => { setActive("createbroadcast"); setBroadcastId("") }}>Create</button>
-
                         <button className="btn-ol" onClick={() => setShow(true)}>⬇ Export</button>
                     </div>
-                </div>
+                </div> */}
+                <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
 
+                    {/* Left Section */}
+                    <div className="d-flex flex-wrap align-items-center gap-3">
+
+                        {/* Search */}
+                        <div className="position-relative">
+
+                            {/* <FiSearch className="re-search-icon" /> */}
+
+                            <input
+                                type="text"
+                                className="form-control search-input "
+                                placeholder="Search history..."
+                            />
+
+                        </div>
+
+                        {/* Last 30 Days */}
+                        <button className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white">
+
+                            <FiCalendar size={14} />
+
+                            Last 30 Days
+
+                        </button>
+
+                        {/* Filter Dropdown */}
+                        <div className="dropdown">
+
+                            <button
+                                className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
+                                data-bs-toggle="dropdown"
+                            >
+                                <FiFilter size={14} />
+
+                                All Types
+                            </button>
+
+                            <div className="dropdown-menu p-3 shadow border-0 rounded-4 re-filter-dropdown">
+
+                                {/* Header */}
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+
+                                    <small className="text-muted fw-semibold">
+                                        Filter by Type
+                                    </small>
+
+                                    <button className="btn btn-link p-0 text-decoration-none small" style={{fontSize:"17px"}}>
+                                        Select All
+                                    </button>
+
+                                </div>
+
+                                {/* Checkbox List */}
+                                <div className="d-flex flex-column gap-2">
+
+                                    <div className="form-check">
+                                        <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            defaultChecked
+                                        />
+
+                                        <label className="form-check-label" style={{fontSize:"15px"}}>
+                                            Access Log
+                                        </label>
+                                    </div>
+
+                                    <div className="form-check">
+                                        <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            defaultChecked
+                                        />
+
+                                        <label className="form-check-label" style={{fontSize:"15px"}}>
+                                            Payments
+                                        </label>
+                                    </div>
+
+                                    <div className="form-check">
+                                        <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            defaultChecked
+                                        />
+
+                                        <label className="form-check-label" style={{fontSize:"15px"}}>
+                                            Complaints
+                                        </label>
+                                    </div>
+
+                                    <div className="form-check">
+                                        <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            defaultChecked
+                                        />
+
+                                        <label className="form-check-label" style={{fontSize:"15px"}}>
+                                            System Updates
+                                        </label>
+                                    </div>
+
+                                    <div className="form-check">
+                                        <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                        />
+
+                                        <label className="form-check-label" style={{fontSize:"15px"}}>
+                                            Notices
+                                        </label>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {/* Export Button */}
+                   
+                        <button className="btn-ol" onClick={() => setShow(true)}>⬇ Export</button>
+                </div>
                 {/* Table */}
                 <div className="sv-card p-0 overflow-hidden">
                     <div className="sa-table-wrap">
                         <table className="sv-tbl">
                             <thead>
                                 <tr>
-                                    {["Subject", "Content", "Attachment", "Type", "Schedule Date", "Status"]
+                                    {["Date & Time", "Type", "Title", "Status"]
                                         .map(h => <th key={h}>{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {rows.map((s, i) => (
-                                    <tr className="text-start" key={s.broadcast_id}>
+                                    <tr className="text-start" key={s.dateTime}>
 
-                                        <td className="sa-name">{s.title}</td>
+                                        <td className="sa-name">{s.dateTime}</td>
 
-                                        <td className="sa-muted">{s.message}</td>
-                                        <td className="sa-muted">{/* <img src={s.file_url} height={50} /> */}{s.file_url ? "Yes" : "No"}</td>
+                                        <td className="sa-muted">{s.type}</td>
+                                       <td className="sa-muted">{s.title}</td>
                                         <td>
-                                            <Badge label={s.type} c="gray"
+                                            <Badge label={s.status} 
                                                 c={
-                                                    s.type === "announcement"
-                                                        ? "red"
-                                                        : s.type === "emergency"
-                                                            ? "orange"
-                                                            : s.type === "circular"
-                                                                ? "green"
-                                                                : "gray"
+                                                    s.status === "allowed"
+                                                        ? "blue"
+                                                        : s.status === "success"
+                                                            ? "green"
+                                                            : s.status === "pending"
+                                                                ? "yellow"
+                                                                : s.status === "completed"
+                                                                    ? "grey"
+                                                                    : "gray"
                                                 }
                                             />
                                         </td>
-                                        <td className="sa-muted">
-                                            {s.scheduled_at}
-                                        </td>
-                                        <td className="sa-muted" style={{ cursor: "pointer" }}>{s.status === "draft" ? <FiEdit onClick={() => getBroadcastById(s.broadcast_id)} /> : s.status}</td>
+                                       
+
 
                                     </tr>
                                 ))}
@@ -397,4 +532,4 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
     )
 }
 
-export default Broadcast
+export default RegisterHistory

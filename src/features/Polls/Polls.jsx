@@ -24,10 +24,13 @@ const Polls = ({ setActive }) => {
         { id: "Upcoming", value: "UPCOMING" },
         { id: "Expired", value: "EXPIRED" },
     ];
+
+    // Load session data on component mount for get session data
     useEffect(() => {
         SessionData()
     }, [])
 
+    //function for session data
     const SessionData = async () => {
         const data = await GetSessionData()
         console.log(data.data)
@@ -38,6 +41,7 @@ const Polls = ({ setActive }) => {
         GetPollsOverview(flats.society_id)
     }
 
+    //function for get polls data
     const GetPollsData = async (societyId, userId) => {
         setLoading(true)
         try{
@@ -51,11 +55,13 @@ const Polls = ({ setActive }) => {
         }
     }
 
+    //get polls overview function
     const GetPollsOverview = async (societyId) => {
         const data = await getPollOverviewApi(societyId)
         setPollsOverview(data)
     }
 
+    //statusdata for count
     const statsData = [
         [pollsOverview.active_polls || "", "Active Polls", ""],
         [`${Math.round(pollsOverview.avg_turnout_percent || " " * 100)}%`, "Avg Turnout", ""],
@@ -70,6 +76,7 @@ const Polls = ({ setActive }) => {
         return options.reduce((sum, o) => sum + o.votes, 0);
     };
 
+    //filter data by status
     const filteredData = tab === ""
         ? allPolls
         : allPolls.filter((item) => item.status === tab);

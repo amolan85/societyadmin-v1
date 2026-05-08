@@ -23,7 +23,7 @@ export const getStaffAttendanceApi = async (societyId, date) => {
     });
 }
 
-
+//create staff api
 export const createStaffApi = async (societyId, firstName, lastName, emailId, mobileNo, role, salary, joiningDate) => {
     const url = UrlData + 'staff/CreateStaff';
     const data = {
@@ -50,6 +50,7 @@ export const createStaffApi = async (societyId, firstName, lastName, emailId, mo
     });
 }
 
+//mark attendance staff api
 export const markAttendanceStaffApi = async (staffId, societyId, date, status, checkIn, checkOut) => {
     const url = UrlData + 'staff/mark_attendance';
     const data = {

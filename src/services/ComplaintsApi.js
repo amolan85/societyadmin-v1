@@ -23,6 +23,7 @@ export const getComplaintsApi = async (societyId) => {
     });
 }
 
+//create complaint api
 export const createComplaintsApi = async (societyId, userId, category, unitId, title, description, unit, priority, file) => {
     const url = UrlData + 'complaint/CreateComplaint';
     const formData = new FormData();
@@ -49,6 +50,7 @@ export const createComplaintsApi = async (societyId, userId, category, unitId, t
     });
 }
 
+//update complaint status api
 export const updateComplaintStatusApi = async (complaintId, status, comment) => {
     const url = UrlData + 'complaint/UpdateComplaintStatus';
     const data = {
@@ -70,6 +72,7 @@ export const updateComplaintStatusApi = async (complaintId, status, comment) => 
     });
 }
 
+//update complaint priority api
 export const updateComplaintPriorityApi = async (complaintId, priority, comment) => {
     const url = UrlData + 'complaint/UpdateComplaintStatus';
     const data = {
@@ -91,7 +94,7 @@ export const updateComplaintPriorityApi = async (complaintId, priority, comment)
     });
 }
 
-
+//get flats and categories api
 export const getFlatsAndCategoryApi = async (societyId) => {
     const url = UrlData + 'complaint/GetFlatsAndCategories';
     const data = {

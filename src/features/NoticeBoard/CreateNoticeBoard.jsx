@@ -55,10 +55,12 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
         }
     ];
 
+      // Load session data on component mount for get session data
     useEffect(() => {
         SessionData()
     }, [])
 
+    //function for session data
     const SessionData = async () => {
         const data = await GetSessionData()
         console.log(data.data)
@@ -68,12 +70,14 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
         // GetBroadCastById()
     }
 
+    //fetch get notice board by id api
     useEffect(() => {
         if (selectedNoticeData) {
             GetNoticeBoardById();
         }
     }, [selectedNoticeData]);
 
+    //fetch get notice board by id
     const GetNoticeBoardById = async () => {
         try{
             setLoading(true);
@@ -91,9 +95,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
         }
     };
 
-
-
-
+    //function for validate form
     const validateForm = () => {
         let errors = {};
 
@@ -107,6 +109,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
         return errors;
     };
 
+    //function for submit notice board
     const submitNoticeBoard = async (status) => {
         const validationErrors = validateForm();
         setLoading(true);
@@ -114,7 +117,6 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
             setErrors(validationErrors);
             return;
         }
-
         try {
             let response;
 
@@ -130,10 +132,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
                 );
                 toast.success("Notice created successfully!")
             }
-
-            console.log("API Response:", response);
             setActive("noticeboard")
-
         } catch (error) {
             console.error("Submit Error:", error);
             setErrorText(error)
@@ -142,8 +141,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
         }
     };
 
-
-
+    //handle change for channel
     const handleChannelChange = (e) => {
         const { name, checked } = e.target;
 

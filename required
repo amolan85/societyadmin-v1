@@ -12,3 +12,5 @@ npm install react-select
 
 
 npm i react-toastify
+npm install xlsx
+npm install jspdf jspdf-autotable

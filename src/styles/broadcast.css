@@ -158,3 +158,30 @@
   background: #111;
   color: #fff;
 }
+.format-card {
+  border: 2px solid #dcdcdc;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.active-format {
+  border-color: #0d6efd;
+  background-color: #f8fbff;
+}
+
+.range-card {
+  border: 2px solid #dcdcdc;
+  border-radius: 12px;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.active-range {
+  border-color: #86c5ff;
+  background-color: #f8fbff;
+}
+
+.form-check-input {
+  width: 22px;
+  height: 22px;
+}
