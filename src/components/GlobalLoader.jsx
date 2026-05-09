@@ -1,10 +1,9 @@
-import React from "react";
 import { useLoader } from "../context/LoaderContext";
 
-const GlobalLoader = () => {
+export default function GlobalLoader() {
 
     const { loading } = useLoader();
-
+    console.log("Loader Render", loading);
     if (!loading) return null;
 
     return (
@@ -12,6 +11,5 @@ const GlobalLoader = () => {
             <div className="spinner"></div>
         </div>
     );
-};
+}
 
-export default GlobalLoader;

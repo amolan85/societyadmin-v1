@@ -5,7 +5,7 @@ import CreateBroadcast from './CreateBroadcast';
 import { getBroadcastApi } from '../../services/BroadcastApi';
 import { GetSessionData } from '../../utils/SessionManagement';
 import { FiEdit } from 'react-icons/fi';
-import { useLoader } from "../../context/LoaderContext";
+
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -18,7 +18,7 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
     const [societyId, setSocietyId] = useState("")
     const [pendingId, setPendingId] = useState(null)
     const [show, setShow] = useState(false)
-    const { setLoading } = useLoader();
+
     const [activeTab, setActiveTab] = useState("excel");
 
     // Load session data on component mount for get session data
@@ -40,14 +40,11 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
     //function for get broadcast
     const getBroadcast = async (societyId) => {
         try {
-            setLoading(true);
             const data = await getBroadcastApi(societyId)
             setAllBroadcast(data)
         } catch (error) {
             console.log(error)
-        } finally {
-            setLoading(false);
-        }
+        } 
     }
 
     //function for get broad cast by id
@@ -199,7 +196,7 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                                         <td className="sa-muted">{/* <img src={s.file_url} height={50} /> */}{s.file_url ? "Yes" : "No"}</td>
                                         <td>
                                             <Badge label={s.type} c="gray"
-                                                c={
+                                                c ={
                                                     s.type === "announcement"
                                                         ? "red"
                                                         : s.type === "emergency"

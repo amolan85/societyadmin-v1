@@ -1,9 +1,9 @@
 // import { SessionDestroy } from "./SessionManagement";
 
 const ErrorHandler = (error, navigation) => {
-    console.log(error, "error handler")
-    console.log(error.response, "error handler")
-    console.log("Error Response Status:", error.response?.status);
+    // console.log(error, "error handler")
+    // console.log(error.response, "error handler")
+    // console.log("Error Response Status:", error.response?.status);
     try {
         if (error.response?.status === 409) {
             // 👈 navigate to Login screen

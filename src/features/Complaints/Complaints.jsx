@@ -4,7 +4,7 @@ import "../../styles/Complaints.css"
 import createComplaints from './CreateComplaints';
 import { getComplaintsApi, updateComplaintPriorityApi, updateComplaintStatusApi } from '../../services/ComplaintsApi';
 import { GetSessionData } from '../../utils/SessionManagement';
-import { useLoader } from "../../context/LoaderContext";
+
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -16,6 +16,7 @@ import {
   FiClock,
   FiAlertCircle,
 } from "react-icons/fi";
+
 
 const Complaints = ({ setActive }) => {
   const [tab, setTab] = useState("")
@@ -35,8 +36,6 @@ const Complaints = ({ setActive }) => {
   const [complaintId, setComplaintId] = useState("")
   const [show, setShow] = useState(false)
   const [activeTab, setActiveTab] = useState("excel");
-  const { setLoading } = useLoader();
-
   // const all = [
   //   { id: "#C-1042", title: "Lift B not working", unit: "A-201", cat: "Maintenance", pri: "High", st: "Open", sc: "red", time: "2h ago" },
   //   { id: "#C-1041", title: "Water leakage in corridor", unit: "B-305", cat: "Plumbing", pri: "Medium", st: "In Progress", sc: "orange", time: "5h ago" },
@@ -75,8 +74,8 @@ const Complaints = ({ setActive }) => {
 
   //function for fetch get complaints api
   const getComplaints = async (societyId) => {
-    setLoading(true)
-    try {
+
+    try{
       const data = await getComplaintsApi(societyId)
       setAllComplaints(data.list)
       setTotalOpen(data.status_counts.open)
@@ -86,8 +85,9 @@ const Complaints = ({ setActive }) => {
       setAvgResolution(data.avg_resolution_hours)
     } catch (error) {
       console.error("Error fetching complaints:", error)
-    } finally {
-      setLoading(false)
+
+    }finally{
+
     }
   }
 

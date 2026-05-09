@@ -4,7 +4,6 @@ import "../../styles/Broadcast.css"
 import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi, getBroadcastByIdApi, UpdateBroadcastApi } from '../../services/BroadcastApi';
 import { toast } from "react-toastify";
-import { useLoader } from "../../context/LoaderContext";
 
 const CreateBroadcast = ({ setActive, broadcastId }) => {
     const [tab, setTab] = useState("announcement");
@@ -18,7 +17,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
     const [scheduleDateTime, setScheduleDateTime] = useState("");
     const [bId, setBId] = useState("")
     const [errorText, setErrorText] = useState("")
-    const {setLoading } = useLoader();
+
 
     const tabs = [
         { id: "Announcement", icon: "📢", value: "announcement" },
@@ -49,8 +48,8 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
     //function for fetch get broadcast by id api
     const GetBroadCastById = async () => {
-        try {
-            setLoading(true);
+
+        try{
             const data = await getBroadcastByIdApi(broadcastId);
             setSubject(data?.title || "");
             setContent(data?.message || "");
@@ -60,8 +59,6 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         }
         catch (error) {
             console.log(error);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -107,7 +104,6 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
             return; 
         }
         try {
-            setLoading(true);
             let response;
             if (bId) {
                 response = await UpdateBroadcastApi(
@@ -138,8 +134,6 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         } catch (error) {
             setErrorText(error)
             console.error("Submit Error:", error);
-        } finally {
-            setLoading(false);
         }
     };
 

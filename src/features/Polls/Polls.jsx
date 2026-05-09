@@ -3,7 +3,6 @@ import { Badge, Prog } from '../../components/Common/ReusableFunction';
 import "../../styles/polls.css"
 import { GetSessionData } from '../../utils/SessionManagement';
 import { getPollApi, getPollOverviewApi } from '../../services/PollApi';
-import { useLoader } from "../../context/LoaderContext";
 
 const Polls = ({ setActive }) => {
     const [tab, setTab] = useState("");
@@ -11,7 +10,6 @@ const Polls = ({ setActive }) => {
     const [userId, setUserId] = useState("")
     const [allPolls, setAllPolls] = useState([])
     const [pollsOverview, setPollsOverview] = useState({})
-    const { setLoading } = useLoader();
     // const polls = [
     //     { icon: "📊", title: "AGM 2025 : Approval of Annual Accounts", id: "#POLL-2024-004", meta: "Started: 2 days ago", ends: "Ends in 24h", endRed: true, tags: ["AGM Voting", "One Vote per Flat", "Secret Ballot"], status: "Live Voting", sc: "green", pct: 78, votes: "234 / 300" },
     //     { icon: "🔧", title: "Gym Equipment Upgrade Proposal", id: "#POLL-2024-005", meta: "Started: 5 hours ago", ends: "Ends in 5 days", tags: ["Infrastructure", "Per Member", "Open Ballot"], status: "Live Voting", sc: "green", pct: 12, votes: "36 / 300" },
@@ -43,15 +41,11 @@ const Polls = ({ setActive }) => {
 
     //function for get polls data
     const GetPollsData = async (societyId, userId) => {
-        setLoading(true)
         try{
             const data = await getPollApi(societyId, userId)
             setAllPolls(data)
         }catch(error){
             console.error("Error fetching polls:", error)
-        }
-        finally{
-            setLoading(false)
         }
     }
 

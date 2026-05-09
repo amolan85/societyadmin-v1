@@ -8,7 +8,6 @@ import { CreateBroadcastApi } from '../../services/BroadcastApi';
 import { CreatePollApi } from '../../services/PollApi';
 import { createComplaintsApi, getFlatsAndCategoryApi } from '../../services/ComplaintsApi';
 import { toast } from "react-toastify";
-import { useLoader } from "../../context/LoaderContext";
 
 const CreateComplaints = ({ setActive }) => {
     const [category, setCategory] = useState(1);
@@ -26,7 +25,6 @@ const CreateComplaints = ({ setActive }) => {
     const [options, setOptions] = useState(new Array(4).fill(""));
     const [errors, setErrors] = useState({})
     const [errorText, setErrorText] = useState("")
-    const { setLoading } = useLoader();
 
     // Load session data on component mount for get session data
     useEffect(() => {
@@ -65,8 +63,8 @@ const CreateComplaints = ({ setActive }) => {
 
     //fetch get flats and category api
     const GetFlatsAndCategory = async (societyId) => {
-        setLoading(true)
-        try {
+
+        try{
             const data = await getFlatsAndCategoryApi(societyId)
             console.log(data)
             setAllunits(
@@ -78,8 +76,6 @@ const CreateComplaints = ({ setActive }) => {
             setAllCategory(data.categories)
         } catch (error) {
             console.error("Error fetching flats and categories:", error)
-        } finally {
-            setLoading(false)
         }
     }
 
@@ -131,7 +127,6 @@ const CreateComplaints = ({ setActive }) => {
     //create complaint function and fetch create complaint api
     const CreateComplaint = async () => {
         try {
-            setLoading(true)
             const validationErrors = validateForm();
 
             if (Object.keys(validationErrors).length > 0) {
@@ -158,8 +153,6 @@ const CreateComplaints = ({ setActive }) => {
         } catch (error) {
             console.log(error);
             setErrorText(error)
-        } finally {
-            setLoading(false)
         }
     };
 

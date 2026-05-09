@@ -3,12 +3,14 @@ import "../../styles/AddMember.css"
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import { GetSessionData } from '../../utils/SessionManagement';
 import { AddMemberApi, getMembersApi } from '../../services/AddMemberApi';
+
 import { useLoader } from "../../context/LoaderContext";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { all } from 'axios';
+
 
 const AddMember = () => {
     const [memType, setMemType] = useState("Owner");
@@ -30,7 +32,6 @@ const AddMember = () => {
     const [memberTypeTab, setMemberTypeTab] = useState("")
     const [activeTab, setActiveTab] = useState("excel");
     const [exportModal, setExportModal] = useState(false)
-    const { setLoading } = useLoader();
 
     const memberType = [
         { id: "All Items", value: "" },
@@ -56,16 +57,13 @@ const AddMember = () => {
 
     //function for get members
     const getMembers = async (societyId) => {
-        setLoading(true)
-        try {
+
+        try{
             const data = await getMembersApi(societyId)
             setAllMembers(data.members)
         }
         catch (error) {
             console.error("Error fetching members:", error)
-        }
-        finally {
-            setLoading(false)
         }
     }
 

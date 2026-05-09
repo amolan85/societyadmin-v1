@@ -7,11 +7,11 @@ import {
     PolarGrid, PolarAngleAxis, PieChart, Pie, Cell, CartesianGrid
 } from "recharts";
 import { OverviewApi } from '../../services/OverviewApi';
-import { useLoader } from "../../context/LoaderContext";
+
 import { GetSessionData } from '../../utils/SessionManagement';
 
 const Overview = () => {
-    const { setLoading } = useLoader();
+    //const { setLoading } = useLoader();
     const [barData, setBarData] = useState([])
     const [totalVisits, setTotalVisits] = useState("")
     const [pendingApproval, setPendingApproval] = useState("")
@@ -59,8 +59,8 @@ const Overview = () => {
     
     const GetDashboard = async (societyId) => {        
         try {
-            setLoading(true);
             const data = await OverviewApi(societyId)
+//            const data = await OverviewApi()
             // console.log(data)
             setBarData(data.monthly_data || "")
             setTotalVisits(data.total_visits || "")
@@ -69,9 +69,7 @@ const Overview = () => {
             setStaffAttendance(data.staff_attendance || "")
         } catch (error) {
             console.log(error);
-        } finally {
-            setLoading(false);
-        }
+        } 
     }
 
     return (

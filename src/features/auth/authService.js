@@ -1,20 +1,7 @@
-// src/features/auth/authService.js
-
 import ErrorHandler from "../../utils/ErrorHandler";
 import { SetSession } from "../../utils/SessionManagement";
-import axios from "axios";
 import UrlData from "../../utils/Url";
-
-export const login = async (email, password) => {
-  // FAKE LOGIN (replace with API)
-  if (email === "admin@test.com" && password === "123456") {
-    const user = { email };
-    localStorage.setItem("user", JSON.stringify(user));
-    return user;
-  } else {
-    throw new Error("Invalid credentials");
-  }
-};
+import apiClient from "../../services/apiClient";
 
 export const logout = () => {
   localStorage.removeItem("user");
@@ -24,26 +11,34 @@ export const getUser = () => {
   return JSON.parse(localStorage.getItem("user"));
 };
 
-export const LoginApi = async (emailId, password,) => {
+export const LoginApi = async (emailId, password) => {
   try {
-    const response = await axios.post(
-      UrlData + "auth/loginwithemail",
-      {
-        email: emailId,
-        password: password
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const url = UrlData + "auth/loginwithemail";
+
+    const data = {
+      email: emailId,
+      password: password,
+    };
+
+    const response = await apiClient({
+      method: "post",
+      url: url,
+      data: data,
+    });
+
     SetSession(response.data.data);
-    return response.data;
+
+    return response.data.data;
 
   } catch (error) {
-    const errors = ErrorHandler(error)
-    console.log(errors);
-    throw errors;
+    console.log("API Error:", error);
+
+    // API 401 message
+    if (error.response) {
+      throw error.response.data.message || "Invalid email or password";
+    }
+
+    // Network error
+    throw "Something went wrong";
   }
 };

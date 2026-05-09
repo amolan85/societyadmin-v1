@@ -12,8 +12,7 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   async (config) => {
     const token = await GetToken();
-    // const token = "9f5128b8fc6be4037769909f0f89c5db1dd303d160500ab21494364308dd6d99"
-
+    window.dispatchEvent(new Event("show-loader"));
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -26,15 +25,21 @@ apiClient.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    
+    window.dispatchEvent(new Event("hide-loader"));
+    return Promise.reject(error);
+  }
 );
 
 //  Request Interceptor for session expiration
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    window.dispatchEvent(new Event("hide-loader"));
+    return response;
+  },
   async (error) => {
     if (error.response?.status === 401) {
-      console.log("Session Expired");
       
       // Clear session data and token
       SessionDestroy();
@@ -43,7 +48,7 @@ apiClient.interceptors.response.use(
       // navigation.navigate("Login");
       
     }
-
+    window.dispatchEvent(new Event("hide-loader"));
     return Promise.reject(error);
   }
 );

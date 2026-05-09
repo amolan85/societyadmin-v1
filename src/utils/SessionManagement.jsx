@@ -1,5 +1,3 @@
-
-
 // SET session data
 export const SetSession = (data) => {
   localStorage.setItem("data", JSON.stringify(data));

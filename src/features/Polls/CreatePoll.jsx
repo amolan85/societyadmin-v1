@@ -5,7 +5,6 @@ import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi } from '../../services/BroadcastApi';
 import { CreatePollApi } from '../../services/PollApi';
 import { toast } from "react-toastify";
-import { useLoader } from "../../context/LoaderContext";
 
 const CreatePoll = ({ setActive }) => {
     const [tab, setTab] = useState("Announcement");
@@ -18,7 +17,6 @@ const CreatePoll = ({ setActive }) => {
     const [options, setOptions] = useState(new Array(4).fill(""));
     const [errors, setErrors] = useState({})
     const [errorText, setErrorText] = useState("")
-    const { setLoading } = useLoader();
 
     const tabs = [
         { id: "Announcement", icon: "📢" },
@@ -86,7 +84,6 @@ const CreatePoll = ({ setActive }) => {
 
     //function for submit poll
     const SubmitPoll = async () => {
-        setLoading(true);
         try {
 
             const validationErrors = validateForm();
@@ -112,8 +109,6 @@ const CreatePoll = ({ setActive }) => {
 
             console.log(error);
             setErrorText(error)
-        } finally {
-            setLoading(false);
         }
     };
 
