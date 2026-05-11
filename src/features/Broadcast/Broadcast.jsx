@@ -7,7 +7,7 @@ import { GetSessionData } from '../../utils/SessionManagement';
 import { FiEdit } from 'react-icons/fi';
 
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
-import * as XLSX from "xlsx";
+// import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -142,17 +142,18 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
 
     const handleExport = () => {
 
-        if (activeTab === "excel") {
-            downloadExcel();
-            setShow(false)
-        }
+        // if (activeTab === "excel") {
+        //     downloadExcel();
+        //     setShow(false)
+        // }
 
-        else if (activeTab === "csv") {
-            downloadCSV();
-            setShow(false)
-        }
+        // else if (activeTab === "csv") {
+        //     downloadCSV();
+        //     setShow(false)
+        // }
 
-        else if (activeTab === "pdf") {
+        // else
+             if (activeTab === "pdf") {
             downloadPDF();
             setShow(false)
         }

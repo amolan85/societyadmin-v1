@@ -6,7 +6,7 @@ import { getComplaintsApi, updateComplaintPriorityApi, updateComplaintStatusApi 
 import { GetSessionData } from '../../utils/SessionManagement';
 
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
-import * as XLSX from "xlsx";
+// import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
@@ -240,17 +240,18 @@ const Complaints = ({ setActive }) => {
 
   const handleExport = () => {
 
-    if (activeTab === "excel") {
-      downloadExcel();
-      setShowModal(false)
-    }
+    // if (activeTab === "excel") {
+    //   downloadExcel();
+    //   setShowModal(false)
+    // }
 
-    else if (activeTab === "csv") {
-      downloadCSV();
-      setShowModal(false)
-    }
+    // else if (activeTab === "csv") {
+    //   downloadCSV();
+    //   setShowModal(false)
+    // }
 
-    else if (activeTab === "pdf") {
+    // else
+       if (activeTab === "pdf") {
       downloadPDF();
       setShowModal(false)
     }

@@ -6,7 +6,7 @@ import { AddMemberApi, getMembersApi } from '../../services/AddMemberApi';
 
 import { useLoader } from "../../context/LoaderContext";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
-import * as XLSX from "xlsx";
+// import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { all } from 'axios';
@@ -27,7 +27,13 @@ const AddMember = () => {
     const [userId, setUserId] = useState("")
     const [errors, setErrors] = useState({});
     const [show, setShow] = useState(false);
+    // const [page, setPage] = useState();
+    // const [limit, setLimit] = useState()
+    // const [totalCount, setTotalCount] = useState()
     const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+
     const [allMembers, setAllMembers] = useState([])
     const [memberTypeTab, setMemberTypeTab] = useState("")
     const [activeTab, setActiveTab] = useState("excel");
@@ -56,19 +62,23 @@ const AddMember = () => {
     }
 
     //function for get members
-    const getMembers = async (societyId) => {
+    const getMembers = async (societyId, page) => {
 
-        try{
-            const data = await getMembersApi(societyId)
+        try {
+            const data = await getMembersApi(societyId, page)
             setAllMembers(data.members)
+            setPage(data.page)
+            setLimit(data.per_page)
+            setTotalCount(data.total_count)
         }
         catch (error) {
             console.error("Error fetching members:", error)
         }
     }
-
-
-
+    const handlePageChange = (value) => {
+        setPage(value);
+        getMembers(societyId, value);
+    };
 
     //function for validation
     const validateForm = () => {
@@ -214,17 +224,18 @@ const AddMember = () => {
 
     const handleExport = () => {
 
-        if (activeTab === "excel") {
-            downloadExcel();
-            setExportModal(false)
-        }
+        // if (activeTab === "excel") {
+        //     downloadExcel();
+        //     setExportModal(false)
+        // }
 
-        else if (activeTab === "csv") {
-            downloadCSV();
-            setExportModal(false)
-        }
+        // else if (activeTab === "csv") {
+        //     downloadCSV();
+        //     setExportModal(false)
+        // }
 
-        else if (activeTab === "pdf") {
+        // else 
+        if (activeTab === "pdf") {
             downloadPDF();
             setExportModal(false)
         }
@@ -246,8 +257,9 @@ const AddMember = () => {
         ? allMembers
         : allMembers.filter((item) => item.occupancy_type === memberTypeTab);
 
-    const per = 5, total = Math.ceil(filteredData.length / per);
-    const rows = filteredData.slice((page - 1) * per, page * per);
+    const total = Math.ceil(totalCount / limit);
+    // const per = limit, total = Math.ceil(filteredData.length / per);
+    // const rows = filteredData.slice((page - 1) * per, page * per);
 
     return (
         <>
@@ -312,7 +324,7 @@ const AddMember = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {rows.map((s, i) => (
+                                {filteredData.map((s, i) => (
                                     <tr className="text-start" key={i}>
                                         <td className="sa-name">{s.first_name}</td>
                                         <td className="sa-name">{s.last_name}</td>
@@ -333,7 +345,7 @@ const AddMember = () => {
                     <Pagination
                         page={page}
                         total={total}
-                        onChange={setPage}
+                        onChange={handlePageChange}
                     />
                 </div>
             </div>

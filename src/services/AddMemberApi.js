@@ -4,21 +4,23 @@ import UrlData from "../utils/Url";
 
 
 //api function for get members
-export const getMembersApi = async (societyId) => {
+export const getMembersApi = async (societyId, page) => {
     const url = UrlData + 'member/GetAllMembers';
     const data = {
         society_id: societyId,
+        page: page
     }
     return await apiClient({
         method: 'post',
         url: url,
-        data: data
+        data: data,
+        timeout: 30000,
     }).then((response) => {
         return response.data.data;
     }).catch((error) => {
         console.log(error);
         const errors = ErrorHandler(error);
-        console.log(errors, "Errors get members"); 
+        console.log(errors, "Errors get members");
         throw errors;
     });
 }
