@@ -25,7 +25,7 @@ const CreatePoll = ({ setActive }) => {
         { id: "Event", icon: "📅" },
     ];
 
-     // Load session data on component mount for get session data
+    // Load session data on component mount for get session data
     useEffect(() => {
         SessionData()
     }, [])
@@ -215,58 +215,106 @@ const CreatePoll = ({ setActive }) => {
 
                 {/* Notifications */}
                 <div className="sv-card mb-3">
-                    <h6 className="bc-side-title">Notifications</h6>
+                    <h6 className="bc-side-title text-start">Member View Preview</h6>
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                        <h6 className="mb-0 text-start">Proposal for New Gym Equipment</h6>
 
-                    {[
-                        { lbl: "Committee Meeting", time: "Today, 08:00 PM", dot: "dot-org" },
-                        { lbl: "New user registered.", time: "59 minutes ago", dot: "dot-blu" },
-                        { lbl: "Mr. Roy Sing update notice board", time: "1 hour ago", dot: "dot-org" },
-                        { lbl: "Complaint by Riya Mittal", time: "Today, 10:59 AM", dot: "dot-red" },
-                    ].map((n, i) => (
-                        <div key={i} className="bc-notify-item">
-                            <span className={`dot ${n.dot}`} />
-                            <div className="text-start">
-                                <div className="bc-notify-label">{n.lbl}</div>
-                                <div className="bc-notify-time">{n.time}</div>
+                        <Badge label="Live" c="green" />
+                    </div>
+
+                    <p className='text-muted text-start'>Provide details about what members are voting...<br />This text will show the description you enter.</p>
+                    <button className="vote-btn mb-2 text-start">
+                        Yes, I approve
+                    </button>
+
+                    <button className="vote-btn text-start">
+                        No, I disapprove
+                    </button>
+
+
+                    <div className="text-end text-secondary small mt-2">
+                        Voting ends in 3 days
+                    </div>
+                </div>
+
+                {/* Templates*/}
+                <div className="sv-card ">
+                    <h6 className="fw-bold  text-start">Templates</h6>
+
+
+                    <div className="template-card d-flex align-items-center justify-content-between">
+                        <div className="d-flex gap-3">
+                            <div className="template-icon blue-bg">
+                                <i className="bi bi-file-earmark-text"></i>
+                            </div>
+
+                            <div>
+                                <div className="fw-semibold text-start">AGM Standard Agenda</div>
+                                <small className="text-secondary d-block text-start">
+                                    Pre-filled common AGM items
+                                </small>
                             </div>
                         </div>
-                    ))}
 
-                    <button className="btn-dk w-100 mt-2">Show all notifications</button>
-                </div>
+                        <i className="bi bi-chevron-right text-secondary"></i>
+                    </div>
 
-                {/* Quick Actions */}
-                <div className="sv-card mb-3">
-                    <h6 className="bc-side-title">Quick Actions</h6>
 
-                    {[["➕", "New Notice", "#dbeafe"], ["📊", "Create Poll", "#ffedd5"], ["📄", "Issue NOC", "#ede9fe"]].map(([ic, lb, bg]) => (
-                        <button key={lb} className="qa mb-2">
-                            <div className="qa-ico" style={{ background: bg }}>{ic}</div>
-                            <span className="bc-qa-text">{lb}</span>
-                        </button>
-                    ))}
-                </div>
-
-                {/* Recent Communications */}
-                <div className="sv-card">
-                    <h6 className="bc-side-title">Recent Communications</h6>
-
-                    {[
-                        { title: "Water Supply Cut", time: "Today, 10:30 AM", type: "Alert", s: "Sent", sc: "green" },
-                        { title: "New Year Event", time: "Dec 31, 08:00 PM", type: "Invitation", s: "Scheduled", sc: "blue" },
-                        { title: "Parking Lot Resurfacing", time: "Edited 2h ago", type: "Announcement", s: "Draft", sc: "gray" },
-                    ].map((r, i, arr) => (
-                        <div key={i} className={`bc-rc-item ${i < arr.length - 1 ? "bordered" : ""}`}>
-                            <div className="text-start">
-                                <div className="bc-rc-title">{r.title}</div>
-                                <div className="bc-rc-sub">{r.time} • {r.type}</div>
+                    <div className="template-card d-flex align-items-center justify-content-between">
+                        <div className="d-flex gap-3">
+                            <div className="template-icon green-bg">
+                                <i className="bi bi-cash-stack"></i>
                             </div>
-                            <Badge label={r.s} c={r.sc} />
-                        </div>
-                    ))}
 
-                    <button className="btn-dk w-100 mt-3">Show all communication</button>
+                            <div>
+                                <div className="fw-semibold text-start">Expense Approval</div>
+                                <small className="text-secondary d-block text-start">
+                                    For repairs  ₹ 50,000
+                                </small>
+                            </div>
+                        </div>
+
+                        <i className="bi bi-chevron-right text-secondary"></i>
+                    </div>
+
+
+                    <div className="template-card d-flex align-items-center justify-content-between">
+                        <div className="d-flex gap-3">
+                            <div className="template-icon pink-bg">
+                                <i className="bi bi-calendar-event"></i>
+                            </div>
+
+                            <div>
+                                <div className="fw-semibold text-start">Event Date Selection</div>
+                                <small className="text-secondary d-block text-start">
+                                    Find best time for events
+                                </small>
+                            </div>
+                        </div>
+
+                        <i className="bi bi-chevron-right text-secondary"></i>
+                    </div>
                 </div>
+                {/* Voting Rules */}
+                <div className="sv-card mt-2">
+                    <div className="voting-rule">
+                        <div className="d-flex gap-2">
+                            <i className="bi bi-info-circle text-primary"></i>
+
+                            <div>
+                                <div className="fw-semibold text-primary mb-1 text-start">
+                                    Voting Rules
+                                </div>
+
+                                <small className="text-primary text-start d-block">
+                                    Note that for AGM related matters, the Society by-laws
+                                    mandate "One Vote per Flat" system to be legally valid.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
             </div>
         </div>

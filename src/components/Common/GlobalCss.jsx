@@ -27,7 +27,7 @@ export const APP_CSS = `
 *, *::before, *::after { box-sizing: border-box; }
 html, body, #root      { height: 100%; margin: 0; }
 body {
-  background: var(--bg);
+ background-color: var(--bg) !important;
   font-family: var(--bs-body-font-family);
   color: var(--text);
   font-size: 14px;
@@ -42,7 +42,8 @@ body {
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
-  background: var(--card);
+  // background: var(--card);
+  background : var(--bg) !important
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column;
   overflow: hidden;
@@ -121,6 +122,7 @@ body {
 .tb-name { font-size: 13px; font-weight: 600; }
 
 /* ── CARD ────────────────────────────────────── */
+
 .sv-card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -141,6 +143,10 @@ body {
 .bx-blue   { background: var(--accent-lt);  color: #1d4ed8; }
 .bx-gray   { background: #f1f5f9;           color: #475569; }
 .bx-purple { background: #ede9fe;           color: #5b21b6; }
+.bx-peacock {background: #cffafe; color: #06b6d4}
+.badge-border {
+  border: 1px solid currentColor;
+}
 
 /* ── TAB PILLS ──────────────────────────────── */
 .tab-pills { display: flex; gap: 6px; flex-wrap: wrap; background: "#fff" }

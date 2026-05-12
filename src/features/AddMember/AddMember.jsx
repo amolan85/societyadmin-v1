@@ -63,7 +63,6 @@ const AddMember = () => {
 
     //function for get members
     const getMembers = async (societyId, page) => {
-
         try {
             const data = await getMembersApi(societyId, page)
             setAllMembers(data.members)
@@ -75,6 +74,7 @@ const AddMember = () => {
             console.error("Error fetching members:", error)
         }
     }
+
     const handlePageChange = (value) => {
         setPage(value);
         getMembers(societyId, value);
@@ -100,7 +100,6 @@ const AddMember = () => {
         else {
             errors.emailId = ""
         }
-
         if (!mobileNo) {
             errors.mobileNo = "required";
         } else if (!/^[0-9]{10}$/.test(mobileNo)) {
@@ -290,9 +289,9 @@ const AddMember = () => {
                         [totalFamilyMember, "Total Family Member", "tile-blu"]
                     ].map(([v, l, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
-                            <div className={`tile ${cls}`}>
-                                <div className="tile-val">{v}</div>
-                                <div className="tile-lbl">{l}</div>
+                            <div className={`tile bg-white ${cls}`}>
+                                <div className=" text-start fw-bold">{l}</div>
+                                <div className="tile-val text-start mt-1">{v}</div>
                             </div>
                         </div>
                     ))}
@@ -332,8 +331,15 @@ const AddMember = () => {
                                         <td className="sa-name">{s.email}</td>
                                         <td className="sa-name">{s.block}</td>
                                         <td className="sa-name">{s.flat_number}</td>
-                                        <td ><Badge label={s.occupancy_type} c="gray" /></td>
-                                        <td><Badge label={s.residencyStatus} c="orange" /></td>
+                                        <td ><Badge label={s.occupancy_type}
+                                            c={
+                                                s.occupancy_type === "owner" ? "orange"
+                                                    : s.occupancy_type === "tenant" ? "green"
+                                                        : s.occupancy_type === "family_member" ? "blue"
+                                                            : "grey"
+                                            }
+                                        /></td>
+                                        <td>{/* <Badge label={s.residencyStatus} c="orange" /> */}</td>
                                         <td className="sa-name">{s.start_date}</td>
                                     </tr>
                                 ))}

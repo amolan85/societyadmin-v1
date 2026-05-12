@@ -3,6 +3,11 @@ import { Badge, Prog } from '../../components/Common/ReusableFunction';
 import "../../styles/polls.css"
 import { GetSessionData } from '../../utils/SessionManagement';
 import { getPollApi, getPollOverviewApi } from '../../services/PollApi';
+import {
+    FiCheckCircle,
+    FiClock,
+    FiXCircle,
+} from "react-icons/fi";
 
 const Polls = ({ setActive }) => {
     const [tab, setTab] = useState("");
@@ -10,6 +15,7 @@ const Polls = ({ setActive }) => {
     const [userId, setUserId] = useState("")
     const [allPolls, setAllPolls] = useState([])
     const [pollsOverview, setPollsOverview] = useState({})
+    const [search, setSearch] = useState("");
     // const polls = [
     //     { icon: "📊", title: "AGM 2025 : Approval of Annual Accounts", id: "#POLL-2024-004", meta: "Started: 2 days ago", ends: "Ends in 24h", endRed: true, tags: ["AGM Voting", "One Vote per Flat", "Secret Ballot"], status: "Live Voting", sc: "green", pct: 78, votes: "234 / 300" },
     //     { icon: "🔧", title: "Gym Equipment Upgrade Proposal", id: "#POLL-2024-005", meta: "Started: 5 hours ago", ends: "Ends in 5 days", tags: ["Infrastructure", "Per Member", "Open Ballot"], status: "Live Voting", sc: "green", pct: 12, votes: "36 / 300" },
@@ -18,11 +24,39 @@ const Polls = ({ setActive }) => {
     // ];
 
     const tabs = [
+        { id: "All", value: "" },
         { id: "Active", value: "ACTIVE" },
         { id: "Upcoming", value: "UPCOMING" },
         { id: "Expired", value: "EXPIRED" },
     ];
 
+    const getPollStatusIcon = (status) => {
+        switch (status) {
+            case "ACTIVE":
+                return {
+                    icon: <FiCheckCircle size={18} color="#16a34a" />,
+                    bg: "#dcfce7",
+                };
+
+            case "UPCOMING":
+                return {
+                    icon: <FiClock size={18} color="#f59e0b" />,
+                    bg: "#fef3c7",
+                };
+
+            case "EXPIRED":
+                return {
+                    icon: <FiXCircle size={18} color="#ef4444" />,
+                    bg: "#fee2e2",
+                };
+
+            default:
+                return {
+                    icon: <FiClock size={18} color="#6b7280" />,
+                    bg: "#f3f4f6",
+                };
+        }
+    };
     // Load session data on component mount for get session data
     useEffect(() => {
         SessionData()
@@ -41,10 +75,10 @@ const Polls = ({ setActive }) => {
 
     //function for get polls data
     const GetPollsData = async (societyId, userId) => {
-        try{
+        try {
             const data = await getPollApi(societyId, userId)
             setAllPolls(data)
-        }catch(error){
+        } catch (error) {
             console.error("Error fetching polls:", error)
         }
     }
@@ -70,11 +104,17 @@ const Polls = ({ setActive }) => {
         return options.reduce((sum, o) => sum + o.votes, 0);
     };
 
-    //filter data by status
-    const filteredData = tab === ""
-        ? allPolls
-        : allPolls.filter((item) => item.status === tab);
+    // Filter by status + search title
+const filteredData = allPolls.filter((item) => {
+  const statusMatch =
+    tab === "" || item.status === tab;
 
+  const searchMatch =
+    search === "" ||
+    item.question?.toLowerCase().includes(search.toLowerCase());
+
+  return statusMatch && searchMatch;
+});
     return (
         <div className="pg row g-4 pl-wrap">
 
@@ -95,12 +135,14 @@ const Polls = ({ setActive }) => {
                             </button>
                         ))}
                     </div>
-                    <input className="sv-in ms-auto pl-search" placeholder="Search polls…" />
+                    <input className="sv-in ms-auto pl-search" placeholder="Search polls…" value={search}
+                        onChange={(e) => setSearch(e.target.value)} />
 
                     <button className="btn-ac" onClick={() => setActive("createPoll")}>+ Create Poll</button>
                 </div>
 
                 {filteredData.map((p, i) => {
+
                     const totalVotes = getTotalVotes(p.options);
                     let expiryLabel = "";
 
@@ -116,21 +158,32 @@ const Polls = ({ setActive }) => {
                         expiryLabel = isExpired
                             ? `Ended ${formattedDate}`
                             : `Ends ${formattedDate}`;
+
+
                     }
+                    const pollStatus = getPollStatusIcon(p.status);
                     return (
                         <div key={i} className="sv-card mb-3 p-3">
 
                             <div className="d-flex gap-3 align-items-start text-start">
 
-                                <div className="pl-icon">
-                                    {p.icon}
+                                <div
+                                    className="pl-icon"
+                                    style={{ background: pollStatus.bg }}
+                                >
+                                    {pollStatus.icon}
                                 </div>
 
                                 <div className="flex-grow-1">
 
                                     <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
                                         <span className="pl-title">{p.question}</span>
-                                        <Badge label={`● ${p.status}`} c={p.sc} />
+                                        <Badge label={`● ${p.status}`}
+                                            c={p.status === "ACTIVE" ? "green"
+                                                : p.status === "UPCOMING" ? "orange"
+                                                    : p.status === "EXPIRED" ? "red"
+                                                        : "gray"}
+                                        />
                                     </div>
                                     <div className="pl-meta">
                                         #POLL-2024-004 • Started: 2 days ago
@@ -214,7 +267,7 @@ const Polls = ({ setActive }) => {
 
                 {/* Voting Overview */}
                 <div className="sv-card mb-3">
-                    <h6 className="pl-side-title">🗳 Voting Overview</h6>
+                    <h6 className="pl-side-title text-start">🗳 Voting Overview</h6>
 
                     <div className="row g-0 text-center">
                         {statsData.map(([v, l, cls], i) => (
@@ -231,7 +284,7 @@ const Polls = ({ setActive }) => {
 
                 {/* Quick Create */}
                 <div className="sv-card mb-3">
-                    <h6 className="pl-side-title">⚡ Quick Create</h6>
+                    <h6 className="pl-side-title text-start">⚡ Quick Create</h6>
 
                     {[["👥", "AGM Voting", "One vote per flat"], ["🔧", "Swimming Pool Rules", "Financial approval"], ["⚖️", "Rule Change", "Amend by-laws"]]
                         .map(([ic, lb, sub]) => (
@@ -250,7 +303,7 @@ const Polls = ({ setActive }) => {
 
                 {/* Events */}
                 <div className="sv-card">
-                    <h6 className="pl-side-title">🗓 Upcoming Events</h6>
+                    <h6 className="pl-side-title text-start">🗓 Upcoming Events</h6>
 
                     {[["15", "Nov", "Committee Election", "Nominations close in 2 days"], ["01", "Dec", "Vendor Contract Renewal", "Security & Housekeeping"]]
                         .map(([d, m, t, s]) => (

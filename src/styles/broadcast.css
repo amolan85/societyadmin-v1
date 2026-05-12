@@ -113,13 +113,15 @@
   padding: 3px;
   margin-bottom: 20px;
 }
-.priorityTab{
-   display: flex;
+
+.priorityTab {
+  display: flex;
   background: #f3f4f6;
   border-radius: 30px;
   padding: 3px;
   margin-bottom: 20px;
-  width: 50px;
+  width: 50%;
+
 }
 
 .priorityTab-btn {
@@ -140,6 +142,7 @@
   background: #111;
   color: #fff;
 }
+
 .broadcastTab-btn {
   flex: 1;
   padding: 8px 4px;
@@ -158,6 +161,7 @@
   background: #111;
   color: #fff;
 }
+
 .format-card {
   border: 2px solid #dcdcdc;
   cursor: pointer;

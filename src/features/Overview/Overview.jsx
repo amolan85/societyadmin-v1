@@ -45,22 +45,22 @@ const Overview = () => {
         { subject: "Apr", A: 70, B: 40, C: 50 },
     ];
 
-      useEffect(() => {
+    useEffect(() => {
         SessionData()
-      }, [])
-    
-      const SessionData = async () => {
+    }, [])
+
+    const SessionData = async () => {
         const data = await GetSessionData()
         console.log(data.data)
         const flats = data.data.flats[0]
         GetDashboard(flats.society_id)
-    
-      }
-    
-    const GetDashboard = async (societyId) => {        
+
+    }
+
+    const GetDashboard = async (societyId) => {
         try {
             const data = await OverviewApi(societyId)
-//            const data = await OverviewApi()
+            //            const data = await OverviewApi()
             // console.log(data)
             setBarData(data.monthly_data || "")
             setTotalVisits(data.total_visits || "")
@@ -69,7 +69,7 @@ const Overview = () => {
             setStaffAttendance(data.staff_attendance || "")
         } catch (error) {
             console.log(error);
-        } 
+        }
     }
 
     return (
@@ -80,27 +80,11 @@ const Overview = () => {
                 </div>
             )} */}
             <div className="pg">
-            <h2 className="ov-title text-start fw-bold">Welcome Back!</h2>
-            <p className="ov-sub tx-muted mb-4 text-start">
-                Your Overview Statistics
-            </p>
-            {/* 
-            <div className="row g-3 mb-4">
-
-                {[["Active Complaints", "14"], ["Visits", "3,671"], ["Pending Approvals", "156"], ["Staff Present", "48/50"]].map(([l, v]) => (
-                    <div className="col-6 col-md-3" key={l}>
-
-                        <div className="stat-card">
-                            <div className="s-label">{l}</div>
-                            <div className="s-val">{v}</div>
-                        </div>
-                    </div>
-                ))}
-            </div> */}
-            <div className="row g-3 mb-4 align-items-center">
-
-                {/* 🔍 Search */}
-                <div className="col-12 col-md-4 col-lg-3 position-relative">
+                <h2 className="ov-title text-start fw-bold">Welcome Back!</h2>
+                <p className="ov-sub tx-muted mb-4 text-start">
+                    Your Overview Statistics
+                </p>
+                {/* <div className="search-bar db-search position-relative">
 
                     <span
                         style={{
@@ -120,28 +104,69 @@ const Overview = () => {
                         placeholder="Search..."
                         style={{ paddingLeft: "35px" }}
                     />
-                </div>
 
-                {/* 📊 Cards */}
-                {[
-                    ["Active Complaints", activeComplaints],
-                    ["Visits", /* "3,671" */ totalVisits],
-                    ["Pending Approvals", /* "156" */pendingApproval],
-                   ["Staff Present", `${staffAttendance.present || 0} / ${staffAttendance.total || ""}`]
-                ].map(([l, v]) => (
-                    <div className="col-6 col-md-4 col-lg" key={l}>
-                        <div className="stat-card h-100 text-center">
-                            <div className="s-label">{l}</div>
-                            <div className="s-val">{v}</div>
+                </div> */}
+                {/* <div className="row g-3 mb-4 mt-2">
+
+                    {[
+                        ["Active Complaints", activeComplaints],
+                        ["Visits",  totalVisits],
+                        ["Pending Approvals", pendingApproval],
+                        ["Staff Present", `${staffAttendance.present || 0} / ${staffAttendance.total || ""}`]
+                    ].map(([l, v]) => (
+                        <div className="col-6 col-md-4 col-lg" key={l}>
+                            <div className="stat-card h-100 text-center">
+                                <div className="s-label">{l}</div>
+                                <div className="s-val">{v}</div>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
 
-            </div>
-            <div className="row g-3 mb-4">
-                <div className="col-12 col-lg-8">
-                    <div className="sv-card">
-                        {/* <div className="d-flex justify-content-between align-items-center mb-3">
+                </div> */}
+                <div className="row g-3 mb-4 align-items-center">
+
+               
+                    <div className="col-12 col-md-4 col-lg-3 position-relative">
+
+                        <span
+                            style={{
+                                position: "absolute",
+                                left: "15px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                color: "#aaa"
+                            }}
+                        >
+                            🔍
+                        </span>
+
+                        <input
+                            type="text"
+                            className="form-control rounded-pill"
+                            placeholder="Search..."
+                            style={{ paddingLeft: "35px" }}
+                        />
+                    </div>
+
+                    {[
+                        ["Active Complaints", activeComplaints],
+                        ["Visits",  totalVisits],
+                        ["Pending Approvals", pendingApproval],
+                        ["Staff Present", `${staffAttendance.present || 0} / ${staffAttendance.total || ""}`]
+                    ].map(([l, v]) => (
+                        <div className="col-6 col-md-4 col-lg" key={l}>
+                            <div className="stat-card h-100 text-center">
+                                <div className="s-label">{l}</div>
+                                <div className="s-val">{v}</div>
+                            </div>
+                        </div>
+                    ))}
+
+                </div>
+                <div className="row g-3 mb-4">
+                    <div className="col-12 col-lg-8">
+                        <div className="sv-card">
+                            {/* <div className="d-flex justify-content-between align-items-center mb-3">
 
                             <div className="d-flex gap-3">
                                 {[["#818cf8", "Approved"], ["#fb923c", "Pending"], ["#f87171", "Rejected"]].map(([c, l]) => (
@@ -170,8 +195,8 @@ const Overview = () => {
                                 </div>
                             ))}
                         </div> */}
-                        <ResponsiveContainer width="100%" height={400}>
-                            {/* <BarChart data={barData} >
+                            <ResponsiveContainer width="100%" height={400}>
+                                {/* <BarChart data={barData} >
                                 <XAxis
                                     dataKey="name"
                                     tick={{ fontSize: 12 }}
@@ -188,39 +213,39 @@ const Overview = () => {
                                 <Bar dataKey="pending" fill="#F4A62A" />
                                 <Bar dataKey="rejected" fill="#EF5350" />
                             </BarChart> */}
-                            <BarChart data={barData} >
-                                <XAxis
-                                    dataKey="month_name"
-                                    tick={{ fontSize: 12 }}
-                                />
-                                <YAxis
-                                    domain={[0, 100]}
-                                    ticks={[0, 20, 40, 60, 80, 100]}
+                                <BarChart data={barData} >
+                                    <XAxis
+                                        dataKey="month_name"
+                                        tick={{ fontSize: 12 }}
+                                    />
+                                    <YAxis
+                                        domain={[0, 100]}
+                                        ticks={[0, 20, 40, 60, 80, 100]}
 
-                                />
-                                <Tooltip />
-                                <Legend />
-                                <Bar dataKey="approved_visits" fill="#6C63FF" />
-                                <Bar dataKey="pending_visits" fill="#F4A62A" />
-                                <Bar dataKey="rejected_visits" fill="#EF5350" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-
-                <div className="col-12 col-lg-4">
-                    <div className="sv-card h-100 d-flex flex-column">
-                        <div className="d-flex gap-3 mb-2 flex-wrap">
-                            {[["#818cf8", "Approved"], ["#fb923c", "Pending"], ["#f87171", "Rejected"]].map(([c, l]) => (
-                                <span key={l} className="legend-dot-item">
-                                    <span className="legend-dot" style={{ background: c }} />
-                                    {l}
-                                </span>
-                            ))}
+                                    />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Bar dataKey="approved_visits" fill="#6C63FF" />
+                                    <Bar dataKey="pending_visits" fill="#F4A62A" />
+                                    <Bar dataKey="rejected_visits" fill="#EF5350" />
+                                </BarChart>
+                            </ResponsiveContainer>
                         </div>
-                        <ResponsiveContainer width="100%" height={300}>
-                            {/* <RadarChart data={radarData}>
+                    </div>
+
+
+                    <div className="col-12 col-lg-4">
+                        <div className="sv-card h-100 d-flex flex-column">
+                            <div className="d-flex gap-3 mb-2 flex-wrap">
+                                {[["#818cf8", "Approved"], ["#fb923c", "Pending"], ["#f87171", "Rejected"]].map(([c, l]) => (
+                                    <span key={l} className="legend-dot-item">
+                                        <span className="legend-dot" style={{ background: c }} />
+                                        {l}
+                                    </span>
+                                ))}
+                            </div>
+                            <ResponsiveContainer width="100%" height={300}>
+                                {/* <RadarChart data={radarData}>
                                 <PolarGrid />
                                 <PolarAngleAxis dataKey="subject" />
                                 <Radar dataKey="A" stroke="#6C63FF" fill="#6C63FF" fillOpacity={0.4} />
@@ -228,15 +253,15 @@ const Overview = () => {
                                 <Radar dataKey="C" stroke="#EF5350" fill="#EF5350" fillOpacity={0.4} />
                             </RadarChart> */}
 
-                            <RadarChart data={barData}>
-                                <PolarGrid />
-                                <PolarAngleAxis dataKey="month_name" />
-                                <Radar dataKey="approved_visits" stroke="#6C63FF" fill="#6C63FF" fillOpacity={0.4} />
-                                <Radar dataKey="pending_visits" stroke="#F4A62A" fill="#F4A62A" fillOpacity={0.4} />
-                                <Radar dataKey="rejected_visits" stroke="#EF5350" fill="#EF5350" fillOpacity={0.4} />
-                            </RadarChart>
-                        </ResponsiveContainer>
-                        {/* <div className="radar-wrap">
+                                <RadarChart data={barData}>
+                                    <PolarGrid />
+                                    <PolarAngleAxis dataKey="month_name" />
+                                    <Radar dataKey="approved_visits" stroke="#6C63FF" fill="#6C63FF" fillOpacity={0.4} />
+                                    <Radar dataKey="pending_visits" stroke="#F4A62A" fill="#F4A62A" fillOpacity={0.4} />
+                                    <Radar dataKey="rejected_visits" stroke="#EF5350" fill="#EF5350" fillOpacity={0.4} />
+                                </RadarChart>
+                            </ResponsiveContainer>
+                            {/* <div className="radar-wrap">
                             <svg viewBox="0 0 200 200" width="170" height="170">
                                 {[.32, .5, .67, .84].map((s, i) => (
                                     <polygon key={i} points="100,20 180,70 160,160 40,160 20,70"
@@ -267,26 +292,26 @@ const Overview = () => {
                             
                         </div> */}
 
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="sv-card p-0 overflow-hidden">
-                {[
-                    { title: "Tenant Agreement Verification", sub: "Unit 402 • Rahul Sharma (Tenant)", badge: "Pending Verify", bc: "orange" },
-                    { title: "Interior Renovation Request", sub: "Unit 105 • Painting & Flooring", badge: "Review Docs", bc: "blue" },
-                    { title: "NOC for Bank Loan – Flat C-201", sub: "Unit C-201 • Priya Mehta (Owner)", badge: "Approved", bc: "green" },
-                ].map((p, i, arr) => (
-                    <div key={i} className={`activity-row ${i < arr.length - 1 ? "bordered" : ""}`}>
-                        <div className="text-start">
-                            <div className="activity-title">{p.title}</div>
-                            <div className="activity-sub">{p.sub}</div>
+                <div className="sv-card p-0 overflow-hidden">
+                    {[
+                        { title: "Tenant Agreement Verification", sub: "Unit 402 • Rahul Sharma (Tenant)", badge: "Pending Verify", bc: "orange" },
+                        { title: "Interior Renovation Request", sub: "Unit 105 • Painting & Flooring", badge: "Review Docs", bc: "blue" },
+                        { title: "NOC for Bank Loan – Flat C-201", sub: "Unit C-201 • Priya Mehta (Owner)", badge: "Approved", bc: "green" },
+                    ].map((p, i, arr) => (
+                        <div key={i} className={`activity-row ${i < arr.length - 1 ? "bordered" : ""}`}>
+                            <div className="text-start">
+                                <div className="activity-title">{p.title}</div>
+                                <div className="activity-sub">{p.sub}</div>
+                            </div>
+                            <Badge label={p.badge} c={p.bc} />
                         </div>
-                        <Badge label={p.badge} c={p.bc} />
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
-        </div>
 
         </>
     );

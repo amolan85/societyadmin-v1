@@ -1,5 +1,13 @@
+// export function Badge({ label, c = "gray" }) {
+//   return <span className={`bx bx-${c}`}>{label}</span>;
+// }
+
 export function Badge({ label, c = "gray" }) {
-  return <span className={`bx bx-${c}`}>{label}</span>;
+  return (
+    <span className={`bx bx-${c} badge-border`}>
+      {label}
+    </span>
+  );
 }
 
 export function Pagination({ page, total, onChange }) {

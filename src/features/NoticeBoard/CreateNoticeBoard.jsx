@@ -5,6 +5,16 @@ import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi, getBroadcastByIdApi, UpdateBroadcastApi } from '../../services/BroadcastApi';
 import { createNoticeApi, getNoticeBoardByIdApi, updateNoticeApi } from '../../services/NoticeBoardApi';
 import { toast } from "react-toastify";
+import {
+    FiVolume2,
+    FiTool,
+    FiAlertTriangle,
+    FiCalendar,
+    FiBriefcase,
+    FiUsers,
+    FiEdit,
+    FiTrash2
+} from "react-icons/fi";
 
 const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
     console.log(selectedNoticeData, "id")
@@ -22,38 +32,62 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
     const [errorText, setErrorText] = useState("")
 
     const tabs = [
-        { id: "General", icon: "📢", value: "general" },
-        { id: "Maintenance", icon: "⚠️", value: "maintenance" },
-        { id: "Emergency", icon: "📄", value: "emergency" },
-        { id: "Event", icon: "📅", value: "event" },
-        { id: "Legal", icon: "📅", value: "legal" },
-        { id: "Meeting", icon: "📅", value: "meeting" },
+        {
+            id: "General",
+            icon: <FiVolume2 size={18} color="#2563eb" />,
+            value: "general",
+        },
+        {
+            id: "Maintenance",
+            icon: <FiTool size={18} color="#f59e0b" />,
+            value: "maintenance",
+        },
+        {
+            id: "Emergency",
+            icon: <FiAlertTriangle size={18} color="#ef4444" />,
+            value: "emergency",
+        },
+        {
+            id: "Event",
+            icon: <FiCalendar size={18} color="#10b981" />,
+            value: "event",
+        },
+        {
+            id: "Legal",
+            icon: <FiBriefcase size={18} color="#7c3aed" />,
+            value: "legal",
+        },
+        {
+            id: "Meeting",
+            icon: <FiUsers size={18} color="#06b6d4" />,
+            value: "meeting",
+        },
     ];
 
     const priorityTabs = [
         {
             id: "High",
             value: "high",
-            icon: "🔴"
+            // icon: "🔴"
         },
         {
             id: "Normal",
             value: "normal",
-            icon: "🟢"
+            // icon: "🟢"
         },
         {
             id: "Urgent",
             value: "urgent",
-            icon: "🚨"
+            // icon: "🚨"
         },
         {
             id: "Low",
             value: "low",
-            icon: "🟡"
+            // icon: "🟡"
         }
     ];
 
-      // Load session data on component mount for get session data
+    // Load session data on component mount for get session data
     useEffect(() => {
         SessionData()
     }, [])
@@ -77,7 +111,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
 
     //fetch get notice board by id
     const GetNoticeBoardById = async () => {
-        try{
+        try {
             const data = await getNoticeBoardByIdApi(selectedNoticeData);
             console.log(data);
             setSubject(data.title)
@@ -87,7 +121,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
             setNoticeId(data.notice_id)
         } catch (error) {
             console.log(error);
-        } 
+        }
     };
 
     //function for validate form
@@ -100,6 +134,9 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
 
         if (!description) {
             errors.description = "required";
+        }
+        if (!priority) {
+            errors.priority = "required";
         }
         return errors;
     };
@@ -150,7 +187,9 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
             <div className="col-12 col-lg-8">
                 <div className="sv-card text-start">
                     <div className="d-flex justify-content-between align-items-center">
-                        <h5 className="bc-title">📢 Create Notice Board</h5>
+                        <h5 className="bc-title">
+                            {noticeId ? "Update" : "Create"} Notice Board
+                        </h5>
                         <button
                             className="btn btn-sm btn-primary"
                             onClick={() => setActive("noticeboard")}
@@ -201,9 +240,9 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
                     </div>
 
 
-                    <label className="sv-lb">Priority</label>
+                    <label className="sv-lb">Priority <span className='text-danger'>*</span></label>
 
-                    <div className="d-flex gap-3 mb-4">
+                    {/* <div className="d-flex gap-3 mb-4">
 
                         <label className="bx">
                             <input
@@ -248,19 +287,19 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
                             />
                             &nbsp; Low
                         </label>
-                        {/* <div className="priorityTab mt-2">
-                            {priorityTabs.map((t) => (
-                                <button
-                                    key={t.id}
-                                    type="button"
-                                    onClick={() => setPriority(t.value)}
-                                    className={`priorityTab-btn ${priority === t.value ? "active" : ""
-                                        }`}
-                                >
-                                    {t.id}
-                                </button>
-                            ))}
-                        </div> */}
+                        
+                    </div> */}
+
+                    <div className="priorityTab mt-2">
+                        {priorityTabs.map((t) => (
+                            <button
+                                key={t.id}
+                                onClick={() => setPriority(t.value)}
+                                className={`priorityTab-btn ${priority === t.value ? "active" : ""}`}
+                            >
+                                {t.icon} {t.id}
+                            </button>
+                        ))}
                     </div>
 
                     {errorText && <h6 className='text-danger'>{errorText}</h6>}
@@ -278,7 +317,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
 
                 {/* Notifications */}
                 <div className="sv-card mb-3">
-                    <h6 className="bc-side-title">Notifications</h6>
+                    <h6 className="bc-side-title text-start">Notifications</h6>
 
                     {[
                         { lbl: "Committee Meeting", time: "Today, 08:00 PM", dot: "dot-org" },
@@ -300,7 +339,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
 
                 {/* Quick Actions */}
                 <div className="sv-card mb-3">
-                    <h6 className="bc-side-title">Quick Actions</h6>
+                    <h6 className="bc-side-title text-start">Quick Actions</h6>
 
                     {[["➕", "New Notice", "#dbeafe"], ["📊", "Create Poll", "#ffedd5"], ["📄", "Issue NOC", "#ede9fe"]].map(([ic, lb, bg]) => (
                         <button key={lb} className="qa mb-2">
@@ -312,7 +351,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
 
                 {/* Recent Communications */}
                 <div className="sv-card">
-                    <h6 className="bc-side-title">Recent Communications</h6>
+                    <h6 className="bc-side-title text-start">Recent Communications</h6>
 
                     {[
                         { title: "Water Supply Cut", time: "Today, 10:30 AM", type: "Alert", s: "Sent", sc: "green" },

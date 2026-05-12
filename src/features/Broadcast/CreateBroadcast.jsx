@@ -49,7 +49,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
     //function for fetch get broadcast by id api
     const GetBroadCastById = async () => {
 
-        try{
+        try {
             const data = await getBroadcastByIdApi(broadcastId);
             setSubject(data?.title || "");
             setContent(data?.message || "");
@@ -101,13 +101,13 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         const validationErrors = validateForm();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
-            return; 
+            return;
         }
         try {
             let response;
             if (bId) {
                 response = await UpdateBroadcastApi(
-                    bId,       
+                    bId,
                     subject,
                     content,
                     channel,
@@ -153,7 +153,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
             <div className="col-12 col-lg-8">
                 <div className="sv-card text-start">
                     <div className="d-flex justify-content-between align-items-center">
-                        <h5 className="bc-title">📢 Create & Publish</h5>
+                        <h5 className="bc-title">{bId ? "Update" : "Create"} & Publish</h5>
                         <button
                             className="btn btn-sm btn-primary"
                             onClick={() => setActive("broadcasting")}
@@ -332,7 +332,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
                 {/* Notifications */}
                 <div className="sv-card mb-3">
-                    <h6 className="bc-side-title">Notifications</h6>
+                    <h6 className="bc-side-title text-start">Notifications</h6>
 
                     {[
                         { lbl: "Committee Meeting", time: "Today, 08:00 PM", dot: "dot-org" },
@@ -354,7 +354,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
                 {/* Quick Actions */}
                 <div className="sv-card mb-3">
-                    <h6 className="bc-side-title">Quick Actions</h6>
+                    <h6 className="bc-side-title text-start">Quick Actions</h6>
 
                     {[["➕", "New Notice", "#dbeafe"], ["📊", "Create Poll", "#ffedd5"], ["📄", "Issue NOC", "#ede9fe"]].map(([ic, lb, bg]) => (
                         <button key={lb} className="qa mb-2">
@@ -366,7 +366,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
                 {/* Recent Communications */}
                 <div className="sv-card">
-                    <h6 className="bc-side-title">Recent Communications</h6>
+                    <h6 className="bc-side-title text-start">Recent Communications</h6>
 
                     {[
                         { title: "Water Supply Cut", time: "Today, 10:30 AM", type: "Alert", s: "Sent", sc: "green" },

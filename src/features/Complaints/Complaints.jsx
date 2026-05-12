@@ -75,7 +75,7 @@ const Complaints = ({ setActive }) => {
   //function for fetch get complaints api
   const getComplaints = async (societyId) => {
 
-    try{
+    try {
       const data = await getComplaintsApi(societyId)
       setAllComplaints(data.list)
       setTotalOpen(data.status_counts.open)
@@ -86,7 +86,7 @@ const Complaints = ({ setActive }) => {
     } catch (error) {
       console.error("Error fetching complaints:", error)
 
-    }finally{
+    } finally {
 
     }
   }
@@ -251,7 +251,7 @@ const Complaints = ({ setActive }) => {
     // }
 
     // else
-       if (activeTab === "pdf") {
+    if (activeTab === "pdf") {
       downloadPDF();
       setShowModal(false)
     }
@@ -309,7 +309,7 @@ const Complaints = ({ setActive }) => {
           </div>
           <div className='d-flex'>
             <button className="btn-ol" onClick={() => setShow(true)}>⬇ Export</button>
-            <button className="btn btn-sm btn-ac ms-2" onClick={() => setActive("createComplaints")}>+ Log Complaint</button>
+            <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("createComplaints")}>+ Log Complaint</button>
 
           </div>
 
@@ -319,14 +319,14 @@ const Complaints = ({ setActive }) => {
         <div className="row g-3 mb-4">
           {[
             [totalOpen, "Total Open", "tile-red"],
-            [totalProgress, "Total Progress", "tile-org"],
-            [totalResolved, "Resolved Today", "tile-grn"],
-            [avgResolution, "Avg Resolution", "tile-blu"]
+            [totalProgress, "In Progress", "tile-blu"],
+            [totalResolved, "Resolved (This Month)", "tile-grn"],
+            [avgResolution, "Avg Resolve Time", "dark"],
           ].map(([v, l, cls]) => (
             <div className="col-6 col-md-3" key={l}>
-              <div className={`tile ${cls}`}>
-                <div className="tile-val">{v}</div>
-                <div className="tile-lbl">{l}</div>
+              <div className={`tile bg-white ${cls}`}>
+                <div className=" text-start fw-bold">{l}</div>
+                <div className="tile-val text-start mt-1">{v}</div>
               </div>
             </div>
           ))}
@@ -383,7 +383,6 @@ const Complaints = ({ setActive }) => {
                                 : "gray"
                           }
                         />
-
                       </td>
                       <td style={{ cursor: "pointer" }}
                         onClick={() => {
@@ -394,13 +393,16 @@ const Complaints = ({ setActive }) => {
                           setComplaintId(c.complaint_id)
                           setShowModal(true);
                         }}>
-                        <Badge label={c.status} c={
-                          c.status === "open"
-                            ? "red"
-                            : c.status === "resolved"
-                              ? "green"
-                              : "orange"
-                        } />
+                        <Badge label={c.status}
+                          c={
+                            c.status === "open"
+                              ? "red"
+                              : c.status === "resolved"
+                                ? "green"
+                                : c.status === "in_progress"
+                                  ? "orange"
+                                  : "gray"
+                          } />
                       </td>
                       <td className="cp-muted">{(c.created_at).split("T")[1]}</td>
                     </tr>
@@ -415,13 +417,11 @@ const Complaints = ({ setActive }) => {
               total={total}
               onChange={(p) => setPage(p)}
             />
-
           </div>
         }
 
         {
           (tab === "" || tab === "open" || tab === "in_progress") &&
-
           filteredData.map((data, index) => {
             return (
               <div className="card border-0 shadow-sm rounded-4 p-3 mt-2" key={data.complaint_id}>
@@ -441,7 +441,17 @@ const Complaints = ({ setActive }) => {
 
                   {/* Status */}
 
-                  <Badge label={data.status} />
+                  {/* <Badge label={data.status} /> */}
+                  <Badge label={data.status}
+                    c={
+                      data.status === "open"
+                        ? "red"
+                        : data.status === "resolved"
+                          ? "green"
+                          : data.status === "in_progress"
+                            ? "orange"
+                            : "grey"
+                    } />
                 </div>
 
                 {/* Details Row */}
@@ -471,7 +481,6 @@ const Complaints = ({ setActive }) => {
                     <FiAlertCircle />
                     <span>{data.priority}</span>
                   </div>
-
                 </div>
 
                 <hr style={{ height: "2px" }} />

@@ -1,5 +1,5 @@
 import ErrorHandler from "../../utils/ErrorHandler";
-import { SetSession } from "../../utils/SessionManagement";
+import { SessionDestroy, SetSession } from "../../utils/SessionManagement";
 import UrlData from "../../utils/Url";
 import apiClient from "../../services/apiClient";
 
@@ -13,7 +13,7 @@ export const getUser = () => {
 
 export const LoginApi = async (emailId, password) => {
   try {
-    const url = UrlData + "auth/loginwithemail";
+    const url = UrlData + "auth/loginwithemailAdmin";
 
     const data = {
       email: emailId,
@@ -31,14 +31,29 @@ export const LoginApi = async (emailId, password) => {
     return response.data.data;
 
   } catch (error) {
-    console.log("API Error:", error);
 
-    // API 401 message
-    if (error.response) {
-      throw error.response.data.message || "Invalid email or password";
-    }
+    const errors = ErrorHandler(error);
 
-    // Network error
-    throw "Something went wrong";
+    throw errors;
+  }
+};
+
+export const LogoutApi = async () => {
+  try {
+    const url = UrlData + "auth/logout";
+
+    const response = await apiClient({
+      method: "post",
+      url: url,
+
+    });
+    await SessionDestroy()
+    return response.data.data;
+
+  } catch (error) {
+
+    const errors = ErrorHandler(error);
+
+    throw errors;
   }
 };

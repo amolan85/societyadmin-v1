@@ -26,6 +26,29 @@ const CreateComplaints = ({ setActive }) => {
     const [errors, setErrors] = useState({})
     const [errorText, setErrorText] = useState("")
 
+    const priorityTabs = [
+        {
+            id: "High",
+            value: "high",
+            // icon: "🔴"
+        },
+        {
+            id: "Normal",
+            value: "normal",
+            // icon: "🟢"
+        },
+        {
+            id: "Urgent",
+            value: "urgent",
+            // icon: "🚨"
+        },
+        {
+            id: "Low",
+            value: "low",
+            // icon: "🟡"
+        }
+    ];
+
     // Load session data on component mount for get session data
     useEffect(() => {
         SessionData()
@@ -64,7 +87,7 @@ const CreateComplaints = ({ setActive }) => {
     //fetch get flats and category api
     const GetFlatsAndCategory = async (societyId) => {
 
-        try{
+        try {
             const data = await getFlatsAndCategoryApi(societyId)
             console.log(data)
             setAllunits(
@@ -248,11 +271,21 @@ const CreateComplaints = ({ setActive }) => {
 
                         <div className='d-flex'>
                             <label className="sv-lb">Priority <span className='text-danger'>*</span></label>
-                            {errors.description && <span className='text-danger mx-2 '>{errors.description}</span>}
+                            {errors.priority && <span className='text-danger mx-2 '>{errors.priority}</span>}
                         </div>
 
-
-                        <div className="d-flex gap-3 mb-4">
+                        <div className="priorityTab mt-2">
+                            {priorityTabs.map((t) => (
+                                <button
+                                    key={t.id}
+                                    onClick={() => setPriority(t.value)}
+                                    className={`priorityTab-btn ${priority === t.value ? "active" : ""}`}
+                                >
+                                    {t.icon} {t.id}
+                                </button>
+                            ))}
+                        </div>
+                        {/* <div className="d-flex gap-3 mb-4">
 
                             <label className="bx">
                                 <input
@@ -287,7 +320,7 @@ const CreateComplaints = ({ setActive }) => {
                                 />
                                 &nbsp; Low
                             </label>
-                        </div>
+                        </div> */}
                         {errorText && <h6 className='text-danger'>{errorText}</h6>}
                         <div className="d-flex gap-2 justify-content-end">
                             <button className="btn-ac" onClick={CreateComplaint}>Create Complaints</button>
@@ -301,7 +334,7 @@ const CreateComplaints = ({ setActive }) => {
 
                     {/* Notifications */}
                     <div className="sv-card mb-3">
-                        <h6 className="bc-side-title">Notifications</h6>
+                        <h6 className="bc-side-title text-start">Notifications</h6>
 
                         {[
                             { lbl: "Committee Meeting", time: "Today, 08:00 PM", dot: "dot-org" },
@@ -323,7 +356,7 @@ const CreateComplaints = ({ setActive }) => {
 
                     {/* Quick Actions */}
                     <div className="sv-card mb-3">
-                        <h6 className="bc-side-title">Quick Actions</h6>
+                        <h6 className="bc-side-title text-start">Quick Actions</h6>
 
                         {[["➕", "New Notice", "#dbeafe"], ["📊", "Create Poll", "#ffedd5"], ["📄", "Issue NOC", "#ede9fe"]].map(([ic, lb, bg]) => (
                             <button key={lb} className="qa mb-2">
@@ -335,7 +368,7 @@ const CreateComplaints = ({ setActive }) => {
 
                     {/* Recent Communications */}
                     <div className="sv-card">
-                        <h6 className="bc-side-title">Recent Communications</h6>
+                        <h6 className="bc-side-title text-start">Recent Communications</h6>
 
                         {[
                             { title: "Water Supply Cut", time: "Today, 10:30 AM", type: "Alert", s: "Sent", sc: "green" },

@@ -22,6 +22,7 @@ import CreateNoticeBoard from "../NoticeBoard/CreateNoticeBoard";
 import { Global } from "recharts";
 import { FiLogOut } from "react-icons/fi";
 import RegisterHistory from "../Register/RegisterHistory";
+import { LogoutApi } from "../auth/authService";
 
 
 /* ══ OVERVIEW ══════════════════════════════════ */
@@ -168,7 +169,7 @@ export default function App() {
   //log out function
   const LogoutData = async () => {
     console.log("adbcd")
-    await SessionDestroy()
+    const data = await LogoutApi()
     navigation("/")
   }
   return (
@@ -176,7 +177,7 @@ export default function App() {
       <div className="app-shell">
 
         {/* SIDEBAR */}
-        <nav className={`sidebar ${collapsed ? "collapsed" : ""} `}>
+        <nav className={`sidebar ${collapsed ? "collapsed" : ""} `} >
           <div className="sidebar-logo">
             <div className="logo-box">GV</div>
             <div>

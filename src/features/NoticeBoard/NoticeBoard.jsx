@@ -4,7 +4,16 @@ import "../../styles/NoticeBoard.css"
 import { getNoticeBoardApi } from '../../services/NoticeBoardApi';
 import { GetSessionData } from '../../utils/SessionManagement';
 import CreateNoticeBoard from './CreateNoticeBoard';
-import { FiEdit } from 'react-icons/fi';
+import {
+    FiVolume2,
+    FiTool,
+    FiAlertTriangle,
+    FiCalendar,
+    FiBriefcase,
+    FiUsers,
+    FiEdit,
+    FiTrash2
+} from "react-icons/fi";
 
 const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
 
@@ -20,14 +29,87 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
     ];
 
     const tabs = [
-        { id: "General", icon: "📢", value: "general" },
-        { id: "Maintenance", icon: "⚠️", value: "maintenance" },
-        { id: "Emergency", icon: "📄", value: "emergency" },
-        { id: "Event", icon: "📅", value: "event" },
-        { id: "Legal", icon: "📅", value: "legal" },
-        { id: "Meeting", icon: "📅", value: "meeting" },
+        {
+            id: "General",
+            icon: <FiVolume2 size={18} color="#2563eb" />,
+            value: "general",
+        },
+        {
+            id: "Maintenance",
+            icon: <FiTool size={18} color="#f59e0b" />,
+            value: "maintenance",
+        },
+        {
+            id: "Emergency",
+            icon: <FiAlertTriangle size={18} color="#ef4444" />,
+            value: "emergency",
+        },
+        {
+            id: "Event",
+            icon: <FiCalendar size={18} color="#10b981" />,
+            value: "event",
+        },
+        {
+            id: "Legal",
+            icon: <FiBriefcase size={18} color="#7c3aed" />,
+            value: "legal",
+        },
+        {
+            id: "Meeting",
+            icon: <FiUsers size={18} color="#06b6d4" />,
+            value: "meeting",
+        },
     ];
 
+    
+
+    const getNoticeIcon = (type) => {
+        switch (type) {
+            case "meeting":
+                return {
+                    icon: <FiUsers size={18} color="#06b6d4" />,
+                    bg: "#cffafe",
+                };
+
+            case "general":
+                return {
+                    icon: <FiVolume2 size={18} color="#2563eb" />,
+                    bg: "#dbeafe",
+                };
+
+            case "maintenance":
+                return {
+                    icon: <FiTool size={18} color="#f59e0b" />,
+                    bg: "#fef3c7",
+                };
+
+            case "emergency":
+                return {
+                    icon: <FiAlertTriangle size={18} color="#ef4444" />,
+                    bg: "#fee2e2",
+                };
+
+            case "legal":
+                return {
+                    icon: <FiBriefcase size={18} color="#7c3aed" />,
+                    bg: "#ede9fe",
+                };
+
+            case "event":
+                return {
+                    icon: <FiCalendar size={18} color="#10b981" />,
+                    bg: "#d1fae5",
+                };
+
+            default:
+                return {
+                    icon: <FiCalendar size={18} color="#6b7280" />,
+                    bg: "#f3f4f6",
+                };
+        }
+    };
+
+    // const tabs = [{ id: "General", icon: "📢", value: "general" }, { id: "Maintenance", icon: "⚠️", value: "maintenance" }, { id: "Emergency", icon: "📄", value: "emergency" }, { id: "Event", icon: "📅", value: "event" }, { id: "Legal", icon: "📅", value: "legal" }, { id: "Meeting", icon: "📅", value: "meeting" },];
     // Load session data on component mount for get session data
     useEffect(() => {
         SessionData()
@@ -48,7 +130,7 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
     //function for get broadcast
     const getNoticeBoard = async (societyId) => {
 
-        try{
+        try {
             const data = await getNoticeBoardApi(societyId)
             console.log(data.list)
             setAllNoticeBoard(data.list)
@@ -63,39 +145,40 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
         setActive("createNoticeBoard");
     };
 
-   const timeAgo = (utcDate) => {
+    const timeAgo = (utcDate) => {
 
-    // UTC date convert
-    const past = new Date(utcDate);
+        // UTC date convert
+        const past = new Date(utcDate);
 
-    // current UTC time
-    const now = new Date();
+        // current UTC time
+        const now = new Date();
 
-    const seconds = Math.floor((now - past) / 1000);
+        const seconds = Math.floor((now - past) / 1000);
 
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
 
-    if (days > 0) {
-        return `${days} day${days > 1 ? "s" : ""} ago`;
-    }
+        if (days > 0) {
+            return `${days} day${days > 1 ? "s" : ""} ago`;
+        }
 
-    if (hours > 0) {
-        return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-    }
+        if (hours > 0) {
+            return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+        }
 
-    if (minutes > 0) {
-        return `${minutes} min ago`;
-    }
+        if (minutes > 0) {
+            return `${minutes} min ago`;
+        }
 
-    return "Just now";
-};
+        return "Just now";
+    };
 
     //filter data by notice type
     const filteredData = tab === ""
         ? allNoticeBoard
         : allNoticeBoard.filter((item) => item.notice_type === tab);
+
 
     return (
         <>
@@ -122,47 +205,90 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
                                     onClick={() => setTab(t.value)}
                                     className={`NoticeBoardTabs-btn ${tab === t.value ? "active" : ""}`}
                                 >
-                                    {t.icon} {t.id}
+                                    {t.icon} &nbsp;{t.id}
                                 </button>
                             ))}
                         </div>
-                        {filteredData.map((p, i, arr) => (
-                            <div
-                                key={i}
-                                className={`nb-post text-start ${i < arr.length - 1 ? "nb-border" : ""}`}
-                            >
-                                <div className="d-flex gap-3">
+                        {filteredData.map((p, i, arr) => {
+                            const noticeData = getNoticeIcon(p.notice_type);
+                            return (
+                                <div
+                                    key={i}
+                                    className={`nb-post text-start ${i < arr.length - 1 ? "nb-border" : ""}`}
+                                >
 
-                                    <div className="nb-avatar">
-                                        {p.icon}
-                                    </div>
+                                    <div className="d-flex gap-3">
 
-                                    <div className="flex-grow-1">
-
-                                        <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                            <span className="nb-title">{p.title}</span>
-                                            <Badge label={p.notice_type} c={p.tc} />
-
-                                            {p.status === "draft" && (
-                                                <FiEdit onClick={() => getNoticeBoardById(p.notice_id)} />
-                                            )}
-                                            {p.locked && (
-                                                <span className="nb-locked">🔒 Thread Locked</span>
-                                            )}
+                                        <div
+                                            className="nb-avatar"
+                                            style={{ background: noticeData.bg }}
+                                        >
+                                            {noticeData.icon}
                                         </div>
+                                        <div className="flex-grow-1">
 
-                                        <p className="nb-content">{p.description}</p>
+                                            <div className="d-flex justify-content-between align-items-start flex-wrap mb-1">
 
-                                        <div className="nb-meta">
-                                            👤 {name} • {timeAgo(p.publish_date)}
-                                            {p.views && ` • 👁 ${p.views}`}
+                                                {/* Left Side */}
+                                                <div className="d-flex align-items-center gap-2 flex-wrap">
+                                                    <span className="nb-title">{p.title}</span>
+                                                    <Badge
+                                                        label={p.notice_type}
+                                                        c={
+                                                            p.notice_type === "general"
+                                                                ? "blue"
+                                                                : p.notice_type === "maintenance"
+                                                                    ? "orange"
+                                                                    : p.notice_type === "emergency"
+                                                                        ? "red"
+                                                                        : p.notice_type === "event"
+                                                                            ? "green"
+                                                                            : p.notice_type === "legal"
+                                                                                ? "purple"
+                                                                                : p.notice_type === "meeting"
+                                                                                    ? "peacock"
+                                                                                    : "gray"
+                                                        }
+                                                    />
+                                                    {/* <Badge label={p.notice_type} c={p.tc} /> */}
+                                                </div>
+
+                                                {/* Right Side */}
+                                                <div className="d-flex align-items-center gap-3">
+
+                                                    {p.status === "draft" && (
+                                                        <FiEdit
+                                                            size={18}
+                                                            style={{ cursor: "pointer", color: "orange" }}
+                                                            onClick={() => getNoticeBoardById(p.notice_id)}
+                                                        />
+                                                    )}
+
+                                                    {p.locked && (
+                                                        <span className="nb-locked">🔒 Locked</span>
+                                                    )}
+
+                                                    {/* <FiTrash2
+                                                        size={18}
+                                                        style={{ cursor: "pointer", color: "red" }}
+                                                        // onClick={() => deleteNotice(p.notice_id)}
+                                                    /> */}
+                                                </div>
+                                            </div>
+
+                                            <p className="nb-content">{p.description}</p>
+
+                                            <div className="nb-meta">
+                                                👤 {name} • {timeAgo(p.publish_date)}
+                                                {p.views && ` • 👁 ${p.views}`}
+
+                                            </div>
 
                                         </div>
-
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            )
+                        })}
 
                     </div>
                 </div>

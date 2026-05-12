@@ -113,7 +113,7 @@ const Rules = () => {
 
         {/* Actions */}
         <div className="sv-card mb-3">
-          <h6 className="rl-side-title">Management Actions</h6>
+          <h6 className="rl-side-title text-start">Management Actions</h6>
 
           {[
             ["➕", "#dbeafe", "Create By-law", "Draft new regulation"],

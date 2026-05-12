@@ -88,10 +88,16 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                     ["3", "Late", "tile-org"],
                     [totalStaff, "Total Staff", "tile-blu"]
                 ].map(([v, l, cls]) => (
+                    // <div className="col-6 col-md-3" key={l}>
+                    //     <div className={`tile ${cls}`}>
+                    //         <div className="tile-val">{v}</div>
+                    //         <div className="tile-lbl">{l}</div>
+                    //     </div>
+                    // </div>
                     <div className="col-6 col-md-3" key={l}>
-                        <div className={`tile ${cls}`}>
-                            <div className="tile-val">{v}</div>
-                            <div className="tile-lbl">{l}</div>
+                        <div className={`tile bg-white ${cls}`}>
+                            <div className=" text-start fw-bold">{l}</div>
+                            <div className="tile-val text-start mt-1">{v}</div>
                         </div>
                     </div>
                 ))}
@@ -117,7 +123,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                                     <td className="sa-muted">{s.role}</td>
 
                                     <td>
-                                        <Badge label={s.shift} c="gray" />
+                                        {/* <Badge label={s.shift} c="gray" /> */}
                                     </td>
 
                                     <td>

@@ -229,7 +229,7 @@ console.log("hi")
 
                 {/* Notifications */}
                 <div className="sv-card mb-3">
-                    <h6 className="bc-side-title">Notifications</h6>
+                    <h6 className="bc-side-title text-start">Notifications</h6>
 
                     {[
                         { lbl: "Committee Meeting", time: "Today, 08:00 PM", dot: "dot-org" },
@@ -251,7 +251,7 @@ console.log("hi")
 
                 {/* Quick Actions */}
                 <div className="sv-card mb-3">
-                    <h6 className="bc-side-title">Quick Actions</h6>
+                    <h6 className="bc-side-title text-start">Quick Actions</h6>
 
                     {[["➕", "New Notice", "#dbeafe"], ["📊", "Create Poll", "#ffedd5"], ["📄", "Issue NOC", "#ede9fe"]].map(([ic, lb, bg]) => (
                         <button key={lb} className="qa mb-2">
@@ -263,7 +263,7 @@ console.log("hi")
 
                 {/* Recent Communications */}
                 <div className="sv-card">
-                    <h6 className="bc-side-title">Recent Communications</h6>
+                    <h6 className="bc-side-title text-start">Recent Communications</h6>
 
                     {[
                         { title: "Water Supply Cut", time: "Today, 10:30 AM", type: "Alert", s: "Sent", sc: "green" },
