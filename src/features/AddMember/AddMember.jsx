@@ -6,10 +6,12 @@ import { AddMemberApi, getMembersApi } from '../../services/AddMemberApi';
 
 import { useLoader } from "../../context/LoaderContext";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
-// import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { all } from 'axios';
+import { FiFilter, FiSearch } from 'react-icons/fi';
 
 
 const AddMember = () => {
@@ -135,42 +137,82 @@ const AddMember = () => {
         }
     };
 
-    const downloadExcel = () => {
-
-        // convert json to worksheet
-        const worksheet = XLSX.utils.json_to_sheet(rows);
-
+    const downloadExcel = async () => {
         // create workbook
-        const workbook = XLSX.utils.book_new();
+        const workbook = new ExcelJS.Workbook();
 
-        // append worksheet
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Members");
+        // add worksheet
+        const worksheet = workbook.addWorksheet("Members");
+
+        // add columns dynamically
+        if (allMembers.length > 0) {
+            worksheet.columns = Object.keys(allMembers[0]).map((key) => ({
+                header: key,
+                key: key,
+                width: 20,
+            }));
+
+            // add rows
+            allMembers.forEach((item) => {
+                worksheet.addRow(item);
+            });
+        }
+
+        // header style
+        worksheet.getRow(1).font = {
+            bold: true,
+        };
+
+        // create buffer
+        const buffer = await workbook.xlsx.writeBuffer();
 
         // download file
-        XLSX.writeFile(workbook, "Members.xlsx");
+        saveAs(
+            new Blob([buffer], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "Members.xlsx"
+        );
     };
 
-    const downloadCSV = () => {
+    const downloadCSV = async () => {
 
-        // convert json data to worksheet
-        const worksheet = XLSX.utils.json_to_sheet(rows);
+        // create workbook
+        const workbook = new ExcelJS.Workbook();
 
-        // convert worksheet to csv
-        const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
+        // add worksheet
+        const worksheet = workbook.addWorksheet("Members");
+
+        // add columns dynamically
+        if (allMembers.length > 0) {
+
+            worksheet.columns = Object.keys(allMembers[0]).map((key) => ({
+                header: key,
+                key: key,
+                width: 20,
+            }));
+
+            // add allMembers
+            allMembers.forEach((item) => {
+                worksheet.addRow(item);
+            });
+        }
+
+        // header style
+        worksheet.getRow(1).font = {
+            bold: true,
+        };
+
+        // generate csv buffer
+        const csvBuffer = await workbook.csv.writeBuffer();
 
         // create blob
-        const blob = new Blob([csvOutput], {
+        const blob = new Blob([csvBuffer], {
             type: "text/csv;charset=utf-8;",
         });
 
-        // create download link
-        const link = document.createElement("a");
-
-        link.href = URL.createObjectURL(blob);
-
-        link.download = "Members.csv";
-
-        link.click();
+        // download file
+        saveAs(blob, "Members.csv");
     };
 
     const downloadPDF = () => {
@@ -223,21 +265,21 @@ const AddMember = () => {
 
     const handleExport = () => {
 
-        // if (activeTab === "excel") {
-        //     downloadExcel();
-        //     setExportModal(false)
-        // }
-
-        // else if (activeTab === "csv") {
-        //     downloadCSV();
-        //     setExportModal(false)
-        // }
-
-        // else 
-        if (activeTab === "pdf") {
-            downloadPDF();
+        if (activeTab === "excel") {
+            downloadExcel();
             setExportModal(false)
         }
+
+        else if (activeTab === "csv") {
+            downloadCSV();
+            setExportModal(false)
+        }
+
+        else
+            if (activeTab === "pdf") {
+                downloadPDF();
+                setExportModal(false)
+            }
     };
 
     const totalOwners = allMembers.filter(
@@ -265,39 +307,69 @@ const AddMember = () => {
             <div className="pg cp-wrap">
 
                 {/* Header */}
-                <div className="d-flex justify-content-between align-items-center mb-4 text-start">
-                    <div>
-                        <h4 className="cp-title">Members</h4>
-                        <p className="cp-sub">
-                            Manage and track all society members
-                        </p>
-                    </div>
-                    <div className='d-flex'>
-                        <button className='btn btn-sm btn-primary' onClick={() => setShow(true)}>Add Member</button>
-                        <button className="btn-ol ms-2" onClick={() => setExportModal(true)}>⬇ Export</button>
 
-                    </div>
-
-                </div>
 
                 {/* Stats */}
                 <div className="row g-3 mb-4">
                     {[
-                        [allMembers.length, "Total Member", "tile-red"],
-                        [totalOwners, "Total Owner", "tile-org"],
-                        [totalTenant, "Total Tenant", "tile-grn"],
-                        [totalFamilyMember, "Total Family Member", "tile-blu"]
+                        [allMembers.length, "Total Members"],
+                        [totalOwners, "Owners"],
+                        [totalTenant, "Tenants"],
+                        [totalFamilyMember, "New This Week", "tile-grn"]
                     ].map(([v, l, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
                             <div className={`tile bg-white ${cls}`}>
-                                <div className=" text-start fw-bold">{l}</div>
+                                <div className=" text-start text-muted">{l}</div>
                                 <div className="tile-val text-start mt-1">{v}</div>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                <div className='row'>
+                <div className="d-flex justify-content-between align-items-center mb-4 text-start">
+                    {/* <div>
+                        <h4 className="cp-title">Members</h4>
+                        <p className="cp-sub">
+                            Manage and track all society members
+                        </p>
+                    </div> */}
+                    <div className="col-12 col-md-4 col-lg-3 position-relative">
+                        <span
+                            style={{
+                                position: "absolute",
+                                left: "15px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                color: "#aaa"
+                            }}
+                        >
+                            <FiSearch size={16} />  
+                        </span>
+
+                        <input
+                            type="text"
+                            className="form-control rounded-pill"
+                            placeholder="Search by name, unit, or email..."
+                            style={{ paddingLeft: "35px" }}
+                        />
+                    </div>
+                    <div className='d-flex'>
+                        <button
+                            className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
+                            data-bs-toggle="dropdown"
+                        >
+                            <FiFilter size={14} />
+
+                            Filter
+                        </button>
+                        <button className="btn-ol ms-2" onClick={() => setExportModal(true)}>⬇ Export</button>
+                        <button className='btn btn-sm btn-primary ms-2' onClick={() => setShow(true)}>+ Add Member</button>
+
+                    </div>
+
+                </div>
+
+                {/* <div className='row'>
                     <div className='col-lg-7'>
                         <div className="NoticeBoardTabs mt-3 bg-white"
                         >
@@ -312,35 +384,42 @@ const AddMember = () => {
                             ))}
                         </div>
                     </div>
-                </div>
+                </div> */}
+
                 <div className="sv-card p-0 overflow-hidden">
                     <div className="sa-table-wrap">
                         <table className="sv-tbl">
                             <thead>
                                 <tr>
-                                    {["First Name", "Last Name", "Mobile No.", "Email Id", "Wing", "Flat", "Membership Type", "Residency Status", "Date"]
-                                        .map(h => <th key={h}>{h}</th>)}
+                                    {
+                                        // ["First Name", "Last Name", "Mobile No.", "Email Id", "Wing", "Flat", "Membership Type", "Residency Status", "Date"]
+                                        ["MEMBER NAME", "UNIT NO.", "ROLE", "CONTACT INFO", "STATUS", "ACTIONS"]
+                                            .map(h => <th key={h}>{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredData.map((s, i) => (
                                     <tr className="text-start" key={i}>
-                                        <td className="sa-name">{s.first_name}</td>
-                                        <td className="sa-name">{s.last_name}</td>
-                                        <td className="sa-name">{s.mobile}</td>
-                                        <td className="sa-name">{s.email}</td>
-                                        <td className="sa-name">{s.block}</td>
+                                        <td className="sa-name">{s.first_name} {s.last_name}</td>
+
                                         <td className="sa-name">{s.flat_number}</td>
-                                        <td ><Badge label={s.occupancy_type}
+                                        <td ><Badge label={
+                                            s.occupancy_type
+                                                ? s.occupancy_type
+                                                    .replaceAll("_", " ")
+                                                    .replace(/\b\w/g, (char) => char.toUpperCase())
+                                                : ""
+                                        }
                                             c={
-                                                s.occupancy_type === "owner" ? "orange"
-                                                    : s.occupancy_type === "tenant" ? "green"
+                                                s.occupancy_type === "owner" ? "blue"
+                                                    : s.occupancy_type === "tenant" ? "pink"
                                                         : s.occupancy_type === "family_member" ? "blue"
                                                             : "grey"
                                             }
                                         /></td>
-                                        <td>{/* <Badge label={s.residencyStatus} c="orange" /> */}</td>
-                                        <td className="sa-name">{s.start_date}</td>
+                                        <td className="sa-name">{s.mobile}</td>
+                                        <td><Badge label="Active" c="green" /> </td>
+                                        <td className="sa-name"></td>
                                     </tr>
                                 ))}
                             </tbody>

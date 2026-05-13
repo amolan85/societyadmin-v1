@@ -127,7 +127,6 @@ const Overview = () => {
 
                
                     <div className="col-12 col-md-4 col-lg-3 position-relative">
-
                         <span
                             style={{
                                 position: "absolute",
@@ -143,7 +142,7 @@ const Overview = () => {
                         <input
                             type="text"
                             className="form-control rounded-pill"
-                            placeholder="Search..."
+                            placeholder="Start searching here"
                             style={{ paddingLeft: "35px" }}
                         />
                     </div>
@@ -154,8 +153,8 @@ const Overview = () => {
                         ["Pending Approvals", pendingApproval],
                         ["Staff Present", `${staffAttendance.present || 0} / ${staffAttendance.total || ""}`]
                     ].map(([l, v]) => (
-                        <div className="col-6 col-md-4 col-lg" key={l}>
-                            <div className="stat-card h-100 text-center">
+                        <div className="col-6 col-md-4 col-lg " key={l}>
+                            <div className="h-100 text-start ms-4">
                                 <div className="s-label">{l}</div>
                                 <div className="s-val">{v}</div>
                             </div>
@@ -165,37 +164,8 @@ const Overview = () => {
                 </div>
                 <div className="row g-3 mb-4">
                     <div className="col-12 col-lg-8">
-                        <div className="sv-card">
-                            {/* <div className="d-flex justify-content-between align-items-center mb-3">
-
-                            <div className="d-flex gap-3">
-                                {[["#818cf8", "Approved"], ["#fb923c", "Pending"], ["#f87171", "Rejected"]].map(([c, l]) => (
-                                    <span key={l} className="legend-item">
-                                        <span className="legend-box" style={{ background: c }} />
-                                        {l}
-                                    </span>
-                                ))}
-                            </div>
-
-                            <span className="btn-ol fy-btn">F.Y. 2025 ▾</span>
-                        </div>
-                        <div className="chart-container">
-                            {mo.map((m, i) => (
-                                <div key={m} className="chart-col">
-                                    <div className="chart-bars">
-                                        {[[ap[i], "#818cf8"], [pe[i], "#fb923c"], [re[i], "#f87171"]].map(([v, c], j) => (
-                                            <div
-                                                key={j}
-                                                className="chart-bar"
-                                                style={{ height: `${v}%`, background: c }}
-                                            />
-                                        ))}
-                                    </div>
-                                    <div className="chart-label">{m}</div>
-                                </div>
-                            ))}
-                        </div> */}
-                            <ResponsiveContainer width="100%" height={400}>
+                        <div className="sv-card" >
+                            <ResponsiveContainer width="100%" height={400} style={{ border: "none" }}>
                                 {/* <BarChart data={barData} >
                                 <XAxis
                                     dataKey="name"

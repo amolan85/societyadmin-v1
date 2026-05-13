@@ -69,8 +69,20 @@ body {
 .sidebar.collapsed .logo-name,
 .sidebar.collapsed .logo-sub { display: none; }
 
-.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+// .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
 
+    /* Hide scrollbar */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.sidebar-nav::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+}
 .nav-section {
   padding: 10px 16px 3px;
   font-size: 10px; font-weight: 700;
@@ -144,6 +156,7 @@ body {
 .bx-gray   { background: #f1f5f9;           color: #475569; }
 .bx-purple { background: #ede9fe;           color: #5b21b6; }
 .bx-peacock {background: #cffafe; color: #06b6d4}
+.bx-pink { background: #fce7f3; color: #db2777; }
 .badge-border {
   border: 1px solid currentColor;
 }

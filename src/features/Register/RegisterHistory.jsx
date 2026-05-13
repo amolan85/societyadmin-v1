@@ -4,7 +4,8 @@ import "../../styles/StaffAttendance.css"
 import "../../styles/Register.css"
 import { getBroadcastApi } from '../../services/BroadcastApi';
 import { GetSessionData } from '../../utils/SessionManagement';
-
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import { FiEdit } from 'react-icons/fi';
 import { FiSearch, FiCalendar, FiFilter } from "react-icons/fi";
 import { useLoader } from "../../context/LoaderContext";
@@ -15,7 +16,7 @@ import autoTable from "jspdf-autotable";
 
 const RegisterHistory = ({ setActive }) => {
     const [page, setPage] = useState(1);
-    const [allBroadcast, setAllBroadcast] = useState([])
+    const [allRegisterHistory, setAllRegisterHistory] = useState([])
     const [showCreate, setShowCreate] = useState(false);
     const [societyId, setSocietyId] = useState("")
     const [pendingId, setPendingId] = useState(null)
@@ -23,13 +24,13 @@ const RegisterHistory = ({ setActive }) => {
     const { setLoading } = useLoader();
     const [activeTab, setActiveTab] = useState("excel");
 
-      const all = [
-    { dateTime: "Today, 6:45 PM", type: "Access Log", title: "vehicle tesla model y", status: "allowed"},
-    { dateTime: "Oct 01,2025, 10:00 PM", type: "Payment", title: "vehicle tesla model y", status: "success"},
-    { dateTime: "Today, 6:45 PM", type: "Complaint", title: "vehicle tesla model y", status: "pending"},
-    { dateTime: "Today, 6:45 PM", type: "Profile Update", title: "vehicle tesla model y", status: "completed"},
+    const all = [
+        { dateTime: "Today, 6:45 PM", type: "Access Log", title: "vehicle tesla model y", status: "allowed" },
+        { dateTime: "Oct 01,2025, 10:00 PM", type: "Payment", title: "vehicle tesla model y", status: "success" },
+        { dateTime: "Today, 6:45 PM", type: "Complaint", title: "vehicle tesla model y", status: "pending" },
+        { dateTime: "Today, 6:45 PM", type: "Profile Update", title: "vehicle tesla model y", status: "completed" },
 
-  ];
+    ];
 
     // Load session data on component mount for get session data
     useEffect(() => {
@@ -52,7 +53,7 @@ const RegisterHistory = ({ setActive }) => {
         try {
             setLoading(true);
             const data = await getBroadcastApi(societyId)
-            setAllBroadcast(data)
+            setAllRegisterHistory(data)
         } catch (error) {
             console.log(error)
         } finally {
@@ -66,42 +67,82 @@ const RegisterHistory = ({ setActive }) => {
         setActive("createbroadcast");    // pehle ID set karo
     };
 
-    const downloadExcel = () => {
-
-        // convert json to worksheet
-        const worksheet = XLSX.utils.json_to_sheet(allBroadcast);
-
+    const downloadExcel = async () => {
         // create workbook
-        const workbook = XLSX.utils.book_new();
+        const workbook = new ExcelJS.Workbook();
 
-        // append worksheet
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Broadcast");
+        // add worksheet
+        const worksheet = workbook.addWorksheet("Register History");
+
+        // add columns dynamically
+        if (allRegisterHistory.length > 0) {
+            worksheet.columns = Object.keys(allRegisterHistory[0]).map((key) => ({
+                header: key,
+                key: key,
+                width: 20,
+            }));
+
+            // add rows
+            allRegisterHistory.forEach((item) => {
+                worksheet.addRow(item);
+            });
+        }
+
+        // header style
+        worksheet.getRow(1).font = {
+            bold: true,
+        };
+
+        // create buffer
+        const buffer = await workbook.xlsx.writeBuffer();
 
         // download file
-        XLSX.writeFile(workbook, "BroadcastData.xlsx");
+        saveAs(
+            new Blob([buffer], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "RegisterHistory.xlsx"
+        );
     };
 
-    const downloadCSV = () => {
+    const downloadCSV = async () => {
 
-        // convert json data to worksheet
-        const worksheet = XLSX.utils.json_to_sheet(allBroadcast);
+        // create workbook
+        const workbook = new ExcelJS.Workbook();
 
-        // convert worksheet to csv
-        const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
+        // add worksheet
+        const worksheet = workbook.addWorksheet("Register History");
+
+        // add columns dynamically
+        if (allRegisterHistory.length > 0) {
+
+            worksheet.columns = Object.keys(allRegisterHistory[0]).map((key) => ({
+                header: key,
+                key: key,
+                width: 20,
+            }));
+
+            // add allRegisterHistory
+            allRegisterHistory.forEach((item) => {
+                worksheet.addRow(item);
+            });
+        }
+
+        // header style
+        worksheet.getRow(1).font = {
+            bold: true,
+        };
+
+        // generate csv buffer
+        const csvBuffer = await workbook.csv.writeBuffer();
 
         // create blob
-        const blob = new Blob([csvOutput], {
+        const blob = new Blob([csvBuffer], {
             type: "text/csv;charset=utf-8;",
         });
 
-        // create download link
-        const link = document.createElement("a");
-
-        link.href = URL.createObjectURL(blob);
-
-        link.download = "BroadcastData.csv";
-
-        link.click();
+        // download file
+        saveAs(blob, "RegisterHistory.csv");
     };
 
     const downloadPDF = () => {
@@ -111,7 +152,7 @@ const RegisterHistory = ({ setActive }) => {
 
         // PDF Heading
         doc.setFontSize(18);
-        doc.text("Broadcast Report", 14, 15);
+        doc.text("Register History Report", 14, 15);
 
         // table columns
         const tableColumn = [
@@ -123,7 +164,7 @@ const RegisterHistory = ({ setActive }) => {
         ];
 
         // table rows
-        const tableRows = allBroadcast.map((item) => [
+        const tableRows = allRegisterHistory.map((item) => [
             item.title,
             item.message,
             item.type,
@@ -155,21 +196,21 @@ const RegisterHistory = ({ setActive }) => {
 
     const handleExport = () => {
 
-        // if (activeTab === "excel") {
-        //     downloadExcel();
-        //     setShow(false)
-        // }
-
-        // else if (activeTab === "csv") {
-        //     downloadCSV();
-        //     setShow(false)
-        // }
-
-        // else 
-            if (activeTab === "pdf") {
-            downloadPDF();
+        if (activeTab === "excel") {
+            downloadExcel();
             setShow(false)
         }
+
+        else if (activeTab === "csv") {
+            downloadCSV();
+            setShow(false)
+        }
+
+        else
+            if (activeTab === "pdf") {
+                downloadPDF();
+                setShow(false)
+            }
     };
 
     //for pagination
@@ -235,7 +276,7 @@ const RegisterHistory = ({ setActive }) => {
                                         Filter by Type
                                     </small>
 
-                                    <button className="btn btn-link p-0 text-decoration-none small" style={{fontSize:"17px"}}>
+                                    <button className="btn btn-link p-0 text-decoration-none small" style={{ fontSize: "17px" }}>
                                         Select All
                                     </button>
 
@@ -251,7 +292,7 @@ const RegisterHistory = ({ setActive }) => {
                                             defaultChecked
                                         />
 
-                                        <label className="form-check-label" style={{fontSize:"15px"}}>
+                                        <label className="form-check-label" style={{ fontSize: "15px" }}>
                                             Access Log
                                         </label>
                                     </div>
@@ -263,7 +304,7 @@ const RegisterHistory = ({ setActive }) => {
                                             defaultChecked
                                         />
 
-                                        <label className="form-check-label" style={{fontSize:"15px"}}>
+                                        <label className="form-check-label" style={{ fontSize: "15px" }}>
                                             Payments
                                         </label>
                                     </div>
@@ -275,8 +316,8 @@ const RegisterHistory = ({ setActive }) => {
                                             defaultChecked
                                         />
 
-                                        <label className="form-check-label" style={{fontSize:"15px"}}>
-                                            Complaints
+                                        <label className="form-check-label" style={{ fontSize: "15px" }}>
+                                            RegisterHistory
                                         </label>
                                     </div>
 
@@ -287,7 +328,7 @@ const RegisterHistory = ({ setActive }) => {
                                             defaultChecked
                                         />
 
-                                        <label className="form-check-label" style={{fontSize:"15px"}}>
+                                        <label className="form-check-label" style={{ fontSize: "15px" }}>
                                             System Updates
                                         </label>
                                     </div>
@@ -298,7 +339,7 @@ const RegisterHistory = ({ setActive }) => {
                                             type="checkbox"
                                         />
 
-                                        <label className="form-check-label" style={{fontSize:"15px"}}>
+                                        <label className="form-check-label" style={{ fontSize: "15px" }}>
                                             Notices
                                         </label>
                                     </div>
@@ -312,8 +353,8 @@ const RegisterHistory = ({ setActive }) => {
                     </div>
 
                     {/* Export Button */}
-                   
-                        <button className="btn-ol" onClick={() => setShow(true)}>⬇ Export</button>
+
+                    <button className="btn-ol" onClick={() => setShow(true)}>⬇ Export</button>
                 </div>
                 {/* Table */}
                 <div className="sv-card p-0 overflow-hidden">
@@ -332,9 +373,9 @@ const RegisterHistory = ({ setActive }) => {
                                         <td className="sa-name">{s.dateTime}</td>
 
                                         <td className="sa-muted">{s.type}</td>
-                                       <td className="sa-muted">{s.title}</td>
+                                        <td className="sa-muted">{s.title}</td>
                                         <td>
-                                            <Badge label={s.status} 
+                                            <Badge label={s.status}
                                                 c={
                                                     s.status === "allowed"
                                                         ? "blue"
@@ -348,7 +389,7 @@ const RegisterHistory = ({ setActive }) => {
                                                 }
                                             />
                                         </td>
-                                       
+
 
 
                                     </tr>
@@ -485,7 +526,7 @@ const RegisterHistory = ({ setActive }) => {
                                             <h6 className='fw-bold mt-1'>All Data</h6>
                                         </div>
 
-                                        <span className="text-muted mt-1"><h6>{allBroadcast.length} records</h6></span>
+                                        <span className="text-muted mt-1"><h6>{allRegisterHistory.length} records</h6></span>
                                     </div>
 
 

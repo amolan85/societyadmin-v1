@@ -4,7 +4,8 @@ import "../../styles/Complaints.css"
 import createComplaints from './CreateComplaints';
 import { getComplaintsApi, updateComplaintPriorityApi, updateComplaintStatusApi } from '../../services/ComplaintsApi';
 import { GetSessionData } from '../../utils/SessionManagement';
-
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 // import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -152,42 +153,83 @@ const Complaints = ({ setActive }) => {
     }
   }
 
-  const downloadExcel = () => {
 
-    // convert json to worksheet
-    const worksheet = XLSX.utils.json_to_sheet(allComplaints);
-
+  const downloadExcel = async () => {
     // create workbook
-    const workbook = XLSX.utils.book_new();
+    const workbook = new ExcelJS.Workbook();
 
-    // append worksheet
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Complaints");
+    // add worksheet
+    const worksheet = workbook.addWorksheet("Complaints");
+
+    // add columns dynamically
+    if (allComplaints.length > 0) {
+      worksheet.columns = Object.keys(allComplaints[0]).map((key) => ({
+        header: key,
+        key: key,
+        width: 20,
+      }));
+
+      // add rows
+      allComplaints.forEach((item) => {
+        worksheet.addRow(item);
+      });
+    }
+
+    // header style
+    worksheet.getRow(1).font = {
+      bold: true,
+    };
+
+    // create buffer
+    const buffer = await workbook.xlsx.writeBuffer();
 
     // download file
-    XLSX.writeFile(workbook, "ComplaintsData.xlsx");
+    saveAs(
+      new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      }),
+      "Complaints.xlsx"
+    );
   };
 
-  const downloadCSV = () => {
+  const downloadCSV = async () => {
 
-    // convert json data to worksheet
-    const worksheet = XLSX.utils.json_to_sheet(allComplaints);
+    // create workbook
+    const workbook = new ExcelJS.Workbook();
 
-    // convert worksheet to csv
-    const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
+    // add worksheet
+    const worksheet = workbook.addWorksheet("Complaints");
+
+    // add columns dynamically
+    if (allComplaints.length > 0) {
+
+      worksheet.columns = Object.keys(allComplaints[0]).map((key) => ({
+        header: key,
+        key: key,
+        width: 20,
+      }));
+
+      // add allComplaints
+      allComplaints.forEach((item) => {
+        worksheet.addRow(item);
+      });
+    }
+
+    // header style
+    worksheet.getRow(1).font = {
+      bold: true,
+    };
+
+    // generate csv buffer
+    const csvBuffer = await workbook.csv.writeBuffer();
 
     // create blob
-    const blob = new Blob([csvOutput], {
+    const blob = new Blob([csvBuffer], {
       type: "text/csv;charset=utf-8;",
     });
 
-    // create download link
-    const link = document.createElement("a");
-
-    link.href = URL.createObjectURL(blob);
-
-    link.download = "ComplaintsData.csv";
-
-    link.click();
+    // download file
+    saveAs(blob, "Complaints.csv");
   };
 
   const downloadPDF = () => {
@@ -240,21 +282,21 @@ const Complaints = ({ setActive }) => {
 
   const handleExport = () => {
 
-    // if (activeTab === "excel") {
-    //   downloadExcel();
-    //   setShowModal(false)
-    // }
-
-    // else if (activeTab === "csv") {
-    //   downloadCSV();
-    //   setShowModal(false)
-    // }
-
-    // else
-    if (activeTab === "pdf") {
-      downloadPDF();
+    if (activeTab === "excel") {
+      downloadExcel();
       setShowModal(false)
     }
+
+    else if (activeTab === "csv") {
+      downloadCSV();
+      setShowModal(false)
+    }
+
+    else
+      if (activeTab === "pdf") {
+        downloadPDF();
+        setShowModal(false)
+      }
   };
 
   const timeAgo = (utcDate) => {
@@ -339,7 +381,7 @@ const Complaints = ({ setActive }) => {
               {tabs.map((t) => (
                 <button
                   key={t.id}
-                  onClick={() => setTab(t.value)}
+                  onClick={() => {setTab(t.value); setPage(1)}}
                   className={`NoticeBoardTabs-btn ${tab === t.value ? "active" : ""}`}
                 >
                   {t.icon} {t.id}

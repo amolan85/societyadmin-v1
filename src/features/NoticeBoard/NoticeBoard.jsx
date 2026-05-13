@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Badge } from '../../components/Common/ReusableFunction';
+import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/NoticeBoard.css"
 import { getNoticeBoardApi } from '../../services/NoticeBoardApi';
 import { GetSessionData } from '../../utils/SessionManagement';
@@ -20,6 +20,7 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
     const [tab, setTab] = useState("");
     const [name, setName] = useState("")
     const [allNoticeBoard, setAllNoticeBoard] = useState([])
+    const [page, setPage] = useState(1);
     // const [selectedNoticeData, setSelectedNoticeData] = useState()
     const posts = [
         { icon: "📢", title: "AGM 2025 Date Rescheduled", tag: "Official", tc: "blue", author: "Sara Sharan", time: "2 hours ago", views: "128 views", content: "Due to unforeseen weather conditions, the AGM is postponed to Nov 12th at 5 PM in the Clubhouse." },
@@ -61,7 +62,7 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
         },
     ];
 
-    
+
 
     const getNoticeIcon = (type) => {
         switch (type) {
@@ -179,7 +180,8 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
         ? allNoticeBoard
         : allNoticeBoard.filter((item) => item.notice_type === tab);
 
-
+  const per = 5, total = Math.ceil(allNoticeBoard.length / per);
+    const rows = allNoticeBoard.slice((page - 1) * per, page * per);
     return (
         <>
 
@@ -268,11 +270,11 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
                                                         <span className="nb-locked">🔒 Locked</span>
                                                     )}
 
-                                                    {/* <FiTrash2
+                                                    <FiTrash2
                                                         size={18}
                                                         style={{ cursor: "pointer", color: "red" }}
-                                                        // onClick={() => deleteNotice(p.notice_id)}
-                                                    /> */}
+                                                    // onClick={() => deleteNotice(p.notice_id)}
+                                                    />
                                                 </div>
                                             </div>
 
@@ -289,6 +291,11 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
                                 </div>
                             )
                         })}
+                        <Pagination
+                            page={page}
+                            total={total}
+                            onChange={setPage}
+                        />
 
                     </div>
                 </div>

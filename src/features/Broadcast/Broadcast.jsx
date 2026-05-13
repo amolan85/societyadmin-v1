@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/StaffAttendance.css"
-import CreateBroadcast from './CreateBroadcast';
+import createbroadcast from './CreateBroadcast';
 import { getBroadcastApi } from '../../services/BroadcastApi';
 import { GetSessionData } from '../../utils/SessionManagement';
-import { FiEdit } from 'react-icons/fi';
+import { FiBell, FiEdit } from 'react-icons/fi';
 import {
     FiVolume2,
     FiTool,
@@ -12,7 +12,9 @@ import {
     FiCalendar,
     FiBriefcase,
     FiUsers,
-    FiTrash2
+    FiTrash2,
+    FiGrid ,
+    FiFileText 
 } from "react-icons/fi";
 
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
@@ -28,19 +30,20 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
     const [societyId, setSocietyId] = useState("")
     const [pendingId, setPendingId] = useState(null)
     const [show, setShow] = useState(false)
+    const [name, setName] = useState("")
 
     const [activeTab, setActiveTab] = useState("excel");
 
     const broadcastType = [
-        { id: "All Items",  icon: <FiVolume2 size={18} color="#2563eb" />, value: "" },
-        { id: "Announcement", icon: <FiTool size={18} color="#f59e0b" />, value: "announcement" },
-        { id: "Emergency",   icon: <FiAlertTriangle size={18} color="#ef4444" />, value: "emergency" },
-        { id: "Circular",   icon: <FiUsers size={18} color="#06b6d4" />, value: "circular" },
-        { id: "Event",  icon: <FiCalendar size={18} color="#10b981" />, value: "event" },
+        { id: "All Items", icon: <FiGrid  size={18} color="#2563eb" />, value: "" },
+        { id: "Announcement", icon: <FiVolume2 size={18} color="#f59e0b" />, value: "announcement" },
+        { id: "Emergency", icon: <FiAlertTriangle size={18} color="#ef4444" />, value: "emergency" },
+        { id: "Circular", icon: <FiFileText  size={18} color="purple" />, value: "circular" },
+        { id: "Event", icon: <FiCalendar size={18} color="#10b981" />, value: "event" },
     ];
 
- 
-    
+
+
     // Load session data on component mount for get session data
     useEffect(() => {
         SessionData()
@@ -52,7 +55,7 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
         console.log(data.data)
         const flats = data.data.flats[0]
         setSocietyId(flats.society_id)
- setName(data.data.first_name + " " + data.data.last_name)
+        setName(data.data.first_name + " " + data.data.last_name)
         //call function for get broadcast
         getBroadcast(flats.society_id)
     }
@@ -199,106 +202,6 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
     const per = 5, total = Math.ceil(filteredData.length / per);
     const rows = filteredData.slice((page - 1) * per, page * per);
 
-    const [tab, setTab] = useState("");
-    const [name, setName] = useState("")
-    const [allNoticeBoard, setAllNoticeBoard] = useState([])
-    // const [selectedNoticeData, setSelectedNoticeData] = useState()
-    const posts = [
-        { icon: "📢", title: "AGM 2025 Date Rescheduled", tag: "Official", tc: "blue", author: "Sara Sharan", time: "2 hours ago", views: "128 views", content: "Due to unforeseen weather conditions, the AGM is postponed to Nov 12th at 5 PM in the Clubhouse." },
-        { icon: "💬", title: "Water Seepage in Block B Basement", tag: "Discussion", tc: "orange", author: "Raj Singh (B-402)", time: "Yesterday", comments: "14", locked: true, content: "There is a significant leak near pillar 14. Can the maintenance team prioritize this?" },
-        { icon: "👥", title: "Diwali Decoration Volunteers", tag: "Discussion", tc: "orange", author: "Priya Desai (Cultural Comm.)", time: "5 hours ago", comments: "8", content: "Looking for enthusiastic residents to help with rangoli and lighting for Diwali celebrations." },
-        { icon: "📋", title: "Found: Car Keys near Gate 2", tag: "Lost & Found", tc: "blue", author: "Security Office", time: "30 min ago", content: "A set of Honda car keys was found near Gate 2. Please collect from security." },
-    ];
-
-    const tabs = [
-        {
-            id: "General",
-            icon: <FiVolume2 size={18} color="#2563eb" />,
-            value: "general",
-        },
-        {
-            id: "Maintenance",
-            icon: <FiTool size={18} color="#f59e0b" />,
-            value: "maintenance",
-        },
-        {
-            id: "Emergency",
-            icon: <FiAlertTriangle size={18} color="#ef4444" />,
-            value: "emergency",
-        },
-        {
-            id: "Event",
-            icon: <FiCalendar size={18} color="#10b981" />,
-            value: "event",
-        },
-        {
-            id: "Legal",
-            icon: <FiBriefcase size={18} color="#7c3aed" />,
-            value: "legal",
-        },
-        {
-            id: "Meeting",
-            icon: <FiUsers size={18} color="#06b6d4" />,
-            value: "meeting",
-        },
-    ];
-
-
-
-    const getNoticeIcon = (type) => {
-        switch (type) {
-            case "announcement":
-                return {
-                    icon: <FiUsers size={18} color="#06b6d4" />,
-                    bg: "#cffafe",
-                };
-
-            case "circular":
-                return {
-                    icon: <FiTool size={18} color="#f59e0b" />,
-                    bg: "#fef3c7",
-                };
-
-            case "emergency":
-                return {
-                    icon: <FiAlertTriangle size={18} color="#ef4444" />,
-                    bg: "#fee2e2",
-                };
-
-            case "event":
-                return {
-                    icon: <FiCalendar size={18} color="#10b981" />,
-                    bg: "#d1fae5",
-                };
-
-            default:
-                return {
-                    icon: <FiCalendar size={18} color="#6b7280" />,
-                    bg: "#f3f4f6",
-                };
-        }
-    };
-
-    // const tabs = [{ id: "General", icon: "📢", value: "general" }, { id: "Maintenance", icon: "⚠️", value: "maintenance" }, { id: "Emergency", icon: "📄", value: "emergency" }, { id: "Event", icon: "📅", value: "event" }, { id: "Legal", icon: "📅", value: "legal" }, { id: "Meeting", icon: "📅", value: "meeting" },];
-    // Load session data on component mount for get session data
-
-    //function for get broadcast
-    const getNoticeBoard = async (societyId) => {
-
-        try {
-            const data = await getNoticeBoardApi(societyId)
-            console.log(data.list)
-            setAllNoticeBoard(data.list)
-        } catch (error) {
-            console.log(error)
-        }
-    }
-
-    //fetch get notice board by id
-    const getNoticeBoardById = async (selectedData) => {
-        setSelectedNoticeData(selectedData);
-        setActive("createNoticeBoard");
-    };
 
     const timeAgo = (utcDate) => {
 
@@ -329,312 +232,65 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
         return "Just now";
     };
 
-    //filter data by notice type
-    // const filteredData = tab === ""
-    //     ? allNoticeBoard
-    //     : allNoticeBoard.filter((item) => item.notice_type === tab);
+
+    const getNoticeIcon = (type) => {
+        switch (type) {
+            case "announcement":
+                return {
+                    icon: <FiVolume2 size={18} color="#ff9800" />,
+                    bg: "#fff3e0",
+                };
+            case "circular":
+                return {
+                    icon: <FiFileText  size={18} color="#7c3aed" />,
+                    bg: "#ede9fe",
+                };
+
+            case "emergency":
+                return {
+                    icon: <FiAlertTriangle size={18} color="#ef4444" />,
+                    bg: "#fee2e2",
+                };
+
+            case "event":
+                return {
+                    icon: <FiCalendar size={18} color="#10b981" />,
+                    bg: "#d1fae5",
+                };
+
+            default:
+                return {
+                    icon: <FiCalendar size={18} color="#6b7280" />,
+                    bg: "#f3f4f6",
+                };
+        }
+    };
 
 
     return (
         <>
-            <div className="pg sa-wrap">
-
-                {/* <div className='row'>
-                    <div className='col-lg-7'>
-                        <div className="NoticeBoardTabs mt-3 bg-white"
-                        >
-                            {broadcastType.map((t) => (
-                                <button
-                                    key={t.id}
-                                    onClick={() => setBroadcastTypeTab(t.value)}
-                                    className={`NoticeBoardTabs-btn ${broadcastTypeTab === t.value ? "active" : ""}`}
-                                >
-                                    {t.icon} {t.id}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div> */}
-                {/* 
-                <div className="sv-card p-0 overflow-hidden">
-                    <div className="sa-table-wrap">
-                        <table className="sv-tbl">
-                            <thead>
-                                <tr>
-                                    {["Subject", "Content", "Attachment", "Type", "Schedule Date", "Status"]
-                                        .map(h => <th key={h}>{h}</th>)}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {rows.map((s, i) => (
-                                    <tr className="text-start" key={s.broadcast_id}>
-
-                                        <td className="sa-name">{s.title}</td>
-
-                                        <td className="sa-muted">{s.message}</td>
-                                        <td className="sa-muted">{s.file_url ? "Yes" : "No"}</td>
-                                        <td>
-                                            <Badge label={s.type} c="gray"
-                                                c={
-                                                    s.type === "announcement"
-                                                        ? "red"
-                                                        : s.type === "emergency"
-                                                            ? "orange"
-                                                            : s.type === "circular"
-                                                                ? "green"
-                                                                : "gray"
-                                                }
-                                            />
-                                        </td>
-                                        <td className="sa-muted">
-                                            {s.scheduled_at}
-                                        </td>
-                                        <td className="sa-muted" style={{ cursor: "pointer" }}>
-                                            {s.status === "draft" ? (
-                                                <FiEdit
-                                                    color="orange"
-                                                    onClick={() => getBroadcastById(s.broadcast_id)}
-                                                />
-                                            ) : (
-                                                <span
-                                                    style={{
-                                                        color:
-                                                            s.status === "scheduled"
-                                                                ? "blue"
-                                                                : s.status === "sent"
-                                                                    ? "green"
-                                                                    : s.status === "failed"
-                                                                        ? "#ef4444"
-                                                                        : "#6b7280",
-                                                        fontWeight: 600,
-                                                        textTransform: "capitalize",
-                                                    }}
-                                                >
-                                                    {s.status}
-                                                </span>
-                                            )}
-                                        </td>
-
-                                    </tr>
-                                ))}
-                            </tbody>
-
-                        </table>
-                    </div>
-
-                    <Pagination
-                        page={page}
-                        total={total}
-                        onChange={setPage}
-                    />
-
-                </div> */}
-            </div>
-            {show && (
-                <>
-
-                    <div className="modal-backdrop fade show"></div>
-
-
-                    <div className="modal show d-block">
-                        <div className="modal-dialog modal-md">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h1 className="modal-title fs-5">Export Data</h1>
-
-
-                                    <button
-                                        type="button"
-                                        className="btn-close"
-                                        onClick={() => setShow(false)}
-                                    ></button>
-                                </div>
-
-
-                                <div className="modal-body">
-                                    <h6 className=" text-start" style={{ fontWeight: "bold" }}>Select Format</h6>
-                                    <div className="row mb-4">
-
-
-                                        <div className="col-md-4">
-                                            <div
-                                                className={`format-card text-center p-3 rounded-3 ${activeTab === "excel" ? "active-format" : ""
-                                                    }`}
-                                                onClick={() => { setActiveTab("excel") }}
-                                            >
-                                                <BsFiletypeXls
-                                                    className={
-                                                        activeTab === "excel"
-                                                            ? "text-primary"
-                                                            : "text-secondary"
-                                                    }
-                                                    size={20}
-                                                />
-
-                                                <p
-                                                    className={`fw-semibold mb-0 mt-1 ${activeTab === "excel"
-                                                        ? "text-primary"
-                                                        : "text-secondary"
-                                                        }`}
-                                                >
-                                                    Excel
-                                                </p>
-                                            </div>
-                                        </div>
-
-
-                                        <div className="col-md-4">
-                                            <div
-                                                className={`format-card text-center p-3 rounded-3 ${activeTab === "csv" ? "active-format" : ""
-                                                    }`}
-                                                onClick={() => { setActiveTab("csv") }}
-                                            >
-                                                <BsFiletypeCsv
-                                                    className={
-                                                        activeTab === "csv"
-                                                            ? "text-primary"
-                                                            : "text-secondary"
-                                                    }
-                                                    size={20}
-                                                />
-
-                                                <p
-                                                    className={`fw-semibold mb-0 mt-1 ${activeTab === "csv"
-                                                        ? "text-primary"
-                                                        : "text-secondary"
-                                                        }`}
-                                                >
-                                                    CSV
-                                                </p>
-                                            </div>
-                                        </div>
-
-
-                                        <div className="col-md-4">
-                                            <div
-                                                className={`format-card text-center p-3 rounded-3 ${activeTab === "pdf" ? "active-format" : ""
-                                                    }`}
-                                                onClick={() => { setActiveTab("pdf") }}
-                                            >
-                                                <BsFiletypePdf
-                                                    className={
-                                                        activeTab === "pdf"
-                                                            ? "text-primary"
-                                                            : "text-secondary"
-                                                    }
-                                                    size={20}
-                                                />
-
-                                                <p
-                                                    className={`fw-semibold mb-0 mt-1 ${activeTab === "pdf"
-                                                        ? "text-primary"
-                                                        : "text-secondary"
-                                                        }`}
-                                                >
-                                                    PDF
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                    </div>
-
-
-                                    <h6 className=" text-start fw-bold">Data Range</h6>
-
-
-                                    <div className="range-card active-range d-flex justify-content-between align-items-center mb-3">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <input className="form-check-input" type="radio" checked />
-                                            <h6 className='fw-bold mt-1'>All Data</h6>
-                                        </div>
-
-                                        <span className="text-muted mt-1"><h6>{allBroadcast.length} records</h6></span>
-                                    </div>
-
-
-                                    <div className="range-card d-flex justify-content-between align-items-center mb-3">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <input className="form-check-input" type="radio" />
-                                            <h6 className="fw-bold mt-1">Current Search results</h6>
-                                        </div>
-
-                                        <h6 className="text-muted mt-1">40 records</h6>
-                                    </div>
-
-
-                                    <div className="range-card d-flex align-items-center gap-3">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <input className="form-check-input" type="radio" />
-                                            <h6 className="fw-bold mt-1">Custom date range</h6>
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-
-                                <div className="modal-footer">
-
-                                    <button className="btn-sm btn btn-outline-secondary" onClick={() => setShow(false)}>
-                                        Cancel
-                                    </button>
-
-                                    <button className="btn btn-sm btn-primary" onClick={handleExport}>
-                                        <i className="bi bi-download me-2"></i>
-                                        Export Data
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-                </>
-            )}
-
             <div className="pg row g-4 nb-wrap">
 
                 {/* LEFT */}
                 <div className="col-12 col-lg-8">
                     <div className="sv-card">
                         <div className="d-flex justify-content-end">
-                            <button className='btn btn-primary btn-sm'
-                                onClick={() => {
-                                    setActive("createNoticeBoard");
-                                    setSelectedNoticeData("")
-                                }}>
-                                Create
-                            </button>
+
+                            <button className='btn btn-sm btn-primary' onClick={() => { setActive("createbroadcast"); setBroadcastId("") }}>Create</button>
                         </div>
-                        {/* <div className='row'>
-                            <div className='col-lg-7'>
-                                <div className="NoticeBoardTabs mt-3 "
-                                >
-                                    {broadcastType.map((t) => (
-                                        <button
-                                            key={t.id}
-                                            onClick={() => setBroadcastTypeTab(t.value)}
-                                            className={`NoticeBoardTabs-btn ${broadcastTypeTab === t.value ? "active" : ""}`}
-                                        >
-                                            {t.icon} {t.id}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div> */}
-                         <div className="NoticeBoardTabs mt-3"
+                        <div className="NoticeBoardTabs mt-3"
                         >
                             {broadcastType.map((t) => (
                                 <button
                                     key={t.id}
-                                    onClick={() => setBroadcastTypeTab(t.value)}
+                                    onClick={() => { setBroadcastTypeTab(t.value); setPage(1); }}
                                     className={`NoticeBoardTabs-btn ${broadcastTypeTab === t.value ? "active" : ""}`}
                                 >
                                     {t.icon} &nbsp;{t.id}
                                 </button>
                             ))}
                         </div>
-                        {filteredData.map((p, i, arr) => {
+                        {rows.map((p, i, arr) => {
                             const noticeData = getNoticeIcon(p.type);
                             return (
                                 <div
@@ -661,15 +317,15 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                                                         label={p.type}
                                                         c={
                                                             p.type === "announcement"
-                                                                ? "blue"
+                                                                ? "orange"
                                                                 : p.type === "circular"
-                                                                    ? "orange"
+                                                                    ? "purple"
                                                                     : p.type === "emergency"
                                                                         ? "red"
                                                                         : p.type === "event"
                                                                             ? "green"
-                                                                            
-                                                                                    : "gray"
+
+                                                                            : "gray"
                                                         }
                                                     />
                                                     {/* <Badge label={p.notice_type} c={p.tc} /> */}
@@ -677,34 +333,25 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
 
                                                 {/* Right Side */}
                                                 <div className="d-flex align-items-center gap-3">
-
-                                                    {/* {p.status === "draft" && (
+                                                    {p.status === "draft" ? (
                                                         <FiEdit
                                                             size={18}
                                                             style={{ cursor: "pointer", color: "orange" }}
-                                                            onClick={() => getNoticeBoardById(p.notice_id)}
-                                                        />
-                                                    )} */}
-                                                    {p.status === "draft" ? (
-                                                        <FiEdit
-                                                            color="orange"
                                                             onClick={() => getBroadcastById(p.broadcast_id)}
                                                         />
                                                     ) : (
-                                                        <span
-                                                            style={{
-                                                                color:
-                                                                    p.status === "scheduled"
-                                                                        ? "blue"
-                                                                        : p.status === "sent"
-                                                                            ? "green"
-                                                                            : p.status === "failed"
-                                                                                ? "#ef4444"
-                                                                                : "#6b7280",
-                                                            }}
-                                                        >
-                                                            {p.status}
-                                                        </span>
+                                                        <Badge
+                                                            label={p.status}
+                                                            c={
+                                                                p.status === "scheduled"
+                                                                    ? "blue"
+                                                                    : p.status === "sent"
+                                                                        ? "green"
+                                                                        : p.status === "failed"
+                                                                            ? "red"
+                                                                            : "gray"
+                                                            }
+                                                        />
                                                     )}
                                                     {p.locked && (
                                                         <span className="nb-locked">🔒 Locked</span>
@@ -731,7 +378,11 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                                 </div>
                             )
                         })}
-
+                        <Pagination
+                            page={page}
+                            total={total}
+                            onChange={setPage}
+                        />
                     </div>
                 </div>
 
