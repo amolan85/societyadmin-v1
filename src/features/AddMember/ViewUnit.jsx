@@ -11,6 +11,8 @@ const ViewUnit = ({ setActive, flatId }) => {
     const [flatIdNo, setFlatIdNo] = useState("");
     const [flatNumber, setFlatNumber] = useState("");
     const [floor, setFloor] = useState("");
+    const [configuration, setConfiguration] = useState("");
+    const [intercom, setIntercom] = useState("");
     const [members, setMembers] = useState([]);
 
     useEffect(() => {
@@ -52,18 +54,10 @@ const ViewUnit = ({ setActive, flatId }) => {
             setFlatNumber(data.flat_number);
             setFloor(data.floor);
             setAreaSqft(data.area_sqft);
-setMembers(data.members[0]);
-            // setFirstName(data.first_name);
-            // setLastName(data.last_name);
-            // setEmail(data.email);
-            // setPhone(data.mobile);
-            // setBlock(data.block);
-            // setFlatNo(data.flat_number);
-            // setOccupancyType(data.occupancy_type);
-            // setStatus(data.status);
-            // setArea(data.area_sqft);
-            // setMoveInDate(data.start_date);
-            // setFlatIdNo(data.flat_id);
+            setConfiguration(data.flat_dsc);
+            setIntercom(data.intercom);
+            setMembers(data.members);
+
         } catch (error) {
             console.log(error);
         }
@@ -87,7 +81,7 @@ setMembers(data.members[0]);
 
                             <div>
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
-                                    <h5 className="mb-0 fw-bold">Unit A-404</h5>
+                                    <h5 className="mb-0 fw-bold">Unit {flatNumber}</h5>
 
                                     <span className="badge bg-primary-subtle text-primary">
                                         Occupied
@@ -139,7 +133,7 @@ setMembers(data.members[0]);
                                 <div className="row g-4">
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">UNIT NUMBER</small>
-                                        <div className="fw-semibold">{block}-{flatNumber}</div>
+                                        <div className="fw-semibold">{flatNumber}</div>
                                     </div>
 
                                     <div className="col-md-6">
@@ -164,7 +158,7 @@ setMembers(data.members[0]);
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">INTERCOM NUMBER</small>
-                                        <div className="fw-semibold">4040</div>
+                                        <div className="fw-semibold">{intercom}</div>
                                     </div>
 
                                 </div>
@@ -182,11 +176,8 @@ setMembers(data.members[0]);
                             </div>
 
                             <div className="card-body">
-
-                                <div className=" d-flex justify-content-between align-items-center">
-
-                                    {/* Left Section */}
-                                    <div className="d-flex align-items-center gap-3">
+                                {/* Left Section */}
+                                {/* <div className="d-flex align-items-center gap-3">
 
                                         <img
                                             src="https://i.pravatar.cc/60?img=12"
@@ -206,9 +197,38 @@ setMembers(data.members[0]);
                                                 {members.email}
                                             </small>
                                         </div>
-                                    </div>
+                                    </div> */}
+                                {/* <div className=" d-flex justify-content-between align-items-center">
 
-                                    {/* Right Section */}
+                                
+                                    {members
+                                        ?.filter((m) => m.occupancy_type === "owner")
+                                        .map((m, index) => (
+                                            <div
+                                                key={index}
+                                                className="d-flex align-items-center gap-3 mb-3"
+                                            >
+                                                <img
+                                                    src="https://i.pravatar.cc/60?img=12"
+                                                    alt="profile"
+                                                    className="rounded-circle object-fit-cover"
+                                                    width="55"
+                                                    height="55"
+                                                />
+
+                                                <div>
+                                                    <h6 className="mb-1 fw-semibold">
+                                                        {m.first_name} {m.last_name}
+                                                    </h6>
+
+                                                    <small className="text-muted d-flex align-items-center gap-1">
+                                                        <i className="bi bi-envelope"></i>
+                                                        {m.email}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        ))}
+                                 
                                     <div className="text-end">
                                         <small className="text-muted d-block">
                                             Moved In
@@ -219,8 +239,51 @@ setMembers(data.members[0]);
                                         </div>
                                     </div>
 
-                                </div>
+                                </div> */}
+                                {members
+                                    ?.filter((m) => m.occupancy_type === "owner")
+                                    .map((m, index) => (
+                                        <div
+                                            key={index}
+                                            className="d-flex justify-content-between align-items-center mb-3"
+                                        >
 
+                                            {/* Left Section */}
+                                            <div className="d-flex align-items-center gap-3">
+
+                                                <img
+                                                    src="https://i.pravatar.cc/60?img=12"
+                                                    alt="profile"
+                                                    className="rounded-circle object-fit-cover"
+                                                    width="55"
+                                                    height="55"
+                                                />
+
+                                                <div>
+                                                    <h6 className="text-start mb-1 fw-semibold">
+                                                        {m.first_name} {m.last_name}
+                                                    </h6>
+
+                                                    <small className="text-start text-muted d-flex align-items-center gap-1">
+                                                        <i className="bi bi-envelope"></i>
+                                                        {m.email}
+                                                    </small>
+                                                </div>
+                                            </div>
+
+                                            {/* Right Section */}
+                                            <div className="text-end">
+                                                <small className="text-muted d-block">
+                                                    Moved In
+                                                </small>
+
+                                                <div className="fw-bold">
+                                                    {m.start_date}
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    ))}
                             </div>
                         </div>
                     </div>

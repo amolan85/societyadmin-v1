@@ -155,22 +155,22 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">DATE OF BIRTH</small>
-                                        <div className="fw-semibold">May 14, 1988</div>
+                                        <div className="fw-semibold">-</div>
                                     </div>
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">OCCUPATION</small>
-                                        <div className="fw-semibold">Senior Architect</div>
+                                        <div className="fw-semibold">-</div>
                                     </div>
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">EMPLOYER</small>
-                                        <div className="fw-semibold">Design Studio One</div>
+                                        <div className="fw-semibold">-</div>
                                     </div>
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">EMERGENCY CONTACT</small>
-                                        <div className="fw-semibold">David Jenkins (Spouse)</div>
+                                        <div className="fw-semibold">-</div>
                                     </div>
 
                                     <div className="col-md-6">
@@ -197,7 +197,7 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
 
                                     <div className="col-md-4">
                                         <small className="text-muted d-block">UNIT TYPE</small>
-                                        <div className="fw-semibold">3 BHK Premium</div>
+                                        <div className="fw-semibold">-</div>
                                     </div>
 
                                     <div className="col-md-4">
@@ -207,7 +207,7 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
 
                                     <div className="col-md-4">
                                         <small className="text-muted d-block">OWNERSHIP TYPE</small>
-                                        <div className="fw-semibold">{occupancyType}</div>
+                                        <div className="fw-semibold">{occupancyType === "tenant_relative" ? "Tenant Family" : occupancyType === "owner_relative" ? "Owner Family" : ""}</div>
                                     </div>
 
                                     <div className="col-md-4">
