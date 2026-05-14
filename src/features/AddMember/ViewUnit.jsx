@@ -148,7 +148,7 @@ const ViewUnit = ({ setActive, flatId }) => {
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">CONFIGURATION</small>
-                                        <div className="fw-semibold">3 BHK Premium</div>
+                                        <div className="fw-semibold">{configuration}</div>
                                     </div>
 
                                     <div className="col-md-6">
