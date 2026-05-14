@@ -106,7 +106,7 @@ const CreatePoll = ({ setActive }) => {
             toast.success("Poll created successfully!")
 
         } catch (error) {
-
+            toast.error(error);
             console.log(error);
             setErrorText(error)
         }

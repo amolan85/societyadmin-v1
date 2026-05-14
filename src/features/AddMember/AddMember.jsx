@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import "../../styles/AddMember.css"
+import memberDetails from './MemberDetails';
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import { GetSessionData } from '../../utils/SessionManagement';
 import { AddMemberApi, getMembersApi } from '../../services/AddMemberApi';
-
+import { toast } from "react-toastify";
 import { useLoader } from "../../context/LoaderContext";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import ExcelJS from "exceljs";
@@ -14,8 +15,8 @@ import { all } from 'axios';
 import { FiFilter, FiSearch } from 'react-icons/fi';
 
 
-const AddMember = () => {
-    const [memType, setMemType] = useState("Owner");
+const AddMember = ({ setActive, setMemberId }) => {
+    const [memType, setMemType] = useState("");
     const [firstName, setFirstName] = useState("")
     const [lastName, setLastName] = useState("")
     const [emailId, setEmailId] = useState("")
@@ -24,14 +25,21 @@ const AddMember = () => {
     const [flat, setFlat] = useState("")
     const [floor, setFloor] = useState("")
     const [residency, setResidency] = useState("")
-    const [date, setDate] = useState("")
+    const [moveInDate, setMoveInDate] = useState("")
+    const [moveOutDate, setMoveOutDate] = useState("")
+    const [familyType, setFamilyType] = useState("")
+    const [agreement, setAgreement] = useState("")
+    const [rentAgreement, setRentAgreement] = useState("")
+    const [policeNoc, setPoliceNoc] = useState("")
+    const [idProof, setIdProof] = useState("")
+    const [familyPhoto, setFamilyPhoto] = useState("")
+    const [maintenanceReceipt, setMaintenanceReceipt] = useState("")
+    const [ownershipDocuments, setOwnershipDocuments] = useState("")
+    const [nominationDetails, setNominationDetails] = useState("")
     const [societyId, setSocietyId] = useState("")
     const [userId, setUserId] = useState("")
     const [errors, setErrors] = useState({});
     const [show, setShow] = useState(false);
-    // const [page, setPage] = useState();
-    // const [limit, setLimit] = useState()
-    // const [totalCount, setTotalCount] = useState()
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
@@ -40,6 +48,8 @@ const AddMember = () => {
     const [memberTypeTab, setMemberTypeTab] = useState("")
     const [activeTab, setActiveTab] = useState("excel");
     const [exportModal, setExportModal] = useState(false)
+    const [errorText, setErrorText] = useState("")
+    const [search, setSearch] = useState("");
 
     const memberType = [
         { id: "All Items", value: "" },
@@ -47,6 +57,17 @@ const AddMember = () => {
         { id: "Tenant", value: "tenant" },
         { id: "Family Member", value: "familyMember" },
     ];
+
+    const addMemberType = [
+        { id: "Owner", value: "owner" },
+        { id: "Tenant", value: "tenant" },
+        { id: "Family Member", value: "familyMember" },
+    ];
+
+    const finalMemType =
+        memType === "familyMember"
+            ? familyType
+            : memType;
 
     useEffect(() => {
         SessionData()
@@ -77,6 +98,11 @@ const AddMember = () => {
         }
     }
 
+    const getMembersById = async (memberId) => {
+        setMemberId(memberId);
+        setActive("memberDetails");
+    }
+
     const handlePageChange = (value) => {
         setPage(value);
         getMembers(societyId, value);
@@ -99,17 +125,17 @@ const AddMember = () => {
         } else if (!/\S+@\S+\.\S+/.test(emailId)) {
             errors.emailId = "Invalid email";
         }
-        else {
-            errors.emailId = ""
-        }
+        // else {
+        //     errors.emailId = ""
+        // }
         if (!mobileNo) {
             errors.mobileNo = "required";
         } else if (!/^[0-9]{10}$/.test(mobileNo)) {
             errors.mobileNo = "Invalid mobile no.";
         }
-        else {
-            errors.mobileNo = ""
-        }
+        // else {
+        //     errors.mobileNo = ""
+        // }
 
         if (!wing) {
             errors.wing = "required";
@@ -118,23 +144,118 @@ const AddMember = () => {
         if (!flat) {
             errors.flat = "required";
         }
-        if (!date) {
-            errors.date = "required";
+        if (!moveInDate) {
+            errors.moveInDate = "required";
+        }
+        if (memType === "owner") {
+
+            if (!idProof) {
+                errors.idProof = "required";
+            }
+
+            if (!agreement) {
+                errors.agreement = "required";
+            }
+
+            if (!maintenanceReceipt) {
+                errors.maintenanceReceipt = "required";
+            }
+
+            if (!nominationDetails) {
+                errors.nominationDetails = "required";
+            }
+
+            if (!familyPhoto) {
+                errors.familyPhoto = "required";
+            }
+
+            if (!ownershipDocuments) {
+                errors.ownershipDocuments = "required";
+            }
+
+
+        }
+        if (memType === "tenant") {
+
+            if (!moveOutDate) {
+                errors.moveOutDate = "required";
+            }
+            if (!rentAgreement) {
+                errors.rentAgreement = "required";
+            }
+            if (!policeNoc) {
+                errors.policeNoc = "required";
+            }
         }
         return errors;
     };
 
     //submit function for add member
     const handleSubmit = async () => {
-        const validationErrors = validateForm();
+        try {
+            const validationErrors = validateForm();
 
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
-        } else {
-            const data = await AddMemberApi(societyId, userId, firstName, lastName, mobileNo, emailId, wing, flat, floor, memType, residency, date)
-            console.log("Form Submitted ✅");
-            setShow(false)
+            if (Object.keys(validationErrors).length > 0) {
+                setErrors(validationErrors);
+                return;
+            }
+
+            const data = await AddMemberApi(
+                societyId,
+                userId,
+                firstName,
+                lastName,
+                mobileNo,
+                emailId,
+                wing,
+                flat,
+                finalMemType,
+                residency,
+                moveInDate,
+                moveOutDate,
+                agreement,
+                rentAgreement,
+                policeNoc,
+                idProof,
+                familyPhoto,
+                maintenanceReceipt,
+                ownershipDocuments,
+                nominationDetails
+            );
+
+            toast.success("Member created successfully!")
+            setShow(false);
+
+        } catch (error) {
+            console.log(error);
+            toast.error(error);
+            setErrorText(error)
         }
+    };
+
+    const resetForm = () => {
+        setFirstName("");
+        setLastName("");
+        setEmailId("");
+        setMobileNo("");
+        setWing("");
+        setFlat("");
+        setFloor("");
+        setResidency("");
+        setMoveInDate("");
+        setMoveOutDate("");
+        setFamilyType("");
+        setAgreement("");
+        setRentAgreement("");
+        setPoliceNoc("");
+        setIdProof("");
+        setFamilyPhoto("");
+        setMaintenanceReceipt("");
+        setOwnershipDocuments("");
+        setNominationDetails("");
+
+        setErrors({});
+        setErrorText("");
     };
 
     const downloadExcel = async () => {
@@ -226,7 +347,7 @@ const AddMember = () => {
 
         // table columns
         const tableColumn = [
-            "First Name", "Last Name", "Mobile No.", "Email Id", "Wing", "Flat", "Membership Type", "Date"
+            "First Name", "Last Name", "Mobile No.", "Email Id", "Wing", "Flat", "Membership Type", "moveOutDate"
         ];
 
         // table rows
@@ -238,7 +359,7 @@ const AddMember = () => {
             item.block,
             item.floor,
             item.occupancy_type,
-            item.start_date
+            item.moveOutDate
         ]);
 
         autoTable(doc, {
@@ -298,6 +419,18 @@ const AddMember = () => {
         ? allMembers
         : allMembers.filter((item) => item.occupancy_type === memberTypeTab);
 
+    const filteredBySearch = allMembers.filter((item) => {
+        const searchText = search.trim().toLowerCase();
+
+        return (
+            item.first_name?.toLowerCase().includes(searchText) ||
+            item.last_name?.toLowerCase().includes(searchText) ||
+            item.flat_number?.toLowerCase().includes(searchText) ||
+            item.block?.toLowerCase().includes(searchText) ||
+            item.occupancy_type?.toLowerCase().includes(searchText)
+        );
+    });
+
     const total = Math.ceil(totalCount / limit);
     // const per = limit, total = Math.ceil(filteredData.length / per);
     // const rows = filteredData.slice((page - 1) * per, page * per);
@@ -312,7 +445,7 @@ const AddMember = () => {
                 {/* Stats */}
                 <div className="row g-3 mb-4">
                     {[
-                        [allMembers.length, "Total Members"],
+                        [totalCount, "Total Members"],
                         [totalOwners, "Owners"],
                         [totalTenant, "Tenants"],
                         [totalFamilyMember, "New This Week", "tile-grn"]
@@ -343,13 +476,15 @@ const AddMember = () => {
                                 color: "#aaa"
                             }}
                         >
-                            <FiSearch size={16} />  
+                            <FiSearch size={16} />
                         </span>
 
                         <input
                             type="text"
                             className="form-control rounded-pill"
                             placeholder="Search by name, unit, or email..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
                             style={{ paddingLeft: "35px" }}
                         />
                     </div>
@@ -398,7 +533,7 @@ const AddMember = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredData.map((s, i) => (
+                                {filteredBySearch.map((s, i) => (
                                     <tr className="text-start" key={i}>
                                         <td className="sa-name">{s.first_name} {s.last_name}</td>
 
@@ -419,7 +554,10 @@ const AddMember = () => {
                                         /></td>
                                         <td className="sa-name">{s.mobile}</td>
                                         <td><Badge label="Active" c="green" /> </td>
-                                        <td className="sa-name"></td>
+                                        <td className="sa-name"><button className="btn btn-sm btn-primary" onClick={() => {
+
+                                            getMembersById(s.user_id)
+                                        }}>View</button></td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -462,7 +600,7 @@ const AddMember = () => {
                                             <div className="row g-3 mb-3">
                                                 <div className="col-6">
                                                     <div className='d-flex'>
-                                                        <label className="sv-lb" >Select Wing</label>
+                                                        <label className="sv-lb" >Select Wing <span className="text-danger">*</span></label>
                                                         {errors.wing && <span className='text-danger mx-2 '>{errors.wing}</span>}
                                                     </div>
                                                     <select className={`form-select ${errors.wing ? "error-input" : ""}`}
@@ -477,7 +615,7 @@ const AddMember = () => {
 
                                                 <div className="col-6">
                                                     <div className='d-flex'>
-                                                        <label className="sv-lb">Flat / Unit Number</label>
+                                                        <label className="sv-lb">Flat / Unit Number <span className="text-danger">*</span></label>
                                                         {errors.flat && <span className='text-danger mx-2 '>{errors.flat}</span>}
                                                     </div>
                                                     <select className={`form-select  ${errors.flat ? "error-input" : ""}`} value={flat} onChange={(e) => setFlat(e.target.value)}>
@@ -490,30 +628,31 @@ const AddMember = () => {
                                             </div>
 
 
-                                            <label className="sv-lb">Membership Type</label>
+                                            <label className="sv-lb">Membership Type <span className="text-danger">*</span></label>
                                             <div className="am-type-wrap mb-3">
-                                                {["Owner", "Tenant", "Family Member"].map(t => (
+                                                {addMemberType.map(t => (
                                                     <button
-                                                        key={t}
-                                                        onClick={() => setMemType(t)}
-                                                        className={`am-type-btn ${memType === t ? "active" : ""}`}
+                                                        key={t.value}
+                                                        onClick={() => { setMemType(t.value); resetForm() }}
+                                                        className={`am-type-btn ${memType === t.value ? "active" : ""}`}
                                                     >
-                                                        {t}
+                                                        {t.id}
                                                     </button>
                                                 ))}
                                             </div>
 
 
+
                                             <div className="row g-3 mb-3">
                                                 <div className="col-6">
-                                                    <div className='d-flex'><label className="sv-lb">First Name</label>
+                                                    <div className='d-flex'><label className="sv-lb">First Name <span className="text-danger">*</span></label>
                                                         {errors.firstName && <span className='text-danger mx-2 '>{errors.firstName}</span>}</div>
                                                     <input className={`sv-in ${errors.firstName ? "error-input" : ""}`} placeholder="Enter First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
                                                 </div>
 
                                                 <div className="col-6">
                                                     <div className='d-flex'>
-                                                        <label className="sv-lb">Last Name</label>
+                                                        <label className="sv-lb">Last Name <span className="text-danger">*</span></label>
                                                         {errors.lastName && <span className='text-danger mx-2 '>{errors.lastName}</span>}
                                                     </div>
                                                     <input className={`sv-in ${errors.lastName ? "error-input" : ""}`} placeholder="Enter Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
@@ -523,7 +662,7 @@ const AddMember = () => {
                                             <div className="row g-3 mb-3">
                                                 <div className="col-6">
                                                     <div className='d-flex'>
-                                                        <label className='sv-lb'>Phone Number</label>
+                                                        <label className='sv-lb'>Phone Number <span className="text-danger">*</span></label>
                                                         {errors.mobileNo && <span className='text-danger mx-2 '>{errors.mobileNo}</span>}
                                                     </div>
 
@@ -543,7 +682,7 @@ const AddMember = () => {
 
                                                 <div className="col-6">
                                                     <div className='d-flex'>
-                                                        <label className="sv-lb">Email Address</label>
+                                                        <label className="sv-lb">Email Address <span className="text-danger">*</span></label>
                                                         {errors.emailId && <span className='text-danger mx-2 '>{errors.emailId}</span>}
                                                     </div>
                                                     <input className={`sv-in ${errors.emailId ? "error-input" : ""}`} placeholder="Enter Email Address" value={emailId} onChange={(e) => setEmailId(e.target.value)} />
@@ -551,34 +690,198 @@ const AddMember = () => {
                                             </div>
 
 
-                                            <div className="row g-3 mb-3">
-                                                <div className="col-6">
-                                                    <label className="sv-lb">Residency Status</label>
-                                                    <select className="form-select"
-                                                        value={residency}
-                                                        onChange={(e) => setResidency(e.target.value)}>
-                                                        <option>Select Status</option>
-                                                        <option>Resident</option>
-                                                        <option>Non-Resident</option>
-                                                    </select>
-                                                </div>
 
-                                                <div className="col-6">
-                                                    <div className='d-flex'>
-                                                        <label className="sv-lb">Move-in Date</label>
-                                                        {errors.date && <span className='text-danger mx-2'>{errors.date}</span>}
+
+                                            {memType === "tenant" && (
+                                                <>
+                                                    <div className="row g-3 mb-3">
+                                                        <div className="col-6">
+                                                            <div className='d-flex'>
+                                                                <label className="sv-lb">Move-in Date <span className="text-danger">*</span></label>
+                                                                {errors.moveInDate && <span className='text-danger mx-2'>{errors.moveInDate}</span>}
+                                                            </div>
+                                                            <input className={`sv-in ${errors.moveInDate ? "error-input" : ""}`} type="date" value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)} />
+                                                        </div>
+
+                                                        <div className="col-6">
+                                                            <div className='d-flex'>
+                                                                <label className="sv-lb">Move-out Date <span className="text-danger">*</span></label>
+                                                                {errors.moveOutDate && <span className='text-danger mx-2'>{errors.moveOutDate}</span>}
+                                                            </div>
+                                                            <input className={`sv-in ${errors.moveOutDate ? "error-input" : ""}`} type="date" value={moveOutDate} onChange={(e) => setMoveOutDate(e.target.value)} />
+                                                        </div>
                                                     </div>
-                                                    <input className={`sv-in ${errors.date ? "error-input" : ""}`} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+
+                                                    <div className="row g-3 mb-3">
+                                                        <div className="col-6">
+                                                            <div className='d-flex'>
+                                                                <label className="sv-lb">Rent Agreement <span className="text-danger">*</span></label>
+                                                                {errors.rentAgreement && <span className='text-danger mx-2'>{errors.rentAgreement}</span>}
+                                                            </div>
+                                                            <input className={`sv-in ${errors.rentAgreement ? "error-input" : ""}`} type="file" onChange={(e) => setRentAgreement(e.target.files[0])} />
+                                                        </div>
+
+                                                        <div className="col-6">
+                                                            <div className='d-flex'>
+                                                                <label className="sv-lb">Police Noc <span className="text-danger">*</span></label>
+                                                                {errors.policeNoc && <span className='text-danger mx-2'>{errors.policeNoc}</span>}
+                                                            </div>
+                                                            <input className={`sv-in ${errors.policeNoc ? "error-input" : ""}`} type="file" onChange={(e) => setPoliceNoc(e.target.files[0])} />
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+
+                                            {memType === "owner" && (
+                                                <>
+                                                    <div className="row g-3 mb-3">
+                                                        <div className="col-6">
+                                                            <label className="sv-lb">Residency Status</label>
+                                                            <select className="form-select"
+                                                                value={residency}
+                                                                onChange={(e) => setResidency(e.target.value)}>
+                                                                <option>Select Status</option>
+                                                                <option>Resident</option>
+                                                                <option>Non-Resident</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div className="col-6">
+                                                            <div className='d-flex'>
+                                                                <label className="sv-lb">Move-in Date <span className="text-danger">*</span></label>
+                                                                {errors.moveInDate && <span className='text-danger mx-2'>{errors.moveInDate}</span>}
+                                                            </div>
+                                                            <input className={`sv-in ${errors.moveInDate ? "error-input" : ""}`} type="date" value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="row g-3 mb-3">
+                                                        <div className="col-6">
+                                                            <div className='d-flex'>
+                                                                <label className="sv-lb">Id Proof <span className="text-danger">*</span></label>
+                                                                {errors.idProof && <span className='text-danger mx-2'>{errors.idProof}</span>}
+                                                            </div>
+                                                            <input className={`sv-in ${errors.idProof ? "error-input" : ""}`} type="file" onChange={(e) => setIdProof(e.target.files[0])} />
+                                                        </div>
+
+                                                        <div className="col-6">
+                                                            <div className='d-flex'>
+                                                                <label className="sv-lb">Agreement <span className="text-danger">*</span></label>
+                                                                {errors.agreement && <span className='text-danger mx-2'>{errors.agreement}</span>}
+                                                            </div>
+                                                            <input className={`sv-in ${errors.agreement ? "error-input" : ""}`} type="file" onChange={(e) => setAgreement(e.target.files[0])} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="row g-3 mb-3">
+                                                        <div className="col-6">
+                                                            <div className='d-flex'>
+                                                                <label className="sv-lb">Maintenance Receipt <span className="text-danger">*</span></label>
+                                                                {errors.maintenanceReceipt && <span className='text-danger mx-2'>{errors.maintenanceReceipt}</span>}
+                                                            </div>
+                                                            <input className={`sv-in ${errors.maintenanceReceipt ? "error-input" : ""}`} type="file" onChange={(e) => setMaintenanceReceipt(e.target.files[0])} />
+                                                        </div>
+
+                                                        <div className="col-6">
+                                                            <div className='d-flex'>
+                                                                <label className="sv-lb">Nomination Details <span className="text-danger">*</span></label>
+                                                                {errors.nominationDetails && <span className='text-danger mx-2'>{errors.nominationDetails}</span>}
+                                                            </div>
+                                                            <input className={`sv-in ${errors.nominationDetails ? "error-input" : ""}`} type="file" onChange={(e) => setNominationDetails(e.target.files[0])} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="row g-3 mb-3">
+                                                        <div className="col-6">
+                                                            <div className='d-flex'>
+                                                                <label className="sv-lb">Family Photo <span className="text-danger">*</span></label>
+                                                                {errors.familyPhoto && <span className='text-danger mx-2'>{errors.familyPhoto}</span>}
+                                                            </div>
+                                                            <input className={`sv-in ${errors.familyPhoto ? "error-input" : ""}`} type="file" onChange={(e) => setFamilyPhoto(e.target.files[0])} />
+                                                        </div>
+
+                                                        <div className="col-6">
+                                                            <div className='d-flex'>
+                                                                <label className="sv-lb">Ownership <span className="text-danger">*</span></label>
+                                                                {errors.ownershipDocuments && <span className='text-danger mx-2'>{errors.ownershipDocuments}</span>}
+                                                            </div>
+                                                            <input className={`sv-in ${errors.ownershipDocuments ? "error-input" : ""}`} type="file" onChange={(e) => setOwnershipDocuments(e.target.files[0])} />
+                                                        </div>
+                                                    </div>
+
+                                                </>
+                                            )}
+                                            {
+                                                memType === "familyMember" && (
+
+                                                    <div className="row g-3 mb-3">
+                                                        <div className="col-6">
+                                                            <label className="sv-lb">Residency Status</label>
+                                                            <select className="form-select"
+                                                                value={residency}
+                                                                onChange={(e) => setResidency(e.target.value)}>
+                                                                <option>Select Status</option>
+                                                                <option>Resident</option>
+                                                                <option>Non-Resident</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div className="col-6">
+                                                            <div className='d-flex'>
+                                                                <label className="sv-lb">Move-in Date <span className="text-danger">*</span></label>
+                                                                {errors.moveInDate && <span className='text-danger mx-2'>{errors.moveInDate}</span>}
+                                                            </div>
+                                                            <input className={`sv-in ${errors.moveInDate ? "error-input" : ""}`} type="date" value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)} />
+                                                        </div>
+
+                                                    </div>
+                                                )
+                                            }
+                                            {memType === "familyMember" && (
+                                                <div className="mb-2">
+                                                    <label className="form-label fw-semibold d-block mb-2">
+                                                        Select Family Type <span className="text-danger">*</span>
+                                                    </label>
+
+                                                    <div className="form-check form-check-inline">
+                                                        <input
+                                                            className="form-check-input"
+                                                            type="radio"
+                                                            name="familyType"
+                                                            id="owner_relative"
+                                                            value="owner_relative"
+                                                            checked={familyType === "owner_relative"}
+                                                            onChange={(e) => setFamilyType(e.target.value)}
+                                                        />
+                                                        <label
+                                                            className="form-check-label am-check"
+                                                            htmlFor="owner_relative"
+                                                        >
+                                                            Owner Family
+                                                        </label>
+                                                    </div>
+
+                                                    <div className="form-check form-check-inline">
+                                                        <input
+                                                            className="form-check-input"
+                                                            type="radio"
+                                                            name="familyType"
+                                                            id="tenant_relative"
+                                                            value="tenant_relative"
+                                                            checked={familyType === "tenant_relative"}
+                                                            onChange={(e) => setFamilyType(e.target.value)}
+                                                        />
+                                                        <label
+                                                            className="form-check-label am-check"
+                                                            htmlFor="tenant_relative"
+                                                        >
+                                                            Tenant Family
+                                                        </label>
+                                                    </div>
                                                 </div>
-                                            </div>
 
-
-                                            <div className="form-check mb-4">
-                                                <input className="form-check-input" type="checkbox" defaultChecked />
-                                                <label className="form-check-label am-check">
-                                                    Mark as Primary Member for this unit
-                                                </label>
-                                            </div>
+                                            )}
+                                            {errorText && <h6 className='text-danger'>{errorText}</h6>}
                                         </div>
                                     </div>
                                 </div>

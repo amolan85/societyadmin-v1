@@ -23,6 +23,8 @@ import { Global } from "recharts";
 import { FiLogOut } from "react-icons/fi";
 import RegisterHistory from "../Register/RegisterHistory";
 import { LogoutApi } from "../auth/authService";
+import MemberDetails from "../AddMember/MemberDetails";
+import ViewUnit from "../AddMember/ViewUnit";
 
 
 /* ══ OVERVIEW ══════════════════════════════════ */
@@ -80,6 +82,8 @@ const TITLES = {
   createPoll: ["Communication", "Create Poll"],
   polls: ["Communication", "Polls & Voting"],
   addmember: ["Member Masters", "Members"],
+  memberDetails: ["Member Masters", "Member Details"],
+  viewUnit: ["Member Masters", "View Unit"],
   transfer: ["Member Masters", "Transfer Member"],
   documents: ["Administration", "Documents & NOC"],
   flattransfer: ["Administration", "Flat Transfer"],
@@ -104,7 +108,9 @@ export default function App() {
   const [lastName, setLastName] = useState("")
 
   const [broadcastId, setBroadcastId] = useState(null);
+  const [memberId, setMemberId] = useState(null);
   const [staffId, setStaffId] = useState(null)
+   const [flatId, setFlatId] = useState(null)
   const [selectedNoticeData, setSelectedNoticeData] = useState()
 
 
@@ -131,7 +137,9 @@ export default function App() {
     createbroadcast: <CreateBroadcast setActive={setActive} broadcastId={broadcastId} />,
     polls: <Polls setActive={setActive} />,
     createPoll: <CreatePoll setActive={setActive} />,
-    addmember: <AddMember />,
+    addmember: <AddMember setActive={setActive} setMemberId={setMemberId} />,
+    memberDetails: <MemberDetails setActive={setActive} memberId={memberId} setFlatId={setFlatId} />,
+    viewUnit: <ViewUnit setActive={setActive} flatId={flatId} />,
     transfer: <PlaceholderPage label="Transfer Member" />,
     documents: <Documents />,
     flattransfer: <FlatTransfer />,

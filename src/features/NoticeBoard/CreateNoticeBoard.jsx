@@ -166,6 +166,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
             setActive("noticeboard")
         } catch (error) {
             console.error("Submit Error:", error);
+            toast.error(error);
             setErrorText(error)
         }
     };

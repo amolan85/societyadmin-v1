@@ -61,7 +61,7 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
         } else if (!/\S+@\S+\.\S+/.test(emailId)) {
             errors.emailId = "Invalid email";
         }
-   
+
 
         if (!mobileNo) {
             errors.mobileNo = "required";
@@ -79,44 +79,44 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
         return errors;
     };
 
-const CreateStaff = async () => {
-console.log("hi")
-    try {
+    const CreateStaff = async () => {
+        console.log("hi")
+        try {
 
-        const validationErrors = validateForm();
+            const validationErrors = validateForm();
 
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
-            return;
+            if (Object.keys(validationErrors).length > 0) {
+                setErrors(validationErrors);
+                return;
+            }
+
+            const data = await createStaffApi(
+                societyId,
+                firstName,
+                lastName,
+                emailId,
+                mobileNo,
+                role,
+                salary,
+                joiningDate
+            );
+
+            console.log(data);
+
+            toast.success("Staff created");
+
+            setActive("staff");
+
+        } catch (error) {
+
+            console.log(error);
+            toast.error(error);
+            setErrorText(error
+            );
+
+
         }
-
-        const data = await createStaffApi(
-            societyId,
-            firstName,
-            lastName,
-            emailId,
-            mobileNo,
-            role,
-            salary,
-            joiningDate
-        );
-
-        console.log(data);
-
-        toast.success("Staff created");
-
-        setActive("staff");
-
-    } catch (error) {
-
-        console.log(error);
-
-        setErrorText(error
-        );
-
-
-    }
-};
+    };
 
     const handleChannelChange = (e) => {
         const { name, checked } = e.target;

@@ -32,6 +32,7 @@ const ErrorHandler = (error, navigation) => {
             return "Something went wrong on the server. Please try again later.";
         }
     } catch (e) {
+        // navigation.navigate("/");
         // Handle the error thrown while processing the error
         return "Something went wrong on the server. Please try again later.";
     }

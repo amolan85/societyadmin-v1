@@ -132,6 +132,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
             }
             setActive("broadcasting")
         } catch (error) {
+            toast.error(error);
             setErrorText(error)
             console.error("Submit Error:", error);
         }

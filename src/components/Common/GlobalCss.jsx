@@ -69,20 +69,8 @@ body {
 .sidebar.collapsed .logo-name,
 .sidebar.collapsed .logo-sub { display: none; }
 
-// .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
-.sidebar-nav {
-    flex: 1;
-    overflow-y: auto;
-    padding: 8px 0;
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
 
-    /* Hide scrollbar */
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-}
-
-.sidebar-nav::-webkit-scrollbar {
-    display: none; /* Chrome, Safari */
-}
 .nav-section {
   padding: 10px 16px 3px;
   font-size: 10px; font-weight: 700;

@@ -175,6 +175,7 @@ const CreateComplaints = ({ setActive }) => {
 
         } catch (error) {
             console.log(error);
+            toast.error(error);
             setErrorText(error)
         }
     };
