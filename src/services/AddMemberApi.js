@@ -25,7 +25,6 @@ export const getMembersApi = async (societyId, page) => {
     });
 }
 
-
 //api for add member
 export const AddMemberApi = async (
     societyId,
@@ -131,4 +130,27 @@ export const getFlatByIdApi = async (societyId, flatId) => {
         throw errors;
     });
 }
+
+export const getAllMembersWithoutPaginationApi = async (societyId, search) => {
+    const url = UrlData + 'member/GetAllMemberswithoutpagination';
+    const data = {
+        society_id: societyId,
+        search: search,
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data,
+        timeout: 30000,
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors get members");
+        throw errors;
+    });
+}
+
+
 

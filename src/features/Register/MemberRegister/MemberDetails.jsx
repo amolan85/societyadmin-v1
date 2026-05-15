@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Badge } from '../../components/Common/ReusableFunction'
+import { Badge } from '../../../components/Common/ReusableFunction'
 import { FaCar } from 'react-icons/fa';
-import viewUnit from './ViewUnit';
-import { getMembersByIdApi } from '../../services/AddMemberApi';
-import { GetSessionData } from '../../utils/SessionManagement';
+import viewUnit from '../UnitRegister/ViewUnit';
+import { getMembersByIdApi } from '../../../services/AddMemberApi';
+import { GetSessionData } from '../../../utils/SessionManagement';
+import registerHistory from './RegisterHistory';
 
 const MemberDetails = ({ setActive, memberId, setFlatId }) => {
     const [societyId, setSocietyId] = useState("");
@@ -92,7 +93,7 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
                                     <h5 className="mb-0 fw-bold">{firstName} {lastName}</h5>
 
                                     <span className="badge bg-primary-subtle text-primary">
-                                        {occupancyType}
+                                        {occupancyType === "tenant_relative" ? "Tenant Family" : occupancyType === "owner_relative" ? "Owner Family" : ""}
                                     </span>
 
                                     <span className="badge bg-success-subtle text-success">
@@ -117,7 +118,7 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
                         </div>
 
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
-                            <button className="btn btn-outline-secondary btn-sm">
+                            <button className="btn btn-outline-secondary btn-sm" onClick={() => setActive("registerHistory")}>
                                 <i className="bi bi-clock-history me-1"></i>
                                 History
                             </button>
@@ -241,8 +242,10 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
                                     />
 
                                     <div>
-                                        <div className="fw-semibold">David Jenkins</div>
-                                        <small className="text-muted">Spouse</small>
+                                        {/* <div className="fw-semibold">David Jenkins</div>
+                                        <small className="text-muted">Spouse</small> */}
+
+                                        -
                                     </div>
                                 </div>
 
@@ -256,8 +259,10 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
                                     />
 
                                     <div>
-                                        <div className="fw-semibold">Lily Jenkins</div>
-                                        <small className="text-muted">Daughter</small>
+                                        {/* <div className="fw-semibold">Lily Jenkins</div>
+                                        <small className="text-muted">Daughter</small> */}
+
+                                        -
                                     </div>
                                 </div>
 

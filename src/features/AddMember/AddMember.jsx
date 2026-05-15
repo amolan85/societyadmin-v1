@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
+import Select from 'react-select';
 import "../../styles/AddMember.css"
-import memberDetails from './MemberDetails';
+import memberDetails from '../Register/MemberRegister/MemberDetails';
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import { GetSessionData } from '../../utils/SessionManagement';
-import { AddMemberApi, getMembersApi } from '../../services/AddMemberApi';
+import { AddMemberApi, getMembersApi, getAllMembersWithoutPaginationApi } from '../../services/AddMemberApi';
 import { toast } from "react-toastify";
 import { useLoader } from "../../context/LoaderContext";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
@@ -12,7 +13,8 @@ import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { all } from 'axios';
-import { FiFilter, FiSearch } from 'react-icons/fi';
+import { FiEye, FiFilter, FiSearch } from 'react-icons/fi';
+import { getAllFlatsApi } from '../../services/UnitRegisterApi';
 
 
 const AddMember = ({ setActive, setMemberId }) => {
@@ -22,6 +24,7 @@ const AddMember = ({ setActive, setMemberId }) => {
     const [emailId, setEmailId] = useState("")
     const [mobileNo, setMobileNo] = useState("")
     const [wing, setWing] = useState("")
+    const [allFlats, setAllFlats] = useState([])
     const [flat, setFlat] = useState("")
     const [floor, setFloor] = useState("")
     const [residency, setResidency] = useState("")
@@ -45,18 +48,12 @@ const AddMember = ({ setActive, setMemberId }) => {
     const [totalCount, setTotalCount] = useState(0);
 
     const [allMembers, setAllMembers] = useState([])
+    const [allMembersWithoutPagination, setAllMembersWithoutPagination] = useState([])
     const [memberTypeTab, setMemberTypeTab] = useState("")
     const [activeTab, setActiveTab] = useState("excel");
     const [exportModal, setExportModal] = useState(false)
     const [errorText, setErrorText] = useState("")
     const [search, setSearch] = useState("");
-
-    const memberType = [
-        { id: "All Items", value: "" },
-        { id: "Owner", value: "owner" },
-        { id: "Tenant", value: "tenant" },
-        { id: "Family Member", value: "familyMember" },
-    ];
 
     const addMemberType = [
         { id: "Owner", value: "owner" },
@@ -82,6 +79,7 @@ const AddMember = ({ setActive, setMemberId }) => {
         setUserId(flats.user_id)
         setFloor(flats.floor)
         getMembers(flats.society_id)
+        getAllFlats(flats.society_id)
     }
 
     //function for get members
@@ -92,6 +90,33 @@ const AddMember = ({ setActive, setMemberId }) => {
             setPage(data.page)
             setLimit(data.per_page)
             setTotalCount(data.total_count)
+        }
+        catch (error) {
+            console.error("Error fetching members:", error)
+        }
+    }
+
+    const getAllMembersWithoutPagination = async (societyId, search) => {
+        try {
+            const data = await getAllMembersWithoutPaginationApi(societyId, search)
+            console.log(data.members, "All members without pagination")
+            setAllMembersWithoutPagination(data.members)
+        }
+        catch (error) {
+            console.error("Error fetching members:", error)
+        }
+    }
+
+    const getAllFlats = async (societyId, page) => {
+        try {
+            const data = await getAllFlatsApi(societyId)
+            console.log(data.flats, "All flats")
+            setAllFlats(
+                data.flats.map((item) => ({
+                    value: item.flat_id,
+                    label: item.flat_number,
+                }))
+            );
         }
         catch (error) {
             console.error("Error fetching members:", error)
@@ -147,6 +172,10 @@ const AddMember = ({ setActive, setMemberId }) => {
         if (!moveInDate) {
             errors.moveInDate = "required";
         }
+        if (!memType) {
+            errors.memType = "required";
+        }
+
         if (memType === "owner") {
 
             if (!idProof) {
@@ -185,6 +214,11 @@ const AddMember = ({ setActive, setMemberId }) => {
             }
             if (!policeNoc) {
                 errors.policeNoc = "required";
+            }
+        }
+        if (memType === "familyMember") {
+            if (!familyType) {
+                errors.familyType = "required";
             }
         }
         return errors;
@@ -266,15 +300,15 @@ const AddMember = ({ setActive, setMemberId }) => {
         const worksheet = workbook.addWorksheet("Members");
 
         // add columns dynamically
-        if (allMembers.length > 0) {
-            worksheet.columns = Object.keys(allMembers[0]).map((key) => ({
+        if (allMembersWithoutPagination.length > 0) {
+            worksheet.columns = Object.keys(allMembersWithoutPagination[0]).map((key) => ({
                 header: key,
                 key: key,
                 width: 20,
             }));
 
             // add rows
-            allMembers.forEach((item) => {
+            allMembersWithoutPagination.forEach((item) => {
                 worksheet.addRow(item);
             });
         }
@@ -305,16 +339,16 @@ const AddMember = ({ setActive, setMemberId }) => {
         const worksheet = workbook.addWorksheet("Members");
 
         // add columns dynamically
-        if (allMembers.length > 0) {
+        if (allMembersWithoutPagination.length > 0) {
 
-            worksheet.columns = Object.keys(allMembers[0]).map((key) => ({
+            worksheet.columns = Object.keys(allMembersWithoutPagination[0]).map((key) => ({
                 header: key,
                 key: key,
                 width: 20,
             }));
 
             // add allMembers
-            allMembers.forEach((item) => {
+            allMembersWithoutPagination.forEach((item) => {
                 worksheet.addRow(item);
             });
         }
@@ -419,17 +453,25 @@ const AddMember = ({ setActive, setMemberId }) => {
         ? allMembers
         : allMembers.filter((item) => item.occupancy_type === memberTypeTab);
 
-    const filteredBySearch = allMembers.filter((item) => {
-        const searchText = search.trim().toLowerCase();
 
-        return (
-            item.first_name?.toLowerCase().includes(searchText) ||
-            item.last_name?.toLowerCase().includes(searchText) ||
-            item.flat_number?.toLowerCase().includes(searchText) ||
-            item.block?.toLowerCase().includes(searchText) ||
-            item.occupancy_type?.toLowerCase().includes(searchText)
-        );
-    });
+    const handleSearch = async (e) => {
+        const value = e.target.value;
+        setSearch(value);
+        const data = await getAllMembersWithoutPagination(societyId, value);
+        console.log(data, "Search results");
+        setAllMembers(data?.members || []);
+    }
+    // const filteredBySearch = allMembers.filter((item) => {
+    //     const searchText = search.trim().toLowerCase();
+
+    //     return (
+    //         item.first_name?.toLowerCase().includes(searchText) ||
+    //         item.last_name?.toLowerCase().includes(searchText) ||
+    //         item.flat_number?.toLowerCase().includes(searchText) ||
+    //         item.block?.toLowerCase().includes(searchText) ||
+    //         item.occupancy_type?.toLowerCase().includes(searchText)
+    //     );
+    // });
 
     const total = Math.ceil(totalCount / limit);
     // const per = limit, total = Math.ceil(filteredData.length / per);
@@ -484,7 +526,8 @@ const AddMember = ({ setActive, setMemberId }) => {
                             className="form-control rounded-pill"
                             placeholder="Search by name, unit, or email..."
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            // onChange={(e) => setSearch(e.target.value)}
+                            onChange={handleSearch}
                             style={{ paddingLeft: "35px" }}
                         />
                     </div>
@@ -497,7 +540,7 @@ const AddMember = ({ setActive, setMemberId }) => {
 
                             Filter
                         </button>
-                        <button className="btn-ol ms-2" onClick={() => setExportModal(true)}>⬇ Export</button>
+                        <button className="btn-ol ms-2" onClick={() => { getAllMembersWithoutPagination(societyId, search); setExportModal(true) }}>⬇ Export</button>
                         <button className='btn btn-sm btn-primary ms-2' onClick={() => setShow(true)}>+ Add Member</button>
 
                     </div>
@@ -533,31 +576,39 @@ const AddMember = ({ setActive, setMemberId }) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredBySearch.map((s, i) => (
+                                {(allMembers).map((s, i) => (
                                     <tr className="text-start" key={i}>
                                         <td className="sa-name">{s.first_name} {s.last_name}</td>
 
                                         <td className="sa-name">{s.flat_number}</td>
                                         <td ><Badge label={
                                             s.occupancy_type
-                                                ? s.occupancy_type
-                                                    .replaceAll("_", " ")
-                                                    .replace(/\b\w/g, (char) => char.toUpperCase())
+                                                ? s.occupancy_type === "tenant_relative"
+                                                    ? "Tenant Family"
+                                                    : s.occupancy_type === "owner_relative"
+                                                        ? "Owner Family"
+                                                        : s.occupancy_type
+                                                            .replaceAll("_", " ")
+                                                            .replace(/\b\w/g, (char) => char.toUpperCase())
                                                 : ""
                                         }
                                             c={
                                                 s.occupancy_type === "owner" ? "blue"
                                                     : s.occupancy_type === "tenant" ? "pink"
-                                                        : s.occupancy_type === "family_member" ? "blue"
-                                                            : "grey"
+                                                        : s.occupancy_type === "tenant_relative" ? "lightpink"
+                                                            : s.occupancy_type === "owner_relative" ? "lightblue"
+                                                                : "grey"
                                             }
                                         /></td>
                                         <td className="sa-name">{s.mobile}</td>
                                         <td><Badge label="Active" c="green" /> </td>
-                                        <td className="sa-name"><button className="btn btn-sm btn-primary" onClick={() => {
+                                        <td className="sa-name">
+                                            <FiEye size={18} className="me-2" style={{ cursor: "pointer" }} onClick={() => getMembersById(s.user_id)} />
+                                            {/* <button className="btn btn-sm btn-primary" onClick={() => {
 
                                             getMembersById(s.user_id)
-                                        }}>View</button></td>
+                                        }}>View</button> */}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -618,29 +669,55 @@ const AddMember = ({ setActive, setMemberId }) => {
                                                         <label className="sv-lb">Flat / Unit Number <span className="text-danger">*</span></label>
                                                         {errors.flat && <span className='text-danger mx-2 '>{errors.flat}</span>}
                                                     </div>
-                                                    <select className={`form-select  ${errors.flat ? "error-input" : ""}`} value={flat} onChange={(e) => setFlat(e.target.value)}>
-                                                        <option>Select Unit</option>
-                                                        {["101", "102", "103"].map(w => (
-                                                            <option key={w} >{w}</option>
-                                                        ))}
-                                                    </select>
+
+                                                    <Select
+                                                        styles={{
+                                                            control: (baseStyles) => ({
+                                                                ...baseStyles,
+                                                                borderColor: errors.flat ? "red" : baseStyles.borderColor,
+                                                                boxShadow: "none",
+                                                                "&:hover": {
+                                                                    borderColor: errors.flat ? "red" : baseStyles.borderColor,
+                                                                },
+                                                            }),
+                                                        }}
+                                                        options={allFlats}              // 👈 array of objects with value and label
+                                                        value={flat}                  // 👈 poora object
+                                                        onChange={(selectedOption) => setFlat(selectedOption)} // 👈 direct object
+                                                    />
                                                 </div>
                                             </div>
 
+                                            <div className="d-flex">
+                                                <label className="sv-lb">
+                                                    Membership Type <span className="text-danger">*</span>
+                                                </label>
 
-                                            <label className="sv-lb">Membership Type <span className="text-danger">*</span></label>
-                                            <div className="am-type-wrap mb-3">
-                                                {addMemberType.map(t => (
+                                                {errors.memType && (
+                                                    <span className="text-danger mx-2">
+                                                        {errors.memType}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div
+                                                className={`am-type-wrap mb-3 ${errors.memType ? "border border-danger  p-1" : ""
+                                                    }`}
+                                            >
+                                                {addMemberType.map((t) => (
                                                     <button
                                                         key={t.value}
-                                                        onClick={() => { setMemType(t.value); resetForm() }}
-                                                        className={`am-type-btn ${memType === t.value ? "active" : ""}`}
+                                                        onClick={() => {
+                                                            setMemType(t.value);
+                                                            resetForm();
+                                                        }}
+                                                        className={`am-type-btn ${memType === t.value ? "active" : ""
+                                                            }`}
                                                     >
                                                         {t.id}
                                                     </button>
                                                 ))}
                                             </div>
-
 
 
                                             <div className="row g-3 mb-3">
@@ -735,16 +812,7 @@ const AddMember = ({ setActive, setMemberId }) => {
                                             {memType === "owner" && (
                                                 <>
                                                     <div className="row g-3 mb-3">
-                                                        <div className="col-6">
-                                                            <label className="sv-lb">Residency Status</label>
-                                                            <select className="form-select"
-                                                                value={residency}
-                                                                onChange={(e) => setResidency(e.target.value)}>
-                                                                <option>Select Status</option>
-                                                                <option>Resident</option>
-                                                                <option>Non-Resident</option>
-                                                            </select>
-                                                        </div>
+
 
                                                         <div className="col-6">
                                                             <div className='d-flex'>
@@ -813,74 +881,90 @@ const AddMember = ({ setActive, setMemberId }) => {
                                             )}
                                             {
                                                 memType === "familyMember" && (
-
-                                                    <div className="row g-3 mb-3">
-                                                        <div className="col-6">
-                                                            <label className="sv-lb">Residency Status</label>
-                                                            <select className="form-select"
-                                                                value={residency}
-                                                                onChange={(e) => setResidency(e.target.value)}>
-                                                                <option>Select Status</option>
-                                                                <option>Resident</option>
-                                                                <option>Non-Resident</option>
-                                                            </select>
-                                                        </div>
-
-                                                        <div className="col-6">
-                                                            <div className='d-flex'>
-                                                                <label className="sv-lb">Move-in Date <span className="text-danger">*</span></label>
-                                                                {errors.moveInDate && <span className='text-danger mx-2'>{errors.moveInDate}</span>}
+                                                    <>
+                                                        <div className="row g-3 mb-3">
+                                                            <div className="col-6">
+                                                                <div className='d-flex'>
+                                                                    <label className="sv-lb">Move-in Date <span className="text-danger">*</span></label>
+                                                                    {errors.moveInDate && <span className='text-danger mx-2'>{errors.moveInDate}</span>}
+                                                                </div>
+                                                                <input className={`sv-in ${errors.moveInDate ? "error-input" : ""}`} type="date" value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)} />
                                                             </div>
-                                                            <input className={`sv-in ${errors.moveInDate ? "error-input" : ""}`} type="date" value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)} />
-                                                        </div>
 
-                                                    </div>
+                                                        </div>
+                                                        <div className="mb-2">
+
+                                                            <div className="d-flex">
+                                                                <label className="form-label fw-semibold d-block mb-2">
+                                                                    Select Family Type <span className="text-danger">*</span>
+                                                                </label>
+
+                                                                {errors.familyType && (
+                                                                    <span className="text-danger mx-2">
+                                                                        {errors.familyType}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Radio Wrapper */}
+                                                            <div
+
+                                                            >
+
+                                                                <div className="form-check form-check-inline">
+                                                                    <input
+
+                                                                        className={`form-check-input ${errors.familyType ? "border border-danger" : ""
+                                                                            }`}
+                                                                        type="radio"
+                                                                        name="familyType"
+                                                                        id="owner_relative"
+                                                                        value="owner_relative"
+                                                                        checked={familyType === "owner_relative"}
+                                                                        onChange={(e) =>
+                                                                            setFamilyType(e.target.value)
+                                                                        }
+                                                                    />
+
+                                                                    <label
+                                                                        className="form-check-label am-check"
+                                                                        htmlFor="owner_relative"
+                                                                    >
+                                                                        Owner Family
+                                                                    </label>
+                                                                </div>
+
+                                                                <div className="form-check form-check-inline">
+                                                                    <input
+                                                                        className={`form-check-input ${errors.familyType ? "border border-danger" : ""
+                                                                            }`}
+                                                                        type="radio"
+                                                                        name="familyType"
+                                                                        id="tenant_relative"
+                                                                        value="tenant_relative"
+                                                                        checked={familyType === "tenant_relative"}
+                                                                        onChange={(e) =>
+                                                                            setFamilyType(e.target.value)
+                                                                        }
+                                                                    />
+
+                                                                    <label
+                                                                        className="form-check-label am-check"
+                                                                        htmlFor="tenant_relative"
+                                                                    >
+                                                                        Tenant Family
+                                                                    </label>
+                                                                </div>
+
+                                                            </div>
+                                                        </div>
+                                                    </>
+
+
+
                                                 )
                                             }
-                                            {memType === "familyMember" && (
-                                                <div className="mb-2">
-                                                    <label className="form-label fw-semibold d-block mb-2">
-                                                        Select Family Type <span className="text-danger">*</span>
-                                                    </label>
 
-                                                    <div className="form-check form-check-inline">
-                                                        <input
-                                                            className="form-check-input"
-                                                            type="radio"
-                                                            name="familyType"
-                                                            id="owner_relative"
-                                                            value="owner_relative"
-                                                            checked={familyType === "owner_relative"}
-                                                            onChange={(e) => setFamilyType(e.target.value)}
-                                                        />
-                                                        <label
-                                                            className="form-check-label am-check"
-                                                            htmlFor="owner_relative"
-                                                        >
-                                                            Owner Family
-                                                        </label>
-                                                    </div>
-
-                                                    <div className="form-check form-check-inline">
-                                                        <input
-                                                            className="form-check-input"
-                                                            type="radio"
-                                                            name="familyType"
-                                                            id="tenant_relative"
-                                                            value="tenant_relative"
-                                                            checked={familyType === "tenant_relative"}
-                                                            onChange={(e) => setFamilyType(e.target.value)}
-                                                        />
-                                                        <label
-                                                            className="form-check-label am-check"
-                                                            htmlFor="tenant_relative"
-                                                        >
-                                                            Tenant Family
-                                                        </label>
-                                                    </div>
-                                                </div>
-
-                                            )}
                                             {errorText && <h6 className='text-danger'>{errorText}</h6>}
                                         </div>
                                     </div>

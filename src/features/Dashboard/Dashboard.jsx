@@ -21,10 +21,14 @@ import { useNavigate } from "react-router-dom";
 import CreateNoticeBoard from "../NoticeBoard/CreateNoticeBoard";
 import { Global } from "recharts";
 import { FiLogOut } from "react-icons/fi";
-import RegisterHistory from "../Register/RegisterHistory";
+import RegisterHistory from "../Register/MemberRegister/RegisterHistory";
+import UnitRegister from "../Register/UnitRegister/UnitRegister";
+import ParkingRegister from "../Register/ParkingRegister/ParkingRegister";
 import { LogoutApi } from "../auth/authService";
-import MemberDetails from "../AddMember/MemberDetails";
-import ViewUnit from "../AddMember/ViewUnit";
+import MemberDetails from "../Register/MemberRegister/MemberDetails";
+import ViewUnit from "../Register/UnitRegister/ViewUnit";
+import ParkingDetails from "../Register/ParkingRegister/ParkingDetails";
+import ParkingHistory from "../Register/ParkingRegister/ParkingHistory";
 
 
 /* ══ OVERVIEW ══════════════════════════════════ */
@@ -89,6 +93,10 @@ const TITLES = {
   flattransfer: ["Administration", "Flat Transfer"],
   registers: ["Administration", "Registers"],
   registerHistory: ["Administration", "Registers", "Member Register", "History"],
+  unitRegister: ["Administration", "Registers", "Unit Register"],
+  parkingRegister: ["Administration", "Registers", "Parking Register"],
+  parkingDetails: ["Administration", "Registers", "Parking Register", "Parking Details"],
+  parkingHistory: ["Administration", "Registers", "Parking Register", "Parking Details", "Parking History"],
   rules: ["Administration", "Rules & By-laws"],
   complaints: ["Operations", "Complaints"],
   createComplaints: ["Operations", "Create Complaints"],
@@ -110,7 +118,7 @@ export default function App() {
   const [broadcastId, setBroadcastId] = useState(null);
   const [memberId, setMemberId] = useState(null);
   const [staffId, setStaffId] = useState(null)
-   const [flatId, setFlatId] = useState(null)
+  const [flatId, setFlatId] = useState(null)
   const [selectedNoticeData, setSelectedNoticeData] = useState()
 
 
@@ -154,10 +162,16 @@ export default function App() {
     createStaff: <CreateStaffAttendance setActive={setActive} broadcastId={broadcastId} />,
     noticeboard: <NoticeBoard setActive={setActive} setSelectedNoticeData={setSelectedNoticeData} />,
     createNoticeBoard: <CreateNoticeBoard setActive={setActive} selectedNoticeData={selectedNoticeData} />,
+    unitRegister: <UnitRegister setActive={setActive} />,
+    parkingRegister: <ParkingRegister setActive={setActive} />,
+    parkingDetails: <ParkingDetails setActive={setActive} />,
+    parkingHistory: <ParkingHistory setActive={setActive} />,
   };
 
 
-  const [sec, pg] = TITLES[active] || ["", ""];
+  // const [sec, pg] = TITLES[active] || ["", "", "", ""];
+  const breadcrumbs = TITLES[active] || [];
+  const pg = breadcrumbs[breadcrumbs.length - 1] || "";
 
   // Load session data on component mount for get session data
   useEffect(() => {
@@ -212,10 +226,22 @@ export default function App() {
         <div className="main-area">
           <header className="topbar">
             <button className="tb-toggle" onClick={() => setCollapsed(c => !c)}>☰</button>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+            {/* <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
               <span style={{ color: "var(--muted)" }}>{sec}</span>
               <span style={{ color: "var(--muted)" }}>/</span>
               <span className="tx-blue" style={{ fontWeight: 600, color: "blue" }}>{pg}</span>
+            </div> */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+              {breadcrumbs.map((crumb, i) => (
+                <div key={i}>
+                  <span style={{ color: i === breadcrumbs.length - 1 ? "blue" : "var(--muted)", fontWeight: i === breadcrumbs.length - 1 ? 600 : 400 }}>
+                    {crumb}
+                  </span>
+                  {i < breadcrumbs.length - 1 && (
+                    <span style={{ color: "var(--muted)" }}>/</span>
+                  )}
+                </div>
+              ))}
             </div>
             <div className="tb-right">
               <span className="tb-date"> {new Date().toLocaleDateString("en-GB", {

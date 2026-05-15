@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { FaCar } from 'react-icons/fa';
-import { getFlatByIdApi } from '../../services/AddMemberApi';
-import { GetSessionData } from '../../utils/SessionManagement';
+import { getFlatByIdApi } from '../../../services/AddMemberApi';
+import { GetSessionData } from '../../../utils/SessionManagement';
 
 const ViewUnit = ({ setActive, flatId }) => {
     const [societyId, setSocietyId] = useState(null);
@@ -54,7 +54,7 @@ const ViewUnit = ({ setActive, flatId }) => {
             setFlatNumber(data.flat_number);
             setFloor(data.floor);
             setAreaSqft(data.area_sqft);
-            setConfiguration(data.flat_dsc);
+            // setConfiguration(data.flat_dsc);
             setIntercom(data.intercom);
             setMembers(data.members);
 
@@ -170,7 +170,7 @@ const ViewUnit = ({ setActive, flatId }) => {
                             <div className="card-header bg-white d-flex justify-content-between align-items-center">
                                 <span className="fw-semibold">Primary Owner</span>
 
-                                <button className="btn btn-outline-secondary btn-sm" onClick={() => setActive("viewUnit")}  >
+                                <button className="btn btn-outline-secondary btn-sm" onClick={() => setActive("memberDetails")}  >
                                     View Profile
                                 </button>
                             </div>
@@ -266,7 +266,7 @@ const ViewUnit = ({ setActive, flatId }) => {
 
                                                     <small className="text-start text-muted d-flex align-items-center gap-1">
                                                         <i className="bi bi-envelope"></i>
-                                                        {m.email}
+                                                        {m.occupancy_type}
                                                     </small>
                                                 </div>
                                             </div>
@@ -298,36 +298,38 @@ const ViewUnit = ({ setActive, flatId }) => {
                             </div>
 
                             <div className="list-group list-group-flush">
+                                {members
+                                    ?.filter((m) => m.occupancy_type !== "owner")
+                                    .map((m, index) => (
+                                        <div
+                                            key={index}
+                                            className="list-group-item d-flex align-items-center gap-3"
+                                        >
+                                            <img
+                                                src={`https://i.pravatar.cc/50?img=${index + 12}`}
+                                                className="rounded-circle"
+                                                width="45"
+                                                height="45"
+                                                alt=""
+                                            />
 
-                                <div className="list-group-item d-flex align-items-center gap-3">
-                                    <img
-                                        src="https://i.pravatar.cc/50?img=12"
-                                        className="rounded-circle"
-                                        width="45"
-                                        height="45"
-                                        alt=""
-                                    />
+                                            <div>
+                                                <div className="fw-semibold">
+                                                    {m.first_name} {m.last_name}
+                                                </div>
 
-                                    <div>
-                                        <div className="fw-semibold">David Jenkins</div>
-                                        <small className="text-muted">Spouse</small>
-                                    </div>
-                                </div>
-
-                                <div className="list-group-item d-flex align-items-center gap-3">
-                                    <img
-                                        src="https://i.pravatar.cc/50?img=18"
-                                        className="rounded-circle"
-                                        width="45"
-                                        height="45"
-                                        alt=""
-                                    />
-
-                                    <div>
-                                        <div className="fw-semibold">Lily Jenkins</div>
-                                        <small className="text-muted">Daughter</small>
-                                    </div>
-                                </div>
+                                                <small className="text-muted">
+                                                    {m.occupancy_type === "tenant_relative"
+                                                        ? "Tenant Family"
+                                                        : m.occupancy_type === "owner_relative"
+                                                        ? "Owner Family"
+                                                        : m.occupancy_type
+                                                            ?.replaceAll("_", " ")
+                                                            .replace(/\b\w/g, (char) => char.toUpperCase())}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    ))}
 
                             </div>
                         </div>

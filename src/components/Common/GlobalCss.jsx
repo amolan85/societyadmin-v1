@@ -141,10 +141,12 @@ body {
 .bx-red    { background: var(--danger-lt);  color: #b91c1c; }
 .bx-orange { background: var(--warning-lt); color: #c2410c; }
 .bx-blue   { background: var(--accent-lt);  color: #1d4ed8; }
+.bx-lightblue { background: #dbeafe; color: #2563eb; }
 .bx-gray   { background: #f1f5f9;           color: #475569; }
 .bx-purple { background: #ede9fe;           color: #5b21b6; }
 .bx-peacock {background: #cffafe; color: #06b6d4}
 .bx-pink { background: #fce7f3; color: #db2777; }
+.bx-lightpink { background: #fdf2f8; color: #ec4899; } 
 .badge-border {
   border: 1px solid currentColor;
 }
