@@ -14,7 +14,8 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { all } from 'axios';
 import { FiEye, FiFilter, FiSearch } from 'react-icons/fi';
-import { getAllFlatsApi } from '../../services/UnitRegisterApi';
+import { getAllBlocksApi, getAllFlatsApi } from '../../services/UnitRegisterApi';
+import { CgExport } from 'react-icons/cg';
 
 
 const AddMember = ({ setActive, setMemberId }) => {
@@ -50,6 +51,8 @@ const AddMember = ({ setActive, setMemberId }) => {
     const [allMembers, setAllMembers] = useState([])
     const [allMembersWithoutPagination, setAllMembersWithoutPagination] = useState([])
     const [memberTypeTab, setMemberTypeTab] = useState("")
+    const [blocks, setBlocks] = useState("");
+    const [allBlocks, setAllBlocks] = useState([]);
     const [activeTab, setActiveTab] = useState("excel");
     const [exportModal, setExportModal] = useState(false)
     const [errorText, setErrorText] = useState("")
@@ -80,6 +83,7 @@ const AddMember = ({ setActive, setMemberId }) => {
         setFloor(flats.floor)
         getMembers(flats.society_id)
         getAllFlats(flats.society_id)
+        getAllBlocks(flats.society_id)
     }
 
     //function for get members
@@ -115,6 +119,22 @@ const AddMember = ({ setActive, setMemberId }) => {
                 data.flats.map((item) => ({
                     value: item.flat_id,
                     label: item.flat_number,
+                }))
+            );
+        }
+        catch (error) {
+            console.error("Error fetching members:", error)
+        }
+    }
+
+    const getAllBlocks = async (societyId, page) => {
+        try {
+            const data = await getAllBlocksApi(societyId)
+            console.log(data.blocks, "All blocks")
+            setAllBlocks(
+                data.blocks.map((item) => ({
+                    value: item.block,
+                    label: item.block,
                 }))
             );
         }
@@ -162,8 +182,8 @@ const AddMember = ({ setActive, setMemberId }) => {
         //     errors.mobileNo = ""
         // }
 
-        if (!wing) {
-            errors.wing = "required";
+        if (!blocks) {
+            errors.blocks = "required";
         }
 
         if (!flat) {
@@ -241,8 +261,8 @@ const AddMember = ({ setActive, setMemberId }) => {
                 lastName,
                 mobileNo,
                 emailId,
-                wing,
-                flat,
+                blocks.value,
+                flat.value,
                 finalMemType,
                 residency,
                 moveInDate,
@@ -272,7 +292,7 @@ const AddMember = ({ setActive, setMemberId }) => {
         setLastName("");
         setEmailId("");
         setMobileNo("");
-        setWing("");
+        setBlocks(null);
         setFlat("");
         setFloor("");
         setResidency("");
@@ -287,7 +307,6 @@ const AddMember = ({ setActive, setMemberId }) => {
         setMaintenanceReceipt("");
         setOwnershipDocuments("");
         setNominationDetails("");
-
         setErrors({});
         setErrorText("");
     };
@@ -381,7 +400,7 @@ const AddMember = ({ setActive, setMemberId }) => {
 
         // table columns
         const tableColumn = [
-            "First Name", "Last Name", "Mobile No.", "Email Id", "Wing", "Flat", "Membership Type", "moveOutDate"
+            "First Name", "Last Name", "Mobile No.", "Email Id", "Block", "Flat", "Membership Type", "moveOutDate"
         ];
 
         // table rows
@@ -390,8 +409,8 @@ const AddMember = ({ setActive, setMemberId }) => {
             item.last_name,
             item.mobile,
             item.email,
-            item.block,
-            item.floor,
+            item.blocks?.label || item.blocks,
+            item.flat,
             item.occupancy_type,
             item.moveOutDate
         ]);
@@ -457,22 +476,12 @@ const AddMember = ({ setActive, setMemberId }) => {
     const handleSearch = async (e) => {
         const value = e.target.value;
         setSearch(value);
-        const data = await getAllMembersWithoutPagination(societyId, value);
+        const data = await getAllMembersWithoutPaginationApi(societyId, value);
         console.log(data, "Search results");
         setAllMembers(data?.members || []);
     }
-    // const filteredBySearch = allMembers.filter((item) => {
-    //     const searchText = search.trim().toLowerCase();
 
-    //     return (
-    //         item.first_name?.toLowerCase().includes(searchText) ||
-    //         item.last_name?.toLowerCase().includes(searchText) ||
-    //         item.flat_number?.toLowerCase().includes(searchText) ||
-    //         item.block?.toLowerCase().includes(searchText) ||
-    //         item.occupancy_type?.toLowerCase().includes(searchText)
-    //     );
-    // });
-
+    
     const total = Math.ceil(totalCount / limit);
     // const per = limit, total = Math.ceil(filteredData.length / per);
     // const rows = filteredData.slice((page - 1) * per, page * per);
@@ -540,7 +549,7 @@ const AddMember = ({ setActive, setMemberId }) => {
 
                             Filter
                         </button>
-                        <button className="btn-ol ms-2" onClick={() => { getAllMembersWithoutPagination(societyId, search); setExportModal(true) }}>⬇ Export</button>
+                        <button className="btn-ol ms-2" onClick={() => { getAllMembersWithoutPagination(societyId, search); setExportModal(true) }}><CgExport /> Export</button>
                         <button className='btn btn-sm btn-primary ms-2' onClick={() => setShow(true)}>+ Add Member</button>
 
                     </div>
@@ -581,7 +590,7 @@ const AddMember = ({ setActive, setMemberId }) => {
                                         <td className="sa-name">{s.first_name} {s.last_name}</td>
 
                                         <td className="sa-name">{s.flat_number}</td>
-                                        <td ><Badge label={
+                                        <td >{s.occupancy_type && <Badge label={
                                             s.occupancy_type
                                                 ? s.occupancy_type === "tenant_relative"
                                                     ? "Tenant Family"
@@ -599,15 +608,15 @@ const AddMember = ({ setActive, setMemberId }) => {
                                                             : s.occupancy_type === "owner_relative" ? "lightblue"
                                                                 : "grey"
                                             }
-                                        /></td>
+                                        />}</td>
                                         <td className="sa-name">{s.mobile}</td>
-                                        <td><Badge label="Active" c="green" /> </td>
+                                        <td><Badge label={s.status} c={
+                                            s.status === "Active" ? "green" : s.status === "Approved" ? "blue" : s.status === "Pending" ? "orange" : s.status === "Inactive" ? "gray" : "grey"
+                                        } /> </td>
                                         <td className="sa-name">
-                                            <FiEye size={18} className="me-2" style={{ cursor: "pointer" }} onClick={() => getMembersById(s.user_id)} />
-                                            {/* <button className="btn btn-sm btn-primary" onClick={() => {
-
-                                            getMembersById(s.user_id)
-                                        }}>View</button> */}
+                                            <button className="btn btn-light border-0"
+                                                onClick={() => getMembersById(s.user_id)}
+                                            > ⋮</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -633,8 +642,8 @@ const AddMember = ({ setActive, setMemberId }) => {
                     <div className="modal show d-block">
                         <div className="modal-dialog modal-md">
                             <div className="modal-content">
-                                <div className="modal-header">
-                                    <h1 className="modal-title fs-5">Add New Member</h1>
+                                <div className="modal-header bg-light">
+                                    <h5 className="modal-title">Add New Member</h5>
 
                                     {/* ❌ remove data-bs-dismiss */}
                                     <button
@@ -651,17 +660,24 @@ const AddMember = ({ setActive, setMemberId }) => {
                                             <div className="row g-3 mb-3">
                                                 <div className="col-6">
                                                     <div className='d-flex'>
-                                                        <label className="sv-lb" >Select Wing <span className="text-danger">*</span></label>
-                                                        {errors.wing && <span className='text-danger mx-2 '>{errors.wing}</span>}
+                                                        <label className="sv-lb" >Select Block <span className="text-danger">*</span></label>
+                                                        {errors.blocks && <span className='text-danger mx-2 '>{errors.blocks}</span>}
                                                     </div>
-                                                    <select className={`form-select ${errors.wing ? "error-input" : ""}`}
-                                                        value={wing}
-                                                        onChange={(e) => setWing(e.target.value)}>
-                                                        <option>Select Wing</option>
-                                                        {["Wing A", "Wing B", "Wing C"].map(w => (
-                                                            <option key={w} >{w}</option>
-                                                        ))}
-                                                    </select>
+                                                    <Select
+                                                        styles={{
+                                                            control: (baseStyles) => ({
+                                                                ...baseStyles,
+                                                                borderColor: errors.blocks ? "red" : baseStyles.borderColor,
+                                                                boxShadow: "none",
+                                                                "&:hover": {
+                                                                    borderColor: errors.blocks ? "red" : baseStyles.borderColor,
+                                                                },
+                                                            }),
+                                                        }}
+                                                        options={allBlocks}              // 👈 array of objects with value and label
+                                                        value={blocks}                  // 👈 poora object
+                                                        onChange={(selectedOption) => setBlocks(selectedOption)} // 👈 direct object
+                                                    />
                                                 </div>
 
                                                 <div className="col-6">
@@ -739,7 +755,7 @@ const AddMember = ({ setActive, setMemberId }) => {
                                             <div className="row g-3 mb-3">
                                                 <div className="col-6">
                                                     <div className='d-flex'>
-                                                        <label className='sv-lb'>Phone Number <span className="text-danger">*</span></label>
+                                                        <label className='sv-lb'>Phone No. <span className="text-danger">*</span></label>
                                                         {errors.mobileNo && <span className='text-danger mx-2 '>{errors.mobileNo}</span>}
                                                     </div>
 
@@ -969,7 +985,7 @@ const AddMember = ({ setActive, setMemberId }) => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="modal-footer">
+                                <div className="modal-footer bg-light">
 
                                     <div className="d-flex gap-2 justify-content-end">
                                         <button className="btn-ol btn close" onClick={() => setShow(false)}>Cancel</button>

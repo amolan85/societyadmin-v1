@@ -74,3 +74,6 @@
 .error-input {
   border-color: rgba(var(--bs-danger-rgb), 1) !important;
 }
+.error-btn {
+  border: 1px solid #ef4444 !important;
+}

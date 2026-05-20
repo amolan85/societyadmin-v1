@@ -5,7 +5,9 @@ import { FaCar } from 'react-icons/fa';
 import parkingHistory from './ParkingHistory';
 import { getMembersByIdApi } from '../../../services/AddMemberApi';
 import { GetSessionData } from '../../../utils/SessionManagement';
-import { FiAlertTriangle, FiX } from "react-icons/fi";
+import { FiAlertTriangle, FiDownload, FiEdit, FiExternalLink, FiPrinter, FiSlash, FiStopCircle, FiX } from "react-icons/fi";
+import { BiStopCircle } from 'react-icons/bi';
+import { CgFileDocument } from 'react-icons/cg';
 
 const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
     const [societyId, setSocietyId] = useState("");
@@ -120,12 +122,14 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
 
                             <button className="btn btn-outline-secondary btn-sm">
-                                <i className="bi bi-chat-left-text me-1"></i>
+                                {/* <i className="bi bi-chat-left-text me-1"></i> */}
+                                <FiEdit className="me-1" />
                                 Edit Details
                             </button>
 
                             <button className="btn btn-danger btn-sm" onClick={() => setDeallocateShow(true)}>
-                                <i className="bi bi-pencil-square me-1"></i>
+                                {/* <i className="bi bi-pencil-square me-1"></i> */}
+                                <FiSlash className="me-1" />
                                 Deallocate
                             </button>
                         </div>
@@ -215,7 +219,7 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">REGISTRATION COPY</small>
-                                        <div className="fw-semibold text-primary" onClick={() => setShowDocument(true)}>
+                                        <div className="fw-semibold text-primary" onClick={() => setShowDocument(true)} style={{ cursor: "pointer" }}>
                                             View Document
                                         </div>
                                     </div>
@@ -383,11 +387,11 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                             lineHeight: "22px",
                                         }}
                                     >
-                                        Are you sure you want to deallocate
-                                        Slot P-204? This action will remove
-                                        the assignment from Unit A-502
-                                        <strong> (Sarah Jenkins)</strong>
-                                        and make the slot available for
+                                        Are you sure you want to deallocate   <span style={{ fontWeight: "700", color: "#111827" }}>
+                                            Slot P-204
+                                        </span>? This action will remove
+                                        the assignment from   <span style={{ fontWeight: "700", color: "#111827" }}>Unit A-502
+                                        (Sarah Jenkins)</span> and make the slot available for
                                         new allocation.
                                     </p>
 
@@ -472,14 +476,14 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                 <div className="modal-footer">
 
                                     <button
-                                        className="btn btn-sm btn-light px-4"
+                                        className="btn btn-sm btn-light px-4 border"
                                         onClick={() => setDeallocateShow(false)}
                                     >
                                         Cancel
                                     </button>
 
                                     <button className="btn btn-sm btn-danger px-4">
-                                        ⛔ Confirm Deallocation
+                                        <FiSlash/> Confirm Deallocation
                                     </button>
 
                                 </div>
@@ -509,7 +513,7 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                             >
 
                                 {/* Header */}
-                                <div className="modal-header  px-4 pt-4 ">
+                                <div className="modal-header   pt-4 ">
 
                                     <div className="d-flex align-items-center gap-2">
 
@@ -520,16 +524,10 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                                 width: "32px",
                                                 height: "32px",
                                                 background: "#eef2ff",
-                                                borderRadius: "10px",
+                                                borderRadius: "4px",
                                             }}
                                         >
-                                            <i
-                                                className="bi bi-file-earmark-text"
-                                                style={{
-                                                    color: "#2563eb",
-                                                    fontSize: "16px",
-                                                }}
-                                            ></i>
+                                            <CgFileDocument style={{color: "#2563eb"}}/>
                                         </div>
 
                                         <h3
@@ -552,13 +550,13 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                 </div>
 
                                 {/* Body */}
-                                <div className="modal-body px-4 pt-2">
+                                <div className="modal-body px-4 pt-2 bg-light">
 
                                     {/* Top Box */}
                                     <div
-                                        className="rounded-4 p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"
+                                        className=" p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"
                                         style={{
-                                            background: "#f8fafc",
+                                            background: "#ffffff",
                                         }}
                                     >
 
@@ -586,8 +584,9 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                         </div>
 
                                         {/* Button */}
-                                        <button className="btn btn-sm btn-light border  py-2">
-                                            <i className="bi bi-box-arrow-up-right"></i>
+                                        <button className="btn btn-sm border  py-2">
+                                            {/* <i className="bi bi-box-arrow-up-right"></i> */}
+                                            <FiExternalLink className="me-2"/>
                                             Open in New Tab
                                         </button>
 
@@ -595,7 +594,7 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                                     {/* Image Preview */}
                                     <div
-                                        className="overflow-hidden rounded-4 border"
+                                        className="overflow-hidden rounded-1 border"
                                         style={{
                                             background: "#f1f5f9",
                                         }}
@@ -606,7 +605,7 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                             alt="document"
                                             className="w-100"
                                             style={{
-                                                height: "320px",
+                                                height: "300px",
                                                 objectFit: "cover",
                                             }}
                                         />
@@ -619,17 +618,19 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                 <div className="modal-footer px-4 pb-4 pt-3">
 
                                     <button className="btn btn-sm btn-light border px-4">
-                                        <i className="bi bi-printer me-2 "></i>
+                                        {/* <i className="bi bi-printer me-2 "></i> */}
+                                        <FiPrinter className="me-2"/>
                                         Print
                                     </button>
 
                                     <button className="btn btn-sm btn-primary px-4">
-                                        <i className="bi bi-download me-2"></i>
+                                        {/* <i className="bi bi-download me-2"></i> */}
+                                        <FiDownload className="me-2"/>
                                         Download
                                     </button>
 
                                     <button
-                                        className="btn btn-sm  btn-secondary  ms-auto"
+                                        className="btn btn-sm  btn-light border ms-auto"
                                         onClick={() => setShowDocument(false)}
                                     >
                                         Close

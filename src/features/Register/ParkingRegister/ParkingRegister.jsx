@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import "../../../styles/AddMember.css"
+import "../../../styles/ParkingRegister.css"
 import parkingDetails from "../ParkingRegister/ParkingDetails";
 import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
 import { GetSessionData } from '../../../utils/SessionManagement';
@@ -13,6 +14,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { all } from 'axios';
 import { FiFilter, FiSearch } from 'react-icons/fi';
+import { BiExport } from 'react-icons/bi';
 
 
 const ParkingRegister = ({ setActive }) => {
@@ -51,24 +53,25 @@ const ParkingRegister = ({ setActive }) => {
     const [errorText, setErrorText] = useState("")
     const [search, setSearch] = useState("");
 
-    const memberType = [
 
-        { id: "Resident", value: "owner" },
-        { id: "Visitor", value: "tenant" },
-        { id: "Handicap", value: "familyMember" },
-        { id: "Service", value: "familyMember" },
-    ];
+    const [slotNo, setSlotNo] = useState("");
+    const [location, setLocation] = useState("");
+    const [allLocation, setAllLocation] = useState("");
+    const [parkingType, setParkingType] = useState("");
+    const [vehicleSuitability, setVehicleSuitability] = useState("");
+    const [allocationStatus, setAllocationStatus] = useState("");
+    const [assignUnit, setAssignUnit] = useState("");
 
-    const addMemberType = [
-        { id: "Resident", value: "owner" },
-        { id: "Visitor", value: "tenant" },
-        { id: "Handicap", value: "familyMember" },
-        { id: "Service", value: "familyMember" },
+    const parkingTypeList = [
+        { id: "Resident", value: "resident" },
+        { id: "Visitor", value: "visitor" },
+        { id: "Handicap", value: "handicap" },
+        { id: "Service", value: "service" },
     ];
 
     const vehicleType = [
-        { id: "4 Wheeler", value: "owner" },
-        { id: "2 Wheeler", value: "tenant" },
+        { id: "4 Wheeler", value: "4wheeler" },
+        { id: "2 Wheeler", value: "2wheeler" },
     ];
 
     const finalMemType =
@@ -76,6 +79,152 @@ const ParkingRegister = ({ setActive }) => {
             ? familyType
             : memType;
 
+    const slotsList = [
+        {
+            "slot_no": "P-A01",
+            "location": "Basement 1",
+            "allocated_to": {
+                "name": "Elena Gilbert",
+                "unit": "Unit A-101",
+                "role": "Owner",
+                "avatar": "https://i.pravatar.cc/60?img=32"
+            },
+            "vehicle_details": {
+                "vehicle_name": "Honda City",
+                "vehicle_number": "MH-12-AB-1234",
+
+            },
+            "status": {
+                "label": "Allocated",
+                "color": "#38bdf8",
+                "bg_color": "#e0f2fe",
+
+            },
+            "actions": {
+                "menu_icon": "⋮"
+            }
+        },
+        {
+            "slot_no": "P-A02",
+            "location": "Basement 1",
+            "allocated_to": {
+                "name": "Vikram Singh",
+                "unit": "Unit A-102",
+                "role": "Tenant",
+                "avatar": "https://i.pravatar.cc/60?img=15"
+            },
+            "vehicle_details": {
+                "vehicle_name": "Toyota Innova",
+                "vehicle_number": "MH-14-XY-9876",
+
+            },
+            "status": {
+                "label": "Allocated",
+                "color": "#38bdf8",
+                "bg_color": "#e0f2fe",
+
+            },
+            "actions": {
+                "menu_icon": "⋮"
+            }
+        },
+        {
+            "slot_no": "P-G01",
+            "location": "Ground (Open)",
+            "allocated_to": {
+                "name": "Guest Parking",
+                "unit": "",
+                "role": "",
+                "avatar": ""
+            },
+            "vehicle_details": {
+                "vehicle_name": "",
+                "vehicle_number": "",
+
+            },
+            "status": {
+                "label": "Available",
+                "color": "#22c55e",
+                "bg_color": "#dcfce7",
+
+            },
+            "actions": {
+                "menu_icon": "⋮"
+            }
+        },
+        {
+            "slot_no": "P-B05",
+            "location": "Basement 2",
+            "allocated_to": {
+                "name": "Sarah Williams",
+                "unit": "Unit B-204",
+                "role": "Owner",
+                "avatar": "https://i.pravatar.cc/60?img=25"
+            },
+            "vehicle_details": {
+                "vehicle_name": "Tesla Model 3",
+                "vehicle_number": "EV-22-ZZ-5555",
+
+            },
+            "status": {
+                "label": "Allocated",
+                "color": "#38bdf8",
+                "bg_color": "#e0f2fe",
+
+            },
+            "actions": {
+                "menu_icon": "⋮"
+            }
+        },
+        {
+            "slot_no": "P-V01",
+            "location": "Podium",
+            "allocated_to": {
+                "name": "Management Reserved",
+                "unit": "",
+                "role": "",
+                "avatar": ""
+            },
+            "vehicle_details": {
+                "vehicle_name": "",
+                "vehicle_number": "",
+
+            },
+            "status": {
+                "label": "Reserved",
+                "color": "#d946ef",
+                "bg_color": "#fae8ff",
+
+            },
+            "actions": {
+                "menu_icon": "⋮"
+            }
+        },
+        {
+            "slot_no": "P-C12",
+            "location": "Basement 1",
+            "allocated_to": {
+                "name": "Hiroshi Tanaka",
+                "unit": "Unit C-501",
+                "role": "Owner",
+                "avatar": "https://i.pravatar.cc/60?img=41"
+            },
+            "vehicle_details": {
+                "vehicle_name": "Tesla Model 3",
+                "vehicle_number": "EV-22-ZZ-5555",
+
+            },
+            "status": {
+                "label": "Allocated",
+                "color": "#38bdf8",
+                "bg_color": "#e0f2fe",
+
+            },
+            "actions": {
+                "menu_icon": "⋮"
+            }
+        }
+    ]
     useEffect(() => {
         SessionData()
 
@@ -119,81 +268,25 @@ const ParkingRegister = ({ setActive }) => {
     const validateForm = () => {
         let errors = {};
 
-        if (!firstName) {
-            errors.firstName = "required";
+        if (!slotNo) {
+            errors.slotNo = "required";
         }
 
-        if (!lastName) {
-            errors.lastName = "required";
+        if (!location) {
+            errors.location = "required";
         }
 
-        if (!emailId) {
-            errors.emailId = "required";
-        } else if (!/\S+@\S+\.\S+/.test(emailId)) {
-            errors.emailId = "Invalid email";
-        }
-        // else {
-        //     errors.emailId = ""
-        // }
-        if (!mobileNo) {
-            errors.mobileNo = "required";
-        } else if (!/^[0-9]{10}$/.test(mobileNo)) {
-            errors.mobileNo = "Invalid mobile no.";
-        }
-        // else {
-        //     errors.mobileNo = ""
-        // }
-
-        if (!wing) {
-            errors.wing = "required";
+        if (!parkingType) {
+            errors.parkingType = "required";
         }
 
-        if (!flat) {
-            errors.flat = "required";
+        if (!vehicleSuitability) {
+            errors.vehicleSuitability = "required";
         }
-        if (!moveInDate) {
-            errors.moveInDate = "required";
+        if (!allocationStatus) {
+            errors.allocationStatus = "required";
         }
-        if (memType === "owner") {
 
-            if (!idProof) {
-                errors.idProof = "required";
-            }
-
-            if (!agreement) {
-                errors.agreement = "required";
-            }
-
-            if (!maintenanceReceipt) {
-                errors.maintenanceReceipt = "required";
-            }
-
-            if (!nominationDetails) {
-                errors.nominationDetails = "required";
-            }
-
-            if (!familyPhoto) {
-                errors.familyPhoto = "required";
-            }
-
-            if (!ownershipDocuments) {
-                errors.ownershipDocuments = "required";
-            }
-
-
-        }
-        if (memType === "tenant") {
-
-            if (!moveOutDate) {
-                errors.moveOutDate = "required";
-            }
-            if (!rentAgreement) {
-                errors.rentAgreement = "required";
-            }
-            if (!policeNoc) {
-                errors.policeNoc = "required";
-            }
-        }
         return errors;
     };
 
@@ -207,30 +300,30 @@ const ParkingRegister = ({ setActive }) => {
                 return;
             }
 
-            const data = await AddMemberApi(
-                societyId,
-                userId,
-                firstName,
-                lastName,
-                mobileNo,
-                emailId,
-                wing,
-                flat,
-                finalMemType,
-                residency,
-                moveInDate,
-                moveOutDate,
-                agreement,
-                rentAgreement,
-                policeNoc,
-                idProof,
-                familyPhoto,
-                maintenanceReceipt,
-                ownershipDocuments,
-                nominationDetails
-            );
+            // const data = await AddMemberApi(
+            //     societyId,
+            //     userId,
+            //     firstName,
+            //     lastName,
+            //     mobileNo,
+            //     emailId,
+            //     wing,
+            //     flat,
+            //     finalMemType,
+            //     residency,
+            //     moveInDate,
+            //     moveOutDate,
+            //     agreement,
+            //     rentAgreement,
+            //     policeNoc,
+            //     idProof,
+            //     familyPhoto,
+            //     maintenanceReceipt,
+            //     ownershipDocuments,
+            //     nominationDetails
+            // );
 
-            toast.success("Member created successfully!")
+            // toast.success("Member created successfully!")
             setShow(false);
 
         } catch (error) {
@@ -452,10 +545,10 @@ const ParkingRegister = ({ setActive }) => {
                 {/* Stats */}
                 <div className="row g-3 mb-4">
                     {[
-                        [totalCount, "Total Slots"],
-                        [totalOwners, "Allocated Slots",],
-                        [totalTenant, "Guest Slots Open", "tile-org"],
-                        [totalFamilyMember, "Reserved Slots", "tile-purple"]
+                        ["512", "Total Slots"],
+                        ["450", "Allocated Slots",],
+                        ["14", "Guest Slots Open", "tile-grn"],
+                        ["48", "Reserved Slots", "tile-purple"]
                     ].map(([v, l, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
                             <div className={`tile bg-white ${cls}`}>
@@ -504,7 +597,7 @@ const ParkingRegister = ({ setActive }) => {
 
                             Filter
                         </button>
-                        <button className="btn-ol ms-2" onClick={() => setExportModal(true)}>⬇ Export</button>
+                        <button className="btn-ol ms-2" onClick={() => setExportModal(true)}><BiExport /> Export</button>
                         <button className='btn btn-sm btn-primary ms-2' onClick={() => setShow(true)}>+ Add Slot</button>
 
                     </div>
@@ -516,39 +609,98 @@ const ParkingRegister = ({ setActive }) => {
                         <table className="sv-tbl">
                             <thead>
                                 <tr>
-                                    {
-                                        // ["First Name", "Last Name", "Mobile No.", "Email Id", "Wing", "Flat", "Membership Type", "Residency Status", "Date"]
-                                        ["SLOT NO.", "LOCATION", "ALLOCATED TO", "VEHICLE DETAILS", "STATUS", "ACTIONS"]
-                                            .map(h => <th key={h}>{h}</th>)}
+                                    {["SLOT NO.", "LOCATION", "ALLOCATED TO", "VEHICLE DETAILS", "STATUS", "ACTIONS"]
+                                        .map((h) => (
+                                            <th key={h}>{h}</th>
+                                        ))}
                                 </tr>
                             </thead>
+
                             <tbody>
-                                {filteredBySearch.map((s, i) => (
+                                {slotsList.map((s, i) => (
                                     <tr className="text-start" key={i}>
-                                        <td className="sa-name">{s.first_name} {s.last_name}</td>
 
-                                        <td className="sa-name">{s.flat_number}</td>
-                                        <td ><Badge label={
-                                            s.occupancy_type
-                                                ? s.occupancy_type
-                                                    .replaceAll("_", " ")
-                                                    .replace(/\b\w/g, (char) => char.toUpperCase())
-                                                : ""
-                                        }
-                                            c={
-                                                s.occupancy_type === "owner" ? "blue"
-                                                    : s.occupancy_type === "tenant" ? "pink"
-                                                        : s.occupancy_type === "family_member" ? "blue"
-                                                            : "grey"
-                                            }
-                                        /></td>
-                                        <td className="sa-name">{s.mobile}</td>
-                                        <td><Badge label="Active" c="green" /> </td>
-                                        <td className="sa-name"><button className="btn btn-sm btn-primary" onClick={() => {
+                                        {/* SLOT NO */}
+                                        <td className="fw-semibold">{s.slot_no}</td>
 
-                                            // getMembersById(s.user_id)
-                                            setActive("parkingDetails")
-                                        }}>View</button></td>
+                                        {/* LOCATION */}
+                                        <td>{s.location}</td>
+
+                                        {/* ALLOCATED TO */}
+                                        <td>
+                                            <div className="d-flex align-items-center gap-2">
+                                                {s.allocated_to?.avatar && (
+                                                    <img
+                                                        src={s.allocated_to.avatar}
+                                                        alt=""
+                                                        width={38}
+                                                        height={38}
+                                                        className="rounded-circle object-fit-cover"
+                                                    />
+                                                )}
+
+                                                <div>
+                                                    <div className="fw-semibold">
+                                                        {s.allocated_to?.name}
+                                                    </div>
+
+                                                    <small className="text-muted">
+                                                        {s.allocated_to?.unit}{" "}
+                                                        {s.allocated_to?.role &&
+                                                            `- ${s.allocated_to.role}`}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        {/* VEHICLE DETAILS */}
+                                        <td>
+                                            <div className="fw-semibold">
+                                                {s.vehicle_details?.icon}{" "}
+                                                {s.vehicle_details?.vehicle_name}
+                                            </div>
+
+                                            <small className="text-muted">
+                                                {s.vehicle_details?.vehicle_number}
+                                            </small>
+                                        </td>
+
+                                        {/* STATUS */}
+                                        <td>
+                                            <Badge
+                                                label={`${s.status?.label}`}
+                                                c={
+                                                    s.status?.label === "Allocated"
+                                                        ? "blue"
+                                                        : s.status?.label === "Available"
+                                                            ? "green"
+                                                            : s.status?.label === "Reserved"
+                                                                ? "purple"
+                                                                : "grey"
+                                                }
+                                                style={{
+                                                    padding: "6px 14px",
+                                                    borderRadius: "30px",
+                                                    fontSize: "12px",
+                                                    fontWeight: "600",
+                                                    display: "inline-flex",
+                                                    alignItems: "center",
+                                                    gap: "5px",
+                                                }}
+                                            />
+                                        </td>
+
+                                        {/* ACTIONS */}
+                                        <td>
+                                            <button
+                                                className="btn btn-light border-0"
+                                                onClick={() => {
+                                                    setActive("parkingDetails");
+                                                }}
+                                            >
+                                                ⋮
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -573,7 +725,7 @@ const ParkingRegister = ({ setActive }) => {
                     <div className="modal show d-block">
                         <div className="modal-dialog modal-md">
                             <div className="modal-content">
-                                <div className="modal-header">
+                                <div className="modal-header bg-light">
                                     <h1 className="modal-title fs-5">Add Parking Slot</h1>
 
                                     {/* ❌ remove data-bs-dismiss */}
@@ -592,47 +744,61 @@ const ParkingRegister = ({ setActive }) => {
                                                 <div className="col-6">
                                                     <div className='d-flex'>
                                                         <label className="sv-lb" >Slot Number <span className="text-danger">*</span></label>
-                                                        {errors.wing && <span className='text-danger mx-2 '>{errors.wing}</span>}
+                                                        {errors.slotNo && <span className='text-danger mx-2 '>{errors.slotNo}</span>}
                                                     </div>
-                                                    <input className={`sv-in ${errors.firstName ? "error-input" : ""}`} placeholder="Enter First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                                                    <input className={`sv-in ${errors.slotNo ? "error-input" : ""}`} placeholder="Eg. P-101" value={slotNo} onChange={(e) => setSlotNo(e.target.value)} />
                                                 </div>
 
                                                 <div className="col-6">
                                                     <div className='d-flex'>
                                                         <label className="sv-lb">Location / Zone <span className="text-danger">*</span></label>
-                                                        {errors.flat && <span className='text-danger mx-2 '>{errors.flat}</span>}
+                                                        {errors.location && <span className='text-danger mx-2 '>{errors.location}</span>}
                                                     </div>
-                                                    <select className={`form-select  ${errors.flat ? "error-input" : ""}`} value={flat} onChange={(e) => setFlat(e.target.value)}>
-                                                        <option>Select Unit</option>
-                                                        {["101", "102", "103"].map(w => (
+                                                    <select className={`form-select  ${errors.location ? "error-input" : ""}`} value={location} onChange={(e) => setLocation(e.target.value)}>
+                                                        <option>Select zone</option>
+                                                        {["Zone A", "Zone B", "Zone C"].map(w => (
                                                             <option key={w} >{w}</option>
                                                         ))}
                                                     </select>
                                                 </div>
                                             </div>
 
-
-                                            <label className="sv-lb">Parking Type <span className="text-danger">*</span></label>
-                                            <div className="am-type-wrap mb-3">
-                                                {addMemberType.map(t => (
+                                            <div className="d-flex">
+                                                <label className="sv-lb">
+                                                    Parking Type <span className="text-danger">*</span>
+                                                </label>
+                                                {errors.parkingType && <span className='text-danger mx-2 '>{errors.parkingType}</span>}
+                                            </div>
+                                            <div className="ps-type-wrap mb-3">
+                                                {parkingTypeList.map((t) => (
                                                     <button
+                                                        type="button"
                                                         key={t.value}
-                                                        onClick={() => { setMemType(t.value); resetForm() }}
-                                                        className={`am-type-btn ${memType === t.value ? "active" : ""}`}
+                                                        onClick={() => setParkingType(t.value)}
+                                                        className={`ps-type-btn 
+                                                         ${parkingType === t.value ? "active" : ""}
+                                                         ${errors.parkingType ? "error-btn" : ""}
+                                                          `}
                                                     >
+                                                        {t.icon && <span className="me-2">{t.icon}</span>}
                                                         {t.id}
                                                     </button>
                                                 ))}
                                             </div>
 
-                                            <label className="sv-lb">Vehicle Suitability <span className="text-danger">*</span></label>
-                                            <div className="am-type-wrap mb-3">
-                                                {vehicleType.map(t => (
+                                            <label className="sv-lb">
+                                                Vehicle Suitability <span className="text-danger">*</span>
+                                            </label>
+
+                                            <div className="ps-type-wrap mb-3">
+                                                {vehicleType.map((t) => (
                                                     <button
+                                                        type="button"
                                                         key={t.value}
-                                                        onClick={() => { setMemType(t.value); resetForm() }}
-                                                        className={`am-type-btn ${memType === t.value ? "active" : ""}`}
+                                                        onClick={() => setVehicleSuitability(t.value)}
+                                                        className={`ps-type-btn ${vehicleSuitability === t.value ? "active" : ""} ${errors.vehicleSuitability ? "error-btn" : ""}`}
                                                     >
+                                                        {t.icon && <span className="me-2">{t.icon}</span>}
                                                         {t.id}
                                                     </button>
                                                 ))}
@@ -641,10 +807,10 @@ const ParkingRegister = ({ setActive }) => {
                                             <div className="row g-3 mb-3">
                                                 <div className="col-12">
                                                     <div className='d-flex'><label className="sv-lb">Allocation Status <span className="text-danger">*</span></label>
-                                                        {errors.firstName && <span className='text-danger mx-2 '>{errors.firstName}</span>}</div>
-                                                    <select className={`form-select  ${errors.flat ? "error-input" : ""}`} value={flat} onChange={(e) => setFlat(e.target.value)}>
-                                                        <option>Select Unit</option>
-                                                        {["101", "102", "103"].map(w => (
+                                                        {errors.allocationStatus && <span className='text-danger mx-2 '>{errors.allocationStatus}</span>}</div>
+                                                    <select className={`form-select  ${errors.allocationStatus ? "error-input" : ""}`} value={allocationStatus} onChange={(e) => setAllocationStatus(e.target.value)}>
+                                                        <option>Select Status</option>
+                                                        {["Available", "Allocated", "Reserved"].map(w => (
                                                             <option key={w} >{w}</option>
                                                         ))}
                                                     </select>
@@ -656,11 +822,11 @@ const ParkingRegister = ({ setActive }) => {
                                             <div className="row g-3 mb-3">
                                                 <div className="col-12">
                                                     <div className='d-flex'>
-                                                        <label className='sv-lb'>Assign to Unit (Optional) <span className="text-danger">*</span></label>
-                                                        {errors.mobileNo && <span className='text-danger mx-2 '>{errors.mobileNo}</span>}
+                                                        <label className='sv-lb'>Assign to Unit (Optional)</label>
+                                                        {/* {errors.mobileNo && <span className='text-danger mx-2 '>{errors.mobileNo}</span>} */}
                                                     </div>
 
-                                                    <input className={`sv-in ${errors.emailId ? "error-input" : ""}`} placeholder="Search Unit" value={emailId} onChange={(e) => setEmailId(e.target.value)} />
+                                                    <input className={`sv-in ${errors.assignUnit ? "error-input" : ""}`} placeholder="Search Unit (eg-C-501)" value={assignUnit} onChange={(e) => setAssignUnit(e.target.value)} />
                                                 </div>
 
 
@@ -671,7 +837,7 @@ const ParkingRegister = ({ setActive }) => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="modal-footer">
+                                <div className="modal-footer bg-light">
 
                                     <div className="d-flex gap-2 justify-content-end">
                                         <button className="btn-ol btn close" onClick={() => setShow(false)}>Cancel</button>

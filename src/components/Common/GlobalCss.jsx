@@ -141,12 +141,12 @@ body {
 .bx-red    { background: var(--danger-lt);  color: #b91c1c; }
 .bx-orange { background: var(--warning-lt); color: #c2410c; }
 .bx-blue   { background: var(--accent-lt);  color: #1d4ed8; }
-.bx-lightblue { background: #dbeafe; color: #2563eb; }
+.bx-lightblue { background: #dbeafe; color: #8196c4; }
 .bx-gray   { background: #f1f5f9;           color: #475569; }
 .bx-purple { background: #ede9fe;           color: #5b21b6; }
 .bx-peacock {background: #cffafe; color: #06b6d4}
 .bx-pink { background: #fce7f3; color: #db2777; }
-.bx-lightpink { background: #fdf2f8; color: #ec4899; } 
+.bx-lightpink { background: #fdf2f8; color: #eba2c6; } 
 .badge-border {
   border: 1px solid currentColor;
 }
@@ -207,8 +207,12 @@ body {
 .tile-lbl  { font-size: 12px; }
 .tile-red .tile-val, .tile-red .tile-lbl   { color: var(--danger);  }
 .tile-grn .tile-val, .tile-grn .tile-lbl   { color: var(--success); }
-.tile-org .tile-val, .tile-org .tile-lbl   { color: #c2410c; }
+.tile-org .tile-val, .tile-org .tile-lbl   { color: #f39933; }
 .tile-blu .tile-val, .tile-blu .tile-lbl   { color: var(--accent);  }
+.tile-purple {background: #ede9fe;}
+.tile-purple .tile-val, .tile-purple .tile-lbl { color: #5b21b6;}
+.tile-pink { background: #fce7f3}
+.tile-pink .tile-val, .tile-pink .tile-lbl { color: #db2777; }
 
 /* ── QUICK ACTION ───────────────────────────── */
 .qa {

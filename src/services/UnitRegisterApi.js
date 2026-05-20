@@ -4,11 +4,33 @@ import UrlData from "../utils/Url";
 
 
 //api function for get members
-export const getAllUnitsApi = async (societyId, page) => {
+export const getAllUnitsApi = async (societyId, page, search) => {
     const url = UrlData + 'flat/GetAllFlatDetails';
     const data = {
         society_id: societyId,
-        page: page
+        page: page,
+        search: search,
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data,
+        timeout: 30000,
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors get all units");
+        throw errors;
+    });
+}
+
+export const getAllUnitsBySearchApi = async (societyId, search) => {
+    const url = UrlData + 'flat/GetAllFlatDetails';
+    const data = {
+        society_id: societyId,
+        search: search,
     }
     return await apiClient({
         method: 'post',

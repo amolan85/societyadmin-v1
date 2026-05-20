@@ -1,0 +1,31 @@
+.ps-type-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ps-type-btn {
+  border: none;
+  outline: none;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 600;
+  /* transition: all 0.25s ease; */
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.ps-type-btn:hover {
+  background: #e5e7eb;
+}
+
+.ps-type-btn.active {
+  background: #e0f2fe;
+  color: #0284c7;
+  border: 1px solid #7dd3fc;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15);
+}

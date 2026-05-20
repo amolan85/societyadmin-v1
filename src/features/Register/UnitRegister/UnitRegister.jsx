@@ -5,7 +5,7 @@ import "../../../styles/AddMember.css"
 import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
 import { GetSessionData } from '../../../utils/SessionManagement';
 import { AddMemberApi, getMembersApi } from '../../../services/AddMemberApi';
-import { getAllUnitsApi, AddUnitsApi, getAllBlocksApi, getAllFloorsApi } from '../../../services/UnitRegisterApi';
+import { getAllUnitsApi, AddUnitsApi, getAllBlocksApi, getAllFloorsApi, getAllUnitsBySearchApi } from '../../../services/UnitRegisterApi';
 import { toast } from "react-toastify";
 import { useLoader } from "../../../context/LoaderContext";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
@@ -14,7 +14,8 @@ import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { all } from 'axios';
-import { FiFilter, FiSearch } from 'react-icons/fi';
+import { FiFilter, FiHome, FiSearch, FiUser } from 'react-icons/fi';
+import { BiExport } from 'react-icons/bi';
 
 
 const UnitRegister = ({ setActive }) => {
@@ -101,7 +102,7 @@ const UnitRegister = ({ setActive }) => {
         const flats = data.data.flats[0]
         setSocietyId(flats.society_id)
         setUserId(flats.user_id)
-        setFloor(flats.floor)
+        // setFloor(flats.floor)
         getAllUnits(flats.society_id)
         getAllBlocks(flats.society_id)
         getAllFloor(flats.society_id)
@@ -116,7 +117,7 @@ const UnitRegister = ({ setActive }) => {
             setOccupiedUnits(data.occupied_units)
             setVacantUnits(data.vacant_units)
             setAllUnits(data.flats)
-            setAllMemberDetails(data.flats[0]?.members[0])
+            setAllMemberDetails(data.flats[0])
             setPage(data.page)
             setLimit(data.per_page)
             setTotalCount(data.total_count)
@@ -158,14 +159,9 @@ const UnitRegister = ({ setActive }) => {
         }
     }
 
-    const getMembersById = async (memberId) => {
-        // setMemberId(memberId);
-        // setActive("memberDetails");
-    }
-
     const handlePageChange = (value) => {
         setPage(value);
-        getMembers(societyId, value);
+        getAllUnits(societyId, value);
     };
 
     //function for validation
@@ -266,7 +262,7 @@ const UnitRegister = ({ setActive }) => {
         const workbook = new ExcelJS.Workbook();
 
         // add worksheet
-        const worksheet = workbook.addWorksheet("Members");
+        const worksheet = workbook.addWorksheet("Units");
 
         // add columns dynamically
         if (allUnits.length > 0) {
@@ -295,7 +291,7 @@ const UnitRegister = ({ setActive }) => {
             new Blob([buffer], {
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             }),
-            "Members.xlsx"
+            "Units.xlsx"
         );
     };
 
@@ -305,7 +301,7 @@ const UnitRegister = ({ setActive }) => {
         const workbook = new ExcelJS.Workbook();
 
         // add worksheet
-        const worksheet = workbook.addWorksheet("Members");
+        const worksheet = workbook.addWorksheet("Units");
 
         // add columns dynamically
         if (allUnits.length > 0) {
@@ -336,7 +332,7 @@ const UnitRegister = ({ setActive }) => {
         });
 
         // download file
-        saveAs(blob, "Members.csv");
+        saveAs(blob, "Units.csv");
     };
 
     const downloadPDF = () => {
@@ -346,7 +342,7 @@ const UnitRegister = ({ setActive }) => {
 
         // PDF Heading
         doc.setFontSize(18);
-        doc.text("Members Report", 14, 15);
+        doc.text("Units Report", 14, 15);
 
         // table columns
         const tableColumn = [
@@ -384,7 +380,7 @@ const UnitRegister = ({ setActive }) => {
             theme: "grid",
         });
 
-        doc.save("Members.pdf");
+        doc.save("Units.pdf");
     };
 
     const handleExport = () => {
@@ -406,38 +402,10 @@ const UnitRegister = ({ setActive }) => {
             }
     };
 
-    // const totalOwners = allUnits.filter(
-    //     (item) => item.occupancy_type?.toLowerCase() === "owner"
-    // ).length;
-
-    // const totalTenant = allUnits.filter(
-    //     (item) => item.occupancy_type?.toLowerCase() === "tenant"
-    // ).length;
-
-    // const totalFamilyMember = allUnits.filter(
-    //     (item) => item.occupancy_type?.toLowerCase() === "familyMember"
-    // ).length;
-
-    // const filteredData = memberTypeTab === ""
-    //     ? allUnits
-    //     : allUnits.filter((item) => item.occupancy_type === memberTypeTab);
-
-    // const filteredBySearch = allUnits.filter((item) => {
-    //     const searchText = search.trim().toLowerCase();
-
-    //     return (
-    //         item.first_name?.toLowerCase().includes(searchText) ||
-    //         item.last_name?.toLowerCase().includes(searchText) ||
-    //         item.flat_number?.toLowerCase().includes(searchText) ||
-    //         item.block?.toLowerCase().includes(searchText) ||
-    //         item.occupancy_type?.toLowerCase().includes(searchText)
-    //     );
-    // });
-
     const handleSearch = async (e) => {
         const value = e.target.value;
         setSearch(value);
-        const data = await getAllUnitsApi(societyId, value);
+        const data = await getAllUnitsBySearchApi(societyId, value);
         console.log(data, "Search results");
         setAllUnits(data?.flats || []);
     }
@@ -459,7 +427,7 @@ const UnitRegister = ({ setActive }) => {
                         [totalUnits, "Total Units"],
                         [occupiedUnits, "Occupancy Rate", "tile-grn"],
                         [occupiedUnits, "Occupied Units", "tile-org"],
-                        [vacantUnits, "Vacant Units", "tile-red"]
+                        [vacantUnits, "Vacant Units", "tile-pink"]
                     ].map(([v, l, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
                             <div className={`tile bg-white ${cls}`}>
@@ -508,7 +476,7 @@ const UnitRegister = ({ setActive }) => {
 
                             Filter
                         </button>
-                        <button className="btn-ol ms-2" onClick={() => setExportModal(true)}>⬇ Export</button>
+                        <button className="btn-ol ms-2" onClick={() => setExportModal(true)}><BiExport /> Export</button>
                         <button className='btn btn-sm btn-primary ms-2' onClick={() => setShow(true)}>+ Add Unit</button>
 
                     </div>
@@ -531,8 +499,17 @@ const UnitRegister = ({ setActive }) => {
                                     <tr className="text-start" key={i}>
                                         <td className="sa-name">{s.flat_number} </td>
 
-                                        <td className="sa-name">{s.area_sqft}</td>
-                                        <td className="sa-name">{s.block} / {s.floor}</td>
+                                        <td className="sa-name">{s.unit_type} .{s.area_sqft} sqft</td>
+                                        <td className="sa-name">
+                                            {`Block ${s.block} . ${s.floor === 1
+                                                ? "1st"
+                                                : s.floor === 2
+                                                    ? "2nd"
+                                                    : s.floor === 3
+                                                        ? "3rd"
+                                                        : `${s.floor}th`
+                                                } Flr`}
+                                        </td>
                                         {/* <td ><Badge label={
                                             s.occupancy_type
                                                 ? s.occupancy_type
@@ -547,12 +524,51 @@ const UnitRegister = ({ setActive }) => {
                                                             : "grey"
                                             }
                                         /></td> */}
-                                        <td>{allMemberDetails?.first_name || "N/A"}</td>
-                                        <td><Badge label="Active" c="green" /> </td>
-                                        <td className="sa-name"><button className="btn btn-sm btn-primary" onClick={() => {
+                                        <td>
+                                            {
+                                                allMemberDetails?.members
+                                                    ?.find(
+                                                        (m) =>
+                                                            m.occupancy_type === "owner" ||
+                                                            m.occupancy_type === "owner_relative"
+                                                    )
+                                                    ? `${allMemberDetails?.members
+                                                        ?.find(
+                                                            (m) =>
+                                                                m.occupancy_type === "owner" ||
+                                                                m.occupancy_type === "owner_relative"
+                                                        )
+                                                        ?.first_name} ${allMemberDetails?.members
+                                                        ?.find(
+                                                            (m) =>
+                                                                m.occupancy_type === "owner" ||
+                                                                m.occupancy_type === "owner_relative"
+                                                        )
+                                                        ?.last_name
+                                                    }`
+                                                    : ""
+                                            }
+                                        </td>
+                                        <td>
+                                            {s.current_status && (
+                                                <Badge
+                                                    label={s.current_status}
+                                                    c={
+                                                        s.current_status === "Vacant"
+                                                            ? "pink"
+                                                            : s.current_status === "Occupied"
+                                                                ? "blue"
+                                                                : s.current_status === "Maintanance"
+                                                                    ? "orange"
+                                                                    : "grey"
+                                                    }
+                                                />
+                                            )}
+                                        </td>
+                                        <td className="sa-name"><button className="btn btn-light border-0" onClick={() => {
 
                                             getMembersById(s.user_id)
-                                        }}>View</button></td>
+                                        }}> ⋮</button></td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -577,8 +593,8 @@ const UnitRegister = ({ setActive }) => {
                     <div className="modal show d-block">
                         <div className="modal-dialog modal-md">
                             <div className="modal-content">
-                                <div className="modal-header">
-                                    <h1 className="modal-title fs-5">Add New Unit</h1>
+                                <div className="modal-header bg-light">
+                                    <h5 className="modal-title fw-semibold"><strong>Add New Unit</strong></h5>
 
                                     {/* ❌ remove data-bs-dismiss */}
                                     <button
@@ -591,7 +607,7 @@ const UnitRegister = ({ setActive }) => {
                                 <div className="modal-body">
                                     <div className="pg d-flex justify-content-center am-wrap">
                                         <div className="text-start am-card">
-                                            <h6>Unit Details</h6>
+                                            <label className='fw-semibold'><FiHome /> Unit Details</label>
                                             <div className="row g-3 mb-3 mt-1">
                                                 <div className="col-6">
                                                     <div className='d-flex'>
@@ -686,7 +702,7 @@ const UnitRegister = ({ setActive }) => {
                                                 </div>
                                             </div>
 
-                                            <h6>Primary Owner</h6>
+                                            <label className='fw-semibold'><FiUser /> Primary Owner</label>
                                             <div className="row g-3 mb-3 mt-1">
                                                 <div className="col-12">
                                                     <div className='d-flex'>
@@ -711,7 +727,7 @@ const UnitRegister = ({ setActive }) => {
 
                                                 <div className="col-6">
                                                     <div className='d-flex'>
-                                                        <label className='sv-lb'>Phone Number <span className="text-danger">*</span></label>
+                                                        <label className='sv-lb'>Phone No. <span className="text-danger">*</span></label>
                                                         {errors.mobileNo && <span className='text-danger mx-2 '>{errors.mobileNo}</span>}
                                                     </div>
 
@@ -735,7 +751,7 @@ const UnitRegister = ({ setActive }) => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="modal-footer">
+                                <div className="modal-footer bg-light">
 
                                     <div className="d-flex gap-2 justify-content-end">
                                         <button className="btn-ol btn close" onClick={() => setShow(false)}>Cancel</button>
@@ -886,7 +902,7 @@ const UnitRegister = ({ setActive }) => {
                                 </div>
 
 
-                                <div className="modal-footer">
+                                <div className="modal-footer bg-light">
 
                                     <button className="btn-sm btn btn-outline-secondary" onClick={() => setExportModal(false)}>
                                         Cancel

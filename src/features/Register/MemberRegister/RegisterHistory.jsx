@@ -6,13 +6,16 @@ import { getBroadcastApi } from '../../../services/BroadcastApi';
 import { GetSessionData } from '../../../utils/SessionManagement';
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-import { FiEdit } from 'react-icons/fi';
+import { FiEdit, FiLogIn } from 'react-icons/fi';
 import { FiSearch, FiCalendar, FiFilter } from "react-icons/fi";
 import { useLoader } from "../../../context/LoaderContext";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 // import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { RiSecurePaymentFill } from 'react-icons/ri';
+import { AiFillProfile } from 'react-icons/ai';
+import { BiImport } from 'react-icons/bi';
 
 const RegisterHistory = ({ setActive }) => {
     const [page, setPage] = useState(1);
@@ -25,10 +28,10 @@ const RegisterHistory = ({ setActive }) => {
     const [activeTab, setActiveTab] = useState("excel");
 
     const all = [
-        { dateTime: "Today, 6:45 PM", type: "Access Log", title: "vehicle tesla model y", status: "allowed" },
-        { dateTime: "Oct 01,2025, 10:00 PM", type: "Payment", title: "vehicle tesla model y", status: "success" },
-        { dateTime: "Today, 6:45 PM", type: "Complaint", title: "vehicle tesla model y", status: "pending" },
-        { dateTime: "Today, 6:45 PM", type: "Profile Update", title: "vehicle tesla model y", status: "completed" },
+        { id: 1, dateTime: "Today, 6:45 PM", icon: <FiLogIn />, type: "Access Log", title: "vehicle tesla model y", status: "Allowed" },
+        { id: 2, dateTime: "Oct 01,2025, 10:00 PM", icon: <RiSecurePaymentFill />, type: "Payment", title: "vehicle tesla model y", status: "Success" },
+        { id: 3, dateTime: "Today, 6:45 PM", icon: <RiSecurePaymentFill />, type: "Complaint", title: "vehicle tesla model y", status: "Pending" },
+        { id: 4, dateTime: "Today, 6:45 PM", icon: <AiFillProfile />, type: "Profile Update", title: "vehicle tesla model y", status: "Completed" },
 
     ];
 
@@ -354,7 +357,7 @@ const RegisterHistory = ({ setActive }) => {
 
                     {/* Export Button */}
 
-                    <button className="btn-ol" onClick={() => setShow(true)}>⬇ Export</button>
+                    <button className="btn-ol" onClick={() => setShow(true)}><BiImport /> Export</button>
                 </div>
                 {/* Table */}
                 <div className="sv-card p-0 overflow-hidden">
@@ -368,23 +371,23 @@ const RegisterHistory = ({ setActive }) => {
                             </thead>
                             <tbody>
                                 {rows.map((s, i) => (
-                                    <tr className="text-start" key={s.dateTime}>
+                                    <tr className="text-start" key={s.id}>
 
                                         <td className="sa-name">{s.dateTime}</td>
 
-                                        <td className="sa-muted">{s.type}</td>
+                                        <td className="sa-muted">{s.icon} {s.type}</td>
                                         <td className="sa-muted">{s.title}</td>
                                         <td>
                                             <Badge label={s.status}
                                                 c={
-                                                    s.status === "allowed"
+                                                    s.status === "Allowed"
                                                         ? "blue"
-                                                        : s.status === "success"
+                                                        : s.status === "Success"
                                                             ? "green"
-                                                            : s.status === "pending"
-                                                                ? "yellow"
-                                                                : s.status === "completed"
-                                                                    ? "grey"
+                                                            : s.status === "Pending"
+                                                                ? "orange"
+                                                                : s.status === "Completed"
+                                                                    ? "gray"
                                                                     : "gray"
                                                 }
                                             />

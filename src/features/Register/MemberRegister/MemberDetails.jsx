@@ -5,6 +5,8 @@ import viewUnit from '../UnitRegister/ViewUnit';
 import { getMembersByIdApi } from '../../../services/AddMemberApi';
 import { GetSessionData } from '../../../utils/SessionManagement';
 import registerHistory from './RegisterHistory';
+import { BiEdit, BiHistory, BiLocationPlus, BiMessage, BiPhoneOutgoing } from 'react-icons/bi';
+import { MdAttachEmail } from 'react-icons/md';
 
 const MemberDetails = ({ setActive, memberId, setFlatId }) => {
     const [societyId, setSocietyId] = useState("");
@@ -103,14 +105,17 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
 
                                 <div className="text-muted text-start small mt-2">
                                     <div className="mb-1">
-                                        <i className="bi bi-envelope me-1"></i>
+                                        {/* <i className="bi bi-envelope me-1"></i> */}
+                                        <MdAttachEmail className='me-1' />
                                         {email}
                                     </div>
 
                                     <div>
-                                        <i className="bi bi-telephone me-1"></i>
+                                        {/* <i className="bi bi-telephone me-1"></i> */}
+                                        <BiPhoneOutgoing className='me-1' />
                                         {phone}
                                         <span className="mx-2">|</span>
+                                        <BiLocationPlus className='me-1' />
                                         Unit {block}-{flatNo}, {societyName}
                                     </div>
                                 </div>
@@ -119,17 +124,20 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
 
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
                             <button className="btn btn-outline-secondary btn-sm" onClick={() => setActive("registerHistory")}>
-                                <i className="bi bi-clock-history me-1"></i>
+                                {/* <i className="bi bi-clock-history me-1"></i> */}
+                                <BiHistory className='me-1' />
                                 History
                             </button>
 
                             <button className="btn btn-outline-secondary btn-sm">
-                                <i className="bi bi-chat-left-text me-1"></i>
+                                {/* <i className="bi bi-chat-left-text me-1"></i> */}
+                                <BiMessage className='me-1' />
                                 Message
                             </button>
 
                             <button className="btn btn-primary btn-sm">
-                                <i className="bi bi-pencil-square me-1"></i>
+                                {/* <i className="bi bi-pencil-square me-1"></i> */}
+                                <BiEdit className='me-1' />
                                 Edit Profile
                             </button>
                         </div>
