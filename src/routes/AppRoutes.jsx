@@ -8,10 +8,9 @@ import PrivateRoute from "./PrivateRoute";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
-
 export default function AppRoutes() {
   return (
-    <BrowserRouter>
+    <BrowserRouter >
         <ToastContainer/>
       <Routes>
         {/* Login */}
