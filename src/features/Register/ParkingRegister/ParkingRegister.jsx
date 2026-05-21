@@ -1,53 +1,21 @@
-import React, { useState, useEffect } from 'react'
+import  { useState } from 'react'
 import "../../../styles/AddMember.css"
 import "../../../styles/ParkingRegister.css"
-import parkingDetails from "../ParkingRegister/ParkingDetails";
 import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
-import { GetSessionData } from '../../../utils/SessionManagement';
-import { AddMemberApi, getMembersApi } from '../../../services/AddMemberApi';
 import { toast } from "react-toastify";
-import { useLoader } from "../../../context/LoaderContext";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
-import ExcelJS from "exceljs";
-import { saveAs } from "file-saver";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import { all } from 'axios';
-import { FiFilter, FiSearch } from 'react-icons/fi';
+
 import { BiExport } from 'react-icons/bi';
+import { FiFilter, FiSearch } from 'react-icons/fi';
 
 
 const ParkingRegister = ({ setActive }) => {
-    const [memType, setMemType] = useState("");
-    const [firstName, setFirstName] = useState("")
-    const [lastName, setLastName] = useState("")
-    const [emailId, setEmailId] = useState("")
-    const [mobileNo, setMobileNo] = useState("")
-    const [wing, setWing] = useState("")
-    const [flat, setFlat] = useState("")
-    const [floor, setFloor] = useState("")
-    const [residency, setResidency] = useState("")
-    const [moveInDate, setMoveInDate] = useState("")
-    const [moveOutDate, setMoveOutDate] = useState("")
-    const [familyType, setFamilyType] = useState("")
-    const [agreement, setAgreement] = useState("")
-    const [rentAgreement, setRentAgreement] = useState("")
-    const [policeNoc, setPoliceNoc] = useState("")
-    const [idProof, setIdProof] = useState("")
-    const [familyPhoto, setFamilyPhoto] = useState("")
-    const [maintenanceReceipt, setMaintenanceReceipt] = useState("")
-    const [ownershipDocuments, setOwnershipDocuments] = useState("")
-    const [nominationDetails, setNominationDetails] = useState("")
-    const [societyId, setSocietyId] = useState("")
-    const [userId, setUserId] = useState("")
+
     const [errors, setErrors] = useState({});
     const [show, setShow] = useState(false);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
-
-    const [allMembers, setAllMembers] = useState([])
-    const [memberTypeTab, setMemberTypeTab] = useState("")
     const [activeTab, setActiveTab] = useState("excel");
     const [exportModal, setExportModal] = useState(false)
     const [errorText, setErrorText] = useState("")
@@ -74,10 +42,6 @@ const ParkingRegister = ({ setActive }) => {
         { id: "2 Wheeler", value: "2wheeler" },
     ];
 
-    const finalMemType =
-        memType === "familyMember"
-            ? familyType
-            : memType;
 
     const slotsList = [
         {
@@ -87,7 +51,7 @@ const ParkingRegister = ({ setActive }) => {
                 "name": "Elena Gilbert",
                 "unit": "Unit A-101",
                 "role": "Owner",
-                "avatar": "https://i.pravatar.cc/60?img=32"
+                "avatar":  "../src/assets/profile.png"
             },
             "vehicle_details": {
                 "vehicle_name": "Honda City",
@@ -111,7 +75,7 @@ const ParkingRegister = ({ setActive }) => {
                 "name": "Vikram Singh",
                 "unit": "Unit A-102",
                 "role": "Tenant",
-                "avatar": "https://i.pravatar.cc/60?img=15"
+                "avatar":  "../src/assets/profile.png"
             },
             "vehicle_details": {
                 "vehicle_name": "Toyota Innova",
@@ -159,7 +123,7 @@ const ParkingRegister = ({ setActive }) => {
                 "name": "Sarah Williams",
                 "unit": "Unit B-204",
                 "role": "Owner",
-                "avatar": "https://i.pravatar.cc/60?img=25"
+                "avatar":  "../src/assets/profile.png"
             },
             "vehicle_details": {
                 "vehicle_name": "Tesla Model 3",
@@ -207,7 +171,7 @@ const ParkingRegister = ({ setActive }) => {
                 "name": "Hiroshi Tanaka",
                 "unit": "Unit C-501",
                 "role": "Owner",
-                "avatar": "https://i.pravatar.cc/60?img=41"
+                "avatar":  "../src/assets/profile.png"
             },
             "vehicle_details": {
                 "vehicle_name": "Tesla Model 3",
@@ -225,43 +189,14 @@ const ParkingRegister = ({ setActive }) => {
             }
         }
     ]
-    useEffect(() => {
-        SessionData()
 
-    }, [])
 
-    const SessionData = async () => {
-        const data = await GetSessionData()
-        console.log(data.data)
-        const flats = data.data.flats[0]
-        setSocietyId(flats.society_id)
-        setUserId(flats.user_id)
-        setFloor(flats.floor)
-        getMembers(flats.society_id)
-    }
 
-    //function for get members
-    const getMembers = async (societyId, page) => {
-        try {
-            const data = await getMembersApi(societyId, page)
-            setAllMembers(data.members)
-            setPage(data.page)
-            setLimit(data.per_page)
-            setTotalCount(data.total_count)
-        }
-        catch (error) {
-            console.error("Error fetching members:", error)
-        }
-    }
 
-    const getMembersById = async (memberId) => {
-        // setMemberId(memberId);
-        // setActive("memberDetails");
-    }
 
     const handlePageChange = (value) => {
         setPage(value);
-        getMembers(societyId, value);
+    
     };
 
     //function for validation
@@ -299,31 +234,6 @@ const ParkingRegister = ({ setActive }) => {
                 setErrors(validationErrors);
                 return;
             }
-
-            // const data = await AddMemberApi(
-            //     societyId,
-            //     userId,
-            //     firstName,
-            //     lastName,
-            //     mobileNo,
-            //     emailId,
-            //     wing,
-            //     flat,
-            //     finalMemType,
-            //     residency,
-            //     moveInDate,
-            //     moveOutDate,
-            //     agreement,
-            //     rentAgreement,
-            //     policeNoc,
-            //     idProof,
-            //     familyPhoto,
-            //     maintenanceReceipt,
-            //     ownershipDocuments,
-            //     nominationDetails
-            // );
-
-            // toast.success("Member created successfully!")
             setShow(false);
 
         } catch (error) {
@@ -332,204 +242,6 @@ const ParkingRegister = ({ setActive }) => {
             setErrorText(error)
         }
     };
-
-    const resetForm = () => {
-        setFirstName("");
-        setLastName("");
-        setEmailId("");
-        setMobileNo("");
-        setWing("");
-        setFlat("");
-        setFloor("");
-        setResidency("");
-        setMoveInDate("");
-        setMoveOutDate("");
-        setFamilyType("");
-        setAgreement("");
-        setRentAgreement("");
-        setPoliceNoc("");
-        setIdProof("");
-        setFamilyPhoto("");
-        setMaintenanceReceipt("");
-        setOwnershipDocuments("");
-        setNominationDetails("");
-
-        setErrors({});
-        setErrorText("");
-    };
-
-    const downloadExcel = async () => {
-        // create workbook
-        const workbook = new ExcelJS.Workbook();
-
-        // add worksheet
-        const worksheet = workbook.addWorksheet("Members");
-
-        // add columns dynamically
-        if (allMembers.length > 0) {
-            worksheet.columns = Object.keys(allMembers[0]).map((key) => ({
-                header: key,
-                key: key,
-                width: 20,
-            }));
-
-            // add rows
-            allMembers.forEach((item) => {
-                worksheet.addRow(item);
-            });
-        }
-
-        // header style
-        worksheet.getRow(1).font = {
-            bold: true,
-        };
-
-        // create buffer
-        const buffer = await workbook.xlsx.writeBuffer();
-
-        // download file
-        saveAs(
-            new Blob([buffer], {
-                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            }),
-            "Members.xlsx"
-        );
-    };
-
-    const downloadCSV = async () => {
-
-        // create workbook
-        const workbook = new ExcelJS.Workbook();
-
-        // add worksheet
-        const worksheet = workbook.addWorksheet("Members");
-
-        // add columns dynamically
-        if (allMembers.length > 0) {
-
-            worksheet.columns = Object.keys(allMembers[0]).map((key) => ({
-                header: key,
-                key: key,
-                width: 20,
-            }));
-
-            // add allMembers
-            allMembers.forEach((item) => {
-                worksheet.addRow(item);
-            });
-        }
-
-        // header style
-        worksheet.getRow(1).font = {
-            bold: true,
-        };
-
-        // generate csv buffer
-        const csvBuffer = await workbook.csv.writeBuffer();
-
-        // create blob
-        const blob = new Blob([csvBuffer], {
-            type: "text/csv;charset=utf-8;",
-        });
-
-        // download file
-        saveAs(blob, "Members.csv");
-    };
-
-    const downloadPDF = () => {
-
-        // landscape mode
-        const doc = new jsPDF("landscape");
-
-        // PDF Heading
-        doc.setFontSize(18);
-        doc.text("Members Report", 14, 15);
-
-        // table columns
-        const tableColumn = [
-            "First Name", "Last Name", "Mobile No.", "Email Id", "Wing", "Flat", "Membership Type", "moveOutDate"
-        ];
-
-        // table rows
-        const tableRows = rows.map((item) => [
-            item.first_name,
-            item.last_name,
-            item.mobile,
-            item.email,
-            item.block,
-            item.floor,
-            item.occupancy_type,
-            item.moveOutDate
-        ]);
-
-        autoTable(doc, {
-            head: [tableColumn],
-            body: tableRows,
-
-            // table start after heading
-            startY: 25,
-
-            styles: {
-                fontSize: 8,
-                cellPadding: 3,
-            },
-
-            headStyles: {
-                fillColor: [13, 110, 253],
-            },
-
-            theme: "grid",
-        });
-
-        doc.save("Members.pdf");
-    };
-
-    const handleExport = () => {
-
-        if (activeTab === "excel") {
-            downloadExcel();
-            setExportModal(false)
-        }
-
-        else if (activeTab === "csv") {
-            downloadCSV();
-            setExportModal(false)
-        }
-
-        else
-            if (activeTab === "pdf") {
-                downloadPDF();
-                setExportModal(false)
-            }
-    };
-
-    const totalOwners = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "owner"
-    ).length;
-
-    const totalTenant = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "tenant"
-    ).length;
-
-    const totalFamilyMember = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "familyMember"
-    ).length;
-
-    const filteredData = memberTypeTab === ""
-        ? allMembers
-        : allMembers.filter((item) => item.occupancy_type === memberTypeTab);
-
-    const filteredBySearch = allMembers.filter((item) => {
-        const searchText = search.trim().toLowerCase();
-
-        return (
-            item.first_name?.toLowerCase().includes(searchText) ||
-            item.last_name?.toLowerCase().includes(searchText) ||
-            item.flat_number?.toLowerCase().includes(searchText) ||
-            item.block?.toLowerCase().includes(searchText) ||
-            item.occupancy_type?.toLowerCase().includes(searchText)
-        );
-    });
 
     const total = Math.ceil(totalCount / limit);
     // const per = limit, total = Math.ceil(filteredData.length / per);
@@ -692,14 +404,49 @@ const ParkingRegister = ({ setActive }) => {
 
                                         {/* ACTIONS */}
                                         <td>
-                                            <button
-                                                className="btn btn-light border-0"
-                                                onClick={() => {
+                                            <div className="member-action-dropdown dropdown">
+                                                <button
+                                                    className="member-action-btn"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                >
+                                                    ⋮
+                                                </button>
+
+                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() => {
                                                     setActive("parkingDetails");
                                                 }}
-                                            >
-                                                ⋮
-                                            </button>
+                                                        >
+                                                            View Slot
+                                                        </button>
+                                                    </li>
+
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                        // onClick={() => handleEdit(s)}
+                                                        >
+                                                            Edit Slot
+                                                        </button>
+                                                    </li>
+
+                                                    <li><hr className="dropdown-divider" /></li>
+
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item member-action-delete"
+                                                        // onClick={() => handleDelete(s.flat_id)}
+                                                        >
+                                                            Delete Slot
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -963,7 +710,7 @@ const ParkingRegister = ({ setActive }) => {
                                             <h6 className='fw-bold mt-1'>All Data</h6>
                                         </div>
 
-                                        <span className="text-muted mt-1"><h6>{allMembers.length} records</h6></span>
+                                        <span className="text-muted mt-1"><h6> records</h6></span>
                                     </div>
 
 

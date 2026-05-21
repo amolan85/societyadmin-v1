@@ -140,16 +140,21 @@ body {
 .bx-green  { background: var(--success-lt); color: #15803d; }
 .bx-red    { background: var(--danger-lt);  color: #b91c1c; }
 .bx-orange { background: var(--warning-lt); color: #c2410c; }
-.bx-blue   { background: var(--accent-lt);  color: #1d4ed8; }
-.bx-lightblue { background: #dbeafe; color: #8196c4; }
+.bx-blue {
+  background: var(--accent-lt);   /* Medium blue */
+  color:  #1d4ed8;
+}
+
+.bx-lightblue {
+  background: #f8fbff;   /* Very light sky blue */
+  color: #3b82f6;
+}
 .bx-gray   { background: #f1f5f9;           color: #475569; }
 .bx-purple { background: #ede9fe;           color: #5b21b6; }
 .bx-peacock {background: #cffafe; color: #06b6d4}
-.bx-pink { background: #fce7f3; color: #db2777; }
-.bx-lightpink { background: #fdf2f8; color: #eba2c6; } 
-.badge-border {
-  border: 1px solid currentColor;
-}
+.bx-pink { background: #fbcfe8; color: #be185d}
+.bx-lightpink { background: #fdf2f8; color: #db2777}
+.badge-border { border: 1px solid currentColor}
 
 /* ── TAB PILLS ──────────────────────────────── */
 .tab-pills { display: flex; gap: 6px; flex-wrap: wrap; background: "#fff" }

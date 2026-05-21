@@ -138,3 +138,10 @@
   font-size: 12px;
   color: var(--muted);
 }
+.sv-card:focus,
+.sv-card:focus-visible,
+.sv-card *:focus,
+.sv-card *:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}

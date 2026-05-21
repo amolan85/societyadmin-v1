@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Badge } from '../../components/Common/ReusableFunction';
 import "../../styles/Overview.css"
 import {
     BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
     ResponsiveContainer, RadarChart, Radar,
-    PolarGrid, PolarAngleAxis, PieChart, Pie, Cell, CartesianGrid
+    PolarGrid, PolarAngleAxis, 
 } from "recharts";
 import { OverviewApi } from '../../services/OverviewApi';
 
@@ -18,10 +18,6 @@ const Overview = () => {
     const [activeComplaints, setActiveComplaints] = useState("")
     const [staffAttendance, setStaffAttendance] = useState({})
 
-    const mo = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const ap = [54, 29, 54, 99, 52, 46, 15, 64, 33, 64, 23, 93];
-    const pe = [48, 25, 56, 94, 52, 45, 13, 81, 30, 30, 55, 45];
-    const re = [24, 10, 39, 40, 50, 40, 29, 75, 77, 89, 26, 33];
 
     // const barData = [
     //     { name: "Jan", approved: 54, pending: 23, rejected: 48 },
@@ -125,7 +121,7 @@ const Overview = () => {
                 </div> */}
                 <div className="row g-3 mb-4 align-items-center">
 
-               
+
                     <div className="col-12 col-md-4 col-lg-3 position-relative">
                         <span
                             style={{
@@ -149,7 +145,7 @@ const Overview = () => {
 
                     {[
                         ["Active Complaints", activeComplaints],
-                        ["Visits",  totalVisits],
+                        ["Visits", totalVisits],
                         ["Pending Approvals", pendingApproval],
                         ["Staff Present", `${staffAttendance.present || 0} / ${staffAttendance.total || ""}`]
                     ].map(([l, v]) => (
@@ -164,8 +160,8 @@ const Overview = () => {
                 </div>
                 <div className="row g-3 mb-4">
                     <div className="col-12 col-lg-8">
-                        <div className="sv-card" >
-                            <ResponsiveContainer width="100%" height={400} style={{ border: "none" }}>
+                        <div className="sv-card">
+                            <ResponsiveContainer width="100%" height={400} >
                                 {/* <BarChart data={barData} >
                                 <XAxis
                                     dataKey="name"

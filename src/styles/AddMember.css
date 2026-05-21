@@ -77,3 +77,42 @@
 .error-btn {
   border: 1px solid #ef4444 !important;
 }
+.member-action-btn {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  padding: 4px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.member-action-btn:hover {
+  background: #f3f4f6;
+}
+
+.member-action-menu {
+  min-width: 180px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.member-action-item {
+  border-radius: 8px;
+  font-size: 14px;
+  padding: 10px 12px;
+}
+
+.member-action-item:hover {
+  background: #f9fafb;
+}
+
+.member-action-delete {
+  color: #dc2626;
+}
+
+.member-action-delete:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}

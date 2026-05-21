@@ -1,81 +1,14 @@
-import React, { useState, useEffect } from 'react'
-import { Badge } from '../../../components/Common/ReusableFunction'
+import  { useState } from 'react'
 import { FaCar } from 'react-icons/fa';
-// import viewUnit from './ViewUnit';
-import parkingHistory from './ParkingHistory';
-import { getMembersByIdApi } from '../../../services/AddMemberApi';
-import { GetSessionData } from '../../../utils/SessionManagement';
-import { FiAlertTriangle, FiDownload, FiEdit, FiExternalLink, FiPrinter, FiSlash, FiStopCircle, FiX } from "react-icons/fi";
-import { BiStopCircle } from 'react-icons/bi';
+import { FiAlertTriangle, FiDownload, FiEdit, FiExternalLink, FiPrinter, FiSlash } from "react-icons/fi";
 import { CgFileDocument } from 'react-icons/cg';
 
 const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
-    const [societyId, setSocietyId] = useState("");
-    const [societyName, setSocietyName] = useState("");
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [email, setEmail] = useState("");
-    const [phone, setPhone] = useState("");
-    const [block, setBlock] = useState("");
-    const [flatNo, setFlatNo] = useState("");
-    const [occupancyType, setOccupancyType] = useState("");
-    const [status, setStatus] = useState("");
-    const [area, setArea] = useState("");
-    const [moveInDate, setMoveInDate] = useState("");
-    const [flatIdNo, setFlatIdNo] = useState("");
+
     const [deallocateShow, setDeallocateShow] = useState(false);
     const [showDocument, setShowDocument] = useState(false);
 
-    useEffect(() => {
-        SessionData();
-    }, []);
 
-    const SessionData = async () => {
-        try {
-            const data = await GetSessionData();
-
-            console.log(data.data);
-
-            const flats = data.data.flats[0];
-
-            setSocietyId(flats.society_id);
-            setSocietyName(flats.society_name)
-
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    // Call API only when both values are available
-    // useEffect(() => {
-    //     if (memberId && societyId) {
-    //         GetMemberDetailsById();
-    //     }
-    // }, [memberId, societyId]);
-
-    const GetMemberDetailsById = async () => {
-        try {
-
-            const data = await getMembersByIdApi(
-                societyId,
-                // memberId
-            );
-
-            setFirstName(data.first_name);
-            setLastName(data.last_name);
-            setEmail(data.email);
-            setPhone(data.mobile);
-            setBlock(data.block);
-            setFlatNo(data.flat_number);
-            setOccupancyType(data.occupancy_type);
-            setStatus(data.status);
-            setArea(data.area_sqft);
-            setMoveInDate(data.start_date);
-            setFlatIdNo(data.flat_id);
-        } catch (error) {
-            console.log(error);
-        }
-    };
 
     return (
         <>
@@ -85,14 +18,16 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                     <div className="card-body d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
 
                         <div className="d-flex align-items-center gap-3">
-                            <img
+                            {/* <img
                                 src="https://i.pravatar.cc/100"
                                 className="rounded-circle border"
                                 width="70"
                                 height="70"
                                 alt="profile"
-                            />
-
+                            /> */}
+                            <div className="home-icon-box">
+                                <FaCar size={70} className="text-secondary" />
+                            </div>
                             <div>
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
                                     <h5 className="mb-0 fw-bold">Slot P-B05</h5>
@@ -151,7 +86,7 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">SLOT ID</small>
-                                        <div className="fw-semibold">{firstName} {lastName}</div>
+                                        <div className="fw-semibold">-</div>
                                     </div>
 
                                     <div className="col-md-6">
@@ -176,7 +111,7 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">ACCESS LEVEL</small>
-                                        <div className="fw-semibold">{phone}</div>
+                                        <div className="fw-semibold">-</div>
                                     </div>
 
                                 </div>
@@ -242,7 +177,7 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
 
                                 <img
-                                    src="https://i.pravatar.cc/60?img=12"
+                                    src='../src/assets/profile.png'
                                     alt="profile"
                                     className="rounded-circle me-3"
                                     width="45"
@@ -391,7 +326,7 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                             Slot P-204
                                         </span>? This action will remove
                                         the assignment from   <span style={{ fontWeight: "700", color: "#111827" }}>Unit A-502
-                                        (Sarah Jenkins)</span> and make the slot available for
+                                            (Sarah Jenkins)</span> and make the slot available for
                                         new allocation.
                                     </p>
 
@@ -483,7 +418,7 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                     </button>
 
                                     <button className="btn btn-sm btn-danger px-4">
-                                        <FiSlash/> Confirm Deallocation
+                                        <FiSlash /> Confirm Deallocation
                                     </button>
 
                                 </div>
@@ -527,7 +462,7 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                                 borderRadius: "4px",
                                             }}
                                         >
-                                            <CgFileDocument style={{color: "#2563eb"}}/>
+                                            <CgFileDocument style={{ color: "#2563eb" }} />
                                         </div>
 
                                         <h3
@@ -586,7 +521,7 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                         {/* Button */}
                                         <button className="btn btn-sm border  py-2">
                                             {/* <i className="bi bi-box-arrow-up-right"></i> */}
-                                            <FiExternalLink className="me-2"/>
+                                            <FiExternalLink className="me-2" />
                                             Open in New Tab
                                         </button>
 
@@ -619,13 +554,13 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                                     <button className="btn btn-sm btn-light border px-4">
                                         {/* <i className="bi bi-printer me-2 "></i> */}
-                                        <FiPrinter className="me-2"/>
+                                        <FiPrinter className="me-2" />
                                         Print
                                     </button>
 
                                     <button className="btn btn-sm btn-primary px-4">
                                         {/* <i className="bi bi-download me-2"></i> */}
-                                        <FiDownload className="me-2"/>
+                                        <FiDownload className="me-2" />
                                         Download
                                     </button>
 

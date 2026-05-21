@@ -7,8 +7,10 @@ import { GetSessionData } from '../../../utils/SessionManagement';
 import registerHistory from './RegisterHistory';
 import { BiEdit, BiHistory, BiLocationPlus, BiMessage, BiPhoneOutgoing } from 'react-icons/bi';
 import { MdAttachEmail } from 'react-icons/md';
+import { useNavigate } from 'react-router-dom';
 
-const MemberDetails = ({ setActive, memberId, setFlatId }) => {
+const MemberDetails = ({ setActive, memberId, setFlatId , flatId}) => {
+      const navigate = useNavigate();
     const [societyId, setSocietyId] = useState("");
     const [societyName, setSocietyName] = useState("");
     const [firstName, setFirstName] = useState("");
@@ -22,6 +24,8 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
     const [area, setArea] = useState("");
     const [moveInDate, setMoveInDate] = useState("");
     const [flatIdNo, setFlatIdNo] = useState("");
+    const [profileUrl, setProfileUrl] = useState("");
+    const [unitType, setUnitType] = useState("");
 
     useEffect(() => {
         SessionData();
@@ -69,6 +73,8 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
             setArea(data.area_sqft);
             setMoveInDate(data.start_date);
             setFlatIdNo(data.flat_id);
+            setProfileUrl(data.profile_url);
+            setUnitType(data.unit_type);
         } catch (error) {
             console.log(error);
         }
@@ -83,7 +89,7 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
 
                         <div className="d-flex align-items-center gap-3">
                             <img
-                                src="https://i.pravatar.cc/100"
+                                src={profileUrl || "../src/assets/profile.png"}
                                 className="rounded-circle border"
                                 width="70"
                                 height="70"
@@ -139,6 +145,11 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
                                 {/* <i className="bi bi-pencil-square me-1"></i> */}
                                 <BiEdit className='me-1' />
                                 Edit Profile
+                            </button>
+                            <button className="btn btn-primary btn-sm"    onClick={() => navigate(-1)}>
+                                {/* <i className="bi bi-pencil-square me-1"></i> */}
+                                {/* <BiEdit className='me-1' /> */}
+                                Back
                             </button>
                         </div>
                     </div>
@@ -206,17 +217,18 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
 
                                     <div className="col-md-4">
                                         <small className="text-muted d-block">UNIT TYPE</small>
-                                        <div className="fw-semibold">-</div>
+                                        <div className="fw-semibold">{unitType}</div>
                                     </div>
 
                                     <div className="col-md-4">
                                         <small className="text-muted d-block">FLOOR AREA</small>
-                                        <div className="fw-semibold">{area}</div>
+                                        <div className="fw-semibold">{area ? `${area} sqft` : ""} </div>
                                     </div>
 
                                     <div className="col-md-4">
                                         <small className="text-muted d-block">OWNERSHIP TYPE</small>
-                                        <div className="fw-semibold">{occupancyType === "tenant_relative" ? "Tenant Family" : occupancyType === "owner_relative" ? "Owner Family" : ""}</div>
+                                        {/* <div className="fw-semibold">{occupancyType === "tenant_relative" ? "Tenant Family" : occupancyType === "owner_relative" ? "Owner Family" : ""}</div> */}
+                                    {occupancyType === "owner" ? occupancyType : ""}
                                     </div>
 
                                     <div className="col-md-4">
@@ -242,7 +254,7 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
 
                                 <div className="list-group-item d-flex align-items-center gap-3">
                                     <img
-                                        src="https://i.pravatar.cc/50?img=12"
+                                        src='../src/assets/profile.png'
                                         className="rounded-circle"
                                         width="45"
                                         height="45"
@@ -259,7 +271,8 @@ const MemberDetails = ({ setActive, memberId, setFlatId }) => {
 
                                 <div className="list-group-item d-flex align-items-center gap-3">
                                     <img
-                                        src="https://i.pravatar.cc/50?img=18"
+                                        // src="https://i.pravatar.cc/50?img=18"
+                                        src='../src/assets/profile.png'
                                         className="rounded-circle"
                                         width="45"
                                         height="45"

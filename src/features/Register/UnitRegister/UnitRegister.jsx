@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import Select from 'react-select';
 import "../../../styles/AddMember.css"
 // import memberDetails from './MemberDetails';
+import viewUnit from './ViewUnit';
 import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
 import { GetSessionData } from '../../../utils/SessionManagement';
 import { AddMemberApi, getMembersApi } from '../../../services/AddMemberApi';
@@ -18,7 +19,7 @@ import { FiFilter, FiHome, FiSearch, FiUser } from 'react-icons/fi';
 import { BiExport } from 'react-icons/bi';
 
 
-const UnitRegister = ({ setActive }) => {
+const UnitRegister = ({ setActive, setFlatId }) => {
     const [memType, setMemType] = useState("");
     const [firstName, setFirstName] = useState("")
     const [lastName, setLastName] = useState("")
@@ -73,23 +74,6 @@ const UnitRegister = ({ setActive }) => {
     const [allMemberDetails, setAllMemberDetails] = useState([]);
 
 
-    const memberType = [
-        { id: "All Items", value: "" },
-        { id: "Owner", value: "owner" },
-        { id: "Tenant", value: "tenant" },
-        { id: "Family Member", value: "familyMember" },
-    ];
-
-    const addMemberType = [
-        { id: "Owner", value: "owner" },
-        { id: "Tenant", value: "tenant" },
-        { id: "Family Member", value: "familyMember" },
-    ];
-
-    const finalMemType =
-        memType === "familyMember"
-            ? familyType
-            : memType;
 
     useEffect(() => {
         SessionData()
@@ -116,8 +100,9 @@ const UnitRegister = ({ setActive }) => {
             // setOccupancyRate(data.occupancy_rate)
             setOccupiedUnits(data.occupied_units)
             setVacantUnits(data.vacant_units)
+
             setAllUnits(data.flats)
-            setAllMemberDetails(data.flats[0])
+            setAllMemberDetails(data.flats)
             setPage(data.page)
             setLimit(data.per_page)
             setTotalCount(data.total_count)
@@ -157,6 +142,11 @@ const UnitRegister = ({ setActive }) => {
         catch (error) {
             console.error("Error fetching members:", error)
         }
+    }
+
+    const getFlatById = async (flatId) => {
+        setFlatId(flatId);
+        setActive("viewUnit");
     }
 
     const handlePageChange = (value) => {
@@ -510,45 +500,38 @@ const UnitRegister = ({ setActive }) => {
                                                         : `${s.floor}th`
                                                 } Flr`}
                                         </td>
-                                        {/* <td ><Badge label={
-                                            s.occupancy_type
-                                                ? s.occupancy_type
-                                                    .replaceAll("_", " ")
-                                                    .replace(/\b\w/g, (char) => char.toUpperCase())
-                                                : ""
-                                        }
-                                            c={
-                                                s.occupancy_type === "owner" ? "blue"
-                                                    : s.occupancy_type === "tenant" ? "pink"
-                                                        : s.occupancy_type === "family_member" ? "blue"
-                                                            : "grey"
-                                            }
-                                        /></td> */}
                                         <td>
-                                            {
-                                                allMemberDetails?.members
-                                                    ?.find(
-                                                        (m) =>
-                                                            m.occupancy_type === "owner" ||
-                                                            m.occupancy_type === "owner_relative"
-                                                    )
-                                                    ? `${allMemberDetails?.members
-                                                        ?.find(
-                                                            (m) =>
-                                                                m.occupancy_type === "owner" ||
-                                                                m.occupancy_type === "owner_relative"
-                                                        )
-                                                        ?.first_name} ${allMemberDetails?.members
-                                                        ?.find(
-                                                            (m) =>
-                                                                m.occupancy_type === "owner" ||
-                                                                m.occupancy_type === "owner_relative"
-                                                        )
-                                                        ?.last_name
-                                                    }`
-                                                    : ""
-                                            }
+                                            <div className="d-flex align-items-center gap-2">
+
+                                                <img
+                                                    src={s.profile_url || "../src/assets/profile.png"}
+                                                    alt=""
+                                                    width={38}
+                                                    height={38}
+                                                    className="rounded-circle object-fit-cover"
+                                                />
+
+
+                                                <div>
+                                                    <div className="fw-semibold">
+                                                        {
+                                                            s?.members?.find((m) => m.occupancy_type === "owner")
+                                                                ? `${s.members.find((m) => m.occupancy_type === "owner")?.first_name || ""} ${s.members.find((m) => m.occupancy_type === "owner")?.last_name || ""}`
+                                                                : "-"
+                                                        }
+                                                    </div>
+
+                                                    <small className="text-muted">
+                                                        {
+                                                            s?.members?.find((m) => m.occupancy_type === "owner")
+                                                                ? `${s.members.find((m) => m.occupancy_type === "owner")?.email || ""}`
+                                                                : ""
+                                                        }
+                                                    </small>
+                                                </div>
+                                            </div>
                                         </td>
+
                                         <td>
                                             {s.current_status && (
                                                 <Badge
@@ -565,10 +548,53 @@ const UnitRegister = ({ setActive }) => {
                                                 />
                                             )}
                                         </td>
-                                        <td className="sa-name"><button className="btn btn-light border-0" onClick={() => {
+                                        {/* <td className="sa-name"><button className="btn btn-light border-0" onClick={() => {
 
-                                            getMembersById(s.user_id)
-                                        }}> ⋮</button></td>
+                                            getFlatById(s.flat_id)
+                                        }}> ⋮</button></td> */}
+                                        <td>
+                                            <div className="member-action-dropdown dropdown">
+                                                <button
+                                                    className="member-action-btn"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                >
+                                                    ⋮
+                                                </button>
+
+                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() => getFlatById(s.flat_id)}
+                                                        >
+                                                            View Unit
+                                                        </button>
+                                                    </li>
+
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                        // onClick={() => handleEdit(s)}
+                                                        >
+                                                            Edit Unit
+                                                        </button>
+                                                    </li>
+
+                                                    <li><hr className="dropdown-divider" /></li>
+
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item member-action-delete"
+                                                        // onClick={() => handleDelete(s.flat_id)}
+                                                        >
+                                                            Delete Unit
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

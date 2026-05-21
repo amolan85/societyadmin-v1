@@ -1,30 +1,26 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Select from 'react-select';
 import "../../styles/AddMember.css"
-import memberDetails from '../Register/MemberRegister/MemberDetails';
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import { GetSessionData } from '../../utils/SessionManagement';
 import { AddMemberApi, getMembersApi, getAllMembersWithoutPaginationApi } from '../../services/AddMemberApi';
 import { toast } from "react-toastify";
-import { useLoader } from "../../context/LoaderContext";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { all } from 'axios';
-import { FiEye, FiFilter, FiSearch } from 'react-icons/fi';
+import { FiFilter, FiSearch } from 'react-icons/fi';
 import { getAllBlocksApi, getAllFlatsApi } from '../../services/UnitRegisterApi';
 import { CgExport } from 'react-icons/cg';
 
 
-const AddMember = ({ setActive, setMemberId }) => {
+const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     const [memType, setMemType] = useState("");
     const [firstName, setFirstName] = useState("")
     const [lastName, setLastName] = useState("")
     const [emailId, setEmailId] = useState("")
     const [mobileNo, setMobileNo] = useState("")
-    const [wing, setWing] = useState("")
     const [allFlats, setAllFlats] = useState([])
     const [flat, setFlat] = useState("")
     const [floor, setFloor] = useState("")
@@ -50,7 +46,6 @@ const AddMember = ({ setActive, setMemberId }) => {
 
     const [allMembers, setAllMembers] = useState([])
     const [allMembersWithoutPagination, setAllMembersWithoutPagination] = useState([])
-    const [memberTypeTab, setMemberTypeTab] = useState("")
     const [blocks, setBlocks] = useState("");
     const [allBlocks, setAllBlocks] = useState([]);
     const [activeTab, setActiveTab] = useState("excel");
@@ -117,7 +112,7 @@ const AddMember = ({ setActive, setMemberId }) => {
             console.log(data.flats, "All flats")
             setAllFlats(
                 data.flats.map((item) => ({
-                    value: item.flat_id,
+                    value: item.flat_number,
                     label: item.flat_number,
                 }))
             );
@@ -143,8 +138,9 @@ const AddMember = ({ setActive, setMemberId }) => {
         }
     }
 
-    const getMembersById = async (memberId) => {
+    const getMembersById = async (memberId, flatId) => {
         setMemberId(memberId);
+        setFlatId(flatId);
         setActive("memberDetails");
     }
 
@@ -468,9 +464,7 @@ const AddMember = ({ setActive, setMemberId }) => {
         (item) => item.occupancy_type?.toLowerCase() === "familyMember"
     ).length;
 
-    const filteredData = memberTypeTab === ""
-        ? allMembers
-        : allMembers.filter((item) => item.occupancy_type === memberTypeTab);
+
 
 
     const handleSearch = async (e) => {
@@ -481,7 +475,7 @@ const AddMember = ({ setActive, setMemberId }) => {
         setAllMembers(data?.members || []);
     }
 
-    
+
     const total = Math.ceil(totalCount / limit);
     // const per = limit, total = Math.ceil(filteredData.length / per);
     // const rows = filteredData.slice((page - 1) * per, page * per);
@@ -551,7 +545,7 @@ const AddMember = ({ setActive, setMemberId }) => {
                         </button>
                         <button className="btn-ol ms-2" onClick={() => { getAllMembersWithoutPagination(societyId, search); setExportModal(true) }}><CgExport /> Export</button>
                         <button className='btn btn-sm btn-primary ms-2' onClick={() => setShow(true)}>+ Add Member</button>
-
+                        
                     </div>
 
                 </div>
@@ -587,8 +581,31 @@ const AddMember = ({ setActive, setMemberId }) => {
                             <tbody>
                                 {(allMembers).map((s, i) => (
                                     <tr className="text-start" key={i}>
-                                        <td className="sa-name">{s.first_name} {s.last_name}</td>
+                                        {/* <td className="sa-name">{s.first_name} {s.last_name}</td> */}
+                                        <td>
+                                            <div className="d-flex align-items-center gap-2">
 
+                                                <img
+                                                    src={s.profile_url || /* "https://i.pravatar.cc/60?img=32" */ "../src/assets/profile.png"}
+                                                    alt="Profile"
+                                                    width={38}
+                                                    height={38}
+                                                    className="rounded-circle object-fit-cover"
+                                                />
+
+
+                                                <div>
+                                                    <div className="fw-semibold">
+                                                        {s.first_name} {s.last_name}
+                                                    </div>
+
+                                                    <small className="text-muted">
+                                                        {s.email}
+
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
                                         <td className="sa-name">{s.flat_number}</td>
                                         <td >{s.occupancy_type && <Badge label={
                                             s.occupancy_type
@@ -610,13 +627,56 @@ const AddMember = ({ setActive, setMemberId }) => {
                                             }
                                         />}</td>
                                         <td className="sa-name">{s.mobile}</td>
-                                        <td><Badge label={s.status} c={
-                                            s.status === "Active" ? "green" : s.status === "Approved" ? "blue" : s.status === "Pending" ? "orange" : s.status === "Inactive" ? "gray" : "grey"
+                                        <td><Badge label={s.status === "Approved" ? "Active" : s.status} c={
+                                            s.status === "Approved" ? "green" : s.status === "Pending" ? "orange" : s.status === "Inactive" ? "gray" : "gray"
                                         } /> </td>
-                                        <td className="sa-name">
+                                        {/* <td className="sa-name">
                                             <button className="btn btn-light border-0"
                                                 onClick={() => getMembersById(s.user_id)}
                                             > ⋮</button>
+                                        </td> */}
+                                        <td>
+                                            <div className="member-action-dropdown dropdown">
+                                                <button
+                                                    className="member-action-btn"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                >
+                                                    ⋮
+                                                </button>
+
+                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() => getMembersById(s.user_id, s.flat_id)}
+                                                        >
+                                                            View Profile
+                                                        </button>
+                                                    </li>
+
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                        // onClick={() => handleEdit(s)}
+                                                        >
+                                                            Edit Member
+                                                        </button>
+                                                    </li>
+
+                                                    <li><hr className="dropdown-divider" /></li>
+
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item member-action-delete"
+                                                        // onClick={() => handleDelete(s.member_id)}
+                                                        >
+                                                            Delete Member
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

@@ -12,7 +12,7 @@ import Register from "../Register/Register";
 import { APP_CSS } from "../../components/Common/GlobalCss";
 import Complaints from "../Complaints/Complaints";
 import Broadcast from "../Broadcast/Broadcast";
-import { GetSessionData, SessionDestroy } from "../../utils/SessionManagement";
+import { GetSessionData, } from "../../utils/SessionManagement";
 import CreatePoll from "../Polls/CreatePoll";
 import CreateComplaints from "../Complaints/CreateComplaints";
 import CreateStaffAttendance from "../StaffAttendance/CreateStaffAttendance";
@@ -87,7 +87,7 @@ const TITLES = {
   polls: ["Communication", "Polls & Voting"],
   addmember: ["Member Masters", "Members"],
   memberDetails: ["Member Masters", "Member Details"],
-  viewUnit: ["Member Masters", "View Unit"],
+  viewUnit: ["Administration", "Registers","View Register", "View Unit"],
   transfer: ["Member Masters", "Transfer Member"],
   documents: ["Administration", "Documents & NOC"],
   flattransfer: ["Administration", "Flat Transfer"],
@@ -114,6 +114,7 @@ export default function App() {
   const [societyName, setSocietyName] = useState("")
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
+ const [profileUrl, setProfileUrl] = useState("")
 
   const [broadcastId, setBroadcastId] = useState(null);
   const [memberId, setMemberId] = useState(null);
@@ -145,8 +146,8 @@ export default function App() {
     createbroadcast: <CreateBroadcast setActive={setActive} broadcastId={broadcastId} />,
     polls: <Polls setActive={setActive} />,
     createPoll: <CreatePoll setActive={setActive} />,
-    addmember: <AddMember setActive={setActive} setMemberId={setMemberId} />,
-    memberDetails: <MemberDetails setActive={setActive} memberId={memberId} setFlatId={setFlatId} />,
+    addmember: <AddMember setActive={setActive} setMemberId={setMemberId} setFlatId={setFlatId}/>,
+    memberDetails: <MemberDetails setActive={setActive} memberId={memberId} setFlatId={setFlatId} flatId={flatId}/>,
     viewUnit: <ViewUnit setActive={setActive} flatId={flatId} />,
     transfer: <PlaceholderPage label="Transfer Member" />,
     documents: <Documents />,
@@ -162,7 +163,7 @@ export default function App() {
     createStaff: <CreateStaffAttendance setActive={setActive} broadcastId={broadcastId} />,
     noticeboard: <NoticeBoard setActive={setActive} setSelectedNoticeData={setSelectedNoticeData} />,
     createNoticeBoard: <CreateNoticeBoard setActive={setActive} selectedNoticeData={selectedNoticeData} />,
-    unitRegister: <UnitRegister setActive={setActive} />,
+    unitRegister: <UnitRegister setActive={setActive} setFlatId={setFlatId}/>,
     parkingRegister: <ParkingRegister setActive={setActive} />,
     parkingDetails: <ParkingDetails setActive={setActive} />,
     parkingHistory: <ParkingHistory setActive={setActive} />,
@@ -186,6 +187,7 @@ export default function App() {
     setSocietyName(flats.society_name)
     setFirstName(data.data.first_name)
     setLastName(data.data.last_name)
+    setProfileUrl(data.data.profile_url)
   }
 
   //log out function
@@ -251,7 +253,7 @@ export default function App() {
               })}</span>
 
               <button className="tb-avatar">🔔</button>
-              <button className="tb-avatar" style={{ background: "#e2e8f0", color: "var(--text)" }}>👤</button>
+              <button className="tb-avatar" style={{ background: "#e2e8f0", color: "var(--text)" }}><img src={profileUrl || null} alt="Profile" className="img-fluid rounded-circle" /></button>
               {/* <span className="tb-name">{firstName} {lastName}</span> */}
               <div className="dropdown">
 

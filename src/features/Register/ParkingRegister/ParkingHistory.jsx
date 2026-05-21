@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from 'react'
+import  { useState, useEffect } from 'react'
 import "../../../styles/AddMember.css"
 // import memberDetails from './MemberDetails';
 import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
 import { GetSessionData } from '../../../utils/SessionManagement';
 import { AddMemberApi, getMembersApi } from '../../../services/AddMemberApi';
 import { toast } from "react-toastify";
-import { useLoader } from "../../../context/LoaderContext";
-import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
+
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { all } from 'axios';
 import { FiCalendar, FiFilter, FiSearch } from 'react-icons/fi';
 import { BiImport } from 'react-icons/bi';
 
@@ -120,7 +118,7 @@ const ParkingHistory = ({ setActive }) => {
         const flats = data.data.flats[0]
         setSocietyId(flats.society_id)
         setUserId(flats.user_id)
-        setFloor(flats.floor)
+    
         getMembers(flats.society_id)
     }
 

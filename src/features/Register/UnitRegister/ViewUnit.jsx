@@ -1,18 +1,20 @@
-import React, { useState, useEffect } from 'react'
+import  { useState, useEffect } from 'react'
 import { FaCar } from 'react-icons/fa';
+import "../../../styles/Register.css";
 import { getFlatByIdApi } from '../../../services/AddMemberApi';
 import { GetSessionData } from '../../../utils/SessionManagement';
+import { FiEdit, FiHome, FiMessageSquare } from 'react-icons/fi';
 
 const ViewUnit = ({ setActive, flatId }) => {
     const [societyId, setSocietyId] = useState(null);
     const [societyName, setSocietyName] = useState(null);
     const [areaSqft, setAreaSqft] = useState("");
     const [block, setBlock] = useState("");
-    const [flatIdNo, setFlatIdNo] = useState("");
     const [flatNumber, setFlatNumber] = useState("");
     const [floor, setFloor] = useState("");
     const [configuration, setConfiguration] = useState("");
     const [intercom, setIntercom] = useState("");
+     const [unitType, setUnitType] = useState("");
     const [members, setMembers] = useState([]);
 
     useEffect(() => {
@@ -54,8 +56,9 @@ const ViewUnit = ({ setActive, flatId }) => {
             setFlatNumber(data.flat_number);
             setFloor(data.floor);
             setAreaSqft(data.area_sqft);
-            // setConfiguration(data.flat_dsc);
+            setConfiguration(data.unit_type);
             setIntercom(data.intercom);
+            setUnitType(data.unit_type);
             setMembers(data.members);
 
         } catch (error) {
@@ -71,13 +74,17 @@ const ViewUnit = ({ setActive, flatId }) => {
                     <div className="card-body d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
 
                         <div className="d-flex align-items-center gap-3">
-                            <img
+                            {/* <img
                                 src="https://i.pravatar.cc/100"
                                 className="rounded-circle border"
                                 width="70"
                                 height="70"
                                 alt="profile"
-                            />
+                            /> */}
+                            <div className="home-icon-box">
+                                <FiHome size={70} className="text-secondary" />
+                            </div>
+
 
                             <div>
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
@@ -102,7 +109,7 @@ const ViewUnit = ({ setActive, flatId }) => {
                                         <i className="bi bi-telephone me-1"></i>
                                         {block}, {floor}
                                         <span className="mx-2">|</span>
-                                        {areaSqft}, 3 BHK Premium
+                                        {areaSqft ? `${areaSqft} sq.ft` : ""}, {unitType}
                                     </div>
                                 </div>
                             </div>
@@ -110,12 +117,14 @@ const ViewUnit = ({ setActive, flatId }) => {
 
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
                             <button className="btn btn-outline-secondary btn-sm">
-                                <i className="bi bi-chat-left-text me-1"></i>
+                                {/* <i className="bi bi-chat-left-text me-1"></i> */}
+                                <FiMessageSquare className='me-1' />
                                 Message
                             </button>
 
                             <button className="btn btn-primary btn-sm">
-                                <i className="bi bi-pencil-square me-1"></i>
+                                {/* <i className="bi bi-pencil-square me-1"></i> */}
+                                <FiEdit className='me-1' />
                                 Edit Unit
                             </button>
                         </div>
@@ -153,7 +162,7 @@ const ViewUnit = ({ setActive, flatId }) => {
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">SUPER BUILT-UP AREA</small>
-                                        <div className="fw-semibold">{areaSqft}</div>
+                                        <div className="fw-semibold">{areaSqft ? `${areaSqft} sq.ft` : ""} </div>
                                     </div>
 
                                     <div className="col-md-6">
@@ -176,70 +185,7 @@ const ViewUnit = ({ setActive, flatId }) => {
                             </div>
 
                             <div className="card-body">
-                                {/* Left Section */}
-                                {/* <div className="d-flex align-items-center gap-3">
-
-                                        <img
-                                            src="https://i.pravatar.cc/60?img=12"
-                                            alt="profile"
-                                            className="rounded-circle object-fit-cover"
-                                            width="55"
-                                            height="55"
-                                        />
-
-                                        <div>
-                                            <h6 className="mb-1 fw-semibold">
-                                                {members.first_name} {members.last_name}
-                                            </h6>
-
-                                            <small className="text-muted d-flex align-items-center gap-1">
-                                                <i className="bi bi-envelope"></i>
-                                                {members.email}
-                                            </small>
-                                        </div>
-                                    </div> */}
-                                {/* <div className=" d-flex justify-content-between align-items-center">
-
-                                
-                                    {members
-                                        ?.filter((m) => m.occupancy_type === "owner")
-                                        .map((m, index) => (
-                                            <div
-                                                key={index}
-                                                className="d-flex align-items-center gap-3 mb-3"
-                                            >
-                                                <img
-                                                    src="https://i.pravatar.cc/60?img=12"
-                                                    alt="profile"
-                                                    className="rounded-circle object-fit-cover"
-                                                    width="55"
-                                                    height="55"
-                                                />
-
-                                                <div>
-                                                    <h6 className="mb-1 fw-semibold">
-                                                        {m.first_name} {m.last_name}
-                                                    </h6>
-
-                                                    <small className="text-muted d-flex align-items-center gap-1">
-                                                        <i className="bi bi-envelope"></i>
-                                                        {m.email}
-                                                    </small>
-                                                </div>
-                                            </div>
-                                        ))}
-                                 
-                                    <div className="text-end">
-                                        <small className="text-muted d-block">
-                                            Moved In
-                                        </small>
-
-                                        <div className="fw-bold">
-                                            {members.start_date}
-                                        </div>
-                                    </div>
-
-                                </div> */}
+                               
                                 {members
                                     ?.filter((m) => m.occupancy_type === "owner")
                                     .map((m, index) => (
@@ -252,7 +198,8 @@ const ViewUnit = ({ setActive, flatId }) => {
                                             <div className="d-flex align-items-center gap-3">
 
                                                 <img
-                                                    src="https://i.pravatar.cc/60?img=12"
+                                                    // src="https://i.pravatar.cc/60?img=12"
+                                                    src={m.profile_url || "../src/assets/profile.png"}
                                                     alt="profile"
                                                     className="rounded-circle object-fit-cover"
                                                     width="55"
@@ -306,7 +253,8 @@ const ViewUnit = ({ setActive, flatId }) => {
                                             className="list-group-item d-flex align-items-center gap-3"
                                         >
                                             <img
-                                                src={`https://i.pravatar.cc/50?img=${index + 12}`}
+                                                // src={`https://i.pravatar.cc/50?img=${index + 12}`}
+                                                src={m.profile_url || "../src/assets/profile.png"}
                                                 className="rounded-circle"
                                                 width="45"
                                                 height="45"
@@ -322,10 +270,10 @@ const ViewUnit = ({ setActive, flatId }) => {
                                                     {m.occupancy_type === "tenant_relative"
                                                         ? "Tenant Family"
                                                         : m.occupancy_type === "owner_relative"
-                                                        ? "Owner Family"
-                                                        : m.occupancy_type
-                                                            ?.replaceAll("_", " ")
-                                                            .replace(/\b\w/g, (char) => char.toUpperCase())}
+                                                            ? "Owner Family"
+                                                            : m.occupancy_type
+                                                                ?.replaceAll("_", " ")
+                                                                .replace(/\b\w/g, (char) => char.toUpperCase())}
                                                 </small>
                                             </div>
                                         </div>
