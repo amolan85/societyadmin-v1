@@ -415,9 +415,9 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                 <div className="row g-3 mb-4">
                     {[
                         [totalUnits, "Total Units"],
-                        [occupiedUnits, "Occupancy Rate", "tile-grn"],
+                        [`${Math.round((occupiedUnits / totalUnits) * 100)} %`, "Occupancy Rate", "tile-grn"],
                         [occupiedUnits, "Occupied Units", "tile-org"],
-                        [vacantUnits, "Vacant Units", "tile-pink"]
+                        [vacantUnits, "Vacant Units", "tile-red"]
                     ].map(([v, l, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
                             <div className={`tile bg-white ${cls}`}>
@@ -538,7 +538,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                                                     label={s.current_status}
                                                     c={
                                                         s.current_status === "Vacant"
-                                                            ? "pink"
+                                                            ? "red"
                                                             : s.current_status === "Occupied"
                                                                 ? "blue"
                                                                 : s.current_status === "Maintanance"
@@ -633,14 +633,14 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                                 <div className="modal-body">
                                     <div className="pg d-flex justify-content-center am-wrap">
                                         <div className="text-start am-card">
-                                            <label className='fw-semibold'><FiHome /> Unit Details</label>
+                                            <label className='fw-semibold'><FiHome className='text-primary'/> Unit Details</label>
                                             <div className="row g-3 mb-3 mt-1">
                                                 <div className="col-6">
                                                     <div className='d-flex'>
                                                         <label className="sv-lb" >Unit Number <span className="text-danger">*</span></label>
                                                         {errors.flatNo && <span className='text-danger mx-2 '>{errors.flatNo}</span>}
                                                     </div>
-                                                    <input className={`sv-in ${errors.flatNo ? "error-input" : ""}`} placeholder="Enter Unit Number" value={flatNo} onChange={(e) => setFlatNo(e.target.value)} />
+                                                    <input className={`sv-in ${errors.flatNo ? "error-input" : ""}`} placeholder="e.g., A-101" value={flatNo} onChange={(e) => setFlatNo(e.target.value)} />
                                                 </div>
 
                                                 <div className="col-6">
@@ -659,6 +659,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                                                                 },
                                                             }),
                                                         }}
+                                                        placeholder="Select Block"           // 👈 placeholder
                                                         options={allBlocks}              // 👈 array of objects with value and label
                                                         value={block}                  // 👈 poora object
                                                         onChange={(selectedOption) => setBlock(selectedOption)} // 👈 direct object
@@ -682,6 +683,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                                                                 },
                                                             }),
                                                         }}
+                                                        placeholder="Select Floor"           // 👈 placeholde   r
                                                         options={allFloor}              // 👈 array of objects with value and label
                                                         value={floor}                  // 👈 poora object
                                                         onChange={(selectedOption) => setFloor(selectedOption)} // 👈 direct object
@@ -710,7 +712,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                                                         {errors.area && <span className='text-danger mx-2 '>{errors.area}</span>}
                                                     </div>
 
-                                                    <input className={`sv-in ${errors.area ? "error-input" : ""}`} placeholder="Enter Area" value={area} onChange={(e) => setArea(e.target.value)} />
+                                                    <input className={`sv-in ${errors.area ? "error-input" : ""}`} placeholder="e.g., 1200" value={area} onChange={(e) => setArea(e.target.value)} />
 
                                                 </div>
 
@@ -728,7 +730,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                                                 </div>
                                             </div>
 
-                                            <label className='fw-semibold'><FiUser /> Primary Owner</label>
+                                            <label className='fw-semibold'><FiUser className='text-primary'/> Primary Owner</label>
                                             <div className="row g-3 mb-3 mt-1">
                                                 <div className="col-12">
                                                     <div className='d-flex'>
@@ -748,7 +750,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                                                         <label className="sv-lb">Email Address <span className="text-danger">*</span></label>
                                                         {errors.emailId && <span className='text-danger mx-2 '>{errors.emailId}</span>}
                                                     </div>
-                                                    <input className={`sv-in ${errors.emailId ? "error-input" : ""}`} placeholder="Enter Email Address" value={emailId} onChange={(e) => setEmailId(e.target.value)} />
+                                                    <input className={`sv-in ${errors.emailId ? "error-input" : ""}`} placeholder="name@example.com" value={emailId} onChange={(e) => setEmailId(e.target.value)} />
                                                 </div>
 
                                                 <div className="col-6">
@@ -765,6 +767,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                                                             type='text'
                                                             maxLength={10}
                                                             placeholder="98765 43210"
+                                                            //  placeholder="Enter phone number"
                                                             value={mobileNo}
                                                             onChange={(e) => setMobileNo(e.target.value.replace(/\D/g, ""))}
                                                         />

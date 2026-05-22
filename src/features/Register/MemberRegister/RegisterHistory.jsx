@@ -15,7 +15,8 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { RiSecurePaymentFill } from 'react-icons/ri';
 import { AiFillProfile } from 'react-icons/ai';
-import { BiImport } from 'react-icons/bi';
+import { BiArrowBack, BiImport } from 'react-icons/bi';
+import { MdReportProblem } from 'react-icons/md';
 
 const RegisterHistory = ({ setActive }) => {
     const [page, setPage] = useState(1);
@@ -27,14 +28,63 @@ const RegisterHistory = ({ setActive }) => {
     const { setLoading } = useLoader();
     const [activeTab, setActiveTab] = useState("excel");
 
+    // const all = [
+    //     { id: 1, dateTime: "Today, 6:45 PM", icon: <FiLogIn />, type: "Access Log", title: "vehicle tesla model y", status: "Allowed" },
+    //     { id: 2, dateTime: "Oct 01,2025, 10:00 PM", icon: <RiSecurePaymentFill />, type: "Payment", title: "vehicle tesla model y", status: "Success" },
+    //     { id: 3, dateTime: "Today, 6:45 PM", icon: <RiSecurePaymentFill />, type: "Complaint", title: "vehicle tesla model y", status: "Pending" },
+    //     { id: 4, dateTime: "Today, 6:45 PM", icon: <AiFillProfile />, type: "Profile Update", title: "vehicle tesla model y", status: "Completed" },
+
+    // ];
     const all = [
-        { id: 1, dateTime: "Today, 6:45 PM", icon: <FiLogIn />, type: "Access Log", title: "vehicle tesla model y", status: "Allowed" },
-        { id: 2, dateTime: "Oct 01,2025, 10:00 PM", icon: <RiSecurePaymentFill />, type: "Payment", title: "vehicle tesla model y", status: "Success" },
-        { id: 3, dateTime: "Today, 6:45 PM", icon: <RiSecurePaymentFill />, type: "Complaint", title: "vehicle tesla model y", status: "Pending" },
-        { id: 4, dateTime: "Today, 6:45 PM", icon: <AiFillProfile />, type: "Profile Update", title: "vehicle tesla model y", status: "Completed" },
-
+        {
+            id: 1,
+            dateTime: "Today, 6:45 PM",
+            icon: <FiLogIn />,
+            type: "Access Log",
+            title: "Entered Vehicle: Tesla Model Y",
+            status: "Allowed"
+        },
+        {
+            id: 2,
+            dateTime: "Oct 01, 2025, 10:00 AM",
+            icon: <RiSecurePaymentFill />,
+            type: "Payment",
+            title: "Maintenance Payment - Oct 2025",
+            status: "Success"
+        },
+        {
+            id: 3,
+            dateTime: "Sep 28, 2025, 8:30 PM",
+            icon: <MdReportProblem />,
+            type: "Complaint",
+            title: "Complaint: Noise Issue from Unit A-504",
+            status: "Pending"
+        },
+        {
+            id: 4,
+            dateTime: "Sep 25, 2025, 2:15 PM",
+            icon: <AiFillProfile />,
+            type: "Profile Update",
+            title: "Updated Contact Number",
+            status: "Completed"
+        },
+        {
+            id: 5,
+            dateTime: "Sep 15, 2025, 5:45 PM",
+            icon: <FiLogIn />,
+            type: "Access Log",
+            title: "Main Gate Exit (Walk-in)",
+            status: "Allowed"
+        },
+        {
+            id: 6,
+            dateTime: "Sep 01, 2025, 9:30 AM",
+            icon: <RiSecurePaymentFill />,
+            type: "Payment",
+            title: "Clubhouse Booking Payment",
+            status: "Success"
+        }
     ];
-
     // Load session data on component mount for get session data
     useEffect(() => {
         SessionData()
@@ -356,13 +406,16 @@ const RegisterHistory = ({ setActive }) => {
                     </div>
 
                     {/* Export Button */}
+                    <div className="d-flex gap-2">
 
-                    <button className="btn-ol" onClick={() => setShow(true)}><BiImport /> Export</button>
+                        <button className="btn-ol" onClick={() => setShow(true)}><BiImport /> Export</button>
+                        <button className="btn btn-primary btn-sm" onClick={() => setActive("memberDetails")}>Back</button>
+                    </div>
                 </div>
                 {/* Table */}
                 <div className="sv-card p-0 overflow-hidden">
                     <div className="sa-table-wrap">
-                        <table className="sv-tbl">
+                        {/* <table className="sv-tbl">
                             <thead>
                                 <tr>
                                     {["Date & Time", "Type", "Title", "Status"]
@@ -399,6 +452,66 @@ const RegisterHistory = ({ setActive }) => {
                                 ))}
                             </tbody>
 
+                        </table> */}
+                        <table className="sv-tbl">
+                            <thead>
+                                <tr>
+                                    <th>DATE & TIME</th>
+                                    <th>TYPE</th>
+                                    <th>TITLE</th>
+                                    <th>STATUS</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {rows.map((s) => (
+                                    <tr key={s.id} className="text-start">
+
+                                        <td className="sa-date">
+                                            {s.dateTime}
+                                        </td>
+
+                                        <td>
+                                            <div className="type-box">
+                                                <span className={`type-icon
+                            ${s.type === "Access Log" ? "green" : ""}
+                            ${s.type === "Payment" ? "blue" : ""}
+                            ${s.type === "Complaint" ? "red" : ""}
+                            ${s.type === "Profile Update" ? "gray" : ""}
+                        `}>
+                                                    {s.icon}
+                                                </span>
+
+                                                <span className="type-text">
+                                                    {s.type}
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        <td className="title-text">
+                                            {s.title}
+                                        </td>
+
+                                        <td>
+                                            <Badge
+                                                label={s.status}
+                                                c={
+                                                    s.status === "Allowed"
+                                                        ? "blue"
+                                                        : s.status === "Success"
+                                                            ? "green"
+                                                            : s.status === "Pending"
+                                                                ? "orange"
+                                                                : s.status === "Completed"
+                                                                    ? "gray"
+                                                                    : "gray"
+                                                }
+                                            />
+                                        </td>
+
+                                    </tr>
+                                ))}
+                            </tbody>
                         </table>
                     </div>
 

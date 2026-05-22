@@ -1,9 +1,11 @@
-import  { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { FaCar } from 'react-icons/fa';
 import "../../../styles/Register.css";
 import { getFlatByIdApi } from '../../../services/AddMemberApi';
 import { GetSessionData } from '../../../utils/SessionManagement';
-import { FiEdit, FiHome, FiMessageSquare } from 'react-icons/fi';
+import { FiEdit, FiGrid, FiHome, FiMapPin, FiMessageSquare, FiTag } from 'react-icons/fi';
+import { BiLocationPlus } from 'react-icons/bi';
+import { TbRulerMeasure } from 'react-icons/tb';
 
 const ViewUnit = ({ setActive, flatId }) => {
     const [societyId, setSocietyId] = useState(null);
@@ -14,8 +16,9 @@ const ViewUnit = ({ setActive, flatId }) => {
     const [floor, setFloor] = useState("");
     const [configuration, setConfiguration] = useState("");
     const [intercom, setIntercom] = useState("");
-     const [unitType, setUnitType] = useState("");
+    const [unitType, setUnitType] = useState("");
     const [members, setMembers] = useState([]);
+    const [currentStatus, setCurrentStatus] = useState("");
 
     useEffect(() => {
         SessionData();
@@ -60,6 +63,7 @@ const ViewUnit = ({ setActive, flatId }) => {
             setIntercom(data.intercom);
             setUnitType(data.unit_type);
             setMembers(data.members);
+            setCurrentStatus(data.current_status)
 
         } catch (error) {
             console.log(error);
@@ -91,11 +95,13 @@ const ViewUnit = ({ setActive, flatId }) => {
                                     <h5 className="mb-0 fw-bold">Unit {flatNumber}</h5>
 
                                     <span className="badge bg-primary-subtle text-primary">
-                                        Occupied
+                                        {currentStatus}
                                     </span>
 
                                     <span className="badge bg-secondary-subtle text-secondary">
-                                        {members.occupancy_type}
+                                        {
+                                            members?.find(member => member.occupancy_type === "owner")?.occupancy_type
+                                        }
                                     </span>
                                 </div>
 
@@ -105,11 +111,28 @@ const ViewUnit = ({ setActive, flatId }) => {
                                         sarah@example.com
                                     </div> */}
 
-                                    <div>
-                                        <i className="bi bi-telephone me-1"></i>
-                                        {block}, {floor}
+                                    {/* <div>
+                                       
+                                        <BiLocationPlus className='me-1' />
+                                        Block {block}, {floor} Floor
                                         <span className="mx-2">|</span>
                                         {areaSqft ? `${areaSqft} sq.ft` : ""}, {unitType}
+                                    </div> */}
+                                    <div className="d-flex gap-5 text-secondary">
+                                        <div className="d-flex align-items-center gap-2">
+                                            <FiMapPin />
+                                            <span>Block {block},  {floor} Floor</span>
+                                        </div>
+
+                                        <div className="d-flex align-items-center gap-2">
+                                            <TbRulerMeasure />
+                                            <span>{areaSqft ? `${areaSqft} sq.ft` : ""}</span>
+                                        </div>
+
+                                        <div className="d-flex align-items-center gap-2">
+                                            <FiGrid />
+                                            <span>{unitType}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -127,6 +150,7 @@ const ViewUnit = ({ setActive, flatId }) => {
                                 <FiEdit className='me-1' />
                                 Edit Unit
                             </button>
+                            <button className="btn btn-primary btn-sm" onClick={() => setActive("unitRegister")}>Back</button>
                         </div>
                     </div>
                 </div>
@@ -147,12 +171,12 @@ const ViewUnit = ({ setActive, flatId }) => {
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">BLOCK / TOWER</small>
-                                        <div className="fw-semibold">{block}</div>
+                                        <div className="fw-semibold">Block {block}</div>
                                     </div>
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">FLOOR</small>
-                                        <div className="fw-semibold">{floor}</div>
+                                        <div className="fw-semibold">{floor} Floor</div>
                                     </div>
 
                                     <div className="col-md-6">
@@ -185,7 +209,7 @@ const ViewUnit = ({ setActive, flatId }) => {
                             </div>
 
                             <div className="card-body">
-                               
+
                                 {members
                                     ?.filter((m) => m.occupancy_type === "owner")
                                     .map((m, index) => (

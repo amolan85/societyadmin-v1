@@ -536,6 +536,7 @@ const ParkingHistory = ({ setActive }) => {
                             Filter Type
                         </button>
                         <button className="btn-ol ms-2" onClick={() => setExportModal(true)}><BiImport /> Export</button>
+                     <button className="btn btn-primary btn-sm ms-2" onClick={() => setActive("parkingDetails")}>Back</button>
                     </div>
 
                 </div>

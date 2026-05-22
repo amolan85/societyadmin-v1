@@ -3,7 +3,7 @@ import Select from 'react-select';
 import "../../styles/AddMember.css"
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import { GetSessionData } from '../../utils/SessionManagement';
-import { AddMemberApi, getMembersApi, getAllMembersWithoutPaginationApi } from '../../services/AddMemberApi';
+import { AddMemberApi, getMembersApi, getAllMembersWithoutPaginationApi, getMembersByIdApi, UpdateMemberApi, deleteMembersApi } from '../../services/AddMemberApi';
 import { toast } from "react-toastify";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import ExcelJS from "exceljs";
@@ -13,6 +13,7 @@ import autoTable from "jspdf-autotable";
 import { FiFilter, FiSearch } from 'react-icons/fi';
 import { getAllBlocksApi, getAllFlatsApi } from '../../services/UnitRegisterApi';
 import { CgExport } from 'react-icons/cg';
+import MemberModal from './MemberModal';
 
 
 const AddMember = ({ setActive, setMemberId, setFlatId }) => {
@@ -43,6 +44,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
+    const [mode, setMode] = useState("add");
 
     const [allMembers, setAllMembers] = useState([])
     const [allMembersWithoutPagination, setAllMembersWithoutPagination] = useState([])
@@ -52,6 +54,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     const [exportModal, setExportModal] = useState(false)
     const [errorText, setErrorText] = useState("")
     const [search, setSearch] = useState("");
+    const [mId, setMId] = useState("");
 
     const addMemberType = [
         { id: "Owner", value: "owner" },
@@ -241,6 +244,48 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     };
 
     //submit function for add member
+    // const handleSubmit = async () => {
+    //     try {
+    //         const validationErrors = validateForm();
+
+    //         if (Object.keys(validationErrors).length > 0) {
+    //             setErrors(validationErrors);
+    //             return;
+    //         }
+
+    //         await AddMemberApi(
+    //             societyId,
+    //             userId,
+    //             firstName,
+    //             lastName,
+    //             mobileNo,
+    //             emailId,
+    //             blocks.value,
+    //             flat.value,
+    //             finalMemType,
+    //             residency,
+    //             moveInDate,
+    //             moveOutDate,
+    //             agreement,
+    //             rentAgreement,
+    //             policeNoc,
+    //             idProof,
+    //             familyPhoto,
+    //             maintenanceReceipt,
+    //             ownershipDocuments,
+    //             nominationDetails
+    //         );
+
+    //         toast.success("Member created successfully!")
+    //         setShow(false);
+
+    //     } catch (error) {
+    //         console.log(error);
+    //         toast.error(error);
+    //         setErrorText(error)
+    //     }
+    // };
+
     const handleSubmit = async () => {
         try {
             const validationErrors = validateForm();
@@ -250,46 +295,167 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                 return;
             }
 
-            const data = await AddMemberApi(
-                societyId,
-                userId,
-                firstName,
-                lastName,
-                mobileNo,
-                emailId,
-                blocks.value,
-                flat.value,
-                finalMemType,
-                residency,
-                moveInDate,
-                moveOutDate,
-                agreement,
-                rentAgreement,
-                policeNoc,
-                idProof,
-                familyPhoto,
-                maintenanceReceipt,
-                ownershipDocuments,
-                nominationDetails
-            );
+            if (mode === "edit") {
 
-            toast.success("Member created successfully!")
+                await UpdateMemberApi(
+                    societyId,
+                    mId,
+                    firstName,
+                    lastName,
+                    mobileNo,
+                    emailId,
+                    blocks?.value,                   
+                    flat?.value,
+                    finalMemType,
+                    residency,
+                    moveInDate,
+                    moveOutDate,
+                    agreement,
+                    rentAgreement,
+                    policeNoc,
+                    idProof,
+                    familyPhoto,
+                    maintenanceReceipt,
+                    ownershipDocuments,
+                    nominationDetails
+                );
+
+                toast.success("Member updated successfully!");
+
+            } else {
+
+                await AddMemberApi(
+                    societyId,
+                    userId,
+                    firstName,
+                    lastName,
+                    mobileNo,
+                    emailId,
+                    blocks?.value,
+                    flat?.value,
+                    finalMemType,
+                    residency,
+                    moveInDate,
+                    moveOutDate,
+                    agreement,
+                    rentAgreement,
+                    policeNoc,
+                    idProof,
+                    familyPhoto,
+                    maintenanceReceipt,
+                    ownershipDocuments,
+                    nominationDetails
+                );
+
+                toast.success("Member created successfully!");
+            }
+
             setShow(false);
 
         } catch (error) {
             console.log(error);
-            toast.error(error);
-            setErrorText(error)
+            toast.error(error?.message || "Something went wrong");
+            setErrorText(error);
         }
     };
+
+    const GetMemberDetailsById = async (memberId) => {
+        try {
+
+            const data = await getMembersByIdApi(
+                societyId,
+                memberId
+            );
+            setMId(memberId)
+            setFirstName(data.first_name);
+            setLastName(data.last_name);
+            setEmailId(data.email);
+            setMobileNo(data.mobile);
+            // setBlocks(data.block);
+            // setFlat(data.flat_number);
+            setBlocks({
+                value: data.block,
+                label: data.block
+            });
+
+            setFlat({
+                value: data.flat_number,
+                label: data.flat_number
+            });
+            // memType(data.occupancy_type);
+            setFamilyType(data.occupancy_type === "owner_relative" ? "Owner Family" : data.occupancy_type === "tenant_relative" ? "Tenant Family" : "");
+            setMemType(data.occupancy_type);
+
+            setMoveInDate(data.start_date);
+            setMoveOutDate(data.end_date);
+            data.documents?.forEach((doc) => {
+                switch (doc.document_type) {
+                    case "id_proof":
+                        setIdProof(doc.url);
+                        break;
+
+                    case "family_photo":
+                        setFamilyPhoto(doc.url);
+                        break;
+
+                    case "agreement":
+                        setAgreement(doc.url);
+                        break;
+
+                    case "ownership":
+                        setOwnershipDocuments(doc.url);
+                        break;
+
+                    case "maintenance_receipt":
+                        setMaintenanceReceipt(doc.url);
+                        break;
+
+                    case "rent_agreement":
+                        setRentAgreement(doc.url);
+                        break;
+
+                    case "police_noc":
+                        setPoliceNoc(doc.url);
+                        break;
+
+                    default:
+                        break;
+                }
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+const handleDelete = async (memberId) => {
+    try {
+        const data = await deleteMembersApi(memberId);
+
+        console.log(data, "Delete response");
+
+        toast.success("Member deleted successfully");
+
+        // Refresh member list if needed
+        // GetAllMembers();
+
+    } catch (error) {
+        console.error("Delete Error:", error);
+
+        toast.error(
+            error?.response?.data?.message ||
+            error?.message ||
+            "Failed to delete member"
+        );
+    }
+};
 
     const resetForm = () => {
         setFirstName("");
         setLastName("");
         setEmailId("");
         setMobileNo("");
-        setBlocks(null);
-        setFlat("");
+        // setBlocks(null);
+        // setFlat("");
         setFloor("");
         setResidency("");
         setMoveInDate("");
@@ -545,7 +711,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                         </button>
                         <button className="btn-ol ms-2" onClick={() => { getAllMembersWithoutPagination(societyId, search); setExportModal(true) }}><CgExport /> Export</button>
                         <button className='btn btn-sm btn-primary ms-2' onClick={() => setShow(true)}>+ Add Member</button>
-                        
+
                     </div>
 
                 </div>
@@ -628,7 +794,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                                         />}</td>
                                         <td className="sa-name">{s.mobile}</td>
                                         <td><Badge label={s.status === "Approved" ? "Active" : s.status} c={
-                                            s.status === "Approved" ? "green" : s.status === "Pending" ? "orange" : s.status === "Inactive" ? "gray" : "gray"
+                                            s.status === "Approved" ? "green" : s.status === "Pending" ? "yellow" : s.status === "Inactive" ? "gray" : "gray"
                                         } /> </td>
                                         {/* <td className="sa-name">
                                             <button className="btn btn-light border-0"
@@ -659,7 +825,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                        // onClick={() => handleEdit(s)}
+                                                            onClick={() => { setMode("edit"); setShow(true); GetMemberDetailsById(s.user_id) }}
                                                         >
                                                             Edit Member
                                                         </button>
@@ -670,7 +836,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item member-action-delete"
-                                                        // onClick={() => handleDelete(s.member_id)}
+                                                        onClick={() => handleDelete(s.user_id)}
                                                         >
                                                             Delete Member
                                                         </button>
@@ -692,20 +858,20 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                     />
                 </div>
             </div>
-
+            {/* 
             {show && (
                 <>
-                    {/* ✅ Backdrop (THIS IS IMPORTANT) */}
+                  
                     <div className="modal-backdrop fade show"></div>
 
-                    {/* ✅ Modal */}
+                   
                     <div className="modal show d-block">
                         <div className="modal-dialog modal-md">
                             <div className="modal-content">
                                 <div className="modal-header bg-light">
                                     <h5 className="modal-title">Add New Member</h5>
 
-                                    {/* ❌ remove data-bs-dismiss */}
+                                   
                                     <button
                                         type="button"
                                         className="btn-close"
@@ -734,9 +900,9 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                                                                 },
                                                             }),
                                                         }}
-                                                        options={allBlocks}              // 👈 array of objects with value and label
-                                                        value={blocks}                  // 👈 poora object
-                                                        onChange={(selectedOption) => setBlocks(selectedOption)} // 👈 direct object
+                                                        options={allBlocks}             
+                                                        value={blocks}               
+                                                        onChange={(selectedOption) => setBlocks(selectedOption)} 
                                                     />
                                                 </div>
 
@@ -757,9 +923,9 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                                                                 },
                                                             }),
                                                         }}
-                                                        options={allFlats}              // 👈 array of objects with value and label
-                                                        value={flat}                  // 👈 poora object
-                                                        onChange={(selectedOption) => setFlat(selectedOption)} // 👈 direct object
+                                                        options={allFlats}             
+                                                        value={flat}               
+                                                        onChange={(selectedOption) => setFlat(selectedOption)}
                                                     />
                                                 </div>
                                             </div>
@@ -982,7 +1148,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                                                                 )}
                                                             </div>
 
-                                                            {/* Radio Wrapper */}
+                                                     
                                                             <div
 
                                                             >
@@ -1056,8 +1222,79 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                         </div>
                     </div>
                 </>
-            )}
+            )} */}
 
+            <MemberModal
+                show={show}
+                setShow={setShow}
+
+                allBlocks={allBlocks}
+                allFlats={allFlats}
+                addMemberType={addMemberType}
+
+                blocks={blocks}
+                setBlocks={setBlocks}
+
+                flat={flat}
+                setFlat={setFlat}
+
+                memType={memType}
+                setMemType={setMemType}
+
+                resetForm={resetForm}
+
+                firstName={firstName}
+                setFirstName={setFirstName}
+
+                lastName={lastName}
+                setLastName={setLastName}
+
+                mobileNo={mobileNo}
+                setMobileNo={setMobileNo}
+
+                emailId={emailId}
+                setEmailId={setEmailId}
+
+                moveInDate={moveInDate}
+                setMoveInDate={setMoveInDate}
+
+                mode={mode}
+
+                moveOutDate={moveOutDate}
+                setMoveOutDate={setMoveOutDate}
+
+                familyType={familyType}
+                setFamilyType={setFamilyType}
+
+                rentAgreement={rentAgreement}
+                setRentAgreement={setRentAgreement}
+
+                policeNoc={policeNoc}
+                setPoliceNoc={setPoliceNoc}
+
+                idProof={idProof}
+                setIdProof={setIdProof}
+
+                agreement={agreement}
+                setAgreement={setAgreement}
+
+                maintenanceReceipt={maintenanceReceipt}
+                setMaintenanceReceipt={setMaintenanceReceipt}
+
+                nominationDetails={nominationDetails}
+                setNominationDetails={setNominationDetails}
+
+                familyPhoto={familyPhoto}
+                setFamilyPhoto={setFamilyPhoto}
+
+                ownershipDocuments={ownershipDocuments}
+                setOwnershipDocuments={setOwnershipDocuments}
+
+                errors={errors}
+                errorText={errorText}
+
+                handleSubmit={handleSubmit}
+            />
             {exportModal && (
                 <>
                     <div className="modal-backdrop fade show"></div>

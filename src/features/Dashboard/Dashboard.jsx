@@ -110,6 +110,7 @@ const TITLES = {
 export default function App() {
   const navigation = useNavigate();
   const [active, setActive] = useState("overview");
+  const [previousTab, setPreviousTab] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
   const [societyName, setSocietyName] = useState("")
   const [firstName, setFirstName] = useState("")
@@ -147,7 +148,7 @@ export default function App() {
     polls: <Polls setActive={setActive} />,
     createPoll: <CreatePoll setActive={setActive} />,
     addmember: <AddMember setActive={setActive} setMemberId={setMemberId} setFlatId={setFlatId}/>,
-    memberDetails: <MemberDetails setActive={setActive} memberId={memberId} setFlatId={setFlatId} flatId={flatId}/>,
+    memberDetails: <MemberDetails active={active} setActive={setActive}  previousTab={previousTab} setPreviousTab={setPreviousTab} memberId={memberId} setFlatId={setFlatId} flatId={flatId}/>,
     viewUnit: <ViewUnit setActive={setActive} flatId={flatId} />,
     transfer: <PlaceholderPage label="Transfer Member" />,
     documents: <Documents />,

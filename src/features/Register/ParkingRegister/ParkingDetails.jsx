@@ -1,7 +1,9 @@
-import  { useState } from 'react'
+import { useState } from 'react'
 import { FaCar } from 'react-icons/fa';
 import { FiAlertTriangle, FiDownload, FiEdit, FiExternalLink, FiPrinter, FiSlash } from "react-icons/fi";
 import { CgFileDocument } from 'react-icons/cg';
+import { BiHistory, BiLocationPlus } from 'react-icons/bi';
+import { RiFileHistoryFill } from 'react-icons/ri';
 
 const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
@@ -25,8 +27,8 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                 height="70"
                                 alt="profile"
                             /> */}
-                            <div className="home-icon-box">
-                                <FaCar size={70} className="text-secondary" />
+                            <div className="car-icon-box">
+                                <FaCar size={70} className="text-primary" />
                             </div>
                             <div>
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
@@ -40,7 +42,8 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                                 <div className="text-muted text-start small mt-2">
                                     <div className="mb-1">
-                                        <i className="bi bi-envelope me-1"></i>
+                                        {/* <i className="bi bi-envelope me-1"></i> */}
+                                        <BiLocationPlus className="me-1" />
                                         Basement 2  Standard Covered
                                     </div>
 
@@ -55,18 +58,23 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                         </div>
 
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
-
+                            <button className="btn btn-outline-secondary btn-sm" onClick={() => setActive("parkingHistory")}>
+                                {/* <i className="bi bi-chat-left-text me-1"></i> */}
+                                <BiHistory className="me-1" />
+                                History
+                            </button>
                             <button className="btn btn-outline-secondary btn-sm">
                                 {/* <i className="bi bi-chat-left-text me-1"></i> */}
                                 <FiEdit className="me-1" />
                                 Edit Details
                             </button>
 
-                            <button className="btn btn-danger btn-sm" onClick={() => setDeallocateShow(true)}>
+                            <button className="btn btn-sm" onClick={() => setDeallocateShow(true)} style={{ background: "#ffc5c6", color: "#fe484a", border: "1px solid #fe484a" }}>
                                 {/* <i className="bi bi-pencil-square me-1"></i> */}
                                 <FiSlash className="me-1" />
-                                Deallocate
+                                <strong>Deallocate</strong>
                             </button>
+                            <button className="btn btn-primary btn-sm" onClick={() => setActive("parkingRegister")}>Back</button>
                         </div>
                     </div>
                 </div>

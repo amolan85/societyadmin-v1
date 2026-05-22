@@ -90,8 +90,12 @@ body {
   white-space: nowrap; overflow: hidden;
 }
 .nav-item:hover  { background: #f8fafc; color: var(--accent); }
-.nav-item.active {
+/*.nav-item.active {
   background: var(--accent-lt); color: var(--accent);
+  font-weight: 700; border-left-color: var(--accent);
+}*/
+  .nav-item.active {
+  background:  #319eff; color: #ffffff;
   font-weight: 700; border-left-color: var(--accent);
 }
 .nav-item .ni    { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
@@ -140,6 +144,7 @@ body {
 .bx-green  { background: var(--success-lt); color: #15803d; }
 .bx-red    { background: var(--danger-lt);  color: #b91c1c; }
 .bx-orange { background: var(--warning-lt); color: #c2410c; }
+.bx-yellow { background: #fff2bd; color:  #ffd21e; }
 .bx-blue {
   background: var(--accent-lt);   /* Medium blue */
   color:  #1d4ed8;
