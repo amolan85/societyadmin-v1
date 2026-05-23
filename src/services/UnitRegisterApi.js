@@ -77,6 +77,35 @@ export const AddUnitsApi = async (societyId, block, flatNo, floor, areaSqft, uni
     });
 }
 
+export const UpdateUnitsApi = async (unitId, block, flatNo, floor, areaSqft, unitType, currentStatus, fullName, email, mobile) => {
+    const url = UrlData + 'flat/UpdateUnit';
+    const data = {
+        flat_id: unitId,
+        block: block,
+        flat_number: flatNo,
+        floor: floor,
+        area_sqft: areaSqft,
+        unit_type: unitType,
+        current_status: currentStatus,
+        full_name: fullName,
+        email: email,
+        mobile: mobile
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data,
+        timeout: 30000,
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors adding units");
+        throw errors;
+    });
+}
+
 export const getAllFlatsApi = async (societyId, page) => {
     const url = UrlData + 'flat/GetFlatNumberList';
     const data = {
@@ -199,6 +228,27 @@ export const getAllMembersWithoutPaginationApi = async (societyId, search) => {
         console.log(error);
         const errors = ErrorHandler(error);
         console.log(errors, "Errors get members");
+        throw errors;
+    });
+}
+
+export const deleteUnitApi = async (unitId) => {
+    const url = UrlData + 'flat/DeleteUnit';
+    const data = {
+        flat_id: unitId,
+
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data,
+        timeout: 30000,
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors delete unit");
         throw errors;
     });
 }

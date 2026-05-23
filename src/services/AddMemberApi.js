@@ -36,7 +36,6 @@ export const AddMemberApi = async (
     wing,
     flat,
     finalMemType,
-    residency,
     moveInDate,
     moveOutDate,
     agreement,
@@ -63,7 +62,6 @@ export const AddMemberApi = async (
         formData.append("occupancy_type", finalMemType);
         formData.append("start_date", moveInDate);
         formData.append("end_date", moveOutDate);
-        formData.append("residency", residency);
         formData.append("id_proof", idProof);
         formData.append("agreement", agreement);
         formData.append("rent_agreement", rentAgreement);
@@ -99,7 +97,6 @@ export const UpdateMemberApi = async (
     wing,
     flat,
     finalMemType,
-    residency,
     moveInDate,
     moveOutDate,
     agreement,
@@ -126,7 +123,6 @@ export const UpdateMemberApi = async (
         formData.append("occupancy_type", finalMemType);
         formData.append("start_date", moveInDate);
         formData.append("end_date", moveOutDate);
-        formData.append("residency", residency);
         formData.append("id_proof", idProof);
         formData.append("agreement", agreement);
         formData.append("rent_agreement", rentAgreement);
