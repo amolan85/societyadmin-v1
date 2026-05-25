@@ -163,43 +163,12 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
         doc.save("BroadcastData.pdf");
     };
 
-    const handleExport = () => {
-
-        // if (activeTab === "excel") {
-        //     downloadExcel();
-        //     setShow(false)
-        // }
-
-        // else if (activeTab === "csv") {
-        //     downloadCSV();
-        //     setShow(false)
-        // }
-
-        // else
-        if (activeTab === "pdf") {
-            downloadPDF();
-            setShow(false)
-        }
-    };
-
-    const totalSent = allBroadcast.filter(
-        (item) => item.status?.toLowerCase() === "sent"
-    ).length;
-
-    const totalDrft = allBroadcast.filter(
-        (item) => item.status?.toLowerCase() === "draft"
-    ).length;
-
-    const totalScheduled = allBroadcast.filter(
-        (item) => item.status?.toLowerCase() === "scheduled"
-    ).length;
-
     const filteredData = broadcastTypeTab === ""
         ? allBroadcast
         : allBroadcast.filter((item) => item.type === broadcastTypeTab);
 
     //for pagination
-    const per = 5, total = Math.ceil(filteredData.length / per);
+    const per = 10, total = Math.ceil(filteredData.length / per);
     const rows = filteredData.slice((page - 1) * per, page * per);
 
 

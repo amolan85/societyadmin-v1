@@ -14,13 +14,10 @@ import {
 } from "../../../services/UnitRegisterApi";
 import { toast } from "react-toastify";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
-import ExcelJS from "exceljs";
-import { saveAs } from "file-saver";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { FiFilter, FiSearch } from "react-icons/fi";
 import { BiExport } from "react-icons/bi";
 import UnitModal from "./UnitModal";
+import { exportFile, exportToPDF } from "../../../components/Common/ExportFile";
 
 const UnitRegister = ({ setActive, setFlatId }) => {
   const [societyId, setSocietyId] = useState("");
@@ -30,6 +27,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
   const [limit, setLimit] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [allUnits, setAllUnits] = useState([]);
+  const [allUnitsWithoutPagination, setAllUnitsWithoutPagination] = useState([]);
   const [activeTab, setActiveTab] = useState("excel");
   const [exportModal, setExportModal] = useState(false);
   const [errorText, setErrorText] = useState("");
@@ -50,6 +48,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
   const [vacantUnits, setVacantUnits] = useState("");
   const [mode, setMode] = useState("mode");
   const [unitId, setUnitId] = useState("");
+  const [selectedRange, setSelectedRange] = useState("all");
 
   useEffect(() => {
     SessionData();
@@ -60,20 +59,25 @@ const UnitRegister = ({ setActive, setFlatId }) => {
     console.log(data.data);
     const flats = data.data.flats[0];
     setSocietyId(flats.society_id);
-    getAllUnits(flats.society_id);
     getAllBlocks(flats.society_id);
     getAllFloor(flats.society_id);
   };
+
+  useEffect(() => {
+    if (!societyId) return;
+    getAllUnits(societyId, page);
+  }, [societyId, page]);
 
   //function for get members
   const getAllUnits = async (societyId, page) => {
     try {
       const data = await getAllUnitsApi(societyId, page);
+      console.log(data, "All units");
       setTotalUnits(data.total_units);
       setOccupiedUnits(data.occupied_units);
       setVacantUnits(data.vacant_units);
       setAllUnits(data.flats);
-      setPage(data.page);
+      setPage(data.page || 1);
       setLimit(data.per_page);
       setTotalCount(data.total_count);
     } catch (error) {
@@ -111,6 +115,15 @@ const UnitRegister = ({ setActive, setFlatId }) => {
     }
   };
 
+  const getAllUnitsWithoutPagination = async (societyId) => {
+    try {
+      const data = await getAllUnitsBySearchApi(societyId);
+      console.log(data.flats, "All units without pagination");
+      setAllUnitsWithoutPagination(data.flats);
+    } catch (error) {
+      console.error("Error fetching units:", error);
+    }
+  };
   const getFlatById = async (flatId) => {
     setFlatId(flatId);
     setActive("viewUnit");
@@ -154,7 +167,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
 
   const handlePageChange = (value) => {
     setPage(value);
-    getAllUnits(societyId, value);
+    // getAllUnits(societyId, value);
   };
 
   //function for validation
@@ -263,135 +276,54 @@ const UnitRegister = ({ setActive, setFlatId }) => {
       toast.error(error);
     }
   };
+  const exportData =
+    selectedRange === "all"
+      ? allUnitsWithoutPagination
+      : selectedRange === "search"
+        ? allUnits
+        : "customData";
 
   const downloadExcel = async () => {
-    // create workbook
-    const workbook = new ExcelJS.Workbook();
-
-    // add worksheet
-    const worksheet = workbook.addWorksheet("Units");
-
-    // add columns dynamically
-    if (allUnits.length > 0) {
-      worksheet.columns = Object.keys(allUnits[0]).map((key) => ({
-        header: key,
-        key: key,
-        width: 20,
-      }));
-
-      // add rows
-      allUnits.forEach((item) => {
-        worksheet.addRow(item);
-      });
-    }
-
-    // header style
-    worksheet.getRow(1).font = {
-      bold: true,
-    };
-
-    // create buffer
-    const buffer = await workbook.xlsx.writeBuffer();
-
-    // download file
-    saveAs(
-      new Blob([buffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      }),
-      "Units.xlsx",
-    );
+    exportFile({
+      data: exportData,
+      fileName: "Units",
+      sheetName: "Units",
+      type: "xlsx",
+    });
   };
 
   const downloadCSV = async () => {
-    // create workbook
-    const workbook = new ExcelJS.Workbook();
-
-    // add worksheet
-    const worksheet = workbook.addWorksheet("Units");
-
-    // add columns dynamically
-    if (allUnits.length > 0) {
-      worksheet.columns = Object.keys(allUnits[0]).map((key) => ({
-        header: key,
-        key: key,
-        width: 20,
-      }));
-
-      // add allUnits
-      allUnits.forEach((item) => {
-        worksheet.addRow(item);
-      });
-    }
-
-    // header style
-    worksheet.getRow(1).font = {
-      bold: true,
-    };
-
-    // generate csv buffer
-    const csvBuffer = await workbook.csv.writeBuffer();
-
-    // create blob
-    const blob = new Blob([csvBuffer], {
-      type: "text/csv;charset=utf-8;",
+    exportFile({
+      data: exportData,
+      fileName: "Units",
+      sheetName: "Units",
+      type: "csv",
     });
-
-    // download file
-    saveAs(blob, "Units.csv");
   };
 
   const downloadPDF = () => {
-    // landscape mode
-    const doc = new jsPDF("landscape");
-
-    // PDF Heading
-    doc.setFontSize(18);
-    doc.text("Units Report", 14, 15);
-
-    // table columns
-    const tableColumn = [
-      "First Name",
-      "Last Name",
-      "Mobile No.",
-      "Email Id",
-      "Wing",
-      "Flat",
-      "Membership Type",
-      "moveOutDate",
-    ];
-
-    // table rows
-    const tableRows = allUnits.map((item) => [
-      item.first_name,
-      item.last_name,
-      item.mobile,
-      item.email,
-      item.block,
-      item.floor,
-      item.occupancy_type,
-      item.moveOutDate,
-    ]);
-
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-
-      // table start after heading
-      startY: 25,
-
-      styles: {
-        fontSize: 8,
-        cellPadding: 3,
-      },
-
-      headStyles: {
-        fillColor: [13, 110, 253],
-      },
-
-      theme: "grid",
+    exportToPDF({
+      title: "Units Report",
+      fileName: "Units",
+      columns: [
+        "Unit No.",
+        "Type & Area",
+        "Block/Floor",
+        "Owner",
+        "Tenant"
+      ],
+      data: exportData.map((item) => [
+        item.flat_number,
+        `${item.unit_type || ""} (${item.area_sqft || ""} sq.ft)`,
+        `${item.block || "-"} / ${item.floor || "-"} Flr`,
+        item.members?.find((m) => m.occupancy_type === "owner")
+          ? `${item.members.find((m) => m.occupancy_type === "owner")?.first_name || ""} ${item.members.find((m) => m.occupancy_type === "owner")?.last_name || ""}`
+          : "-",
+            item.members?.find((m) => m.occupancy_type === "tenant")
+          ? `${item.members.find((m) => m.occupancy_type === "tenant")?.first_name || ""} ${item.members.find((m) => m.occupancy_type === "tenant")?.last_name || ""}`
+          : "-",
+      ]),
     });
-
-    doc.save("Units.pdf");
   };
 
   const handleExport = () => {
@@ -407,17 +339,45 @@ const UnitRegister = ({ setActive, setFlatId }) => {
     }
   };
 
+
   const handleSearch = async (e) => {
     const value = e.target.value;
     setSearch(value);
-    const data = await getAllUnitsBySearchApi(societyId, value);
-    console.log(data, "Search results");
-    setAllUnits(data?.flats || []);
-  };
 
+    try {
+      if (!value.trim()) {
+        setPage(1);
+        await getAllUnits(societyId, 1);
+        return;
+      }
+
+      const data = await getAllUnitsBySearchApi(societyId, value);
+
+      console.log(data, "Search results");
+
+      setAllUnits(data?.flats || []);
+    } catch (error) {
+      console.error("Error searching units:", error);
+      setAllUnits([]);
+    }
+  };
   const total = Math.ceil(totalCount / limit);
   // const per = limit, total = Math.ceil(filteredData.length / per);
   // const rows = filteredData.slice((page - 1) * per, page * per);
+
+  const resetForm = () => {
+    setFlatNo("");
+    setBlock("");
+    setFloor("");
+    setArea("");
+    setUnitType("");
+    setCurrentStatus("");
+    setFullName("");
+    setEmailId("");
+    setMobileNo("");
+    setErrors({});
+    setErrorText("");
+  }
 
   return (
     <>
@@ -430,8 +390,8 @@ const UnitRegister = ({ setActive, setFlatId }) => {
             [totalUnits, "Total Units"],
             [
               occupiedUnits &&
-                 `${Math.round((occupiedUnits / totalUnits) * 100)}%`
-                ,
+              `${Math.round((occupiedUnits / totalUnits) * 100)}%`
+              ,
               "Occupancy Rate",
               "tile-grn",
             ],
@@ -486,7 +446,10 @@ const UnitRegister = ({ setActive, setFlatId }) => {
             </button>
             <button
               className="btn-ol ms-2"
-              onClick={() => setExportModal(true)}
+              onClick={() => {
+                getAllUnitsWithoutPagination(societyId);
+                setExportModal(true)
+              }}
             >
               <BiExport /> Export
             </button>
@@ -495,6 +458,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
               onClick={() => {
                 setMode("add");
                 setShow(true);
+                resetForm();
               }}
             >
               + Add Unit
@@ -513,7 +477,8 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                       "UNIT NO.",
                       "TYPE & AREA",
                       "BLOCK/FLOOR",
-                      "CURRENT RESIDENT",
+                      "OWNER",
+                      "TENANT",
                       "STATUS",
                       "ACTIONS",
                     ].map((h) => (
@@ -531,15 +496,14 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                       {s.unit_type} .{s.area_sqft} sqft
                     </td>
                     <td className="sa-name">
-                      {`Block ${s.block} . ${
-                        s.floor === 1
-                          ? "1st"
-                          : s.floor === 2
-                            ? "2nd"
-                            : s.floor === 3
-                              ? "3rd"
-                              : `${s.floor}th`
-                      } Flr`}
+                      {`Block ${s.block} . ${s.floor === 1
+                        ? "1st"
+                        : s.floor === 2
+                          ? "2nd"
+                          : s.floor === 3
+                            ? "3rd"
+                            : `${s.floor}th`
+                        } Flr`}
                     </td>
                     <td>
                       <div className="d-flex align-items-center gap-2">
@@ -570,7 +534,35 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                         </div>
                       </div>
                     </td>
+ <td>
+                      <div className="d-flex align-items-center gap-2">
+                        <img
+                          src={s.profile_url || "../src/assets/profile.png"}
+                          alt=""
+                          width={38}
+                          height={38}
+                          className="rounded-circle object-fit-cover"
+                        />
 
+                        <div>
+                          <div className="fw-semibold">
+                            {s?.members?.find(
+                              (m) => m.occupancy_type === "tenant",
+                            )
+                              ? `${s.members.find((m) => m.occupancy_type === "tenant")?.first_name || ""} ${s.members.find((m) => m.occupancy_type === "tenant")?.last_name || ""}`
+                              : "-"}
+                          </div>
+
+                          <small className="text-muted">
+                            {s?.members?.find(
+                              (m) => m.occupancy_type === "tenant",
+                            )
+                              ? `${s.members.find((m) => m.occupancy_type === "tenant")?.email || ""}`
+                              : ""}
+                          </small>
+                        </div>
+                      </div>
+                    </td>
                     <td>
                       {s.current_status && (
                         <Badge
@@ -703,9 +695,8 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                     {/* Excel */}
                     <div className="col-md-4">
                       <div
-                        className={`format-card text-center p-3 rounded-3 ${
-                          activeTab === "excel" ? "active-format" : ""
-                        }`}
+                        className={`format-card text-center p-3 rounded-3 ${activeTab === "excel" ? "active-format" : ""
+                          }`}
                         onClick={() => {
                           setActiveTab("excel");
                         }}
@@ -720,11 +711,10 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                         />
 
                         <p
-                          className={`fw-semibold mb-0 mt-1 ${
-                            activeTab === "excel"
-                              ? "text-primary"
-                              : "text-secondary"
-                          }`}
+                          className={`fw-semibold mb-0 mt-1 ${activeTab === "excel"
+                            ? "text-primary"
+                            : "text-secondary"
+                            }`}
                         >
                           Excel
                         </p>
@@ -734,9 +724,8 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                     {/* CSV */}
                     <div className="col-md-4">
                       <div
-                        className={`format-card text-center p-3 rounded-3 ${
-                          activeTab === "csv" ? "active-format" : ""
-                        }`}
+                        className={`format-card text-center p-3 rounded-3 ${activeTab === "csv" ? "active-format" : ""
+                          }`}
                         onClick={() => {
                           setActiveTab("csv");
                         }}
@@ -751,11 +740,10 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                         />
 
                         <p
-                          className={`fw-semibold mb-0 mt-1 ${
-                            activeTab === "csv"
-                              ? "text-primary"
-                              : "text-secondary"
-                          }`}
+                          className={`fw-semibold mb-0 mt-1 ${activeTab === "csv"
+                            ? "text-primary"
+                            : "text-secondary"
+                            }`}
                         >
                           CSV
                         </p>
@@ -765,9 +753,8 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                     {/* PDF */}
                     <div className="col-md-4">
                       <div
-                        className={`format-card text-center p-3 rounded-3 ${
-                          activeTab === "pdf" ? "active-format" : ""
-                        }`}
+                        className={`format-card text-center p-3 rounded-3 ${activeTab === "pdf" ? "active-format" : ""
+                          }`}
                         onClick={() => {
                           setActiveTab("pdf");
                         }}
@@ -782,11 +769,10 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                         />
 
                         <p
-                          className={`fw-semibold mb-0 mt-1 ${
-                            activeTab === "pdf"
-                              ? "text-primary"
-                              : "text-secondary"
-                          }`}
+                          className={`fw-semibold mb-0 mt-1 ${activeTab === "pdf"
+                            ? "text-primary"
+                            : "text-secondary"
+                            }`}
                         >
                           PDF
                         </p>
@@ -794,37 +780,58 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                     </div>
                   </div>
 
-                  <h6 className=" text-start fw-bold">Data Range</h6>
+                  <h6 className="text-start fw-bold">Data Range</h6>
 
-                  <div className="range-card active-range d-flex justify-content-between align-items-center mb-3">
+                  <div
+                    className={`range-card d-flex justify-content-between align-items-center mb-3 ${selectedRange === "all" ? "active-range" : ""
+                      }`}
+                  >
                     <div className="d-flex align-items-center gap-3">
                       <input
                         className="form-check-input"
                         type="radio"
-                        checked
+                        name="exportRange"
+                        checked={selectedRange === "all"}
+                        onChange={() => setSelectedRange("all")}
                       />
                       <h6 className="fw-bold mt-1">All Data</h6>
                     </div>
 
-                    <span className="text-muted mt-1">
-                      <h6>{allUnits.length} records</h6>
-                    </span>
+                    <h6 className="text-muted mt-1">
+                      {allUnitsWithoutPagination.length} records
+                    </h6>
                   </div>
 
-                  <div className="range-card d-flex justify-content-between align-items-center mb-3">
+                  <div
+                    className={`range-card d-flex justify-content-between align-items-center mb-3 ${selectedRange === "search" ? "active-range" : ""
+                      }`}
+                  >
                     <div className="d-flex align-items-center gap-3">
-                      <input className="form-check-input" type="radio" />
-                      <h6 className="fw-bold mt-1">Current Search results</h6>
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="exportRange"
+                        checked={selectedRange === "search"}
+                        onChange={() => setSelectedRange("search")}
+                      />
+                      <h6 className="fw-bold mt-1">Current Search Results</h6>
                     </div>
 
-                    <h6 className="text-muted mt-1">40 records</h6>
+                    <h6 className="text-muted mt-1">{allUnits.length} records</h6>
                   </div>
 
-                  <div className="range-card d-flex align-items-center gap-3">
-                    <div className="d-flex align-items-center gap-3">
-                      <input className="form-check-input" type="radio" />
-                      <h6 className="fw-bold mt-1">Custom date range</h6>
-                    </div>
+                  <div
+                    className={`range-card d-flex align-items-center gap-3 ${selectedRange === "custom" ? "active-range" : ""
+                      }`}
+                  >
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="exportRange"
+                      checked={selectedRange === "custom"}
+                      onChange={() => setSelectedRange("custom")}
+                    />
+                    <h6 className="fw-bold mt-1">Custom Date Range</h6>
                   </div>
                 </div>
 

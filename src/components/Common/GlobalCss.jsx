@@ -65,6 +65,7 @@ body {
   font-size: 13px; font-weight: 800; flex-shrink: 0;
 }
 .logo-name { font-weight: 800; font-size: 15px; line-height: 1.2; white-space: nowrap; }
+.fw-bold { font-weight: 700 !important; }
 .logo-sub  { font-size: 10px; color: var(--muted); white-space: nowrap; }
 .sidebar.collapsed .logo-name,
 .sidebar.collapsed .logo-sub { display: none; }

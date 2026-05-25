@@ -233,7 +233,7 @@ export const getAllMembersWithoutPaginationApi = async (societyId, search) => {
 }
 
 export const deleteUnitApi = async (unitId) => {
-    const url = UrlData + 'flat/DeleteUnit';
+    const url = UrlData + 'flat/DeleteFlat';
     const data = {
         flat_id: unitId,
 

@@ -9,7 +9,7 @@ small,
 th,
 td {
   font-family: "Cairo";
-  /* font-weight: bold; */
+  font-weight: bold;
 }
 
 .counter {

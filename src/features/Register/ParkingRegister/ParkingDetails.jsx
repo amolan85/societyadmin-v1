@@ -3,7 +3,6 @@ import { FaCar } from 'react-icons/fa';
 import { FiAlertTriangle, FiDownload, FiEdit, FiExternalLink, FiPrinter, FiSlash } from "react-icons/fi";
 import { CgFileDocument } from 'react-icons/cg';
 import { BiHistory, BiLocationPlus } from 'react-icons/bi';
-import { RiFileHistoryFill } from 'react-icons/ri';
 
 const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 

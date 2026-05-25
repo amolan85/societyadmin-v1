@@ -16,10 +16,8 @@ import { GetSessionData, } from "../../utils/SessionManagement";
 import CreatePoll from "../Polls/CreatePoll";
 import CreateComplaints from "../Complaints/CreateComplaints";
 import CreateStaffAttendance from "../StaffAttendance/CreateStaffAttendance";
-import LoginPage from "../auth/LoginPage";
 import { useNavigate } from "react-router-dom";
 import CreateNoticeBoard from "../NoticeBoard/CreateNoticeBoard";
-import { Global } from "recharts";
 import { FiLogOut } from "react-icons/fi";
 import RegisterHistory from "../Register/MemberRegister/RegisterHistory";
 import UnitRegister from "../Register/UnitRegister/UnitRegister";
@@ -119,7 +117,6 @@ export default function App() {
 
   const [broadcastId, setBroadcastId] = useState(null);
   const [memberId, setMemberId] = useState(null);
-  const [staffId, setStaffId] = useState(null)
   const [flatId, setFlatId] = useState(null)
   const [selectedNoticeData, setSelectedNoticeData] = useState()
 

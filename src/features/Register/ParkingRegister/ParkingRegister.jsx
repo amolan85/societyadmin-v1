@@ -741,7 +741,7 @@ const ParkingRegister = ({ setActive }) => {
                                         Cancel
                                     </button>
 
-                                    <button className="btn btn-sm btn-primary" onClick={handleExport}>
+                                    <button className="btn btn-sm btn-primary" /* onClick={handleExport} */>
                                         <i className="bi bi-download me-2"></i>
                                         Export Data
                                     </button>

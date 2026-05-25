@@ -501,7 +501,7 @@ const RegisterHistory = ({ setActive }) => {
                                                         : s.status === "Success"
                                                             ? "green"
                                                             : s.status === "Pending"
-                                                                ? "orange"
+                                                                ? "yellow"
                                                                 : s.status === "Completed"
                                                                     ? "gray"
                                                                     : "gray"

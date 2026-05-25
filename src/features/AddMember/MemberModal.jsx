@@ -521,6 +521,7 @@ const MemberModal = ({
                       </div>
                     </>
                   )}
+
                   {memType === "familyMember" && (
                     <>
                       <div className="row g-3 mb-3">
@@ -543,6 +544,31 @@ const MemberModal = ({
                             onChange={(e) => setMoveInDate(e.target.value)}
                           />
                         </div>
+                        {
+                          familyType === "tenant_relative" && 
+                          (
+                            <div className="col-6">
+                          <div className="d-flex">
+                            <label className="sv-lb">
+                              Move-in Date{" "}
+                              <span className="text-danger">*</span>
+                            </label>
+                            {errors.moveInDate && (
+                              <span className="text-danger mx-2">
+                                {errors.moveInDate}
+                              </span>
+                            )}
+                          </div>
+                          <input
+                            className={`sv-in ${errors.moveInDate ? "error-input" : ""}`}
+                            type="date"
+                            value={moveInDate}
+                            onChange={(e) => setMoveInDate(e.target.value)}
+                          />
+                        </div>
+                          )
+                           
+                        }
                       </div>
                       <div className="mb-2">
                         <div className="d-flex">

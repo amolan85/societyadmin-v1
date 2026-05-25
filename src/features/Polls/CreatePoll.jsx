@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Badge } from '../../components/Common/ReusableFunction';
 import "../../styles/Broadcast.css"
 import { GetSessionData } from '../../utils/SessionManagement';
-import { CreateBroadcastApi } from '../../services/BroadcastApi';
 import { CreatePollApi } from '../../services/PollApi';
 import { toast } from "react-toastify";
+import { FiFileText } from "react-icons/fi";
+import { RiSecurePaymentFill } from 'react-icons/ri';
+import { BiEdit, BiInfoCircle, BiListUl, BiMoney, BiParty } from 'react-icons/bi';
 
 const CreatePoll = ({ setActive }) => {
-    const [tab, setTab] = useState("Announcement");
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
     const [startDate, setStartDate] = useState("")
@@ -18,12 +19,6 @@ const CreatePoll = ({ setActive }) => {
     const [errors, setErrors] = useState({})
     const [errorText, setErrorText] = useState("")
 
-    const tabs = [
-        { id: "Announcement", icon: "📢" },
-        { id: "Emergency", icon: "⚠️" },
-        { id: "Circular", icon: "📄" },
-        { id: "Event", icon: "📅" },
-    ];
 
     // Load session data on component mount for get session data
     useEffect(() => {
@@ -119,7 +114,7 @@ const CreatePoll = ({ setActive }) => {
             <div className="col-12 col-lg-8">
                 <div className="sv-card text-start">
                     <div className="d-flex justify-content-between align-items-center">
-                        <h5 className="bc-title">Create Poll</h5>
+                        <h5 className="bc-title"><BiEdit className='text-primary'/>  Create Poll</h5>
                         <button
                             className="btn btn-sm btn-primary"
                             onClick={() => setActive("polls")}
@@ -151,7 +146,7 @@ const CreatePoll = ({ setActive }) => {
                             onChange={(e) => setDescription(e.target.value)}
                         />
                     </div>
-                    <h6 className='fw-bold'>Voting Options</h6>
+                    <h6 className='fw-bold'><BiListUl size={18} className="text-primary me-2" />  Voting Options</h6>
                     <div>
                         {options.map((opt, index) => (
                             <div key={index}>
@@ -214,10 +209,12 @@ const CreatePoll = ({ setActive }) => {
             <div className="col-12 col-lg-4">
 
                 {/* Notifications */}
-                <div className="sv-card mb-3">
-                    <h6 className="bc-side-title text-start">Member View Preview</h6>
+                <div className=" mb-3">
+                    <div className="text-start fw-bold"  /* style={{ fontWeight: "700 !important" }} */>
+                        Member View Preview
+                    </div>
                     <div className="d-flex justify-content-between align-items-center mb-2">
-                        <h6 className="mb-0 text-start">Proposal for New Gym Equipment</h6>
+                        <div className="mb-0 mt-1 text-start fw-bold">Proposal for New Gym Equipment</div>
 
                         <Badge label="Live" c="green" />
                     </div>
@@ -238,15 +235,16 @@ const CreatePoll = ({ setActive }) => {
                 </div>
 
                 {/* Templates*/}
-                <div className="sv-card ">
-                    <h6 className="fw-bold  text-start">Templates</h6>
+                <div className="">
+                    <div className="fw-bold  text-start">Templates</div>
 
 
-                    <div className="template-card d-flex align-items-center justify-content-between">
+                    <div className="template-card d-flex align-items-center justify-content-between mt-3">
                         <div className="d-flex gap-3">
-                            <div className="template-icon blue-bg">
-                                <i className="bi bi-file-earmark-text"></i>
-                            </div>
+                            {/* <div className="template-icon blue-bg"> */}
+                            {/* <i className="bi bi-file-earmark-text"></i> */}
+                            <FiFileText size={20} color="#0d6efd" />
+                            {/* </div> */}
 
                             <div>
                                 <div className="fw-semibold text-start">AGM Standard Agenda</div>
@@ -262,9 +260,10 @@ const CreatePoll = ({ setActive }) => {
 
                     <div className="template-card d-flex align-items-center justify-content-between">
                         <div className="d-flex gap-3">
-                            <div className="template-icon green-bg">
-                                <i className="bi bi-cash-stack"></i>
-                            </div>
+                            {/* <div className="template-icon green-bg"> */}
+                            {/* <i className="bi bi-cash-stack"></i> */}
+                            <BiMoney size={20} color="#198754" />
+                            {/* </div> */}
 
                             <div>
                                 <div className="fw-semibold text-start">Expense Approval</div>
@@ -280,10 +279,10 @@ const CreatePoll = ({ setActive }) => {
 
                     <div className="template-card d-flex align-items-center justify-content-between">
                         <div className="d-flex gap-3">
-                            <div className="template-icon pink-bg">
+                            {/* <div className="template-icon pink-bg">
                                 <i className="bi bi-calendar-event"></i>
-                            </div>
-
+                            </div> */}
+                            <BiParty size={20} color="#d63384" />
                             <div>
                                 <div className="fw-semibold text-start">Event Date Selection</div>
                                 <small className="text-secondary d-block text-start">
@@ -296,13 +295,13 @@ const CreatePoll = ({ setActive }) => {
                     </div>
                 </div>
                 {/* Voting Rules */}
-                <div className="sv-card mt-2">
+                <div className="mt-2">
                     <div className="voting-rule">
                         <div className="d-flex gap-2">
-                            <i className="bi bi-info-circle text-primary"></i>
-
+                            {/* <i className="bi bi-info-circle text-primary"></i> */}
+                            <BiInfoCircle size={30} color="#0d6efd" />
                             <div>
-                                <div className="fw-semibold text-primary mb-1 text-start">
+                                <div className="fw-semibold text-primary mb-1 mt-1 text-start">
                                     Voting Rules
                                 </div>
 

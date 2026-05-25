@@ -8,6 +8,8 @@ import {
     FiClock,
     FiXCircle,
 } from "react-icons/fi";
+import { FaBalanceScale, FaSwimmingPool, FaUsers } from 'react-icons/fa';
+import { BiPieChartAlt2 } from 'react-icons/bi';
 
 const Polls = ({ setActive }) => {
     const [tab, setTab] = useState("");
@@ -104,17 +106,38 @@ const Polls = ({ setActive }) => {
         return options.reduce((sum, o) => sum + o.votes, 0);
     };
 
+    const getTimeAgo = (dateString) => {
+        const now = new Date();
+        const startDate = new Date(dateString);
+
+        const diffMs = now - startDate;
+
+        const minutes = Math.floor(diffMs / (1000 * 60));
+        const hours = Math.floor(diffMs / (1000 * 60 * 60));
+        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (days > 0) {
+            return `${days} day${days > 1 ? "s" : ""} ago`;
+        }
+
+        if (hours > 0) {
+            return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+        }
+
+        return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    };
+
     // Filter by status + search title
-const filteredData = allPolls.filter((item) => {
-  const statusMatch =
-    tab === "" || item.status === tab;
+    const filteredData = allPolls.filter((item) => {
+        const statusMatch =
+            tab === "" || item.status === tab;
 
-  const searchMatch =
-    search === "" ||
-    item.question?.toLowerCase().includes(search.toLowerCase());
+        const searchMatch =
+            search === "" ||
+            item.question?.toLowerCase().includes(search.toLowerCase());
 
-  return statusMatch && searchMatch;
-});
+        return statusMatch && searchMatch;
+    });
     return (
         <div className="pg row g-4 pl-wrap">
 
@@ -161,6 +184,9 @@ const filteredData = allPolls.filter((item) => {
 
 
                     }
+                    const startedAgo = p.start_datetime
+                        ? getTimeAgo(p.start_datetime)
+                        : "";
                     const pollStatus = getPollStatusIcon(p.status);
                     return (
                         <div key={i} className="sv-card mb-3 p-3">
@@ -186,7 +212,7 @@ const filteredData = allPolls.filter((item) => {
                                         />
                                     </div>
                                     <div className="pl-meta">
-                                        #POLL-2024-004 • Started: 2 days ago
+                                        #POLL-2024-004 • Started: {startedAgo}
                                         {expiryLabel && (
                                             <> • <span className={`pl-ends ${"true" ? "red" : ""}`}>{expiryLabel}</span></>
                                         )}
@@ -266,7 +292,7 @@ const filteredData = allPolls.filter((item) => {
             <div className="col-12 col-lg-4">
 
                 {/* Voting Overview */}
-                <div className="sv-card mb-3">
+                {/* <div className="pl-overview-card mb-3">
                     <h6 className="pl-side-title text-start">🗳 Voting Overview</h6>
 
                     <div className="row g-0 text-center">
@@ -280,17 +306,36 @@ const filteredData = allPolls.filter((item) => {
                             </div>
                         ))}
                     </div>
-                </div>
+                </div> */}
+<div className="pl-overview-card mb-3">
+  <h6 className="pl-side-title text-start">
+    <BiPieChartAlt2 className="me-2 text-primary" />
+    Voting Overview
+  </h6>
 
+  <div className="row g-0 text-center">
+    {statsData.map(([v, l, cls], i) => (
+      <div
+        key={l}
+        className={`col-6 py-3 pl-stat ${cls}
+        ${i < 2 ? "pl-bb" : ""}
+        ${i % 2 === 0 ? "pl-br" : ""}`}
+      >
+        <div className="pl-stat-val">{v}</div>
+        <div className="pl-stat-label">{l}</div>
+      </div>
+    ))}
+  </div>
+</div>
                 {/* Quick Create */}
-                <div className="sv-card mb-3">
+                <div className=" mb-3">
                     <h6 className="pl-side-title text-start">⚡ Quick Create</h6>
 
-                    {[["👥", "AGM Voting", "One vote per flat"], ["🔧", "Swimming Pool Rules", "Financial approval"], ["⚖️", "Rule Change", "Amend by-laws"]]
+                    {[[<FaUsers className='text-primary'/>, "AGM Voting", "One vote per flat"], [<FaSwimmingPool className='text-success'/>, "Swimming Pool Rules", "Financial approval"], [<FaBalanceScale style={{color:"orange"}}/>, "Rule Change", "Amend by-laws"]]
                         .map(([ic, lb, sub]) => (
                             <button key={lb} className="qa mb-2">
 
-                                <div className="qa-ico pl-qa-ico">{ic}</div>
+                                <div className="qa-ico pl-qa-ico rounded-circle">{ic}</div>
 
                                 <div>
                                     <div className="pl-qa-title">{lb}</div>

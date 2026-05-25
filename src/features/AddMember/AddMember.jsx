@@ -12,10 +12,6 @@ import {
 } from "../../services/AddMemberApi";
 import { toast } from "react-toastify";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
-import ExcelJS from "exceljs";
-import { saveAs } from "file-saver";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { FiFilter, FiSearch } from "react-icons/fi";
 import {
   getAllBlocksApi,
@@ -23,6 +19,7 @@ import {
 } from "../../services/UnitRegisterApi";
 import { CgExport } from "react-icons/cg";
 import MemberModal from "./MemberModal";
+import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 
 const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   const [memType, setMemType] = useState("");
@@ -53,8 +50,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   const [mode, setMode] = useState("add");
 
   const [allMembers, setAllMembers] = useState([]);
-  const [allMembersWithoutPagination, setAllMembersWithoutPagination] =
-    useState([]);
+  const [allMembersWithoutPagination, setAllMembersWithoutPagination] = useState([]);
   const [blocks, setBlocks] = useState("");
   const [allBlocks, setAllBlocks] = useState([]);
   const [activeTab, setActiveTab] = useState("excel");
@@ -62,6 +58,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   const [errorText, setErrorText] = useState("");
   const [search, setSearch] = useState("");
   const [mId, setMId] = useState("");
+  const [selectedRange, setSelectedRange] = useState("all");
 
   const addMemberType = [
     { id: "Owner", value: "owner" },
@@ -103,6 +100,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     try {
       const data = await getAllMembersWithoutPaginationApi(societyId, search);
       console.log(data.members, "All members without pagination");
+
       setAllMembersWithoutPagination(data.members);
     } catch (error) {
       console.error("Error fetching members:", error);
@@ -412,138 +410,49 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     setErrorText("");
   };
 
+  const exportData =
+    selectedRange === "all"
+      ? allMembersWithoutPagination
+      : selectedRange === "search"
+        ? allMembers
+        : "";
+
+
   const downloadExcel = async () => {
-    // create workbook
-    const workbook = new ExcelJS.Workbook();
-
-    // add worksheet
-    const worksheet = workbook.addWorksheet("Members");
-
-    // add columns dynamically
-    if (allMembersWithoutPagination.length > 0) {
-      worksheet.columns = Object.keys(allMembersWithoutPagination[0]).map(
-        (key) => ({
-          header: key,
-          key: key,
-          width: 20,
-        }),
-      );
-
-      // add rows
-      allMembersWithoutPagination.forEach((item) => {
-        worksheet.addRow(item);
-      });
-    }
-
-    // header style
-    worksheet.getRow(1).font = {
-      bold: true,
-    };
-
-    // create buffer
-    const buffer = await workbook.xlsx.writeBuffer();
-
-    // download file
-    saveAs(
-      new Blob([buffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      }),
-      "Members.xlsx",
-    );
+    exportFile({
+      data: exportData,
+      fileName: "Members",
+      sheetName: "Members",
+      type: "xlsx",
+    });
   };
 
   const downloadCSV = async () => {
-    // create workbook
-    const workbook = new ExcelJS.Workbook();
-
-    // add worksheet
-    const worksheet = workbook.addWorksheet("Members");
-
-    // add columns dynamically
-    if (allMembersWithoutPagination.length > 0) {
-      worksheet.columns = Object.keys(allMembersWithoutPagination[0]).map(
-        (key) => ({
-          header: key,
-          key: key,
-          width: 20,
-        }),
-      );
-
-      // add allMembers
-      allMembersWithoutPagination.forEach((item) => {
-        worksheet.addRow(item);
-      });
-    }
-
-    // header style
-    worksheet.getRow(1).font = {
-      bold: true,
-    };
-
-    // generate csv buffer
-    const csvBuffer = await workbook.csv.writeBuffer();
-
-    // create blob
-    const blob = new Blob([csvBuffer], {
-      type: "text/csv;charset=utf-8;",
+    exportFile({
+      data: exportData,
+      fileName: "Members",
+      sheetName: "Members",
+      type: "csv",
     });
-
-    // download file
-    saveAs(blob, "Members.csv");
   };
 
   const downloadPDF = () => {
-    // landscape mode
-    const doc = new jsPDF("landscape");
-
-    // PDF Heading
-    doc.setFontSize(18);
-    doc.text("Members Report", 14, 15);
-
-    // table columns
-    const tableColumn = [
-      "First Name",
-      "Last Name",
-      "Mobile No.",
-      "Email Id",
-      "Block",
-      "Flat",
-      "Membership Type",
-      "moveOutDate",
-    ];
-
-    // table rows
-    const tableRows = allMembers.map((item) => [
-      item.first_name,
-      item.last_name,
-      item.mobile,
-      item.email,
-      item.blocks?.label || item.blocks,
-      item.flat,
-      item.occupancy_type,
-      item.moveOutDate,
-    ]);
-
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-
-      // table start after heading
-      startY: 25,
-
-      styles: {
-        fontSize: 8,
-        cellPadding: 3,
-      },
-
-      headStyles: {
-        fillColor: [13, 110, 253],
-      },
-
-      theme: "grid",
+    exportToPDF({
+      title: "Members Report",
+      fileName: "Members",
+      columns: [
+        "Member Name",
+        "Unit No.",
+        "Role",
+        "Contact Info",
+      ],
+      data: exportData.map((item) => [
+        item.first_name + " " + item.last_name,
+        item.flat_number,
+        item.occupancy_type,
+        item.mobile,
+      ]),
     });
-
-    doc.save("Members.pdf");
   };
 
   const handleExport = () => {
@@ -571,17 +480,31 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     (item) => item.occupancy_type?.toLowerCase() === "familyMember",
   ).length;
 
+
   const handleSearch = async (e) => {
     const value = e.target.value;
     setSearch(value);
-    const data = await getAllMembersWithoutPaginationApi(societyId, value);
-    console.log(data, "Search results");
-    setAllMembers(data?.members || []);
-  };
 
+    try {
+      if (!value.trim()) {
+        setPage(1);
+        await getMembers(societyId, 1);
+        return;
+      }
+
+      if (value.length < 3) return;
+
+      const data = await getAllMembersWithoutPaginationApi(
+        societyId,
+        value
+      );
+
+      setAllMembers(data?.members || []);
+    } catch (error) {
+      console.error("Search error:", error);
+    }
+  };
   const total = Math.ceil(totalCount / limit);
-  // const per = limit, total = Math.ceil(filteredData.length / per);
-  // const rows = filteredData.slice((page - 1) * per, page * per);
 
   return (
     <>
@@ -646,7 +569,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
             <button
               className="btn-ol ms-2"
               onClick={() => {
-                getAllMembersWithoutPagination(societyId, search);
+                getAllMembersWithoutPagination(societyId, "");
                 setExportModal(true);
               }}
             >
@@ -657,6 +580,9 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
               onClick={() => {
                 setMode("add");
                 setShow(true);
+                resetForm();
+                setBlocks(null);
+                setFlat(null);
               }}
             >
               + Add Member
@@ -738,10 +664,10 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                                 : s.occupancy_type === "owner_relative"
                                   ? "Owner Family"
                                   : s.occupancy_type
-                                      .replaceAll("_", " ")
-                                      .replace(/\b\w/g, (char) =>
-                                        char.toUpperCase(),
-                                      )
+                                    .replaceAll("_", " ")
+                                    .replace(/\b\w/g, (char) =>
+                                      char.toUpperCase(),
+                                    )
                               : ""
                           }
                           c={
@@ -910,9 +836,8 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                     {/* Excel */}
                     <div className="col-md-4">
                       <div
-                        className={`format-card text-center p-3 rounded-3 ${
-                          activeTab === "excel" ? "active-format" : ""
-                        }`}
+                        className={`format-card text-center p-3 rounded-3 ${activeTab === "excel" ? "active-format" : ""
+                          }`}
                         onClick={() => {
                           setActiveTab("excel");
                         }}
@@ -927,11 +852,10 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                         />
 
                         <p
-                          className={`fw-semibold mb-0 mt-1 ${
-                            activeTab === "excel"
-                              ? "text-primary"
-                              : "text-secondary"
-                          }`}
+                          className={`fw-semibold mb-0 mt-1 ${activeTab === "excel"
+                            ? "text-primary"
+                            : "text-secondary"
+                            }`}
                         >
                           Excel
                         </p>
@@ -941,9 +865,8 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                     {/* CSV */}
                     <div className="col-md-4">
                       <div
-                        className={`format-card text-center p-3 rounded-3 ${
-                          activeTab === "csv" ? "active-format" : ""
-                        }`}
+                        className={`format-card text-center p-3 rounded-3 ${activeTab === "csv" ? "active-format" : ""
+                          }`}
                         onClick={() => {
                           setActiveTab("csv");
                         }}
@@ -958,11 +881,10 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                         />
 
                         <p
-                          className={`fw-semibold mb-0 mt-1 ${
-                            activeTab === "csv"
-                              ? "text-primary"
-                              : "text-secondary"
-                          }`}
+                          className={`fw-semibold mb-0 mt-1 ${activeTab === "csv"
+                            ? "text-primary"
+                            : "text-secondary"
+                            }`}
                         >
                           CSV
                         </p>
@@ -972,9 +894,8 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                     {/* PDF */}
                     <div className="col-md-4">
                       <div
-                        className={`format-card text-center p-3 rounded-3 ${
-                          activeTab === "pdf" ? "active-format" : ""
-                        }`}
+                        className={`format-card text-center p-3 rounded-3 ${activeTab === "pdf" ? "active-format" : ""
+                          }`}
                         onClick={() => {
                           setActiveTab("pdf");
                         }}
@@ -989,11 +910,10 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                         />
 
                         <p
-                          className={`fw-semibold mb-0 mt-1 ${
-                            activeTab === "pdf"
-                              ? "text-primary"
-                              : "text-secondary"
-                          }`}
+                          className={`fw-semibold mb-0 mt-1 ${activeTab === "pdf"
+                            ? "text-primary"
+                            : "text-secondary"
+                            }`}
                         >
                           PDF
                         </p>
@@ -1003,35 +923,56 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
 
                   <h6 className=" text-start fw-bold">Data Range</h6>
 
-                  <div className="range-card active-range d-flex justify-content-between align-items-center mb-3">
+                  <div
+                    className={`range-card d-flex justify-content-between align-items-center mb-3 ${selectedRange === "all" ? "active-range" : ""
+                      }`}
+                  >
                     <div className="d-flex align-items-center gap-3">
                       <input
                         className="form-check-input"
                         type="radio"
-                        checked
+                        name="exportRange"
+                        checked={selectedRange === "all"}
+                        onChange={() => setSelectedRange("all")}
                       />
                       <h6 className="fw-bold mt-1">All Data</h6>
                     </div>
 
-                    <span className="text-muted mt-1">
-                      <h6>{allMembers.length} records</h6>
-                    </span>
+                    <h6 className="text-muted mt-1">
+                      {allMembersWithoutPagination.length} records
+                    </h6>
                   </div>
 
-                  <div className="range-card d-flex justify-content-between align-items-center mb-3">
+                  <div
+                    className={`range-card d-flex justify-content-between align-items-center mb-3 ${selectedRange === "search" ? "active-range" : ""
+                      }`}
+                  >
                     <div className="d-flex align-items-center gap-3">
-                      <input className="form-check-input" type="radio" />
-                      <h6 className="fw-bold mt-1">Current Search results</h6>
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="exportRange"
+                        checked={selectedRange === "search"}
+                        onChange={() => setSelectedRange("search")}
+                      />
+                      <h6 className="fw-bold mt-1">Current Search Results</h6>
                     </div>
 
-                    <h6 className="text-muted mt-1">40 records</h6>
+                    <h6 className="text-muted mt-1">{allMembers.length} records</h6>
                   </div>
 
-                  <div className="range-card d-flex align-items-center gap-3">
-                    <div className="d-flex align-items-center gap-3">
-                      <input className="form-check-input" type="radio" />
-                      <h6 className="fw-bold mt-1">Custom date range</h6>
-                    </div>
+                  <div
+                    className={`range-card d-flex align-items-center gap-3 ${selectedRange === "custom" ? "active-range" : ""
+                      }`}
+                  >
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="exportRange"
+                      checked={selectedRange === "custom"}
+                      onChange={() => setSelectedRange("custom")}
+                    />
+                    <h6 className="fw-bold mt-1">Custom Date Range</h6>
                   </div>
                 </div>
 

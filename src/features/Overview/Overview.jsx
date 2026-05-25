@@ -9,6 +9,7 @@ import {
 import { OverviewApi } from '../../services/OverviewApi';
 
 import { GetSessionData } from '../../utils/SessionManagement';
+import { FiSearch } from 'react-icons/fi';
 
 const Overview = () => {
     //const { setLoading } = useLoader();
@@ -126,13 +127,13 @@ const Overview = () => {
                         <span
                             style={{
                                 position: "absolute",
-                                left: "15px",
+                                left: "25px",
                                 top: "50%",
                                 transform: "translateY(-50%)",
                                 color: "#aaa"
                             }}
                         >
-                            🔍
+                            <FiSearch/>
                         </span>
 
                         <input
