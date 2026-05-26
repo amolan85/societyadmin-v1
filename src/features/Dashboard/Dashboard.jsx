@@ -85,7 +85,7 @@ const TITLES = {
   polls: ["Communication", "Polls & Voting"],
   addmember: ["Member Masters", "Members"],
   memberDetails: ["Member Masters", "Member Details"],
-  viewUnit: ["Administration", "Registers","View Register", "View Unit"],
+  viewUnit: ["Administration", "Registers", "View Register", "View Unit"],
   transfer: ["Member Masters", "Transfer Member"],
   documents: ["Administration", "Documents & NOC"],
   flattransfer: ["Administration", "Flat Transfer"],
@@ -113,12 +113,14 @@ export default function App() {
   const [societyName, setSocietyName] = useState("")
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
- const [profileUrl, setProfileUrl] = useState("")
+  const [profileUrl, setProfileUrl] = useState("")
 
   const [broadcastId, setBroadcastId] = useState(null);
   const [memberId, setMemberId] = useState(null);
   const [flatId, setFlatId] = useState(null)
   const [selectedNoticeData, setSelectedNoticeData] = useState()
+  const [pollId, setPollId] = useState(null)
+  const [staffId, setStaffId] = useState(null)
 
 
   useLayoutEffect(() => {
@@ -142,10 +144,10 @@ export default function App() {
     overview: <Overview />,
     broadcasting: <Broadcast setActive={setActive} setBroadcastId={setBroadcastId} />,
     createbroadcast: <CreateBroadcast setActive={setActive} broadcastId={broadcastId} />,
-    polls: <Polls setActive={setActive} />,
-    createPoll: <CreatePoll setActive={setActive} />,
-    addmember: <AddMember setActive={setActive} setMemberId={setMemberId} setFlatId={setFlatId}/>,
-    memberDetails: <MemberDetails active={active} setActive={setActive}  previousTab={previousTab} setPreviousTab={setPreviousTab} memberId={memberId} setFlatId={setFlatId} flatId={flatId}/>,
+    polls: <Polls setActive={setActive} setPollId={setPollId} />,
+    createPoll: <CreatePoll setActive={setActive} pollId={pollId} />,
+    addmember: <AddMember setActive={setActive} setMemberId={setMemberId} setFlatId={setFlatId} />,
+    memberDetails: <MemberDetails active={active} setActive={setActive} previousTab={previousTab} setPreviousTab={setPreviousTab} memberId={memberId} setFlatId={setFlatId} flatId={flatId} />,
     viewUnit: <ViewUnit setActive={setActive} flatId={flatId} />,
     transfer: <PlaceholderPage label="Transfer Member" />,
     documents: <Documents />,
@@ -157,11 +159,11 @@ export default function App() {
     createComplaints: <CreateComplaints setActive={setActive} />,
     parking: <PlaceholderPage label="Parking" />,
     rentals: <PlaceholderPage label="Rentals & Tenants" />,
-    staff: <StaffAttendance setActive={setActive} setBroadcastId={setBroadcastId} />,
-    createStaff: <CreateStaffAttendance setActive={setActive} broadcastId={broadcastId} />,
+    staff: <StaffAttendance setActive={setActive} setStaffId={setStaffId} />,
+    createStaff: <CreateStaffAttendance setActive={setActive} staffId={staffId} />,
     noticeboard: <NoticeBoard setActive={setActive} setSelectedNoticeData={setSelectedNoticeData} />,
     createNoticeBoard: <CreateNoticeBoard setActive={setActive} selectedNoticeData={selectedNoticeData} />,
-    unitRegister: <UnitRegister setActive={setActive} setFlatId={setFlatId}/>,
+    unitRegister: <UnitRegister setActive={setActive} setFlatId={setFlatId} />,
     parkingRegister: <ParkingRegister setActive={setActive} />,
     parkingDetails: <ParkingDetails setActive={setActive} />,
     parkingHistory: <ParkingHistory setActive={setActive} />,

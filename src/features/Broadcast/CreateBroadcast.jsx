@@ -104,9 +104,9 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
             return;
         }
         try {
-            let response;
+          
             if (bId) {
-                response = await UpdateBroadcastApi(
+               await UpdateBroadcastApi(
                     bId,
                     subject,
                     content,
@@ -118,7 +118,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
                 );
                 toast.success("Broadcast updated  successfully!");
             } else {
-                response = await CreateBroadcastApi(
+                await CreateBroadcastApi(
                     societyId,
                     subject,
                     content,

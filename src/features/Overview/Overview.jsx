@@ -19,29 +19,6 @@ const Overview = () => {
     const [activeComplaints, setActiveComplaints] = useState("")
     const [staffAttendance, setStaffAttendance] = useState({})
 
-
-    // const barData = [
-    //     { name: "Jan", approved: 54, pending: 23, rejected: 48 },
-    //     { name: "Feb", approved: 28, pending: 25, rejected: 10 },
-    //     { name: "Mar", approved: 55, pending: 56, rejected: 38 },
-    //     { name: "Apr", approved: 59, pending: 98, rejected: 52 },
-    //     { name: "May", approved: 98, pending: 52, rejected: 93 },
-    //     { name: "Jun", approved: 76, pending: 34, rejected: 45 },
-    //     { name: "Jul", approved: 88, pending: 67, rejected: 54 },
-    //     { name: "Aug", approved: 92, pending: 45, rejected: 61 },
-    //     { name: "Sep", approved: 67, pending: 29, rejected: 40 },
-    //     { name: "Oct", approved: 73, pending: 38, rejected: 55 },
-    //     { name: "Nov", approved: 81, pending: 42, rejected: 36 },
-    //     { name: "Dec", approved: 95, pending: 50, rejected: 70 },
-    // ];
-
-    const radarData = [
-        { subject: "Jan", A: 80, B: 50, C: 20 },
-        { subject: "Feb", A: 60, B: 70, C: 30 },
-        { subject: "Mar", A: 40, B: 20, C: 60 },
-        { subject: "Apr", A: 70, B: 40, C: 50 },
-    ];
-
     useEffect(() => {
         SessionData()
     }, [])

@@ -253,5 +253,27 @@ export const deleteUnitApi = async (unitId) => {
     });
 }
 
+export const getSearchByUser = async (societyId, search) => {
+    const url = UrlData + 'flat/SearchUsers';
+    const data = {
+        society_id: societyId,
+        search: search,
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data,
+        timeout: 30000,
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors get search by user");
+        throw errors;
+    });
+}
+
+
 
 

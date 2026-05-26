@@ -91,7 +91,7 @@
   color: #374141;
   margin-bottom: 10px;
 }
-.NoticeBoardTabs {
+/* .NoticeBoardTabs {
   display: flex;
   background: #f3f4f6;
   border-radius: 30px;
@@ -103,6 +103,40 @@
 .NoticeBoardTabs-btn {
   flex: 1;
   padding: 8px 4px;
+  border: none;
+  border-radius: 26px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: 0.15s;
+  background: transparent;
+  color: var(--muted);
+}
+
+.NoticeBoardTabs-btn.active {
+  background: #111;
+  color: #fff;
+} */
+
+.NoticeBoardTabs {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 30px;
+  padding: 3px;
+  margin-bottom: 20px;
+  color: #fff;
+  overflow-x: auto;
+}
+
+.NoticeBoardTabs-btn {
+  flex: 1;
+  display: flex;              /* Add */
+  align-items: center;        /* Add */
+  justify-content: center;    /* Add */
+  gap: 6px;                   /* Add */
+  white-space: nowrap;        /* Add */
+  padding: 8px 12px;
   border: none;
   border-radius: 26px;
   font-weight: 600;

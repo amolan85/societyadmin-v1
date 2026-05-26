@@ -33,6 +33,7 @@ const UnitModal = ({
 
     emailId,
     setEmailId,
+    handleEmailChange,
 
     mobileNo,
     setMobileNo,
@@ -346,9 +347,7 @@ const UnitModal = ({
                                                 }`}
                                                 placeholder="name@example.com"
                                                 value={emailId}
-                                                onChange={(e) =>
-                                                    setEmailId(e.target.value)
-                                                }
+                                                onChange={handleEmailChange}
                                             />
                                         </div>
 

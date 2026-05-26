@@ -11,6 +11,7 @@ import {
   getFlatByIdApi,
   UpdateUnitsApi,
   deleteUnitApi,
+  getSearchByUser,
 } from "../../../services/UnitRegisterApi";
 import { toast } from "react-toastify";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
@@ -21,6 +22,7 @@ import { exportFile, exportToPDF } from "../../../components/Common/ExportFile";
 
 const UnitRegister = ({ setActive, setFlatId }) => {
   const [societyId, setSocietyId] = useState("");
+  const [userId, setUserId] = useState("");
   const [errors, setErrors] = useState({});
   const [show, setShow] = useState(false);
   const [page, setPage] = useState(1);
@@ -170,6 +172,25 @@ const UnitRegister = ({ setActive, setFlatId }) => {
     // getAllUnits(societyId, value);
   };
 
+  const handleEmailChange = async (e) => {
+    const value = e.target.value;
+    setEmailId(value);
+
+    // minimum 5 chars aur @ hona chahiye
+    if (value.length >= 5 && value.includes("@")) {
+      try {
+        const response = await getSearchByUser(societyId, value);
+        console.log(response);
+        setEmailId(response[0].email)
+        setFullName(response[0].full_name)
+        setMobileNo(response[0].mobile)
+        setUserId(response[0].user_id)
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
   //function for validation
   const validateForm = () => {
     let errors = {};
@@ -311,6 +332,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
         "Block/Floor",
         "Owner",
         "Tenant"
+
       ],
       data: exportData.map((item) => [
         item.flat_number,
@@ -319,7 +341,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
         item.members?.find((m) => m.occupancy_type === "owner")
           ? `${item.members.find((m) => m.occupancy_type === "owner")?.first_name || ""} ${item.members.find((m) => m.occupancy_type === "owner")?.last_name || ""}`
           : "-",
-            item.members?.find((m) => m.occupancy_type === "tenant")
+        item.members?.find((m) => m.occupancy_type === "tenant")
           ? `${item.members.find((m) => m.occupancy_type === "tenant")?.first_name || ""} ${item.members.find((m) => m.occupancy_type === "tenant")?.last_name || ""}`
           : "-",
       ]),
@@ -534,7 +556,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                         </div>
                       </div>
                     </td>
- <td>
+                    <td>
                       <div className="d-flex align-items-center gap-2">
                         <img
                           src={s.profile_url || "../src/assets/profile.png"}
@@ -545,14 +567,16 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                         />
 
                         <div>
+                          {/* <div className="fw-semibold">
+                            {s?.members?.find((m) => m.occupancy_type === "tenant")
+                              ? `${s.members.find((m) => m.occupancy_type === "tenant")?.first_name || ""} ${s.members.find((m) => m.occupancy_type === "tenant")?.last_name || ""} (Current Resident)`
+                              : "-"}
+                          </div> */}
                           <div className="fw-semibold">
-                            {s?.members?.find(
-                              (m) => m.occupancy_type === "tenant",
-                            )
+                            {s?.members?.find((m) => m.occupancy_type === "tenant")
                               ? `${s.members.find((m) => m.occupancy_type === "tenant")?.first_name || ""} ${s.members.find((m) => m.occupancy_type === "tenant")?.last_name || ""}`
                               : "-"}
                           </div>
-
                           <small className="text-muted">
                             {s?.members?.find(
                               (m) => m.occupancy_type === "tenant",
@@ -668,6 +692,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
         setFullName={setFullName}
         emailId={emailId}
         setEmailId={setEmailId}
+        handleEmailChange={handleEmailChange}
         mobileNo={mobileNo}
         setMobileNo={setMobileNo}
         handleSubmit={handleSubmit}

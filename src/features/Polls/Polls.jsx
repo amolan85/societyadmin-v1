@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Badge, Prog } from '../../components/Common/ReusableFunction';
 import "../../styles/polls.css"
 import { GetSessionData } from '../../utils/SessionManagement';
-import { getPollApi, getPollOverviewApi } from '../../services/PollApi';
+import { deletePollApi, getPollApi, getPollOverviewApi } from '../../services/PollApi';
+import { toast } from "react-toastify";
 import {
     FiCheckCircle,
     FiClock,
@@ -11,19 +12,13 @@ import {
 import { FaBalanceScale, FaSwimmingPool, FaUsers } from 'react-icons/fa';
 import { BiPieChartAlt2 } from 'react-icons/bi';
 
-const Polls = ({ setActive }) => {
+const Polls = ({ setActive, setPollId }) => {
     const [tab, setTab] = useState("");
     const [societyId, setSocietyId] = useState("")
     const [userId, setUserId] = useState("")
     const [allPolls, setAllPolls] = useState([])
     const [pollsOverview, setPollsOverview] = useState({})
     const [search, setSearch] = useState("");
-    // const polls = [
-    //     { icon: "📊", title: "AGM 2025 : Approval of Annual Accounts", id: "#POLL-2024-004", meta: "Started: 2 days ago", ends: "Ends in 24h", endRed: true, tags: ["AGM Voting", "One Vote per Flat", "Secret Ballot"], status: "Live Voting", sc: "green", pct: 78, votes: "234 / 300" },
-    //     { icon: "🔧", title: "Gym Equipment Upgrade Proposal", id: "#POLL-2024-005", meta: "Started: 5 hours ago", ends: "Ends in 5 days", tags: ["Infrastructure", "Per Member", "Open Ballot"], status: "Live Voting", sc: "green", pct: 12, votes: "36 / 300" },
-    //     { icon: "☑", title: "Q3 Maintenance Charge Hike (10%)", id: "#POLL-2024-003", meta: "Ended: Oct 15, 2024", tags: ["Finance", "One Vote per Flat", "Approved"], status: "Closed", sc: "gray", result: true, votes: "280 Total" },
-    //     { icon: "🗓", title: "Visitor Parking Policy Revision", id: "#POLL-2024-006", meta: "Starts: Nov 20, 2024 (10:00 AM)", tags: ["Rules & Regulations", "Per Member"], status: "Scheduled", sc: "orange" },
-    // ];
 
     const tabs = [
         { id: "All", value: "" },
@@ -98,6 +93,23 @@ const Polls = ({ setActive }) => {
         [pollsOverview.total_polls || "", "Total Polls (YTD)", ""],
         [`${Math.round(pollsOverview.digital_adoption_percent)}%` | "", "Digital Adoption", "tx-success"]
     ];
+
+
+    const getPollById = (pollId) => {
+        setActive("createPoll")
+        setPollId(pollId)
+    }
+    
+    const deletePoll = async (pollId) => {
+        try {
+            const data = await deletePollApi(pollId)
+            console.log(data)
+            toast.success("Poll deleted successfully!")
+            GetPollsData(societyId, userId)
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
     const totalUsers = 300; // ⚠️ replace with API value if available
 
@@ -267,7 +279,7 @@ const Polls = ({ setActive }) => {
 
                                     {p.status !== "Scheduled" && (
                                         <button className="btn-ol py-1 px-3 pl-btn-sm">
-                                            {p.status === "Closed" ? "View Report" : "Analytics"}
+                                            {p.status === "EXPIRED" ? "View Report" : "Analytics"}
                                         </button>
                                     )}
 
@@ -277,8 +289,44 @@ const Polls = ({ setActive }) => {
                                         </button>
                                     )}
 
-                                    <span className="tx-muted pl-menu">⋮</span>
+                                    {/* <span className="tx-muted pl-menu">⋮</span> */}
 
+                                    <div className="member-action-dropdown dropdown">
+                                        <button
+                                            className="member-action-btn"
+                                            type="button"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false"
+                                        >
+                                            ⋮
+                                        </button>
+
+                                        <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                            <li>
+                                                <button
+                                                    className="dropdown-item member-action-item"
+                                                    onClick={() => {
+                                                        getPollById(p.poll_id);
+                                                    }}
+                                                >
+                                                    Edit Poll
+                                                </button>
+                                            </li>
+
+                                            <li>
+                                                <hr className="dropdown-divider" />
+                                            </li>
+
+                                            <li>
+                                                <button
+                                                    className="dropdown-item member-action-item member-action-delete"
+                                                    onClick={() => deletePoll(p.poll_id)}
+                                                >
+                                                    Delete Poll
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
 
                             </div>
@@ -307,31 +355,31 @@ const Polls = ({ setActive }) => {
                         ))}
                     </div>
                 </div> */}
-<div className="pl-overview-card mb-3">
-  <h6 className="pl-side-title text-start">
-    <BiPieChartAlt2 className="me-2 text-primary" />
-    Voting Overview
-  </h6>
+                <div className="pl-overview-card mb-3">
+                    <h6 className="pl-side-title text-start">
+                        <BiPieChartAlt2 className="me-2 text-primary" />
+                        Voting Overview
+                    </h6>
 
-  <div className="row g-0 text-center">
-    {statsData.map(([v, l, cls], i) => (
-      <div
-        key={l}
-        className={`col-6 py-3 pl-stat ${cls}
+                    <div className="row g-0 text-center">
+                        {statsData.map(([v, l, cls], i) => (
+                            <div
+                                key={l}
+                                className={`col-6 py-3 pl-stat ${cls}
         ${i < 2 ? "pl-bb" : ""}
         ${i % 2 === 0 ? "pl-br" : ""}`}
-      >
-        <div className="pl-stat-val">{v}</div>
-        <div className="pl-stat-label">{l}</div>
-      </div>
-    ))}
-  </div>
-</div>
+                            >
+                                <div className="pl-stat-val">{v}</div>
+                                <div className="pl-stat-label">{l}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
                 {/* Quick Create */}
                 <div className=" mb-3">
                     <h6 className="pl-side-title text-start">⚡ Quick Create</h6>
 
-                    {[[<FaUsers className='text-primary'/>, "AGM Voting", "One vote per flat"], [<FaSwimmingPool className='text-success'/>, "Swimming Pool Rules", "Financial approval"], [<FaBalanceScale style={{color:"orange"}}/>, "Rule Change", "Amend by-laws"]]
+                    {[[<FaUsers className='text-primary' />, "AGM Voting", "One vote per flat"], [<FaSwimmingPool className='text-success' />, "Swimming Pool Rules", "Financial approval"], [<FaBalanceScale style={{ color: "orange" }} />, "Rule Change", "Amend by-laws"]]
                         .map(([ic, lb, sub]) => (
                             <button key={lb} className="qa mb-2">
 

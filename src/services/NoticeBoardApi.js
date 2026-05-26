@@ -93,3 +93,25 @@ export const updateNoticeApi = async (noticeId, title, description, noticeType, 
         throw errors;
     });
 }
+
+export const deleteNoticeApi = async (noticeId) => {
+    const url = UrlData + 'notice/DeleteNotice';
+    const data = {
+        notice_id: noticeId,
+
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data,
+        timeout: 30000,
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors delete notice");
+        throw errors;
+    });
+}
+

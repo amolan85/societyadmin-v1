@@ -1,24 +1,17 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/StaffAttendance.css"
-import createbroadcast from './CreateBroadcast';
-import { getBroadcastApi } from '../../services/BroadcastApi';
+import { deleteBroadcastApi, getBroadcastApi } from '../../services/BroadcastApi';
 import { GetSessionData } from '../../utils/SessionManagement';
-import { FiBell, FiEdit } from 'react-icons/fi';
+import { toast } from "react-toastify";
+import { FiEdit, FiTrash2 } from 'react-icons/fi';
 import {
     FiVolume2,
-    FiTool,
     FiAlertTriangle,
     FiCalendar,
-    FiBriefcase,
-    FiUsers,
-    FiTrash2,
-    FiGrid ,
-    FiFileText 
+    FiGrid,
+    FiFileText
 } from "react-icons/fi";
-
-import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
-// import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -26,19 +19,14 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
     const [page, setPage] = useState(1);
     const [allBroadcast, setAllBroadcast] = useState([])
     const [broadcastTypeTab, setBroadcastTypeTab] = useState("")
-    const [showCreate, setShowCreate] = useState(false);
     const [societyId, setSocietyId] = useState("")
-    const [pendingId, setPendingId] = useState(null)
-    const [show, setShow] = useState(false)
     const [name, setName] = useState("")
 
-    const [activeTab, setActiveTab] = useState("excel");
-
     const broadcastType = [
-        { id: "All Items", icon: <FiGrid  size={18} color="#2563eb" />, value: "" },
+        { id: "All", icon: <FiGrid size={18} color="#2563eb" />, value: "" },
         { id: "Announcement", icon: <FiVolume2 size={18} color="#f59e0b" />, value: "announcement" },
         { id: "Emergency", icon: <FiAlertTriangle size={18} color="#ef4444" />, value: "emergency" },
-        { id: "Circular", icon: <FiFileText  size={18} color="purple" />, value: "circular" },
+        { id: "Circular", icon: <FiFileText size={18} color="purple" />, value: "circular" },
         { id: "Event", icon: <FiCalendar size={18} color="#10b981" />, value: "event" },
     ];
 
@@ -75,6 +63,17 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
         setBroadcastId(id);
         setActive("createbroadcast");    // pehle ID set karo
     };
+
+    const deleteBroadcast = async (broadcastId) => {
+        try {
+            const data = await deleteBroadcastApi(broadcastId)
+            console.log(data)
+            toast.success("Broadcast deleted successfully!")
+            getBroadcast(societyId)
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
     const downloadExcel = () => {
 
@@ -211,7 +210,7 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                 };
             case "circular":
                 return {
-                    icon: <FiFileText  size={18} color="#7c3aed" />,
+                    icon: <FiFileText size={18} color="#7c3aed" />,
                     bg: "#ede9fe",
                 };
 
@@ -263,7 +262,7 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                             const noticeData = getNoticeIcon(p.type);
                             return (
                                 <div
-                                    key={i}
+                                    key={p.broadcast_id}
                                     className={`nb-post text-start ${i < arr.length - 1 ? "nb-border" : ""}`}
                                 >
 
@@ -326,11 +325,11 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                                                         <span className="nb-locked">🔒 Locked</span>
                                                     )}
 
-                                                    {/* <FiTrash2
+                                                    <FiTrash2
                                                         size={18}
                                                         style={{ cursor: "pointer", color: "red" }}
-                                                        // onClick={() => deleteNotice(p.notice_id)}
-                                                    /> */}
+                                                        onClick={() => deleteBroadcast(p.broadcast_id)}
+                                                    />
                                                 </div>
                                             </div>
 

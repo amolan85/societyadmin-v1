@@ -4,7 +4,7 @@ import "../../styles/Broadcast.css"
 import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi, getBroadcastByIdApi, UpdateBroadcastApi } from '../../services/BroadcastApi';
 import { createComplaintsApi } from '../../services/ComplaintsApi';
-import { createStaffApi } from '../../services/StaffAttendanceApi';
+import { createStaffApi, getStaffByIdApi, UpdateStaffApi } from '../../services/StaffAttendanceApi';
 import { toast } from "react-toastify";
 
 const CreateStaffAttendance = ({ setActive, staffId }) => {
@@ -13,17 +13,12 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
     const [lastName, setLastName] = useState("")
     const [mobileNo, setMobileNo] = useState("")
     const [emailId, setEmailId] = useState("")
-    const [subject, setSubject] = useState("")
-    const [content, setContent] = useState("")
-    const [attchment, setAttchment] = useState(null)
     const [channel, setChannel] = useState("")
     const [salary, setSalary] = useState("")
     const [joiningDate, setJoiningDate] = useState("")
     const [societyId, setSocietyId] = useState("")
-    const [schedule, setSchedule] = useState("sendNow")
     const [errors, setErrors] = useState({})
-    const [scheduleDateTime, setScheduleDateTime] = useState("");
-    const [bId, setBId] = useState("")
+    const [sId, setSId] = useState("")
     const [errorText, setErrorText] = useState("")
 
     const tabs = [
@@ -39,11 +34,29 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
         SessionData()
     }, [])
 
+    useEffect(() => {
+        if (staffId) {
+            StffById();
+        }
+    }, [staffId]);
+
     const SessionData = async () => {
         const data = await GetSessionData()
         console.log(data.data)
         const flats = data.data.flats[0]
         setSocietyId(flats.society_id)
+    }
+
+    const StffById = async () => {
+        const data = await getStaffByIdApi(staffId)
+        console.log(data)
+        setFirstName(data.first_name)
+        setLastName(data.last_name)
+        setEmailId(data.email)
+        setMobileNo(data.mobile)
+        setSalary(data.salary)
+        setJoiningDate(data.joining_date)
+        setSId(data.staff_id)
     }
 
     const validateForm = () => {
@@ -80,35 +93,41 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
     };
 
     const CreateStaff = async () => {
-        console.log("hi")
         try {
-
             const validationErrors = validateForm();
-
             if (Object.keys(validationErrors).length > 0) {
                 setErrors(validationErrors);
                 return;
             }
-
-            const data = await createStaffApi(
-                societyId,
-                firstName,
-                lastName,
-                emailId,
-                mobileNo,
-                role,
-                salary,
-                joiningDate
-            );
-
-            console.log(data);
-
-            toast.success("Staff created");
-
-            setActive("staff");
-
+            if (sId) {
+                const data = await UpdateStaffApi(
+                    sId,
+                    firstName,
+                    lastName,
+                    emailId,
+                    mobileNo,
+                    role,
+                    salary,
+                    joiningDate
+                );
+                toast.success("Staff updated successfully");
+                setActive("staff");
+            }
+            else {
+                const data = await createStaffApi(
+                    societyId,
+                    firstName,
+                    lastName,
+                    emailId,
+                    mobileNo,
+                    role,
+                    salary,
+                    joiningDate
+                );
+                toast.success("Staff created successfully");
+                setActive("staff");
+            }
         } catch (error) {
-
             console.log(error);
             toast.error(error);
             setErrorText(error
@@ -118,23 +137,13 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
         }
     };
 
-    const handleChannelChange = (e) => {
-        const { name, checked } = e.target;
-
-        setChannel(prev => ({
-            ...prev,
-            [name]: checked
-        }));
-    };
-
-
     return (
         <div className="pg row g-4 bc-wrap">
             {/* LEFT */}
             <div className="col-12 col-lg-8">
                 <div className="sv-card text-start">
                     <div className="d-flex justify-content-between align-items-center">
-                        <h5 className="bc-title">Create Staff Attendance</h5>
+                        <h5 className="bc-title">{sId ? "Update" : "Create"} Staff Attendance</h5>
                         <button
                             className="btn btn-sm btn-primary"
                             onClick={() => setActive("staff")}
@@ -142,12 +151,12 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
                             Back
                         </button>
                     </div>
-                    <div className="broadcastTabs mt-2">
+                    <div className="NoticeBoardTabs mt-2">
                         {tabs.map((t) => (
                             <button
                                 key={t.id}
                                 onClick={() => setRole(t.value)}
-                                className={`broadcastTab-btn ${role === t.value ? "active" : ""}`}
+                                className={`NoticeBoardTabs-btn ${role === t.value ? "active" : ""}`}
                             >
                                 {t.icon} {t.id}
                             </button>
@@ -218,7 +227,7 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
 
                     <div className="d-flex gap-2 justify-content-end">
 
-                        <button className="btn-ac" onClick={CreateStaff}>Create</button>
+                        <button className="btn-ac" onClick={CreateStaff}>{sId ? "Update" : "Create"}</button>
                     </div>
 
                 </div>

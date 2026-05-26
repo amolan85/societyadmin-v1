@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/NoticeBoard.css"
-import { getNoticeBoardApi } from '../../services/NoticeBoardApi';
+import { deleteNoticeApi, getNoticeBoardApi } from '../../services/NoticeBoardApi';
 import { GetSessionData } from '../../utils/SessionManagement';
-import CreateNoticeBoard from './CreateNoticeBoard';
+import { toast } from "react-toastify";
 import {
     FiVolume2,
     FiTool,
@@ -18,6 +18,7 @@ import {
 const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
 
     const [tab, setTab] = useState("");
+    const [societyId, setSocietyId] = useState("");
     const [name, setName] = useState("")
     const [allNoticeBoard, setAllNoticeBoard] = useState([])
     const [page, setPage] = useState(1);
@@ -30,6 +31,10 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
     ];
 
     const tabs = [
+        {
+            id: "All",
+            value: "",
+        },
         {
             id: "General",
             icon: <FiVolume2 size={18} color="#2563eb" />,
@@ -123,7 +128,7 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
         const flats = data.data.flats[0]
         console.log(data.data.first_name)
         setName(data.data.first_name + " " + data.data.last_name)
-
+        setSocietyId(flats.society_id)
         //fetch get notice board
         getNoticeBoard(flats.society_id)
     }
@@ -146,6 +151,17 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
         setActive("createNoticeBoard");
     };
 
+    const deleteNotice = async (noticeId) => {
+        try {
+            const data = await deleteNoticeApi(noticeId)
+            console.log(data)
+            toast.success("Notice deleted successfully!")
+            getNoticeBoard(societyId)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    
     const timeAgo = (utcDate) => {
 
         // UTC date convert
@@ -180,7 +196,7 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
         ? allNoticeBoard
         : allNoticeBoard.filter((item) => item.notice_type === tab);
 
-  const per = 5, total = Math.ceil(allNoticeBoard.length / per);
+    const per = 5, total = Math.ceil(allNoticeBoard.length / per);
     const rows = allNoticeBoard.slice((page - 1) * per, page * per);
     return (
         <>
@@ -273,7 +289,7 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
                                                     <FiTrash2
                                                         size={18}
                                                         style={{ cursor: "pointer", color: "red" }}
-                                                    // onClick={() => deleteNotice(p.notice_id)}
+                                                        onClick={() => deleteNotice(p.notice_id)}
                                                     />
                                                 </div>
                                             </div>

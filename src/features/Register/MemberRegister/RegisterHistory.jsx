@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import  { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
 import "../../../styles/StaffAttendance.css"
 import "../../../styles/Register.css"
@@ -6,8 +6,8 @@ import { getBroadcastApi } from '../../../services/BroadcastApi';
 import { GetSessionData } from '../../../utils/SessionManagement';
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-import { FiEdit, FiLogIn } from 'react-icons/fi';
-import { FiSearch, FiCalendar, FiFilter } from "react-icons/fi";
+import {  FiLogIn } from 'react-icons/fi';
+import { FiCalendar, FiFilter } from "react-icons/fi";
 import { useLoader } from "../../../context/LoaderContext";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 // import * as XLSX from "xlsx";
@@ -15,15 +15,13 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { RiSecurePaymentFill } from 'react-icons/ri';
 import { AiFillProfile } from 'react-icons/ai';
-import { BiArrowBack, BiImport } from 'react-icons/bi';
+import { BiImport } from 'react-icons/bi';
 import { MdReportProblem } from 'react-icons/md';
 
 const RegisterHistory = ({ setActive }) => {
     const [page, setPage] = useState(1);
     const [allRegisterHistory, setAllRegisterHistory] = useState([])
-    const [showCreate, setShowCreate] = useState(false);
     const [societyId, setSocietyId] = useState("")
-    const [pendingId, setPendingId] = useState(null)
     const [show, setShow] = useState(false)
     const { setLoading } = useLoader();
     const [activeTab, setActiveTab] = useState("excel");

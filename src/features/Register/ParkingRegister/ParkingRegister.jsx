@@ -14,8 +14,8 @@ const ParkingRegister = ({ setActive }) => {
     const [errors, setErrors] = useState({});
     const [show, setShow] = useState(false);
     const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(10);
-    const [totalCount, setTotalCount] = useState(0);
+    const [limit] = useState(10);
+    const [totalCount] = useState(0);
     const [activeTab, setActiveTab] = useState("excel");
     const [exportModal, setExportModal] = useState(false)
     const [errorText, setErrorText] = useState("")
@@ -24,7 +24,7 @@ const ParkingRegister = ({ setActive }) => {
 
     const [slotNo, setSlotNo] = useState("");
     const [location, setLocation] = useState("");
-    const [allLocation, setAllLocation] = useState("");
+const [allLocation, setAllLocation] = useState("");    
     const [parkingType, setParkingType] = useState("");
     const [vehicleSuitability, setVehicleSuitability] = useState("");
     const [allocationStatus, setAllocationStatus] = useState("");

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/StaffAttendance.css"
-import { getStaffAttendanceApi } from '../../services/StaffAttendanceApi';
+import { toast } from 'react-toastify';
+import { deleteStaffApi, getStaffAttendanceApi } from '../../services/StaffAttendanceApi';
 import { GetSessionData } from '../../utils/SessionManagement';
-import CreateStaff from './CreateStaffAttendance';
 
 const StaffAttendance = ({ setActive, setStaffId }) => {
     const [page, setPage] = useState(1);
@@ -14,19 +14,6 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
     const [present, setPresent] = useState("")
     const [absent, setAbsent] = useState("")
     const [late, setLate] = useState("")
-
-    // const all = [
-    //     { name: "Ramesh Gupta", role: "Security Guard", shift: "Morning", st: "Present", sc: "green", time: "08:02 AM" },
-    //     { name: "Suresh Patil", role: "Housekeeping", shift: "Morning", st: "Present", sc: "green", time: "08:15 AM" },
-    //     { name: "Kavita Singh", role: "Receptionist", shift: "Morning", st: "Late", sc: "orange", time: "09:32 AM" },
-    //     { name: "Mohan Nair", role: "Security Guard", shift: "Evening", st: "Absent", sc: "red", time: "—" },
-    //     { name: "Priya Verma", role: "Housekeeping", shift: "Morning", st: "Present", sc: "green", time: "07:55 AM" },
-    //     { name: "Ajay Sharma", role: "Plumber", shift: "Morning", st: "Present", sc: "green", time: "08:30 AM" },
-    //     { name: "Ritu Mehta", role: "Admin Staff", shift: "Morning", st: "Present", sc: "green", time: "09:01 AM" },
-    //     { name: "Deepak Joshi", role: "Security Guard", shift: "Night", st: "Present", sc: "green", time: "10:00 PM" },
-    //     { name: "Sunita Das", role: "Housekeeping", shift: "Morning", st: "Late", sc: "orange", time: "09:45 AM" },
-    //     { name: "Vikas Rao", role: "Maintenance", shift: "Morning", st: "Absent", sc: "red", time: "—" },
-    // ];
 
     useEffect(() => {
         SessionData()
@@ -40,7 +27,6 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
         getStaff(flats.society_id)
 
     }
-
     //function for get staff
     const getStaff = async (societyId) => {
         const data = await getStaffAttendanceApi(societyId, date)
@@ -51,6 +37,22 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
         setAbsent(data.summary.absent)
     }
 
+    const GetStaffById = async (staffId) => {
+        setActive("createStaff")
+        setStaffId(staffId)
+    }
+
+    const deleteStaff = async (staffId) => {
+        try {
+            const data = await deleteStaffApi(staffId)
+            console.log(data)
+            toast.success("Poll deleted successfully!")
+            getStaff(societyId)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     const per = 5, total = Math.ceil(allStaff.length / per);
     const rows = allStaff.slice((page - 1) * per, page * per);
 
@@ -59,6 +61,70 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
         const data = await getStaffAttendanceApi(societyId, e.target.value)
         console.log(data)
     }
+
+    //   const exportData =
+    //     selectedRange === "all"
+    //       ? allUnitsWithoutPagination
+    //       : selectedRange === "search"
+    //         ? allUnits
+    //         : "customData";
+
+    //   const downloadExcel = async () => {
+    //     exportFile({
+    //       data: exportData,
+    //       fileName: "Units",
+    //       sheetName: "Units",
+    //       type: "xlsx",
+    //     });
+    //   };
+
+    //   const downloadCSV = async () => {
+    //     exportFile({
+    //       data: exportData,
+    //       fileName: "Units",
+    //       sheetName: "Units",
+    //       type: "csv",
+    //     });
+    //   };
+
+    //   const downloadPDF = () => {
+    //     exportToPDF({
+    //       title: "Units Report",
+    //       fileName: "Units",
+    //       columns: [
+    //         "Unit No.",
+    //         "Type & Area",
+    //         "Block/Floor",
+    //         "Owner",
+    //         "Tenant"
+    //       ],
+    //       data: exportData.map((item) => [
+    //         item.flat_number,
+    //         `${item.unit_type || ""} (${item.area_sqft || ""} sq.ft)`,
+    //         `${item.block || "-"} / ${item.floor || "-"} Flr`,
+    //         item.members?.find((m) => m.occupancy_type === "owner")
+    //           ? `${item.members.find((m) => m.occupancy_type === "owner")?.first_name || ""} ${item.members.find((m) => m.occupancy_type === "owner")?.last_name || ""}`
+    //           : "-",
+    //         item.members?.find((m) => m.occupancy_type === "tenant")
+    //           ? `${item.members.find((m) => m.occupancy_type === "tenant")?.first_name || ""} ${item.members.find((m) => m.occupancy_type === "tenant")?.last_name || ""}`
+    //           : "-",
+    //       ]),
+    //     });
+    //   };
+
+    //   const handleExport = () => {
+    //     if (activeTab === "excel") {
+    //       downloadExcel();
+    //       setExportModal(false);
+    //     } else if (activeTab === "csv") {
+    //       downloadCSV();
+    //       setExportModal(false);
+    //     } else if (activeTab === "pdf") {
+    //       downloadPDF();
+    //       setExportModal(false);
+    //     }
+    //   };
+
 
     return (
 
@@ -85,7 +151,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                 {[
                     [present, "Present", "tile-grn"],
                     [absent, "Absent", "tile-red"],
-                    ["3", "Late", "tile-org"],
+                    ["-", "Late", "tile-org"],
                     [totalStaff, "Total Staff", "tile-blu"]
                 ].map(([v, l, cls]) => (
                     // <div className="col-6 col-md-3" key={l}>
@@ -110,7 +176,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                     <table className="sv-tbl">
                         <thead>
                             <tr>
-                                {["Name", "Role", "Shift", "Status", "Time In", "Time Out"]
+                                {["Name", "Role", "Shift", "Status", "Time In", "Time Out", "Action"]
                                     .map(h => <th key={h}>{h}</th>)}
                             </tr>
                         </thead>
@@ -142,6 +208,48 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                                     </td>
                                     <td className={s.st === "Absent" ? "sa-muted" : "sa-time"}>
                                         {s.check_out}
+                                    </td>
+                                    <td>
+                                        <div className="member-action-dropdown dropdown">
+                                            <button
+                                                className="member-action-btn"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                            >
+                                                ⋮
+                                            </button>
+
+                                            <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+
+                                                <li>
+                                                    <button
+                                                        className="dropdown-item member-action-item"
+                                                        onClick={() => {
+                                                            // setMode("edit");
+                                                            // setShow(true);
+                                                            // GetMemberDetailsById(s.user_id);
+                                                            GetStaffById(s.staff_id)
+                                                        }}
+                                                    >
+                                                        Edit Staff
+                                                    </button>
+                                                </li>
+
+                                                <li>
+                                                    <hr className="dropdown-divider" />
+                                                </li>
+
+                                                <li>
+                                                    <button
+                                                        className="dropdown-item member-action-item member-action-delete"
+                                                        onClick={() => deleteStaff(s.staff_id)}
+                                                    >
+                                                        Delete Staff
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

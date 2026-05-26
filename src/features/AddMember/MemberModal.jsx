@@ -10,64 +10,64 @@ const MemberModal = ({
   addMemberType = [],
 
   blocks = null,
-  setBlocks = () => {},
+  setBlocks = () => { },
 
   flat = null,
-  setFlat = () => {},
+  setFlat = () => { },
 
   memType = "",
-  setMemType = () => {},
+  setMemType = () => { },
 
-  resetForm = () => {},
+  resetForm = () => { },
 
   firstName = "",
-  setFirstName = () => {},
+  setFirstName = () => { },
 
   lastName = "",
-  setLastName = () => {},
+  setLastName = () => { },
 
   mobileNo = "",
-  setMobileNo = () => {},
+  setMobileNo = () => { },
 
   emailId = "",
-  setEmailId = () => {},
+  setEmailId = () => { },
 
   moveInDate = "",
-  setMoveInDate = () => {},
+  setMoveInDate = () => { },
 
   moveOutDate = "",
-  setMoveOutDate = () => {},
+  setMoveOutDate = () => { },
 
   familyType = "",
-  setFamilyType = () => {},
+  setFamilyType = () => { },
 
   // rentAgreement = null,
-  setRentAgreement = () => {},
+  setRentAgreement = () => { },
 
   // policeNoc = null,
-  setPoliceNoc = () => {},
+  setPoliceNoc = () => { },
 
   // idProof = null,
-  setIdProof = () => {},
+  setIdProof = () => { },
 
   // agreement = null,
-  setAgreement = () => {},
+  setAgreement = () => { },
 
   // maintenanceReceipt = null,
-  setMaintenanceReceipt = () => {},
+  setMaintenanceReceipt = () => { },
 
   // nominationDetails = null,
-  setNominationDetails = () => {},
+  setNominationDetails = () => { },
 
   // familyPhoto = null,
-  setFamilyPhoto = () => {},
+  setFamilyPhoto = () => { },
 
   // ownershipDocuments = null,
-  setOwnershipDocuments = () => {},
+  setOwnershipDocuments = () => { },
 
   errors = {},
   errorText = "",
-  handleSubmit = () => {},
+  handleSubmit = () => { },
   mode,
 }) => {
   if (!show) return null;
@@ -173,9 +173,8 @@ const MemberModal = ({
                   </div>
 
                   <div
-                    className={`am-type-wrap mb-3 ${
-                      errors.memType ? "border border-danger  p-1" : ""
-                    }`}
+                    className={`am-type-wrap mb-3 ${errors.memType ? "border border-danger  p-1" : ""
+                      }`}
                   >
                     {addMemberType.map((t) => (
                       <button
@@ -184,9 +183,8 @@ const MemberModal = ({
                           setMemType(t.value);
                           resetForm();
                         }}
-                        className={`am-type-btn ${
-                          memType === t.value ? "active" : ""
-                        }`}
+                        className={`am-type-btn ${memType === t.value ? "active" : ""
+                          }`}
                       >
                         {t.id}
                       </button>
@@ -545,29 +543,28 @@ const MemberModal = ({
                           />
                         </div>
                         {
-                          familyType === "tenant_relative" && 
+                          familyType === "tenant_relative" &&
                           (
                             <div className="col-6">
-                          <div className="d-flex">
-                            <label className="sv-lb">
-                              Move-in Date{" "}
-                              <span className="text-danger">*</span>
-                            </label>
-                            {errors.moveInDate && (
-                              <span className="text-danger mx-2">
-                                {errors.moveInDate}
-                              </span>
-                            )}
-                          </div>
-                          <input
-                            className={`sv-in ${errors.moveInDate ? "error-input" : ""}`}
-                            type="date"
-                            value={moveInDate}
-                            onChange={(e) => setMoveInDate(e.target.value)}
-                          />
-                        </div>
+                              <div className="d-flex">
+                                <label className="sv-lb">
+                                  Move-out Date{" "}
+                                  <span className="text-danger">*</span>
+                                </label>
+                                {errors.moveOutDate && (
+                                  <span className="text-danger mx-2">
+                                    {errors.moveOutDate}
+                                  </span>
+                                )}
+                              </div>
+                              <input
+                                className={`sv-in ${errors.moveOutDate ? "error-input" : ""}`}
+                                type="date"
+                                value={moveOutDate}
+                                onChange={(e) => setMoveOutDate(e.target.value)}
+                              />
+                            </div>
                           )
-                           
                         }
                       </div>
                       <div className="mb-2">
@@ -587,9 +584,8 @@ const MemberModal = ({
                         <div>
                           <div className="form-check form-check-inline">
                             <input
-                              className={`form-check-input ${
-                                errors.familyType ? "border border-danger" : ""
-                              }`}
+                              className={`form-check-input ${errors.familyType ? "border border-danger" : ""
+                                }`}
                               type="radio"
                               name="familyType"
                               id="owner_relative"
@@ -608,9 +604,8 @@ const MemberModal = ({
 
                           <div className="form-check form-check-inline">
                             <input
-                              className={`form-check-input ${
-                                errors.familyType ? "border border-danger" : ""
-                              }`}
+                              className={`form-check-input ${errors.familyType ? "border border-danger" : ""
+                                }`}
                               type="radio"
                               name="familyType"
                               id="tenant_relative"

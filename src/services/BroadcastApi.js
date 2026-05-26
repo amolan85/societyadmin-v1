@@ -105,3 +105,25 @@ export const UpdateBroadcastApi = async (
         throw errors;
     }
 };
+
+export const deleteBroadcastApi = async (broadcastId) => {
+    const url = UrlData + 'broadcast/DeleteBroadcast';
+    const data = {
+        broadcast_id: broadcastId,
+
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data,
+        timeout: 30000,
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors delete broadcast");
+        throw errors;
+    });
+}
+

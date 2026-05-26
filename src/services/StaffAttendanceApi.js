@@ -50,6 +50,33 @@ export const createStaffApi = async (societyId, firstName, lastName, emailId, mo
     });
 }
 
+//create staff api
+export const UpdateStaffApi = async (staffId, firstName, lastName, emailId, mobileNo, role, salary, joiningDate) => {
+    const url = UrlData + 'staff/UpdateStaff';
+    const data = {
+        staff_id: staffId,
+        first_name: firstName,
+        last_name: lastName,
+        mobile: mobileNo,
+        email: emailId,
+        role: role,
+        salary: salary,
+        joining_date: joiningDate
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors update staff");
+        throw errors;
+    });
+}
+
 //mark attendance staff api
 export const markAttendanceStaffApi = async (staffId, societyId, date, status, checkIn, checkOut) => {
     const url = UrlData + 'staff/mark_attendance';
@@ -71,6 +98,46 @@ export const markAttendanceStaffApi = async (staffId, societyId, date, status, c
         console.log(error);
         const errors = ErrorHandler(error);
         console.log(errors, "Errors mark attendance staff");
+        throw errors;
+    });
+}
+
+export const getStaffByIdApi = async (staffId) => {
+    const url = UrlData + 'staff/GetStaffById';
+    const data = {
+        staff_id: staffId,
+
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors from staff by id");
+        throw errors;
+    });
+}
+
+export const deleteStaffApi = async (staffId) => {
+    const url = UrlData + 'staff/DeleteStaff';
+    const data = {
+        staff_id: staffId,
+
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors from delete staff");
         throw errors;
     });
 }

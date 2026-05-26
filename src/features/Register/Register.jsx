@@ -1,9 +1,7 @@
-import React from 'react'
 import "../../styles/Register.css"
-import addMember from '../AddMember/AddMember'
 import { FiBox, FiHome, FiSmile } from 'react-icons/fi'
 import { FaCar } from 'react-icons/fa';
-import { BsFillDiamondFill, BsPerson } from 'react-icons/bs';
+import {  BsPerson } from 'react-icons/bs';
 import { BiDiamond } from 'react-icons/bi';
 
 const Register = ({ setActive }) => {

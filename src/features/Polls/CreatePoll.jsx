@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react'
 import { Badge } from '../../components/Common/ReusableFunction';
 import "../../styles/Broadcast.css"
 import { GetSessionData } from '../../utils/SessionManagement';
-import { CreatePollApi } from '../../services/PollApi';
+import { CreatePollApi, getPollByIdApi, UpdatePollApi } from '../../services/PollApi';
 import { toast } from "react-toastify";
 import { FiFileText } from "react-icons/fi";
-import { RiSecurePaymentFill } from 'react-icons/ri';
 import { BiEdit, BiInfoCircle, BiListUl, BiMoney, BiParty } from 'react-icons/bi';
 
-const CreatePoll = ({ setActive }) => {
+const CreatePoll = ({ setActive, pollId }) => {
+    const [pId, setPId] = useState("")
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
     const [startDate, setStartDate] = useState("")
@@ -25,6 +25,13 @@ const CreatePoll = ({ setActive }) => {
         SessionData()
     }, [])
 
+    useEffect(() => {
+        if (pollId, societyId) {
+            PollsById();
+        }
+    }, [pollId, societyId]);
+
+
     //function for session data
     const SessionData = async () => {
         const data = await GetSessionData()
@@ -32,6 +39,18 @@ const CreatePoll = ({ setActive }) => {
         const flats = data.data.flats[0]
         setSocietyId(flats.society_id)
         setUserId(data.data.user_id)
+    }
+
+    const PollsById = async () => {
+        const data = await getPollByIdApi(societyId, pollId)
+        console.log(data)
+        setPId(data.poll_id)
+        setTitle(data.question)
+        setStartDate(data.start_datetime?.split(" ")[0]);
+        setEndDate(data.end_datetime?.split(" ")[0]);
+        setOptions(
+            data.options.map((item) => item.option_text)
+        );
     }
 
     //handle change for change
@@ -51,7 +70,6 @@ const CreatePoll = ({ setActive }) => {
         return `${date} ${hours}:${minutes}:${seconds}`;
     };
 
-
     //validation form 
     const validateForm = () => {
         let errors = {};
@@ -60,9 +78,9 @@ const CreatePoll = ({ setActive }) => {
             errors.title = "required";
         }
 
-        if (!description) {
-            errors.description = "required";
-        }
+        // if (!description) {
+        //     errors.description = "required";
+        // }
         options.forEach((opt, index) => {
             if (!opt || opt.trim() === "") {
                 errors[`option_${index}`] = "required";
@@ -87,18 +105,34 @@ const CreatePoll = ({ setActive }) => {
                 setErrors(validationErrors);
                 return;
             }
+            if (pId) {
+                await UpdatePollApi(
+                    pId,
+                    userId,
+                    title,
+                    description,
+                    options,
+                    getDateTime(startDate),
+                    getDateTime(endDate)
+                );
 
-            const data = await CreatePollApi(
-                societyId,
-                userId,
-                title,
-                description,
-                options,
-                getDateTime(startDate),
-                getDateTime(endDate)
-            );
+                toast.success("Poll updated successfully!")
 
-            toast.success("Poll created successfully!")
+            }
+            else {
+                await CreatePollApi(
+                    societyId,
+                    userId,
+                    title,
+                    description,
+                    options,
+                    getDateTime(startDate),
+                    getDateTime(endDate)
+                );
+
+                toast.success("Poll created successfully!")
+
+            }
 
         } catch (error) {
             toast.error(error);
@@ -114,7 +148,7 @@ const CreatePoll = ({ setActive }) => {
             <div className="col-12 col-lg-8">
                 <div className="sv-card text-start">
                     <div className="d-flex justify-content-between align-items-center">
-                        <h5 className="bc-title"><BiEdit className='text-primary'/>  Create Poll</h5>
+                        <h5 className="bc-title"><BiEdit className='text-primary' />{pId ? "Update" : "Create"} Poll</h5>
                         <button
                             className="btn btn-sm btn-primary"
                             onClick={() => setActive("polls")}
@@ -132,8 +166,8 @@ const CreatePoll = ({ setActive }) => {
                         onChange={(e) => setTitle(e.target.value)} />
 
                     <div className='d-flex'>
-                        <label className="sv-lb" >Description <span className='text-danger'>*</span></label>
-                        {errors.description && <span className='text-danger mx-2 '>{errors.description}</span>}
+                        <label className="sv-lb" >Description</label>
+                        {/* {errors.description && <span className='text-danger mx-2 '>{errors.description}</span>} */}
 
                     </div>
 
@@ -153,7 +187,7 @@ const CreatePoll = ({ setActive }) => {
                                 <div className='d-flex'>
                                     <label className="sv-lb mt-2">Option {index + 1} <span className='text-danger'>*</span></label>
                                     {errors[`option_${index}`] && (
-                                        <span className='text-danger mx-2'>
+                                        <span className='text-danger mx-2 mt-1'>
                                             {errors[`option_${index}`]}
                                         </span>
                                     )}
@@ -199,7 +233,7 @@ const CreatePoll = ({ setActive }) => {
 
                     {errorText && <h6 className='text-danger'>{errorText}</h6>}
                     <div className="d-flex gap-2 justify-content-end">
-                        <button className="btn-ac" onClick={SubmitPoll}>Create Poll</button>
+                        <button className="btn-ac" onClick={SubmitPoll}>{pId ? "Update" : "Create"} Poll</button>
                     </div>
 
                 </div>
