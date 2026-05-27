@@ -219,6 +219,7 @@ body {
 .tile-red .tile-val, .tile-red .tile-lbl   { color: var(--danger);  }
 .tile-grn .tile-val, .tile-grn .tile-lbl   { color: var(--success); }
 .tile-org .tile-val, .tile-org .tile-lbl   { color: #f39933; }
+.tile-yel .tile-val, .tile-yel .tile-lbl   { color: #f8d800d9; }
 .tile-blu .tile-val, .tile-blu .tile-lbl   { color: var(--accent);  }
 .tile-purple {background: #ede9fe;}
 .tile-purple .tile-val, .tile-purple .tile-lbl { color: #5b21b6;}

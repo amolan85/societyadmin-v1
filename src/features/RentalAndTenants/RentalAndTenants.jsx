@@ -617,7 +617,7 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                     <div>
                         <h4 className="cp-title">Rental Flat Mangement</h4>
                         <p className="cp-sub">
-                            Management tenant registration, verify KYC, and track rental agreements.
+                            Manage tenant registrations, verify KYC, and track rental agreements.
                         </p>
                     </div>
                     <div className='d-flex'>
@@ -630,15 +630,37 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                 {/* Stats */}
                 <div className="row g-3 mb-4">
                     {[
-                        [totalCount, "Total Members"],
-                        [totalOwners, "Owners"],
-                        [totalTenant, "Tenants"],
-                        [totalFamilyMember, "New This Week", "tile-grn"],
-                    ].map(([v, l, cls]) => (
+                        [totalCount, "Pending Approvals", "Action Required", "tile-yel"],
+                        [totalOwners, "Agreements Expiring", "In next 30 days", "tile-red"],
+                        [totalTenant, "KYC Unverified", "Pending review", "tile-blu"],
+                        [totalFamilyMember, "Active Rentals", "+3 this month", "tile-grn"],
+                    ].map(([v, l, subText, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
                             <div className={`tile bg-white ${cls}`}>
-                                <div className=" text-start text-muted">{l}</div>
-                                <div className="tile-val text-start mt-1">{v}</div>
+                                <div className="text-start text-muted">
+                                    {l}
+                                </div>
+
+                                <div className="tile-val text-start mt-1" style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "6px"
+                                }}>
+                                    {v}
+
+                                    {subText && (
+                                        <span
+                                            style={{
+                                                fontSize: "10px",
+                                                fontWeight: "500",
+                                                marginLeft: "6px",
+                                                color: "#000"
+                                            }}
+                                        >
+                                            {subText}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -683,7 +705,7 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                         <input
                             type="text"
                             className="form-control rounded-pill"
-                            placeholder="Search by name, unit, or email..."
+                            placeholder="Search by unit no.,tenant name..."
                             value={search}
                             // onChange={(e) => setSearch(e.target.value)}
                             onChange={handleSearch}
@@ -719,7 +741,7 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                 {tenantData.map((item, index) => (
                                     <tr key={index}>
                                         {/* Unit */}
-                                        <td>
+                                        <td className="text-start">
                                             <div className="fw-bold">{item.unitNo}</div>
                                             <small className="text-muted">
                                                 Owner: {item.owner}
@@ -727,7 +749,7 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                         </td>
 
                                         {/* Tenant */}
-                                        <td>
+                                        <td className="text-start">
                                             <div className="d-flex align-items-center gap-2">
                                                 <img
                                                     src={item.avatar}
@@ -766,30 +788,128 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                         </td>
 
                                         {/* KYC */}
-                                        <td>
-                                            <span
+                                        <td className="text-start">
+                                            {/* <span
                                                 className={`badge rounded-pill bg-${item.kycColor}-subtle text-${item.kycColor}`}
                                             >
                                                 {item.kycIcon} {item.kycStatus}
-                                            </span>
-                                        </td>
+                                            </span> */}
+                                            <Badge
+                                                label={item.kycStatus}
+                                                c={
+                                                    item.kycStatus === "Verified"
+                                                        ? "green"
+                                                        : item.kycStatus === "Pending Verification"
+                                                            ? "yellow"
+                                                            : item.kycStatus === "Pending KYC"
+                                                                ? "yellow"
+                                                                : "gray"
+                                                }
+                                            />{" "}
 
+                                        </td>
                                         {/* Agreement */}
-                                        <td>
-                                            <span
+                                        <td className="text-start">
+                                            {/* <span
                                                 className={`badge rounded-pill bg-${item.agreementColor}-subtle text-${item.agreementColor}`}
                                             >
                                                 {item.agreementIcon} {item.agreementStatus}
-                                            </span>
+                                            </span> */}
+                                            <Badge
+                                                label={item.agreementStatus}
+                                                c={
+                                                    item.agreementStatus === "Uploaded"
+                                                        ? "blue"
+                                                        : item.agreementStatus === "Expiring Soon"
+                                                            ? "red"
+                                                            : item.agreementStatus === "Active"
+                                                                ? "green"
+                                                                : item.agreementStatus === "Not Uploaded"
+                                                                    ? "gray"
+                                                                    : "gray"
+                                                }
+                                            />{" "}
                                         </td>
 
                                         {/* Action */}
-                                        <td>
+                                        {/* <td className="text-start">
                                             <button
                                                 className={`btn btn-sm btn-outline-${item.actionColor}`}
                                             >
                                                 {item.action}
                                             </button>
+                                        </td> */}
+                                        <td className="text-start">
+                                            <div className="member-action-dropdown dropdown">
+                                                <button
+                                                    className="member-action-btn"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                >
+                                                    ⋮
+                                                </button>
+
+                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() =>
+                                                                getMembersById(s.user_id, s.flat_id)
+                                                            }
+                                                        >
+                                                            View Details
+                                                        </button>
+                                                    </li>
+
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() =>
+                                                                getMembersById(s.user_id, s.flat_id)
+                                                            }
+                                                        >
+                                                            Review & Approve
+                                                        </button>
+                                                    </li>
+
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() =>
+                                                                getMembersById(s.user_id, s.flat_id)
+                                                            }
+                                                        >
+                                                            Upload
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() => {
+                                                                setMode("edit");
+                                                                setShow(true);
+                                                                GetMemberDetailsById(s.user_id);
+                                                            }}
+                                                        >
+                                                            Edit tenant
+                                                        </button>
+                                                    </li>
+
+                                                    <li>
+                                                        <hr className="dropdown-divider" />
+                                                    </li>
+
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item member-action-delete"
+                                                            onClick={() => handleDelete(s.user_id)}
+                                                        >
+                                                            Delete tenant
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
