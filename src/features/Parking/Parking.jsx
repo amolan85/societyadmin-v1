@@ -13,7 +13,7 @@ import {
 } from "../../services/AddMemberApi";
 import { toast } from "react-toastify";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
-import { FiAlertCircle, FiDownload, FiFilter, FiPlus, FiSearch } from "react-icons/fi";
+import { FiAlertCircle, FiDownload, FiFilter, FiGrid, FiPlus, FiSearch, FiTrendingUp } from "react-icons/fi";
 import {
     FiEye,
     FiTruck,
@@ -701,44 +701,203 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
 
                 </div>
                 {/* Stats */}
-                <div className="row g-3 mb-4">
+                {/* <div className="row g-3 mb-4">
                     {[
-                        [totalCount, "Pending Approvals", "Action Required", "tile-yel"],
-                        [totalOwners, "Agreements Expiring", "In next 30 days", "tile-red"],
-                        [totalTenant, "KYC Unverified", "Pending review", "tile-blu"],
-                        [totalFamilyMember, "Active Rentals", "+3 this month", "tile-grn"],
+                        [totalCount, "Total Slots", "Across 3 levels", "tile-black", "bi-grid"],
+                        [totalOwners, "Occupancy Rate", "+ 2% this week", "tile-black", "bi-graph-up-arrow"],
+                        [totalTenant, "Visitor Slots Active", " / 25 Available", "tile-black", "bi-clock"],
+                        [totalFamilyMember, "Active Violations", "Needs attention", "tile-black", "bi-exclamation-triangle"],
                     ].map(([v, l, subText, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
-                            <div className={`tile bg-white ${cls}`}>
-                                <div className="text-start text-muted">
+                            <div className={`tile bg-white ${cls}`}
+                                style={{
+                                    borderRadius: "10px",
+                                    padding: "18px",
+                                    minHeight: "120px",
+                                    boxShadow: "0 1px 2px rgba(0,0,0,0.04)"
+                                }}>
+                                <div className="text-start text-muted"
+                                    style={{
+                                        fontSize: "13px",
+                                        fontWeight: "500"
+                                    }}>
+                                    {l}
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: "42px",
+                                        fontWeight: "700",
+                                        lineHeight: "1",
+                                        color: "#111",
+                                        marginTop: "8px"
+                                    }}
+                                >
+                                    {v}
+                                </div>
+
+                                {subText && (
+                                    <div
+                                        style={{
+                                            fontSize: "12px",
+                                            fontWeight: "600",
+                                            marginTop: "14px",
+                                            color:
+                                                l === "Occupancy Rate"
+                                                    ? "#22c55e"
+                                                    : l === "Active Violations"
+                                                        ? "#ef4444"
+                                                        : "#999"
+                                        }}
+                                    >
+                                        {subText}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="d-flex justify-content-between align-items-start">
+
+                                <div className="text-start text-muted"
+                                    style={{
+                                        fontSize: "13px",
+                                        fontWeight: "500"
+                                    }}>
                                     {l}
                                 </div>
 
-                                <div className="tile-val text-start mt-1" style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "6px"
-                                }}>
-                                    {v}
-
-                                    {subText && (
-                                        <span
-                                            style={{
-                                                fontSize: "10px",
-                                                fontWeight: "500",
-                                                marginLeft: "6px",
-                                                color: "#000"
-                                            }}
-                                        >
-                                            {subText}
-                                        </span>
-                                    )}
+                                <div
+                                    style={{
+                                        width: "36px",
+                                        height: "36px",
+                                        borderRadius: "8px",
+                                        background:
+                                            l === "Total Slots"
+                                                ? "#e8f1ff"
+                                                : l === "Occupancy Rate"
+                                                    ? "#fff1e7"
+                                                    : l === "Visitor Slots Active"
+                                                        ? "#f5e8ff"
+                                                        : "#ffe9e9",
+                                        color:
+                                            l === "Total Slots"
+                                                ? "#3b82f6"
+                                                : l === "Occupancy Rate"
+                                                    ? "#fb923c"
+                                                    : l === "Visitor Slots Active"
+                                                        ? "#d946ef"
+                                                        : "#ef4444",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontSize: "18px"
+                                    }}
+                                >
+                                    <i className={`bi ${icon}`}></i>
                                 </div>
+
                             </div>
                         </div>
                     ))}
-                </div>
+                </div> */}
 
+                <div className="row g-3 mb-4">
+                    {[
+                        [totalCount, "Total Slots", "Across 3 levels", "tile-black", <FiGrid />],
+                        [totalOwners, "Occupancy Rate", "+ 2% this week", "tile-black", <FiTrendingUp />],
+                        [totalTenant, "Visitor Slots Active", "/ 25 Available", "tile-black", <FiClock />],
+                        [totalFamilyMember, "Active Violations", "Needs attention", "tile-black", <FiAlertTriangle />],
+                    ].map(([v, l, subText, cls, icon]) => (
+                        <div className="col-6 col-md-3" key={l}>
+
+                            <div
+                                className={`tile bg-white ${cls}`}
+                                style={{
+                                    borderRadius: "10px",
+                                    padding: "18px",
+                                    minHeight: "120px",
+                                    boxShadow: "0 1px 2px rgba(0,0,0,0.04)"
+                                }}
+                            >
+
+                                <div className="d-flex justify-content-between align-items-start">
+
+                                    <div
+                                        className="text-start text-muted"
+                                        style={{
+                                            fontSize: "13px",
+                                            fontWeight: "500"
+                                        }}
+                                    >
+                                        {l}
+                                    </div>
+
+                                    <div
+                                        style={{
+                                            width: "36px",
+                                            height: "36px",
+                                            borderRadius: "8px",
+                                            background:
+                                                l === "Total Slots"
+                                                    ? "#e8f1ff"
+                                                    : l === "Occupancy Rate"
+                                                        ? "#fff1e7"
+                                                        : l === "Visitor Slots Active"
+                                                            ? "#f5e8ff"
+                                                            : "#ffe9e9",
+
+                                            color:
+                                                l === "Total Slots"
+                                                    ? "#3b82f6"
+                                                    : l === "Occupancy Rate"
+                                                        ? "#fb923c"
+                                                        : l === "Visitor Slots Active"
+                                                            ? "#d946ef"
+                                                            : "#ef4444",
+
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            fontSize: "18px"
+                                        }}
+                                    >
+                                        {icon}
+                                    </div>
+
+                                </div>
+
+                                <div className="text-start"
+                                    style={{
+                                        fontSize: "35px",
+                                        fontWeight: "700",
+                                        lineHeight: "1",
+                                        color: "#111",
+                                        marginTop: "8px"
+                                    }}
+                                >
+                                    {v}
+                                </div>
+
+                                {subText && (
+                                    <div className="text-start"
+                                        style={{
+                                            fontSize: "12px",
+                                            fontWeight: "600",
+                                            marginTop: "14px",
+                                            color:
+                                                l === "Occupancy Rate"
+                                                    ? "#22c55e"
+                                                    : l === "Active Violations"
+                                                        ? "#ef4444"
+                                                        : "#999"
+                                        }}
+                                    >
+                                        {subText}
+                                    </div>
+                                )}
+
+                            </div>
+
+                        </div>
+                    ))}
+                </div>
                 {/* <div className="d-flex justify-content-between align-items-center mb-4 text-start">
                     <div className="col-12 col-md-4 col-lg-3 position-relative">
                         <span
@@ -786,11 +945,33 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
                                     VISITOR PARKING
                                 </div>
 
-                                <div className="d-flex gap-2">
+                                {/* <div className="d-flex gap-2">
                                     <FiSearch />
                                     <FiFilter />
                                     <FiDownload />
                                     <FiPlus />
+                                </div> */}
+                                <div className="d-flex align-items-center gap-2">
+                                    {[FiSearch, FiFilter, FiDownload, FiPlus].map((Icon, i) => (
+                                        <button
+                                            key={i}
+                                            style={{
+                                                width: "36px",
+                                                height: "36px",
+                                                borderRadius: "10px",
+                                                border: "1px solid #dde0ee",
+                                                background: "#ffffff",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                cursor: "pointer",
+                                                color: "#555",
+                                                boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                                            }}
+                                        >
+                                            <Icon size={15} />
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
 
@@ -848,10 +1029,32 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
                                     VIOLATION ALERTS
                                 </div>
 
-                                <div className="d-flex gap-2">
+                                {/* <div className="d-flex gap-2">
                                     <FiFilter />
                                     <FiDownload />
                                     <FiPlus />
+                                </div> */}
+                                <div className="d-flex align-items-center gap-2">
+                                    {[FiFilter, FiDownload, FiPlus].map((Icon, i) => (
+                                        <button
+                                            key={i}
+                                            style={{
+                                                width: "36px",
+                                                height: "36px",
+                                                borderRadius: "10px",
+                                                border: "1px solid #dde0ee",
+                                                background: "#ffffff",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                cursor: "pointer",
+                                                color: "#555",
+                                                boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                                            }}
+                                        >
+                                            <Icon size={15} />
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
 
@@ -866,7 +1069,7 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
                                             <div
                                                 className="vpd-alert-icon"
                                                 style={{
-                                                    background: item.bgColor,
+                                                    background: item.bgColor,textAlign: "start"
                                                 }}
                                             >
                                                 <Icon
@@ -875,7 +1078,7 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
                                                 />
                                             </div>
 
-                                            <div>
+                                            <div style={{ textAlign: "start" }}>
                                                 <div className="vpd-name">
                                                     {item.title}
                                                 </div>
@@ -896,7 +1099,7 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div >
 
 
                 <div className="sv-card p-0 overflow-hidden mt-4">
@@ -1074,7 +1277,7 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
                     {/* Pagination */}
                     <Pagination page={page} total={total} onChange={handlePageChange} />
                 </div>
-            </div>
+            </div >
 
         </>
     );
