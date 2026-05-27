@@ -861,9 +861,10 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            onClick={() =>
-                                                                getMembersById(s.user_id, s.flat_id)
-                                                            }
+                                                            // onClick={() =>
+                                                            //     getMembersById(s.user_id, s.flat_id)
+                                                            // }
+                                                            onClick={()=>setActive("rentalsApplication")}
                                                         >
                                                             View Details
                                                         </button>
@@ -872,9 +873,9 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            onClick={() =>
-                                                                getMembersById(s.user_id, s.flat_id)
-                                                            }
+                                                            // onClick={() =>
+                                                            //     getMembersById(s.user_id, s.flat_id)
+                                                            // }
                                                         >
                                                             Review & Approve
                                                         </button>
@@ -883,9 +884,9 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            onClick={() =>
-                                                                getMembersById(s.user_id, s.flat_id)
-                                                            }
+                                                            // onClick={() =>
+                                                            //     getMembersById(s.user_id, s.flat_id)
+                                                            // }
                                                         >
                                                             Upload
                                                         </button>
@@ -893,11 +894,11 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            onClick={() => {
-                                                                setMode("edit");
-                                                                setShow(true);
-                                                                GetMemberDetailsById(s.user_id);
-                                                            }}
+                                                            // onClick={() => {
+                                                            //     setMode("edit");
+                                                            //     setShow(true);
+                                                            //     GetMemberDetailsById(s.user_id);
+                                                            // }}
                                                         >
                                                             Edit tenant
                                                         </button>
