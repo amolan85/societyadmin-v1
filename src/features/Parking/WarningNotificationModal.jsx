@@ -110,7 +110,7 @@ const WarningNotificationModal = ({
                                                 style={{ minHeight: "15px" }}
                                             >
                                                 <p className="mb-0 ms-2">
-                                                   Violation #VIO-2023-889
+                                                    Violation #VIO-2023-889
                                                 </p>
                                                 <small className="text-muted ms-2">Unauthorized Parking at Slot P-102 (Basement 1)</small>
                                             </div>
@@ -207,15 +207,15 @@ const WarningNotificationModal = ({
                                             </div>
                                             <div className="form-check form-check-inline">
                                                 <input className="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1" />
-                                                <label className="form-check-label" for="inlineCheckbox1">In-App</label>
+                                                <label className="form-check-label" htmlFor="inlineCheckbox1">In-App</label>
                                             </div>
                                             <div className="form-check form-check-inline">
                                                 <input className="form-check-input" type="checkbox" id="inlineCheckbox2" value="option2" />
-                                                <label className="form-check-label" for="inlineCheckbox2">Email</label>
+                                                <label className="form-check-label" htmlFor="inlineCheckbox2">Email</label>
                                             </div>
                                             <div className="form-check form-check-inline">
                                                 <input className="form-check-input" type="checkbox" id="inlineCheckbox2" value="option2" />
-                                                <label className="form-check-label" for="inlineCheckbox2">SMS</label>
+                                                <label className="form-check-label" htmlFor="inlineCheckbox2">SMS</label>
                                             </div>
                                         </div>
                                     </div>

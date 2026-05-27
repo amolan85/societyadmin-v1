@@ -32,6 +32,7 @@ import TenantsReviewApplication from "../RentalAndTenants/TenantsReviewApplicati
 import Parking from "../Parking/Parking";
 import ParkingRules from "../Parking/ParkingRules";
 import ViewParkingDetails from "../Parking/ViewParkingDetails";
+import ParkingSessionDetails from "../Parking/ParkingSessionDetails";
 
 
 /* ══ OVERVIEW ══════════════════════════════════ */
@@ -106,6 +107,7 @@ const TITLES = {
   parking: ["Operations", "Parking"],
   parkingRules: ["Operations", "Parking", "Parking Rules"],
   viewParkingDetails: ["Operations", "Parking", "Parking Details"],
+  parkingSessionDetails: ["Operations", "Parking", "KA-05-MH-2023"],
   rentals: ["Operations", "Rentals & Tenants"],
   rentalsApplication: ["Operations", "Rentals & Tenants", "Review Application"],
   staff: ["Operations", "Staff Attendance"],
@@ -168,6 +170,7 @@ export default function App() {
     parking: <Parking setActive={setActive} />,
     parkingRules: <ParkingRules setActive={setActive} />,
     viewParkingDetails: <ViewParkingDetails setActive={setActive} />,
+    parkingSessionDetails: <ParkingSessionDetails setActive={setActive} />,
     rentals: <RentalAndTenants setActive={setActive} />,
     rentalsApplication: <TenantsReviewApplication setActive={setActive} />,
     staff: <StaffAttendance setActive={setActive} setStaffId={setStaffId} />,

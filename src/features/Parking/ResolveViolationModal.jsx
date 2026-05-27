@@ -174,7 +174,7 @@ const ResolveViolationModal = ({
                                     </div>
                                     <div className="form-check">
                                         <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
-                                        <label className="form-check-label" for="flexCheckDefault">
+                                        <label className="form-check-label" htmlFor="flexCheckDefault">
                                             Notify owner about resolution
                                         </label>
                                     </div>

@@ -981,17 +981,17 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
                                 return (
                                     <div key={item.id} className="vpd-row">
 
-                                        <div className="d-flex align-items-center">
+                                        <div className="d-flex align-items-center" style={{cursor:"pointer"}} onClick={()=>setActive("parkingSessionDetails")}>
                                             <div className="vpd-icon-wrapper">
                                                 <Icon size={18} color="#6b7280" />
                                             </div>
 
                                             <div>
-                                                <div className="vpd-name">
+                                                <div className="vpd-name text-start">
                                                     {item.vehicleNo}
                                                 </div>
 
-                                                <div className="vpd-subtitle">
+                                                <div className="vpd-subtitle text-start">
                                                     {item.description}
                                                 </div>
                                             </div>
@@ -1069,7 +1069,7 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
                                             <div
                                                 className="vpd-alert-icon"
                                                 style={{
-                                                    background: item.bgColor,textAlign: "start"
+                                                    background: item.bgColor, textAlign: "start"
                                                 }}
                                             >
                                                 <Icon
@@ -1078,7 +1078,7 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
                                                 />
                                             </div>
 
-                                            <div style={{ textAlign: "start" }}>
+                                            <div style={{ textAlign: "start", cursor:"pointer" }} onClick={() => setActive("viewParkingDetails")}>
                                                 <div className="vpd-name">
                                                     {item.title}
                                                 </div>
@@ -1219,27 +1219,6 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
                                                         </button>
                                                     </li>
 
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                        // onClick={() =>
-                                                        //     getMembersById(s.user_id, s.flat_id)
-                                                        // }
-                                                        >
-                                                            Review & Approve
-                                                        </button>
-                                                    </li>
-
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                        // onClick={() =>
-                                                        //     getMembersById(s.user_id, s.flat_id)
-                                                        // }
-                                                        >
-                                                            Upload
-                                                        </button>
-                                                    </li>
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
