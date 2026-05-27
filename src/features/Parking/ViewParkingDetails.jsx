@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FaBalanceScale, FaCar, FaSwimmingPool, FaUsers } from 'react-icons/fa';
-import { FiAlertTriangle, FiArrowLeft, FiCheckCircle, FiDownload, FiEdit, FiExternalLink, FiPrinter, FiSlash, FiStopCircle } from "react-icons/fi";
+import { FiAlertTriangle, FiArrowLeft, FiCheckCircle, FiDownload, FiEdit, FiExternalLink, FiMessageSquare, FiPrinter, FiSlash, FiStopCircle ,FiFile,FiTruck,FiFileText} from "react-icons/fi";
 import { CgFileDocument } from 'react-icons/cg';
 import { BiHistory, BiLocationPlus } from 'react-icons/bi';
 import "../../styles/RentalAndTenant.css";
@@ -157,49 +157,99 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                     <div className="col-lg-4">
 
+                        <div className="card border-0 shadow-sm mb-4">
+                            <div className="card-header bg-white fw-semibold">
+                                Enforcement Actions
+                            </div>
 
-                        <div className="card shadow-sm border-0 p-3" style={{ maxWidth: "320px", borderRadius: "10px" }}>
+                            <div className="card-body">
+
+                                {/* <div className="card shadow-sm border-0 p-3" style={{ maxWidth: "320px", borderRadius: "10px" }}> */}
 
 
-                            {[
-                                [
-                                    <FaUsers className="text-primary" />,
-                                    "Send Warning Notification",
-                                    "",
-                                    handleWarningNotification,
-                                ],
-                                [
-                                    <FaSwimmingPool className="text-success" />,
-                                    "Issue Violation Fine",
-                                    "",
+                                {/* {[
+                                        [
+                                            <FiMessageSquare className="text-primary" />,
+                                            "Send Warning Notification",
+                                            "",
+                                            handleWarningNotification,
+                                        ],
+                                        [
+                                            <FaSwimmingPool className="text-success" />,
+                                            "Issue Violation Fine",
+                                            "",
 
-                                ],
-                                [
-                                    <FaBalanceScale style={{ color: "orange" }} />,
-                                    "Request Towing Service",
-                                    "",
+                                        ],
+                                        [
+                                            <FaBalanceScale style={{ color: "orange" }} />,
+                                            "Request Towing Service",
+                                            "",
 
-                                ],
-                            ].map(([ic, lb, sub, onClick]) => (
-                                <button
-                                    key={lb}
-                                    className="qa mb-2"
-                                    onClick={onClick}
-                                    type="button"
-                                >
-                                    <div className="qa-ico pl-qa-ico rounded-circle">
-                                        {ic}
-                                    </div>
+                                        ],
+                                    ].map(([ic, lb, sub, onClick]) => (
+                                        <button
+                                            key={lb}
+                                            className="qa mb-2"
+                                            onClick={onClick}
+                                            type="button"
+                                        >
+                                            <div className="qa-ico pl-qa-ico rounded-circle">
+                                                {ic}
+                                            </div>
 
-                                    <div>
-                                        <div className="pl-qa-title">{lb}</div>
-                                        {sub && <div className="pl-qa-sub">{sub}</div>}
-                                    </div>
-                                </button>
-                            ))}
+                                            <div>
+                                                <div className="pl-qa-title">{lb}</div>
+                                                {sub && <div className="pl-qa-sub">{sub}</div>}
+                                            </div>
+                                        </button>
+                                    ))}
+                                 */}
+
+                                {[
+                                    [
+                                        <FiMessageSquare size={18} color="#ca8a04" />,
+                                        "Send Warning Notification",
+                                        "",
+                                        handleWarningNotification,
+                                        "#fef9c3",
+                                    ],
+                                    [
+                                        <FiFileText size={18} color="#e11d48" />,
+                                        "Issue Violation Fine",
+                                        "",
+                                        () => { },
+                                        "#ffe4e6",
+                                    ],
+                                    [
+                                        <FiTruck size={18} color="#ea580c" />,
+                                        "Request Towing Service",
+                                        "",
+                                        () => { },
+                                        "#ffedd5",
+                                    ],
+                                ].map(([ic, lb, sub, onClick, bgColor]) => (
+                                    <button
+                                        key={lb}
+                                        className="qa mb-2"
+                                        onClick={onClick}
+                                        type="button"
+                                    >
+                                        <div
+                                            className="qa-ico rounded-2"
+                                            style={{ background: bgColor, padding: "8px", display: "inline-flex" }}
+                                        >
+                                            {ic}
+                                        </div>
+
+                                        <div className="ms-2">
+                                            <div className="pl-qa-title">{lb}</div>
+                                            {sub && <div className="pl-qa-sub">{sub}</div>}
+                                        </div>
+                                    </button>
+                                ))}
+
+                            </div>
                         </div>
-
-
                         <div className="card shadow-sm border mt-3">
                             <div className="card-header bg-light fw-bold py-3">
                                 Activity Log
