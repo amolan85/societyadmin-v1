@@ -37,7 +37,7 @@ const UnitModal = ({
 
     mobileNo,
     setMobileNo,
-
+    handleMobileChange,
     handleSubmit,
 }) => {
     if (!show) return null;
@@ -91,11 +91,10 @@ const UnitModal = ({
                                             </div>
 
                                             <input
-                                                className={`sv-in ${
-                                                    errors.flatNo
+                                                className={`sv-in ${errors.flatNo
                                                         ? "error-input"
                                                         : ""
-                                                }`}
+                                                    }`}
                                                 placeholder="e.g., A-101"
                                                 value={flatNo}
                                                 onChange={(e) =>
@@ -191,11 +190,10 @@ const UnitModal = ({
                                             </div>
 
                                             <input
-                                                className={`sv-in ${
-                                                    errors.unitType
+                                                className={`sv-in ${errors.unitType
                                                         ? "error-input"
                                                         : ""
-                                                }`}
+                                                    }`}
                                                 placeholder="Enter Unit Type"
                                                 value={unitType}
                                                 onChange={(e) =>
@@ -223,11 +221,10 @@ const UnitModal = ({
                                             </div>
 
                                             <input
-                                                className={`sv-in ${
-                                                    errors.area
+                                                className={`sv-in ${errors.area
                                                         ? "error-input"
                                                         : ""
-                                                }`}
+                                                    }`}
                                                 placeholder="e.g., 1200"
                                                 value={area}
                                                 onChange={(e) =>
@@ -253,11 +250,10 @@ const UnitModal = ({
                                             </div>
 
                                             <select
-                                                className={`form-select form-control ${
-                                                    errors.currentStatus
+                                                className={`form-select form-control ${errors.currentStatus
                                                         ? "error-input"
                                                         : ""
-                                                }`}
+                                                    }`}
                                                 value={currentStatus}
                                                 onChange={(e) =>
                                                     setCurrentStatus(
@@ -308,11 +304,10 @@ const UnitModal = ({
                                             </div>
 
                                             <input
-                                                className={`sv-in ${
-                                                    errors.fullName
+                                                className={`sv-in ${errors.fullName
                                                         ? "error-input"
                                                         : ""
-                                                }`}
+                                                    }`}
                                                 placeholder="Enter Owner Name"
                                                 value={fullName}
                                                 onChange={(e) =>
@@ -340,11 +335,10 @@ const UnitModal = ({
                                             </div>
 
                                             <input
-                                                className={`sv-in ${
-                                                    errors.emailId
+                                                className={`sv-in ${errors.emailId
                                                         ? "error-input"
                                                         : ""
-                                                }`}
+                                                    }`}
                                                 placeholder="name@example.com"
                                                 value={emailId}
                                                 onChange={handleEmailChange}
@@ -369,32 +363,31 @@ const UnitModal = ({
 
                                             <div className="d-flex">
                                                 <span
-                                                    className={`am-code ${
-                                                        errors.mobileNo
+                                                    className={`am-code ${errors.mobileNo
                                                             ? "error-input"
                                                             : ""
-                                                    }`}
+                                                        }`}
                                                 >
                                                     +91
                                                 </span>
 
                                                 <input
-                                                    className={`sv-in am-phone ${
-                                                        errors.mobileNo
+                                                    className={`sv-in am-phone ${errors.mobileNo
                                                             ? "error-input"
                                                             : ""
-                                                    }`}
+                                                        }`}
                                                     maxLength={10}
                                                     placeholder="9876543210"
                                                     value={mobileNo}
-                                                    onChange={(e) =>
-                                                        setMobileNo(
-                                                            e.target.value.replace(
-                                                                /\D/g,
-                                                                ""
-                                                            )
-                                                        )
-                                                    }
+                                                    // onChange={(e) =>
+                                                    //     setMobileNo(
+                                                    //         e.target.value.replace(
+                                                    //             /\D/g,
+                                                    //             ""
+                                                    //         )
+                                                    //     )
+                                                    // }
+                                                    onChange={handleMobileChange}
                                                 />
                                             </div>
                                         </div>

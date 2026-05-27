@@ -191,6 +191,31 @@ const UnitRegister = ({ setActive, setFlatId }) => {
     }
   };
 
+  const handleMobileChange = async (e) => {
+    const value = e.target.value;
+    setMobileNo(
+      value.replace(
+        /\D/g,
+        ""
+      )
+    )
+    // 4 digits ke baad API call
+    if (value.length >= 4) {
+      try {
+        const response = await getSearchByUser(societyId, value);
+        console.log(response);
+
+        if (response?.length > 0) {
+          setEmailId(response[0].email || "");
+          setFullName(response[0].full_name || "");
+          setMobileNo(response[0].mobile || "");
+          setUserId(response[0].user_id || "");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
   //function for validation
   const validateForm = () => {
     let errors = {};
@@ -693,6 +718,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
         emailId={emailId}
         setEmailId={setEmailId}
         handleEmailChange={handleEmailChange}
+        handleMobileChange={handleMobileChange}
         mobileNo={mobileNo}
         setMobileNo={setMobileNo}
         handleSubmit={handleSubmit}

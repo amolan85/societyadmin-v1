@@ -27,6 +27,7 @@ import MemberDetails from "../Register/MemberRegister/MemberDetails";
 import ViewUnit from "../Register/UnitRegister/ViewUnit";
 import ParkingDetails from "../Register/ParkingRegister/ParkingDetails";
 import ParkingHistory from "../Register/ParkingRegister/ParkingHistory";
+import RentalAndTenants from "../RentalAndTenants/RentalAndTenants";
 
 
 /* ══ OVERVIEW ══════════════════════════════════ */
@@ -158,7 +159,7 @@ export default function App() {
     complaints: <Complaints setActive={setActive} />,
     createComplaints: <CreateComplaints setActive={setActive} />,
     parking: <PlaceholderPage label="Parking" />,
-    rentals: <PlaceholderPage label="Rentals & Tenants" />,
+    rentals: <RentalAndTenants setActive={setActive} />,
     staff: <StaffAttendance setActive={setActive} setStaffId={setStaffId} />,
     createStaff: <CreateStaffAttendance setActive={setActive} staffId={staffId} />,
     noticeboard: <NoticeBoard setActive={setActive} setSelectedNoticeData={setSelectedNoticeData} />,
@@ -167,6 +168,7 @@ export default function App() {
     parkingRegister: <ParkingRegister setActive={setActive} />,
     parkingDetails: <ParkingDetails setActive={setActive} />,
     parkingHistory: <ParkingHistory setActive={setActive} />,
+
   };
 
 
