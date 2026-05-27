@@ -28,9 +28,10 @@ import {
 import { CgExport } from "react-icons/cg";
 // import MemberModal from "./MemberModal";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
+import RegisterTenantsModal from "./RegisterTenantsModal";
 
 const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
-    const [memType, setMemType] = useState("");
+    const [memType, setMemType] = useState("tenant");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [emailId, setEmailId] = useState("");
@@ -159,6 +160,10 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
             action: "Upload",
             actionColor: "secondary",
         },
+    ];
+
+    const addMemberType = [
+        { id: "Tenant", value: "tenant" },
     ];
 
     const mangementType = [
@@ -622,7 +627,8 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                     </div>
                     <div className='d-flex'>
 
-                        <button className="btn btn-sm btn-ac ms-2 btn-primary" /* onClick={() => setActive("createComplaints")} */>+ Register New Tenant</button>
+                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
+                            setShow(true)}>+ Register New Tenant</button>
 
                     </div>
 
@@ -787,7 +793,8 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                         <td>
                                             <button
                                                 className={`btn btn-sm btn-outline-${item.actionColor}`}
-                                            >
+                                           onClick={()=>setActive("rentalsApplication")}
+                                           >
                                                 {item.action}
                                             </button>
                                         </td>
@@ -802,192 +809,54 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                 </div>
             </div>
 
-            {exportModal && (
-                <>
-                    <div className="modal-backdrop fade show"></div>
-                    <div className="modal show d-block">
-                        <div className="modal-dialog modal-md">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h1 className="modal-title fs-5">Export Data</h1>
-                                    <button
-                                        type="button"
-                                        className="btn-close"
-                                        onClick={() => setExportModal(false)}
-                                    ></button>
-                                </div>
-
-                                <div className="modal-body">
-                                    <h6 className=" text-start" style={{ fontWeight: "bold" }}>
-                                        Select Format
-                                    </h6>
-                                    <div className="row mb-4">
-                                        {/* Excel */}
-                                        <div className="col-md-4">
-                                            <div
-                                                className={`format-card text-center p-3 rounded-3 ${activeTab === "excel" ? "active-format" : ""
-                                                    }`}
-                                                onClick={() => {
-                                                    setActiveTab("excel");
-                                                }}
-                                            >
-                                                <BsFiletypeXls
-                                                    className={
-                                                        activeTab === "excel"
-                                                            ? "text-primary"
-                                                            : "text-secondary"
-                                                    }
-                                                    size={20}
-                                                />
-
-                                                <p
-                                                    className={`fw-semibold mb-0 mt-1 ${activeTab === "excel"
-                                                        ? "text-primary"
-                                                        : "text-secondary"
-                                                        }`}
-                                                >
-                                                    Excel
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* CSV */}
-                                        <div className="col-md-4">
-                                            <div
-                                                className={`format-card text-center p-3 rounded-3 ${activeTab === "csv" ? "active-format" : ""
-                                                    }`}
-                                                onClick={() => {
-                                                    setActiveTab("csv");
-                                                }}
-                                            >
-                                                <BsFiletypeCsv
-                                                    className={
-                                                        activeTab === "csv"
-                                                            ? "text-primary"
-                                                            : "text-secondary"
-                                                    }
-                                                    size={20}
-                                                />
-
-                                                <p
-                                                    className={`fw-semibold mb-0 mt-1 ${activeTab === "csv"
-                                                        ? "text-primary"
-                                                        : "text-secondary"
-                                                        }`}
-                                                >
-                                                    CSV
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* PDF */}
-                                        <div className="col-md-4">
-                                            <div
-                                                className={`format-card text-center p-3 rounded-3 ${activeTab === "pdf" ? "active-format" : ""
-                                                    }`}
-                                                onClick={() => {
-                                                    setActiveTab("pdf");
-                                                }}
-                                            >
-                                                <BsFiletypePdf
-                                                    className={
-                                                        activeTab === "pdf"
-                                                            ? "text-primary"
-                                                            : "text-secondary"
-                                                    }
-                                                    size={20}
-                                                />
-
-                                                <p
-                                                    className={`fw-semibold mb-0 mt-1 ${activeTab === "pdf"
-                                                        ? "text-primary"
-                                                        : "text-secondary"
-                                                        }`}
-                                                >
-                                                    PDF
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <h6 className=" text-start fw-bold">Data Range</h6>
-
-                                    <div
-                                        className={`range-card d-flex justify-content-between align-items-center mb-3 ${selectedRange === "all" ? "active-range" : ""
-                                            }`}
-                                    >
-                                        <div className="d-flex align-items-center gap-3">
-                                            <input
-                                                className="form-check-input"
-                                                type="radio"
-                                                name="exportRange"
-                                                checked={selectedRange === "all"}
-                                                onChange={() => setSelectedRange("all")}
-                                            />
-                                            <h6 className="fw-bold mt-1">All Data</h6>
-                                        </div>
-
-                                        <h6 className="text-muted mt-1">
-                                            {allMembersWithoutPagination.length} records
-                                        </h6>
-                                    </div>
-
-                                    <div
-                                        className={`range-card d-flex justify-content-between align-items-center mb-3 ${selectedRange === "search" ? "active-range" : ""
-                                            }`}
-                                    >
-                                        <div className="d-flex align-items-center gap-3">
-                                            <input
-                                                className="form-check-input"
-                                                type="radio"
-                                                name="exportRange"
-                                                checked={selectedRange === "search"}
-                                                onChange={() => setSelectedRange("search")}
-                                            />
-                                            <h6 className="fw-bold mt-1">Current Search Results</h6>
-                                        </div>
-
-                                        <h6 className="text-muted mt-1">{allMembers.length} records</h6>
-                                    </div>
-
-                                    <div
-                                        className={`range-card d-flex align-items-center gap-3 ${selectedRange === "custom" ? "active-range" : ""
-                                            }`}
-                                    >
-                                        <input
-                                            className="form-check-input"
-                                            type="radio"
-                                            name="exportRange"
-                                            checked={selectedRange === "custom"}
-                                            onChange={() => setSelectedRange("custom")}
-                                        />
-                                        <h6 className="fw-bold mt-1">Custom Date Range</h6>
-                                    </div>
-                                </div>
-
-                                <div className="modal-footer">
-                                    <button
-                                        className="btn-sm btn btn-outline-secondary"
-                                        onClick={() => {
-                                            setExportModal(false);
-                                        }}
-                                    >
-                                        Cancel
-                                    </button>
-
-                                    <button
-                                        className="btn btn-sm btn-primary"
-                                        onClick={handleExport}
-                                    >
-                                        <i className="bi bi-download me-2"></i>
-                                        Export Data
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
+            <RegisterTenantsModal
+                show={show}
+                setShow={setShow}
+                allBlocks={allBlocks}
+                allFlats={allFlats}
+                addMemberType={addMemberType}
+                blocks={blocks}
+                setBlocks={setBlocks}
+                flat={flat}
+                setFlat={setFlat}
+                memType={memType}
+                setMemType={setMemType}
+                resetForm={resetForm}
+                firstName={firstName}
+                setFirstName={setFirstName}
+                lastName={lastName}
+                setLastName={setLastName}
+                mobileNo={mobileNo}
+                setMobileNo={setMobileNo}
+                emailId={emailId}
+                setEmailId={setEmailId}
+                moveInDate={moveInDate}
+                setMoveInDate={setMoveInDate}
+                mode={mode}
+                moveOutDate={moveOutDate}
+                setMoveOutDate={setMoveOutDate}
+                familyType={familyType}
+                setFamilyType={setFamilyType}
+                rentAgreement={rentAgreement}
+                setRentAgreement={setRentAgreement}
+                policeNoc={policeNoc}
+                setPoliceNoc={setPoliceNoc}
+                idProof={idProof}
+                setIdProof={setIdProof}
+                agreement={agreement}
+                setAgreement={setAgreement}
+                maintenanceReceipt={maintenanceReceipt}
+                setMaintenanceReceipt={setMaintenanceReceipt}
+                nominationDetails={nominationDetails}
+                setNominationDetails={setNominationDetails}
+                familyPhoto={familyPhoto}
+                setFamilyPhoto={setFamilyPhoto}
+                ownershipDocuments={ownershipDocuments}
+                setOwnershipDocuments={setOwnershipDocuments}
+                errors={errors}
+                errorText={errorText}
+                handleSubmit={handleSubmit}
+            />
         </>
     );
 };

@@ -28,6 +28,7 @@ import ViewUnit from "../Register/UnitRegister/ViewUnit";
 import ParkingDetails from "../Register/ParkingRegister/ParkingDetails";
 import ParkingHistory from "../Register/ParkingRegister/ParkingHistory";
 import RentalAndTenants from "../RentalAndTenants/RentalAndTenants";
+import TenantsReviewApplication from "../RentalAndTenants/TenantsReviewApplication";
 
 
 /* ══ OVERVIEW ══════════════════════════════════ */
@@ -101,6 +102,7 @@ const TITLES = {
   createComplaints: ["Operations", "Create Complaints"],
   parking: ["Operations", "Parking"],
   rentals: ["Operations", "Rentals & Tenants"],
+  rentalsApplication: ["Operations", "Rentals & Tenants", "Review Application"],
   staff: ["Operations", "Staff Attendance"],
   createStaff: ["Operations", "Create Staff Attendance"],
 };
@@ -160,6 +162,7 @@ export default function App() {
     createComplaints: <CreateComplaints setActive={setActive} />,
     parking: <PlaceholderPage label="Parking" />,
     rentals: <RentalAndTenants setActive={setActive} />,
+    rentalsApplication: <TenantsReviewApplication setActive={setActive} />,
     staff: <StaffAttendance setActive={setActive} setStaffId={setStaffId} />,
     createStaff: <CreateStaffAttendance setActive={setActive} staffId={staffId} />,
     noticeboard: <NoticeBoard setActive={setActive} setSelectedNoticeData={setSelectedNoticeData} />,

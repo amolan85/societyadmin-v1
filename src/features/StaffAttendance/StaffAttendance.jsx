@@ -4,6 +4,7 @@ import "../../styles/StaffAttendance.css"
 import { toast } from 'react-toastify';
 import { deleteStaffApi, getStaffAttendanceApi } from '../../services/StaffAttendanceApi';
 import { GetSessionData } from '../../utils/SessionManagement';
+import ManualEntryModal from './ManualEntryModal';
 
 const StaffAttendance = ({ setActive, setStaffId }) => {
     const [page, setPage] = useState(1);
@@ -14,6 +15,14 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
     const [present, setPresent] = useState("")
     const [absent, setAbsent] = useState("")
     const [late, setLate] = useState("")
+    const [show, setShow] = useState(false)
+    const [recordTypeTab, setRecordTypeTab] = useState("")
+
+    const recordType = [
+        { id: "Check In", value: "checkIn" },
+        { id: "Check Out", value: "checkOut" },
+
+    ];
 
     useEffect(() => {
         SessionData()
@@ -132,7 +141,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
 
             {/* Header */}
             <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                <h4 className="sa-title">Staff Attendance</h4>
+                <h4 className="sa-title">Staff Attendance & Tracking</h4>
 
                 <div className="d-flex gap-2">
                     <button className="btn  btn-primary" onClick={() => setActive("createStaff")}>Create</button>
@@ -143,6 +152,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                         onChange={dateHandleChange}
                     />
                     <button className="btn-ol">⬇ Export</button>
+                    <button className="btn  btn-primary" onClick={() => setShow(true)}>Manual Entry</button>
                 </div>
             </div>
 
@@ -266,6 +276,15 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                 />
 
             </div>
+
+            <ManualEntryModal
+                show={show}
+                setShow={setShow}
+
+                recordType={recordType}
+                recordTypeTab={recordTypeTab}
+                setRecordTypeTab={setRecordTypeTab}
+            />
         </div>
     );
 }
