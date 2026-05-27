@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FaCar } from 'react-icons/fa';
-import { FiAlertTriangle, FiArrowLeft, FiDownload, FiEdit, FiExternalLink, FiPrinter, FiSlash } from "react-icons/fi";
+import { FiAlertTriangle, FiArrowLeft, FiCheckCircle, FiDownload, FiEdit, FiExternalLink, FiPrinter, FiSlash, FiStopCircle } from "react-icons/fi";
 import { CgFileDocument } from 'react-icons/cg';
 import { BiHistory, BiLocationPlus } from 'react-icons/bi';
 import "../../styles/RentalAndTenant.css";
@@ -18,7 +18,7 @@ const TenantsReviewApplication = ({ setActive, /* memberId, setFlatId */ }) => {
                 <div className="card border-0 shadow-sm mb-4">
                     <div className="card-body d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
 
-                        <div className="d-flex align-items-center gap-3">
+                        <div className="d-flex  gap-3">
                             {/* <img
                                 src="https://i.pravatar.cc/100"
                                 className="rounded-circle border"
@@ -26,23 +26,21 @@ const TenantsReviewApplication = ({ setActive, /* memberId, setFlatId */ }) => {
                                 height="70"
                                 alt="profile"
                             /> */}
-                            <div className="icon-box">
+                            <div className="icon-box mt-1">
                                 <FiArrowLeft size={20} className="text-dark" />
                             </div>
                             <div>
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
                                     <h5 className="mb-0 fw-bold">Unit B-402 Tenant Registration</h5>
-
-                                    <span className="badge bg-primary-subtle text-primary">
+                                    <span className="badge bg-warning-subtle text-warning">
                                         Pending Verification
                                     </span>
-
                                 </div>
 
                                 <div className="text-muted text-start small mt-2">
                                     <div className="mb-1">
                                         {/* <i className="bi bi-envelope me-1"></i> */}
-                                        <BiLocationPlus className="me-1" />
+                                        {/* <BiLocationPlus className="me-1" /> */}
                                         submitted on 28 Feb 2024 by Amit Patel (Owner)
                                     </div>
 
@@ -170,10 +168,10 @@ const TenantsReviewApplication = ({ setActive, /* memberId, setFlatId */ }) => {
                         <div className="card shadow-sm border-0 p-3" style={{ maxWidth: "320px", borderRadius: "10px" }}>
 
 
-                            <h6 className="fw-bold mb-3">Owner Details</h6>
+                            <h6 className="fw-bold">Owner Details</h6>
 
-
-                            <div className="border rounded p-2 d-flex align-items-center mb-4 bg-light">
+                            <hr />
+                            <div className=" d-flex align-items-center">
 
 
                                 <img
@@ -187,14 +185,14 @@ const TenantsReviewApplication = ({ setActive, /* memberId, setFlatId */ }) => {
 
                                 <div>
                                     <div className="fw-semibold">Amit Patel</div>
-                                    <small className="text-muted">Unit B-204 • Owner</small>
+                                    <small className="text-muted">Unit B-204  Owner</small>
                                 </div>
 
                             </div>
-
+                            <hr />
                             <div className="mb-4">
                                 <small className="text-uppercase text-muted fw-semibold d-block mb-1">
-                                    Contact
+                                    Contact Number
                                 </small>
                                 <div className="fw-semibold">+918987666553</div>
                             </div>
@@ -202,7 +200,7 @@ const TenantsReviewApplication = ({ setActive, /* memberId, setFlatId */ }) => {
 
                             <div className="mb-4">
                                 <small className="text-uppercase text-muted fw-semibold d-block mb-1">
-                                    Email
+                                    Email Address
                                 </small>
                                 <div className="fw-semibold text-break">
                                     sarah.williams@example.com
@@ -210,8 +208,8 @@ const TenantsReviewApplication = ({ setActive, /* memberId, setFlatId */ }) => {
                             </div>
 
 
-                            <button className='btn btn-success btn-sm'>Owner Approved Registration</button>
-
+                            <button className='btn btn-sm'style={{ backgroundColor: "#37c759", color: "#fff", borderColor: "#37c759"}}><FiCheckCircle /> Owner Approved Registration</button>
+                         
                         </div>
 
 
@@ -261,7 +259,7 @@ const TenantsReviewApplication = ({ setActive, /* memberId, setFlatId */ }) => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
 
             {deallocateShow && (
                 <>
@@ -429,157 +427,160 @@ const TenantsReviewApplication = ({ setActive, /* memberId, setFlatId */ }) => {
                         </div>
                     </div>
                 </>
-            )}
+            )
+            }
 
-            {showDocument && (
-                <>
-                    {/* Backdrop */}
-                    <div
-                        className="modal-backdrop fade show"
-                        onClick={() => setShowDocument(false)}
-                    ></div>
+            {
+                showDocument && (
+                    <>
+                        {/* Backdrop */}
+                        <div
+                            className="modal-backdrop fade show"
+                            onClick={() => setShowDocument(false)}
+                        ></div>
 
-                    {/* Modal */}
-                    <div className="modal fade show d-block">
-                        <div className="modal-dialog modal-dialog-centered modal-lg">
-                            <div
-                                className="modal-content border-0 overflow-hidden"
-                                style={{
-                                    borderRadius: "20px",
-                                }}
-                            >
+                        {/* Modal */}
+                        <div className="modal fade show d-block">
+                            <div className="modal-dialog modal-dialog-centered modal-lg">
+                                <div
+                                    className="modal-content border-0 overflow-hidden"
+                                    style={{
+                                        borderRadius: "20px",
+                                    }}
+                                >
 
-                                {/* Header */}
-                                <div className="modal-header   pt-4 ">
+                                    {/* Header */}
+                                    <div className="modal-header   pt-4 ">
 
-                                    <div className="d-flex align-items-center gap-2">
+                                        <div className="d-flex align-items-center gap-2">
 
-                                        {/* Icon */}
-                                        <div
-                                            className="d-flex align-items-center justify-content-center"
-                                            style={{
-                                                width: "32px",
-                                                height: "32px",
-                                                background: "#eef2ff",
-                                                borderRadius: "4px",
-                                            }}
-                                        >
-                                            <CgFileDocument style={{ color: "#2563eb" }} />
+                                            {/* Icon */}
+                                            <div
+                                                className="d-flex align-items-center justify-content-center"
+                                                style={{
+                                                    width: "32px",
+                                                    height: "32px",
+                                                    background: "#eef2ff",
+                                                    borderRadius: "4px",
+                                                }}
+                                            >
+                                                <CgFileDocument style={{ color: "#2563eb" }} />
+                                            </div>
+
+                                            <h3
+                                                className="mb-0"
+                                                style={{
+                                                    fontWeight: "600",
+                                                    fontSize: "20px",
+                                                }}
+                                            >
+                                                Document Viewer
+                                            </h3>
+
                                         </div>
 
-                                        <h3
-                                            className="mb-0"
-                                            style={{
-                                                fontWeight: "600",
-                                                fontSize: "20px",
-                                            }}
-                                        >
-                                            Document Viewer
-                                        </h3>
+                                        <button
+                                            className="btn-close"
+                                            onClick={() => setShowDocument(false)}
+                                        ></button>
 
                                     </div>
 
-                                    <button
-                                        className="btn-close"
-                                        onClick={() => setShowDocument(false)}
-                                    ></button>
+                                    {/* Body */}
+                                    <div className="modal-body px-4 pt-2 bg-light">
 
-                                </div>
+                                        {/* Top Box */}
+                                        <div
+                                            className=" p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"
+                                            style={{
+                                                background: "#ffffff",
+                                            }}
+                                        >
 
-                                {/* Body */}
-                                <div className="modal-body px-4 pt-2 bg-light">
+                                            {/* File Details */}
+                                            <div className="mb-3">
 
-                                    {/* Top Box */}
-                                    <div
-                                        className=" p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"
-                                        style={{
-                                            background: "#ffffff",
-                                        }}
-                                    >
+                                                <div
+                                                    className="fw-semibold text-start"
+                                                    style={{
+                                                        fontSize: "13px",
+                                                    }}
+                                                >
+                                                    Vehicle Registration - EV-22-ZZ-5555.pdf
+                                                </div>
 
-                                        {/* File Details */}
-                                        <div className="mb-3">
+                                                <div
+                                                    className="text-muted text-start mt-1"
+                                                    style={{
+                                                        fontSize: "11px",
+                                                    }}
+                                                >
+                                                    Uploaded on Jan 15, 2023 • 2.4 MB
+                                                </div>
 
-                                            <div
-                                                className="fw-semibold text-start"
-                                                style={{
-                                                    fontSize: "13px",
-                                                }}
-                                            >
-                                                Vehicle Registration - EV-22-ZZ-5555.pdf
                                             </div>
 
-                                            <div
-                                                className="text-muted text-start mt-1"
-                                                style={{
-                                                    fontSize: "11px",
-                                                }}
-                                            >
-                                                Uploaded on Jan 15, 2023 • 2.4 MB
-                                            </div>
+                                            {/* Button */}
+                                            <button className="btn btn-sm border  py-2">
+                                                {/* <i className="bi bi-box-arrow-up-right"></i> */}
+                                                <FiExternalLink className="me-2" />
+                                                Open in New Tab
+                                            </button>
 
                                         </div>
 
-                                        {/* Button */}
-                                        <button className="btn btn-sm border  py-2">
-                                            {/* <i className="bi bi-box-arrow-up-right"></i> */}
-                                            <FiExternalLink className="me-2" />
-                                            Open in New Tab
+                                        {/* Image Preview */}
+                                        <div
+                                            className="overflow-hidden rounded-1 border"
+                                            style={{
+                                                background: "#f1f5f9",
+                                            }}
+                                        >
+
+                                            <img
+                                                src="https://images.unsplash.com/photo-1586282391129-76a6df230234?q=80&w=1200&auto=format&fit=crop"
+                                                alt="document"
+                                                className="w-100"
+                                                style={{
+                                                    height: "300px",
+                                                    objectFit: "cover",
+                                                }}
+                                            />
+
+                                        </div>
+
+                                    </div>
+
+                                    {/* Footer */}
+                                    <div className="modal-footer px-4 pb-4 pt-3">
+
+                                        <button className="btn btn-sm btn-light border px-4">
+                                            {/* <i className="bi bi-printer me-2 "></i> */}
+                                            <FiPrinter className="me-2" />
+                                            Print
+                                        </button>
+
+                                        <button className="btn btn-sm btn-primary px-4">
+                                            {/* <i className="bi bi-download me-2"></i> */}
+                                            <FiDownload className="me-2" />
+                                            Download
+                                        </button>
+
+                                        <button
+                                            className="btn btn-sm  btn-light border ms-auto"
+                                            onClick={() => setShowDocument(false)}
+                                        >
+                                            Close
                                         </button>
 
                                     </div>
 
-                                    {/* Image Preview */}
-                                    <div
-                                        className="overflow-hidden rounded-1 border"
-                                        style={{
-                                            background: "#f1f5f9",
-                                        }}
-                                    >
-
-                                        <img
-                                            src="https://images.unsplash.com/photo-1586282391129-76a6df230234?q=80&w=1200&auto=format&fit=crop"
-                                            alt="document"
-                                            className="w-100"
-                                            style={{
-                                                height: "300px",
-                                                objectFit: "cover",
-                                            }}
-                                        />
-
-                                    </div>
-
                                 </div>
-
-                                {/* Footer */}
-                                <div className="modal-footer px-4 pb-4 pt-3">
-
-                                    <button className="btn btn-sm btn-light border px-4">
-                                        {/* <i className="bi bi-printer me-2 "></i> */}
-                                        <FiPrinter className="me-2" />
-                                        Print
-                                    </button>
-
-                                    <button className="btn btn-sm btn-primary px-4">
-                                        {/* <i className="bi bi-download me-2"></i> */}
-                                        <FiDownload className="me-2" />
-                                        Download
-                                    </button>
-
-                                    <button
-                                        className="btn btn-sm  btn-light border ms-auto"
-                                        onClick={() => setShowDocument(false)}
-                                    >
-                                        Close
-                                    </button>
-
-                                </div>
-
                             </div>
                         </div>
-                    </div>
-                </>
-            )}
+                    </>
+                )
+            }
         </>
     )
 }
