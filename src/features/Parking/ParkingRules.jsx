@@ -31,6 +31,7 @@ import { CgExport } from "react-icons/cg";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import { BiImport } from "react-icons/bi";
 import NewRuleModal from "./NewRuleModal";
+import EditRuleModal from "./EditRuleModal";
 
 
 const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
@@ -56,6 +57,7 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
     const [userId, setUserId] = useState("");
     const [errors, setErrors] = useState({});
     const [show, setShow] = useState(false);
+    const [editRuleShow, setEditRuleShow] = useState(false);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
@@ -780,7 +782,7 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                                                             // onClick={() =>
                                                             //     getMembersById(s.user_id, s.flat_id)
                                                             // }
-                                                            onClick={() => setActive("rentalsApplication")}
+                                                            onClick={() => setActive("viewParkingDetails")}
                                                         >
                                                             View Details
                                                         </button>
@@ -789,11 +791,11 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                        // onClick={() => {
-                                                        //     setMode("edit");
-                                                        //     setShow(true);
-                                                        //     GetMemberDetailsById(s.user_id);
-                                                        // }}
+                                                            onClick={() => {
+
+                                                                setEditRuleShow(true);
+                                                                // GetMemberDetailsById(s.user_id);
+                                                            }}
                                                         >
                                                             Edit Rules
                                                         </button>
@@ -827,6 +829,19 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
             <NewRuleModal
                 show={show}
                 setShow={setShow}
+
+                statusOptions={statusOptions}
+                statusField={statusField}
+                setStatusField={setStatusField}
+
+                typeOptions={typeOptions}
+                typeField={typeField}
+                setTypeField={setTypeField}
+            />
+
+            <EditRuleModal
+                editRuleShow={editRuleShow}
+                setEditRuleShow={setEditRuleShow}
 
                 statusOptions={statusOptions}
                 statusField={statusField}
