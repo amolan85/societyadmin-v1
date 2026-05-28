@@ -284,7 +284,9 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                         </div>
                         <div className="card shadow-sm border mt-4 text-start">
                             <div className="card-header bg-white fw-bold">
-                                {/* <div className="card shadow-sm border mt-3">
+                                Activity Log
+                            </div>
+                            {/* <div className="card shadow-sm border mt-3">
                             <div className="card-header bg-light fw-bold py-3">
                                 Activity Log
                             </div>
@@ -316,50 +318,43 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                 </div>
                             </div>
                         </div> */}
-                                <div className="card shadow-sm border mt-3">
-                                    <div className="card-header bg-light fw-bold py-3">
-                                        Activity Log
+                            <div className="card-body">
+                                <div className="unauth-timeline">
+
+                                    <div className="unauth-timeline-item active">
+                                        <h6 className="mb-1">Violation Detected</h6>
+                                        <small className="text-muted">
+                                          System detected vehicle in reserved slot.
+                                        </small><br/>
+                                         <small className="text-muted">
+                                           10:42 AM
+                                        </small>
                                     </div>
 
-                                    <div className="card-body">
-                                        <div className="d-flex flex-column">
-
-                                            {/* Violation Detected */}
-                                            <div className="d-flex align-items-start position-relative pb-4">
-                                                <div className="position-absolute top-0 start-0 translate-middle-x border-start border-2 h-100 mt-3" style={{ left: '9px' }} />
-                                                <div className="rounded-circle bg-danger flex-shrink-0 mt-1 z-1" style={{ width: '20px', height: '20px' }} />
-                                                <div className="ms-3">
-                                                    <div className="fw-semibold small">Violation Detected</div>
-                                                    <div className="text-muted small">System detected vehicle in reserved slot.</div>
-                                                    <div className="text-muted small">10:42 AM</div>
-                                                </div>
-                                            </div>
-
-                                            {/* Alert Sent to Admin */}
-                                            <div className="d-flex align-items-start position-relative pb-4">
-                                                <div className="position-absolute top-0 start-0 translate-middle-x border-start border-2 h-100 mt-3" style={{ left: '9px' }} />
-                                                <div className="rounded-circle bg-secondary flex-shrink-0 mt-1 z-1" style={{ width: '20px', height: '20px' }} />
-                                                <div className="ms-3">
-                                                    <div className="fw-semibold small">Alert Sent to Admin</div>
-                                                    <div className="text-muted small">Push notification sent to 3 active admins.</div>
-                                                    <div className="text-muted small">10:43 AM</div>
-                                                </div>
-                                            </div>
-
-                                            {/* Pending Action */}
-                                            <div className="d-flex align-items-start">
-                                                <div className="rounded-circle bg-secondary flex-shrink-0 mt-1" style={{ width: '20px', height: '20px' }} />
-                                                <div className="ms-3">
-                                                    <div className="fw-semibold small">Pending Action</div>
-                                                    <div className="text-muted small">Awaiting resolution...</div>
-                                                </div>
-                                            </div>
-
-                                        </div>
+                                    <div className="unauth-timeline-item">
+                                        <h6 className="mb-1">Alert Sent to Admin</h6>
+                                        <small className="text-muted">
+                                           Push notification sent to 3 active admins.
+                                        </small><br/>
+                                        <small className="text-muted">
+                                           10:43 AM
+                                        </small>
                                     </div>
+
+                                    <div className="unauth-timeline-item">
+                                        <h6 className="mb-1">Pending Action</h6>
+                                        <small className="text-muted">
+                                           Awaiting resolution...
+                                        </small><br/>
+                                        <small className="text-muted">
+                                        </small>
+                                    </div>
+
                                 </div>
                             </div>
+
                         </div>
+<<<<<<< HEAD
                     </div >
                 </div>
             </div>
@@ -385,6 +380,34 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                 {/* Header */}
                                 <div className="modal-header ">
 
+=======
+                    </div>
+                </div >
+            </div>
+
+            {deallocateShow && (
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="modal-backdrop fade show"
+                        onClick={() => setDeallocateShow(false)}
+                    ></div>
+
+                    {/* Modal */}
+                    <div
+                        className="modal fade show d-block"
+                        tabIndex="-1"
+                    >
+                        <div className="modal-dialog modal-dialog-centered">
+                            <div
+                                className="modal-content border-0"
+                                style={{ borderRadius: "16px" }}
+                            >
+
+                                {/* Header */}
+                                <div className="modal-header ">
+
+>>>>>>> be3cb3c17a8da2d7a56959480505538042bafdc4
                                     <div className="d-flex align-items-center gap-2">
                                         <div
                                             className="d-flex align-items-center justify-content-center"
@@ -534,6 +557,7 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
             <ResolveViolationModal
                 show={show}
                 setShow={setShow}
+<<<<<<< HEAD
 
                 resolutionMethod={resolutionMethod}
                 resolutionMethodField={resolutionMethodField}
@@ -541,6 +565,10 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
             />
 
+=======
+            />
+
+>>>>>>> be3cb3c17a8da2d7a56959480505538042bafdc4
             <WarningNotificationModal
                 notificationShow={notificationShow}
                 setNotificationShow={setNotificationShow}

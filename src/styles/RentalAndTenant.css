@@ -8,3 +8,39 @@
   justify-content: center;
   background: #f9fafb;
 }
+
+
+.unauth-timeline {
+  position: relative;
+  padding-left: 22px;
+}
+
+.unauth-timeline::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #dee2e6;
+}
+
+.unauth-timeline-item {
+  position: relative;
+  margin-bottom: 25px;
+}
+
+.unauth-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -24px;
+  top: 6px;
+  width: 16px;
+  height: 16px;
+  background: #6c757d;
+  border-radius: 50%;
+}
+
+.unauth-timeline-item.active::before {
+  background: #fd0d0d;
+}
