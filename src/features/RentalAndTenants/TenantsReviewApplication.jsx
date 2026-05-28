@@ -273,16 +273,7 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
                                 <div className="text-center">
                                     <button className='btn btn-sm' style={{ backgroundColor: "#37c759", color: "#fff", borderColor: "#37c759" ,width: "350px"}}><FiCheckCircle /> Owner Approved Registration</button>
                                 </div>
-
-
                             </div>
-<<<<<<< HEAD
-
-
-                            <button className='btn btn-sm' style={{ backgroundColor: "#37c759", color: "#fff", borderColor: "#37c759" }}><FiCheckCircle /> Owner Approved Registration</button>
-
-=======
->>>>>>> c63ef8c363851daf612afa6c7a265cd290d27670
                         </div>
 
 
