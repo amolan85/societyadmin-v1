@@ -574,8 +574,17 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                             Manage tenant registrations, verify KYC, and track rental agreements.
                         </p>
                     </div>
+                   
                     <div className='d-flex'>
-
+                        <button
+                            className="btn-ol ms-2"
+                            onClick={() => {
+                                getAllMembersWithoutPagination(societyId, "");
+                                setExportModal(true);
+                            }}
+                        >
+                            <CgExport /> Export List
+                        </button>
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
                             setShow(true)}>+ Register New Tenant</button>
 
