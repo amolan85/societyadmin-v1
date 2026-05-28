@@ -313,7 +313,7 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                     mobileNo,
                     emailId,
                     blocks?.value,
-                    flat?.value,                   
+                    flat?.value,
                     startDate,
                     endDate,
                     agreement,
@@ -511,7 +511,7 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
         setErrorText("");
     };
 
-   
+
     const handleSearch = async (e) => {
         const value = e.target.value;
         setSearch(value);
@@ -574,8 +574,17 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                             Manage tenant registrations, verify KYC, and track rental agreements.
                         </p>
                     </div>
+                   
                     <div className='d-flex'>
-
+                        <button
+                            className="btn-ol ms-2"
+                            onClick={() => {
+                                getAllMembersWithoutPagination(societyId, "");
+                                setExportModal(true);
+                            }}
+                        >
+                            <CgExport /> Export List
+                        </button>
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
                             setShow(true)}>+ Register New Tenant</button>
 
@@ -833,11 +842,11 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                        onClick={() => {
-                                                            setMode("edit");
-                                                            setShow(true);
-                                                            GetTenantById(item.user_id);
-                                                        }}
+                                                            onClick={() => {
+                                                                setMode("edit");
+                                                                setShow(true);
+                                                                GetTenantById(item.user_id);
+                                                            }}
                                                         >
                                                             Edit tenant
                                                         </button>

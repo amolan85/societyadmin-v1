@@ -363,15 +363,14 @@ const RegisterTenantsModal = ({
 
                         <div className="modal-footer bg-light">
                             <button
-                                className="btn-ol btn close"
-                                onClick={() => {
+                                type="button"
+                                className="btn btn-outline-secondary"  onClick={() => {
                                     setShow(false);
                                     resetForm();
                                 }}
                             >
                                 Cancel
                             </button>
-
                             <button className="btn-ac px-4" onClick={handleSubmit}>
                                 Submit Registration
                             </button>

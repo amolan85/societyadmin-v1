@@ -193,15 +193,24 @@ const FilterRentalsModal = ({
                                 type="button"
                                 className="btn btn-ol btn-link text-secondary text-decoration-none"
                             >
-                                Reset Filters
+                                Clear All
                             </button>
+                            
+                            <div className="d-flex gap-2">
+                                <button
+                                    type="button"
+                                    className="btn btn-outline-secondary"
+                                >
+                                    Cancel
+                                </button>
 
-                            <button
-                                type="button"
-                                className="btn btn-ac btn-primary px-4"
-                            >
-                                Apply Filters
-                            </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary px-4"
+                                >
+                                    Apply Filters
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
