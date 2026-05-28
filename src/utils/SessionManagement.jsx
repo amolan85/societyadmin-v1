@@ -48,6 +48,7 @@ export const GetToken = () => {
 
 // SET society data
 export const SetSocietyData = (data) => {
+  data.flats[0].society_id = data.society_id;
   localStorage.setItem("currentSociety", JSON.stringify(data));
 };
 
