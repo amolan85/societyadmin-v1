@@ -313,7 +313,7 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                     mobileNo,
                     emailId,
                     blocks?.value,
-                    flat?.value,                   
+                    flat?.value,
                     startDate,
                     endDate,
                     agreement,
@@ -511,7 +511,7 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
         setErrorText("");
     };
 
-   
+
     const handleSearch = async (e) => {
         const value = e.target.value;
         setSearch(value);
@@ -748,7 +748,6 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
 
                                         {/* KYC */}
                                         <td className="text-start">
-
                                             <Badge
                                                 label={item.status}
                                                 c={
@@ -803,7 +802,7 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            onClick={getViewDetails}
+                                                            onClick={() => getViewDetails(item.user_id)}
                                                         >
                                                             View Details
                                                         </button>
@@ -833,11 +832,11 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                        onClick={() => {
-                                                            setMode("edit");
-                                                            setShow(true);
-                                                            GetTenantById(item.user_id);
-                                                        }}
+                                                            onClick={() => {
+                                                                setMode("edit");
+                                                                setShow(true);
+                                                                GetTenantById(item.user_id);
+                                                            }}
                                                         >
                                                             Edit tenant
                                                         </button>

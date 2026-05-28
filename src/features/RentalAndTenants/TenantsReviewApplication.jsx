@@ -9,6 +9,7 @@ import { GetSessionData } from '../../utils/SessionManagement';
 import { getMembersByIdApi } from '../../services/AddMemberApi';
 const TenantsReviewApplication = ({ setActive, tenantId }) => {
     const [societyId, setSocietyId] = useState("")
+    const [tenantData, setTenantData] = useState("")
 
     useEffect(() => {
         SessionData();
@@ -34,42 +35,8 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
     const GetTenantDetailsById = async () => {
         try {
             const data = await getMembersByIdApi(societyId, tenantId);
-            console.log(data)
+            setTenantData(data)
 
-            //   data.documents?.forEach((doc) => {
-            //     switch (doc.document_type) {
-            //       case "id_proof":
-            //         setIdProof(doc.url);
-            //         break;
-
-            //       case "family_photo":
-            //         setFamilyPhoto(doc.url);
-            //         break;
-
-            //       case "agreement":
-            //         setAgreement(doc.url);
-            //         break;
-
-            //       case "ownership":
-            //         setOwnershipDocuments(doc.url);
-            //         break;
-
-            //       case "maintenance_receipt":
-            //         setMaintenanceReceipt(doc.url);
-            //         break;
-
-            //       case "rent_agreement":
-            //         setRentAgreement(doc.url);
-            //         break;
-
-            //       case "police_noc":
-            //         setPoliceNoc(doc.url);
-            //         break;
-
-            //       default:
-            //         break;
-            //     }
-            //   });
         } catch (error) {
             console.log(error);
         }
@@ -94,9 +61,9 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
                             </div>
                             <div>
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
-                                    <h5 className="mb-0 fw-bold">Unit B-402 Tenant Registration</h5>
+                                    <h5 className="mb-0 fw-bold">Unit {tenantData.block}-{tenantData.flat_number} Tenant Registration</h5>
                                     <span className="badge bg-warning-subtle text-warning">
-                                        Pending Verification
+                                        {tenantData.status}
                                     </span>
                                 </div>
 
@@ -135,7 +102,7 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
 
                             <div className="card-body">
                                 <div className='row'>
-                                    <div className="col-lg-2">
+                                    <div className="col-2">
                                         <img
                                             src='../src/assets/profile.png'
                                             alt="profile"
@@ -145,12 +112,12 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
                                         />
 
                                     </div>
-                                    <div className="col-lg-10">
+                                    <div className="col-10">
                                         <div className="row g-4">
 
                                             <div className="col-md-6">
                                                 <small className="text-muted d-block">FULL NAME</small>
-                                                <div className="fw-semibold">-</div>
+                                                <div className="fw-semibold">{tenantData.first_name} {tenantData.last_name}</div>
                                             </div>
 
                                             <div className="col-md-6">
@@ -160,12 +127,12 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
 
                                             <div className="col-md-6">
                                                 <small className="text-muted d-block">EMAIL ADDRESS</small>
-                                                <div className="fw-semibold">-</div>
+                                                <div className="fw-semibold">{tenantData.email}</div>
                                             </div>
 
                                             <div className="col-md-6">
                                                 <small className="text-muted d-block">PHONE NUMBER</small>
-                                                <div className="fw-semibold">-</div>
+                                                <div className="fw-semibold">{tenantData.mobile}</div>
                                             </div>
 
                                             <div className="col-md-12">
@@ -193,12 +160,12 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
 
                                     <div className="col-md-4">
                                         <small className="text-muted d-block">LEASE INFORMATION</small>
-                                        <div className="fw-semibold">-</div>
+                                        <div className="fw-semibold">{tenantData.start_date}</div>
                                     </div>
 
                                     <div className="col-md-4">
                                         <small className="text-muted d-block">LEASE END DATE</small>
-                                        <div className="fw-semibold">-</div>
+                                        <div className="fw-semibold">{tenantData.end_date}</div>
                                     </div>
 
                                     <div className="col-md-4">
@@ -271,7 +238,7 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
                                 </div>
 
                                 <div className="text-center">
-                                    <button className='btn btn-sm' style={{ backgroundColor: "#37c759", color: "#fff", borderColor: "#37c759" ,width: "350px"}}><FiCheckCircle /> Owner Approved Registration</button>
+                                    <button className='btn btn-sm d-block' style={{ backgroundColor: "#37c759", color: "#fff", borderColor: "#37c759"}}><FiCheckCircle /> Owner Approved Registration</button>
                                 </div>
                             </div>
                         </div>
