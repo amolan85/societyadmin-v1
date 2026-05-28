@@ -3,6 +3,7 @@ import { FaCar } from 'react-icons/fa';
 import { FiAlertTriangle, FiDownload, FiEdit, FiExternalLink, FiPrinter, FiSlash } from "react-icons/fi";
 import { CgFileDocument } from 'react-icons/cg';
 import { BiHistory, BiLocationPlus } from 'react-icons/bi';
+import "../../../styles/ParkingRegister.css";
 
 const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
@@ -68,7 +69,7 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                 Edit Details
                             </button>
 
-                            <button className="btn btn-sm" onClick={() => setDeallocateShow(true)} style={{ background: "#ffc5c6", color: "#fe484a", border: "1px solid #fe484a" }}>
+                            <button className="btn btn-sm deallocate-btn" onClick={() => setDeallocateShow(true)}>
                                 {/* <i className="bi bi-pencil-square me-1"></i> */}
                                 <FiSlash className="me-1" />
                                 <strong>Deallocate</strong>

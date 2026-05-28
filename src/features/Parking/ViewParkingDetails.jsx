@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FaBalanceScale, FaCar, FaSwimmingPool, FaUsers } from 'react-icons/fa';
-import { FiAlertTriangle, FiArrowLeft, FiCheckCircle, FiDownload, FiEdit, FiExternalLink, FiMessageSquare, FiPrinter, FiSlash, FiStopCircle ,FiFile,FiTruck,FiFileText} from "react-icons/fi";
+import { FiAlertTriangle, FiArrowLeft, FiCheckCircle, FiDownload, FiEdit, FiExternalLink, FiMessageSquare, FiPrinter, FiSlash, FiStopCircle, FiFile, FiTruck, FiFileText } from "react-icons/fi";
 import { CgFileDocument } from 'react-icons/cg';
 import { BiHistory, BiLocationPlus } from 'react-icons/bi';
 import "../../styles/RentalAndTenant.css";
@@ -53,7 +53,7 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                         </div>
 
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
-                            <button className="btn btn-danger btn-sm" onClick={() => setActive("parkingRegister")}><FiPrinter /> Print Ticket</button>
+                            <button className="btn btn-sm deallocate-btn" onClick={() => setActive("parkingRegister")}><FiPrinter /> Print Ticket</button>
                             <button className="btn btn-danger btn-sm" onClick={() => setShow(true)}><FiCheckCircle /> Resolve Violation</button>
 
                             <button className="btn btn-primary btn-sm" onClick={() => setActive("parkingRegister")}>Back</button>
@@ -250,7 +250,7 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                             </div>
                         </div>
-                        <div className="card shadow-sm border mt-3">
+                        {/* <div className="card shadow-sm border mt-3">
                             <div className="card-header bg-light fw-bold py-3">
                                 Activity Log
                             </div>
@@ -291,6 +291,48 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                     <label className="form-check-label" htmlFor="agreementMatch">
                                         Agreement Matches Lease Period
                                     </label>
+                                </div>
+                            </div>
+                        </div> */}
+                        <div className="card shadow-sm border mt-3">
+                            <div className="card-header bg-light fw-bold py-3">
+                                Activity Log
+                            </div>
+
+                            <div className="card-body">
+                                <div className="d-flex flex-column">
+
+                                    {/* Violation Detected */}
+                                    <div className="d-flex align-items-start position-relative pb-4">
+                                        <div className="position-absolute top-0 start-0 translate-middle-x border-start border-2 h-100 mt-3" style={{ left: '9px' }} />
+                                        <div className="rounded-circle bg-danger flex-shrink-0 mt-1 z-1" style={{ width: '20px', height: '20px' }} />
+                                        <div className="ms-3">
+                                            <div className="fw-semibold small">Violation Detected</div>
+                                            <div className="text-muted small">System detected vehicle in reserved slot.</div>
+                                            <div className="text-muted small">10:42 AM</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Alert Sent to Admin */}
+                                    <div className="d-flex align-items-start position-relative pb-4">
+                                        <div className="position-absolute top-0 start-0 translate-middle-x border-start border-2 h-100 mt-3" style={{ left: '9px' }} />
+                                        <div className="rounded-circle bg-secondary flex-shrink-0 mt-1 z-1" style={{ width: '20px', height: '20px' }} />
+                                        <div className="ms-3">
+                                            <div className="fw-semibold small">Alert Sent to Admin</div>
+                                            <div className="text-muted small">Push notification sent to 3 active admins.</div>
+                                            <div className="text-muted small">10:43 AM</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Pending Action */}
+                                    <div className="d-flex align-items-start">
+                                        <div className="rounded-circle bg-secondary flex-shrink-0 mt-1" style={{ width: '20px', height: '20px' }} />
+                                        <div className="ms-3">
+                                            <div className="fw-semibold small">Pending Action</div>
+                                            <div className="text-muted small">Awaiting resolution...</div>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
