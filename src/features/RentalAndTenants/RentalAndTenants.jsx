@@ -29,6 +29,7 @@ import { CgExport } from "react-icons/cg";
 // import MemberModal from "./MemberModal";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import RegisterTenantsModal from "./RegisterTenantsModal";
+import FilterRentalsModal from "./FilterRentalsModal";
 
 const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
     const [memType, setMemType] = useState("tenant");
@@ -68,8 +69,8 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
     const [search, setSearch] = useState("");
     const [mId, setMId] = useState("");
     const [selectedRange, setSelectedRange] = useState("all");
-
     const [mangementTypeTab, setManagementTypeTab] = useState("");
+    const [showFilterRentals, setShowFilterRentals] = useState(false)
 
     const tenantData = [
         {
@@ -161,6 +162,40 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
             actionColor: "secondary",
         },
     ];
+
+    const filterData = {
+        blocks: [
+            { name: "Block A", checked: true },
+            { name: "Block B", checked: false },
+            { name: "Block C", checked: false },
+            { name: "Block D", checked: false },
+        ],
+
+        verificationStatus: [
+            { name: "Verified", count: 134, checked: true },
+            { name: "Pending Verification", count: 8, checked: false },
+            { name: "Unverified / Rejected", count: 4, checked: false },
+        ],
+
+            agreementStatus : [
+        {
+            value: "active",
+            label: "Active",
+        },
+        {
+            value: "expiringIn30Days",
+            label: "Expiring in 30 days",
+        },
+        {
+            value: "expired",
+            label: "Expired",
+        },
+          {
+            value: "notUploaded",
+            label: "Not Uploaded",
+        },
+    ]
+    };
 
     const addMemberType = [
         { id: "Tenant", value: "tenant" },
@@ -721,7 +756,7 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                     <div className="d-flex">
                         <button
                             className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
-                            data-bs-toggle="dropdown"
+                            data-bs-toggle="dropdown" onClick={() => setShowFilterRentals(true)}
                         >
                             <FiFilter size={14} />
                             Filter
@@ -864,7 +899,7 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                                             // onClick={() =>
                                                             //     getMembersById(s.user_id, s.flat_id)
                                                             // }
-                                                            onClick={()=>setActive("rentalsApplication")}
+                                                            onClick={() => setActive("rentalsApplication")}
                                                         >
                                                             View Details
                                                         </button>
@@ -873,9 +908,9 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            // onClick={() =>
-                                                            //     getMembersById(s.user_id, s.flat_id)
-                                                            // }
+                                                        // onClick={() =>
+                                                        //     getMembersById(s.user_id, s.flat_id)
+                                                        // }
                                                         >
                                                             Review & Approve
                                                         </button>
@@ -884,9 +919,9 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            // onClick={() =>
-                                                            //     getMembersById(s.user_id, s.flat_id)
-                                                            // }
+                                                        // onClick={() =>
+                                                        //     getMembersById(s.user_id, s.flat_id)
+                                                        // }
                                                         >
                                                             Upload
                                                         </button>
@@ -894,11 +929,11 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            // onClick={() => {
-                                                            //     setMode("edit");
-                                                            //     setShow(true);
-                                                            //     GetMemberDetailsById(s.user_id);
-                                                            // }}
+                                                        // onClick={() => {
+                                                        //     setMode("edit");
+                                                        //     setShow(true);
+                                                        //     GetMemberDetailsById(s.user_id);
+                                                        // }}
                                                         >
                                                             Edit tenant
                                                         </button>
@@ -977,6 +1012,12 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                 errors={errors}
                 errorText={errorText}
                 handleSubmit={handleSubmit}
+            />
+
+            <FilterRentalsModal
+                showFilterRentals={showFilterRentals}
+                setShowFilterRentals={setShowFilterRentals}
+                filterData={filterData}
             />
         </>
     );

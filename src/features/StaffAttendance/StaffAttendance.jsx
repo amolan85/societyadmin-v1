@@ -5,6 +5,8 @@ import { toast } from 'react-toastify';
 import { deleteStaffApi, getStaffAttendanceApi } from '../../services/StaffAttendanceApi';
 import { GetSessionData } from '../../utils/SessionManagement';
 import ManualEntryModal from './ManualEntryModal';
+import { FiFilter, FiSearch } from 'react-icons/fi';
+import FilterAttendanceModal from './FilterAttendanceModal';
 
 const StaffAttendance = ({ setActive, setStaffId }) => {
     const [page, setPage] = useState(1);
@@ -16,6 +18,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
     const [absent, setAbsent] = useState("")
     const [late, setLate] = useState("")
     const [show, setShow] = useState(false)
+    const [showFilterAttendance, setShowFilterAttendance] = useState(false)
     const [recordTypeTab, setRecordTypeTab] = useState("")
 
     const recordType = [
@@ -23,7 +26,34 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
         { id: "Check Out", value: "checkOut" },
 
     ];
+const filterData = {
+  date: "14 Sept, 2025",
 
+  status: [
+    "On Duty",
+    "Late Entry",
+    "Shift Completed",
+    "Absent",
+  ],
+
+  departments: [
+    "Security Guard",
+    "Technicians",
+    "Technicians",
+  ],
+
+  shiftTypes: [
+    "Morning Shift",
+    "Evening Shift",
+    "Night Shift",
+  ],
+
+  checkInMethods: [
+    "Biometric",
+    "Mobile App",
+    "Manual Entry",
+  ],
+};
     useEffect(() => {
         SessionData()
     }, [])
@@ -179,6 +209,48 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                 ))}
             </div>
 
+            <div className="d-flex justify-content-between align-items-center mb-4 text-start">
+                {/* <div>
+                        <h4 className="cp-title">Members</h4>
+                        <p className="cp-sub">
+                            Manage and track all society members
+                        </p>
+                    </div> */}
+                <div className="col-12 col-md-4 col-lg-3 position-relative">
+                    <span
+                        style={{
+                            position: "absolute",
+                            left: "15px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            color: "#aaa",
+                        }}
+                    >
+                        <FiSearch size={16} />
+                    </span>
+
+                    <input
+                        type="text"
+                        className="form-control rounded-pill"
+                        placeholder="Search by name, role"
+                        // value={search}
+                        // onChange={(e) => setSearch(e.target.value)}
+                        // onChange={handleSearch}
+                        style={{ paddingLeft: "35px" }}
+                    />
+                </div>
+                <div className="d-flex">
+                    <button
+                        className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
+                        data-bs-toggle="dropdown" onClick={()=>setShowFilterAttendance(true)}
+                    >
+                        <FiFilter size={14} />
+                        Filter
+                    </button>
+
+                </div>
+            </div>
+
             {/* Table */}
             <div className="sv-card p-0 overflow-hidden">
 
@@ -284,6 +356,11 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                 recordType={recordType}
                 recordTypeTab={recordTypeTab}
                 setRecordTypeTab={setRecordTypeTab}
+            />
+            <FilterAttendanceModal
+                showFilterAttendance={showFilterAttendance}
+                setShowFilterAttendance={setShowFilterAttendance}
+                filterData={filterData}
             />
         </div>
     );

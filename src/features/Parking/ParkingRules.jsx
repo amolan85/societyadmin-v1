@@ -76,6 +76,7 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
 
     const [statusField, setStatusField] = useState("");
     const [typeField, setTypeField] = useState("");
+    const [violationTypeField, setViolationTypeField] = useState("");
 
     const parkingRulesData = [
         {
@@ -142,6 +143,10 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
 
     const statusOptions = [
         {
+            value: "active",
+            label: "Active",
+        },
+        {
             value: "draft",
             label: "Draft",
         },
@@ -153,12 +158,40 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
 
     const typeOptions = [
         {
-            value: "policy",
-            label: "Policy",
+            value: "society_policy",
+            label: "Society Policy",
         },
         {
-            value: "byLaw",
-            label: "By-law",
+            value: "law",
+            label: "Law",
+        },
+    ]
+
+    const violationTypeOptions = [
+        {
+            value: "unauthorized_parking",
+            label: "Unauthorized Parking",
+        },
+        {
+            value: "wrong_slot",
+            label: "Wrong Slot",
+        },
+
+        {
+            value: "double_parking",
+            label: "Double Parking",
+        },
+        {
+            value: "no_sticker",
+            label: "No Sticker",
+        },
+        {
+            value: "visitor_overstay",
+            label: "Visitor Overstay",
+        },
+        {
+            value: "other",
+            label: "Other",
         },
     ]
 
@@ -779,10 +812,10 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            // onClick={() =>
-                                                            //     getMembersById(s.user_id, s.flat_id)
-                                                            // }
-                                                            onClick={() => setActive("viewParkingDetails")}
+                                                        // onClick={() =>
+                                                        //     getMembersById(s.user_id, s.flat_id)
+                                                        // }
+                                                        // onClick={() => setActive("viewParkingDetails")}
                                                         >
                                                             View Details
                                                         </button>
@@ -793,7 +826,7 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                                                             className="dropdown-item member-action-item"
                                                             onClick={() => {
 
-                                                                setEditRuleShow(true);
+                                                                // setEditRuleShow(true);
                                                                 // GetMemberDetailsById(s.user_id);
                                                             }}
                                                         >
@@ -837,6 +870,10 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                 typeOptions={typeOptions}
                 typeField={typeField}
                 setTypeField={setTypeField}
+
+                violationTypeOptions={violationTypeOptions}
+                violationTypeField={violationTypeField}
+                setViolationTypeField={setViolationTypeField}
             />
 
             <EditRuleModal

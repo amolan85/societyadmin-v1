@@ -10,6 +10,7 @@ const NewRuleModal = ({
     addMemberType = [],
     statusOptions = [],
     typeOptions = [],
+    violationTypeOptions = [],
 
     statusField = "",
     setStatusField = () => { },
@@ -17,6 +18,8 @@ const NewRuleModal = ({
     typeField = "",
     setTypeField = () => { },
 
+    violationTypeField = "",
+    setViolationTypeField = () => { },
     blocks = null,
     setBlocks = () => { },
 
@@ -134,7 +137,7 @@ const NewRuleModal = ({
                                         <div className="col-6">
                                             <div className="d-flex">
                                                 <label className="sv-lb">
-                                                    Type<span className="text-danger">*</span>
+                                                    By<span className="text-danger">*</span>
                                                 </label>
                                                 {errors.typeField && (
                                                     <span className="text-danger mx-2 ">
@@ -225,11 +228,11 @@ const NewRuleModal = ({
                                         <div className="col-6">
                                             <div className="d-flex">
                                                 <label className="sv-lb">
-                                                    Action Type<span className="text-danger">*</span>
+                                                    Violation Type<span className="text-danger">*</span>
                                                 </label>
-                                                {errors.blocks && (
+                                                {errors.violationTypeField && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.blocks}
+                                                        {errors.violationTypeField}
                                                     </span>
                                                 )}
                                             </div>
@@ -237,20 +240,20 @@ const NewRuleModal = ({
                                                 styles={{
                                                     control: (baseStyles) => ({
                                                         ...baseStyles,
-                                                        borderColor: errors.blocks
+                                                        borderColor: errors.violationTypeField
                                                             ? "red"
                                                             : baseStyles.borderColor,
                                                         boxShadow: "none",
                                                         "&:hover": {
-                                                            borderColor: errors.blocks
+                                                            borderColor: errors.violationTypeField
                                                                 ? "red"
                                                                 : baseStyles.borderColor,
                                                         },
                                                     }),
                                                 }}
-                                                options={allBlocks}
-                                                value={blocks}
-                                                onChange={(selectedOption) => setBlocks(selectedOption)}
+                                                options={violationTypeOptions}
+                                                value={violationTypeField}
+                                                onChange={(selectedOption) => setViolationTypeField(selectedOption)}
                                             />
                                         </div>
 

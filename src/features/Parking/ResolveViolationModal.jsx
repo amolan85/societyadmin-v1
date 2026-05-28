@@ -5,12 +5,14 @@ const ResolveViolationModal = ({
     show,
     setShow,
 
-    allBlocks = [],
+    resolutionMethod = [],
     allFlats = [],
     addMemberType = [],
     statusOptions = [],
     typeOptions = [],
 
+    resolutionMethodField = "",
+    setResolutionMethodField = () => {},
     statusField = "",
     setStatusField = () => { },
 
@@ -125,7 +127,7 @@ const ResolveViolationModal = ({
                                                 </label>
                                                 {errors.typeField && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.typeField}
+                                                        {errors.resolutionMethodField}
                                                     </span>
                                                 )}
                                             </div>
@@ -133,20 +135,20 @@ const ResolveViolationModal = ({
                                                 styles={{
                                                     control: (baseStyles) => ({
                                                         ...baseStyles,
-                                                        borderColor: errors.typeField
+                                                        borderColor: errors.resolutionMethodField
                                                             ? "red"
                                                             : baseStyles.borderColor,
                                                         boxShadow: "none",
                                                         "&:hover": {
-                                                            borderColor: errors.typeField
+                                                            borderColor: errors.resolutionMethodField
                                                                 ? "red"
                                                                 : baseStyles.borderColor,
                                                         },
                                                     }),
                                                 }}
-                                                options={typeOptions}
-                                                value={typeField}
-                                                onChange={(selectedOption) => setTypeField(selectedOption)}
+                                                options={resolutionMethod}
+                                                value={resolutionMethodField}
+                                                onChange={(selectedOption) => setResolutionMethodField(selectedOption)}
                                             />
                                         </div>
                                     </div>
