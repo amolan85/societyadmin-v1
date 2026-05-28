@@ -163,15 +163,11 @@ const TenantsReviewApplication = ({ setActive, /* memberId, setFlatId */ }) => {
 
 
                     <div className="col-lg-4">
-
-
-                        <div className="card shadow-sm border-0 p-3" style={{ maxWidth: "320px", borderRadius: "10px" }}>
-
-
-                            <h6 className="fw-bold">Owner Details</h6>
-
-                            <hr />
-                            <div className=" d-flex align-items-center">
+                        <div className="card border-0 shadow-sm mb-4">
+                            <div className="card-header bg-white fw-semibold">
+                                Owner Details
+                            </div>
+                            <div className=" card-header bg-white fw-semibold d-flex align-items-center">
 
 
                                 <img
@@ -189,32 +185,41 @@ const TenantsReviewApplication = ({ setActive, /* memberId, setFlatId */ }) => {
                                 </div>
 
                             </div>
-                            <hr />
-                            <div className="mb-4">
-                                <small className="text-uppercase text-muted fw-semibold d-block mb-1">
-                                    Contact Number
-                                </small>
-                                <div className="fw-semibold">+918987666553</div>
-                            </div>
+                            <div className="card-body">
+                                {/* <div className="card shadow-sm border-0 p-3" style={{ maxWidth: "320px", borderRadius: "10px" }}> */}
 
 
-                            <div className="mb-4">
-                                <small className="text-uppercase text-muted fw-semibold d-block mb-1">
-                                    Email Address
-                                </small>
-                                <div className="fw-semibold text-break">
-                                    sarah.williams@example.com
+
+                                <div className="mb-4">
+                                    <small className="text-uppercase text-muted fw-semibold d-block mb-1">
+                                        Contact Number
+                                    </small>
+                                    <div className="fw-semibold">+918987666553</div>
                                 </div>
+
+
+                                <div className="mb-4">
+                                    <small className="text-uppercase text-muted fw-semibold d-block mb-1">
+                                        Email Address
+                                    </small>
+                                    <div className="fw-semibold text-break">
+                                        sarah.williams@example.com
+                                    </div>
+                                </div>
+
+                                <div className="text-center">
+                                    <button className='btn btn-sm' style={{ backgroundColor: "#37c759", color: "#fff", borderColor: "#37c759" ,width: "350px"}}><FiCheckCircle /> Owner Approved Registration</button>
+                                </div>
+
+
                             </div>
-
-
-                            <button className='btn btn-sm'style={{ backgroundColor: "#37c759", color: "#fff", borderColor: "#37c759"}}><FiCheckCircle /> Owner Approved Registration</button>
-                         
                         </div>
 
 
+
+
                         <div className="card shadow-sm border mt-3">
-                            <div className="card-header bg-light fw-bold py-3">
+                            <div className="card-header bg-white fw-semibold">
                                 Verification Checklist
                             </div>
 

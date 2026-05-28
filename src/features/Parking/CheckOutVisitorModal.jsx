@@ -1,7 +1,8 @@
 // CheckOutVisitorModal.jsx
 import { BiCheck } from "react-icons/bi";
+import { FiLogOut } from "react-icons/fi";
 import Select from "react-select";
-
+import "../../styles/Parking.css";
 const CheckOutVisitorModal = ({
     checkoutShow,
     setCheckoutShow,
@@ -100,7 +101,7 @@ const CheckOutVisitorModal = ({
                             <p className="cov-subtitle text-start">Review the session details below before confirming checkout.</p>
 
                             <table className="cov-detail-table bg-light ">
-                                <tbody >
+                                <tbody>
                                     <tr >
                                         <td className="text-start">Vehicle Number</td>
                                         <td>KA-05-MH-2023</td>
@@ -134,10 +135,11 @@ const CheckOutVisitorModal = ({
                         </div>
 
 
-                        <div className="modal-footer justify-content-between cov-modal-footer bg-light">
+                        <div className="modal-footer  cov-modal-footer bg-light">
                             <button type="button" className="btn btn-sm cov-btn-cancel" data-bs-dismiss="modal" onClick={() => setCheckoutShow(false)}>Cancel</button>
                             <button type="button" className="btn btn-sm cov-btn-checkout">
-                                <i className="bi bi-box-arrow-right"></i> Confirm Check Out
+                                {/* <i className="bi bi-box-arrow-right"></i>  */}
+                                  <FiLogOut />Confirm Check Out
                             </button>
                         </div>
 
