@@ -29,3 +29,21 @@
   border: 1px solid #7dd3fc;
   box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15);
 }
+
+.deallocate-btn {
+  background-color: #ffc5c6 !important;
+  color: #fe484a !important;
+  border: 1px solid #fe484a !important;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.deallocate-btn:hover {
+  background-color: #dc3545 !important;
+  color: #fff !important;
+}
+.timeline-dot {
+    width: 20px;
+    height: 20px;
+}
