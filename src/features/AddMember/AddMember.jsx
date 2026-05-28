@@ -79,7 +79,6 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     setSocietyId(flats.society_id);
     setUserId(flats.user_id);
     getMembers(flats.society_id);
-    getAllFlats(flats.society_id);
     getAllBlocks(flats.society_id);
   };
 
@@ -107,21 +106,6 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     }
   };
 
-  const getAllFlats = async (societyId) => {
-    try {
-      const data = await getAllFlatsApi(societyId);
-      console.log(data.flats, "All flats");
-      setAllFlats(
-        data.flats.map((item) => ({
-          value: item.flat_number,
-          label: item.flat_number,
-        })),
-      );
-    } catch (error) {
-      console.error("Error fetching members:", error);
-    }
-  };
-
   const getAllBlocks = async (societyId) => {
     try {
       const data = await getAllBlocksApi(societyId);
@@ -137,6 +121,31 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     }
   };
 
+  
+  const handleBlockChange = async (selectedOption) => {
+      setBlocks(selectedOption);
+  
+      if (selectedOption?.value) {
+          await getAllFlats(societyId, selectedOption.value);
+      }
+  };
+  
+  const getAllFlats = async (societyId, block) => {
+      try {
+          const data = await getAllFlatsApi(societyId, block);
+  
+          console.log(data.flats, "All flats");
+  
+          setAllFlats(
+              data.flats.map((item) => ({
+                  value: item.flat_number,
+                  label: item.flat_number,
+              }))
+          );
+      } catch (error) {
+          console.error("Error fetching flats:", error);
+      }
+  };
   const getMembersById = async (memberId, flatId) => {
     setMemberId(memberId);
     setFlatId(flatId);
@@ -773,6 +782,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
         addMemberType={addMemberType}
         blocks={blocks}
         setBlocks={setBlocks}
+        handleBlockChange={handleBlockChange}
         flat={flat}
         setFlat={setFlat}
         memType={memType}

@@ -364,10 +364,7 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                 resolutionMethod={resolutionMethod}
                 resolutionMethodField={resolutionMethodField}
                 setResolutionMethodField={setResolutionMethodField}
-
             />
-
-           
 
             <WarningNotificationModal
                 notificationShow={notificationShow}
@@ -376,9 +373,7 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
             <ViewDocumentModal
                 showDocument={showDocument}
                 setShowDocument={setShowDocument}
-            />
-
-           
+            />    
         </>
     )
 }

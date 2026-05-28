@@ -4,17 +4,15 @@ import { Badge, Pagination } from "../../components/Common/ReusableFunction";
 import { GetSessionData } from "../../utils/SessionManagement";
 import {
     AddMemberApi,
-    getMembersApi,
     getAllMembersWithoutPaginationApi,
     getMembersByIdApi,
     UpdateMemberApi,
     deleteMembersApi,
+    getTenantsMembersApi,
 } from "../../services/AddMemberApi";
 import { toast } from "react-toastify";
-import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import { FiFilter, FiSearch } from "react-icons/fi";
 import {
-    FaUserCircle,
     FaFileUpload,
     FaCheckCircle,
     FaExclamationTriangle,
@@ -31,7 +29,7 @@ import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import RegisterTenantsModal from "./RegisterTenantsModal";
 import FilterRentalsModal from "./FilterRentalsModal";
 
-const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
+const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
     const [memType, setMemType] = useState("tenant");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -39,8 +37,8 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
     const [mobileNo, setMobileNo] = useState("");
     const [allFlats, setAllFlats] = useState([]);
     const [flat, setFlat] = useState("");
-    const [moveInDate, setMoveInDate] = useState("");
-    const [moveOutDate, setMoveOutDate] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
     const [familyType, setFamilyType] = useState("");
     const [agreement, setAgreement] = useState("");
     const [rentAgreement, setRentAgreement] = useState("");
@@ -59,8 +57,8 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
     const [totalCount, setTotalCount] = useState(0);
     const [mode, setMode] = useState("add");
 
-    const [allMembers, setAllMembers] = useState([]);
-    const [allMembersWithoutPagination, setAllMembersWithoutPagination] = useState([]);
+    const [allTenentsMember, setAllTenantsMember] = useState([]);
+    const [allTenentsMemberWithoutPagination, setAllTenantsMemberWithoutPagination] = useState([]);
     const [blocks, setBlocks] = useState("");
     const [allBlocks, setAllBlocks] = useState([]);
     const [activeTab, setActiveTab] = useState("excel");
@@ -71,97 +69,6 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
     const [selectedRange, setSelectedRange] = useState("all");
     const [mangementTypeTab, setManagementTypeTab] = useState("");
     const [showFilterRentals, setShowFilterRentals] = useState(false)
-
-    const tenantData = [
-        {
-            unitNo: "Unit B-402",
-            owner: "Amit Patel",
-            tenantName: "Rohan Sharma",
-            tenantContact: "rohan.s@email.com",
-            avatar: "https://i.pravatar.cc/40?img=1",
-
-            leaseStart: "01 Mar 2024",
-            leaseEnd: "28 Feb 2025",
-            duration: "11 Months",
-
-            kycStatus: "Pending Verification",
-            kycColor: "warning",
-            kycIcon: <FaClock />,
-
-            agreementStatus: "Uploaded",
-            agreementColor: "primary",
-            agreementIcon: <FaFileUpload />,
-
-            action: "Review & Approve",
-            actionColor: "warning",
-        },
-        {
-            unitNo: "Unit A-105",
-            owner: "Rajesh Kumar",
-            tenantName: "Sarah Jenkins",
-            tenantContact: "+91 98765 43210",
-            avatar: "https://i.pravatar.cc/40?img=2",
-
-            leaseStart: "15 Nov 2023",
-            leaseEnd: "14 Nov 2024",
-            duration: "Expires in 12 Days",
-
-            kycStatus: "Verified",
-            kycColor: "success",
-            kycIcon: <FaCheckCircle />,
-
-            agreementStatus: "Expiring Soon",
-            agreementColor: "danger",
-            agreementIcon: <FaExclamationTriangle />,
-
-            action: "View Details",
-            actionColor: "primary",
-        },
-        {
-            unitNo: "Unit C-301",
-            owner: "Priya Singh",
-            tenantName: "David Osei",
-            tenantContact: "david.o@email.com",
-            avatar: "https://i.pravatar.cc/40?img=3",
-
-            leaseStart: "10 Jan 2024",
-            leaseEnd: "09 Jan 2025",
-            duration: "11 Months",
-
-            kycStatus: "Verified",
-            kycColor: "success",
-            kycIcon: <FaCheckCircle />,
-
-            agreementStatus: "Active",
-            agreementColor: "success",
-            agreementIcon: <FaCheckCircle />,
-
-            action: "View Details",
-            actionColor: "primary",
-        },
-        {
-            unitNo: "Unit D-204",
-            owner: "Vikram Reddy",
-            tenantName: "Neha Gupta",
-            tenantContact: "+91 98111 22233",
-            avatar: "https://i.pravatar.cc/40?img=4",
-
-            leaseStart: "--",
-            leaseEnd: "--",
-            duration: "Awaiting Draft",
-
-            kycStatus: "Pending KYC",
-            kycColor: "warning",
-            kycIcon: <FaClock />,
-
-            agreementStatus: "Not Uploaded",
-            agreementColor: "secondary",
-            agreementIcon: <FaFileUpload />,
-
-            action: "Upload",
-            actionColor: "secondary",
-        },
-    ];
 
     const filterData = {
         blocks: [
@@ -177,24 +84,24 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
             { name: "Unverified / Rejected", count: 4, checked: false },
         ],
 
-            agreementStatus : [
-        {
-            value: "active",
-            label: "Active",
-        },
-        {
-            value: "expiringIn30Days",
-            label: "Expiring in 30 days",
-        },
-        {
-            value: "expired",
-            label: "Expired",
-        },
-          {
-            value: "notUploaded",
-            label: "Not Uploaded",
-        },
-    ]
+        agreementStatus: [
+            {
+                value: "active",
+                label: "Active",
+            },
+            {
+                value: "expiringIn30Days",
+                label: "Expiring in 30 days",
+            },
+            {
+                value: "expired",
+                label: "Expired",
+            },
+            {
+                value: "notUploaded",
+                label: "Not Uploaded",
+            },
+        ]
     };
 
     const addMemberType = [
@@ -209,8 +116,6 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
 
     ];
 
-    const finalMemType = memType === "familyMember" ? familyType : memType;
-
     useEffect(() => {
         SessionData();
     }, []);
@@ -221,16 +126,16 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
         const flats = data.data.flats[0];
         setSocietyId(flats.society_id);
         setUserId(flats.user_id);
-        getMembers(flats.society_id);
-        getAllFlats(flats.society_id);
+        getTenantMembers(flats.society_id, page);
+
         getAllBlocks(flats.society_id);
     };
 
     //function for get members
-    const getMembers = async (societyId, page) => {
+    const getTenantMembers = async (societyId, page) => {
         try {
-            const data = await getMembersApi(societyId, page);
-            setAllMembers(data.members);
+            const data = await getTenantsMembersApi(societyId, page, limit);
+            setAllTenantsMember(data.tenants);
             setPage(data.page);
             setLimit(data.per_page);
             setTotalCount(data.total_count);
@@ -244,51 +149,63 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
             const data = await getAllMembersWithoutPaginationApi(societyId, search);
             console.log(data.members, "All members without pagination");
 
-            setAllMembersWithoutPagination(data.members);
+            setAllTenantsMemberWithoutPagination(data.members);
         } catch (error) {
             console.error("Error fetching members:", error);
         }
     };
 
-    const getAllFlats = async (societyId) => {
-        try {
-            const data = await getAllFlatsApi(societyId);
-            console.log(data.flats, "All flats");
-            setAllFlats(
-                data.flats.map((item) => ({
-                    value: item.flat_number,
-                    label: item.flat_number,
-                })),
-            );
-        } catch (error) {
-            console.error("Error fetching members:", error);
-        }
-    };
 
     const getAllBlocks = async (societyId) => {
         try {
             const data = await getAllBlocksApi(societyId);
-            console.log(data.blocks, "All blocks");
-            setAllBlocks(
-                data.blocks.map((item) => ({
-                    value: item.block,
-                    label: item.block,
-                })),
-            );
+
+            const blockOptions = data.blocks.map((item) => ({
+                value: item.block,
+                label: item.block,
+            }));
+
+            setAllBlocks(blockOptions);
+
+
         } catch (error) {
-            console.error("Error fetching members:", error);
+            console.error("Error fetching blocks:", error);
         }
     };
 
-    const getMembersById = async (memberId, flatId) => {
-        setMemberId(memberId);
-        setFlatId(flatId);
-        setActive("memberDetails");
+    const handleBlockChange = async (selectedOption) => {
+        setBlocks(selectedOption);
+
+        if (selectedOption?.value) {
+            await getAllFlats(societyId, selectedOption.value);
+        }
+    };
+
+    const getAllFlats = async (societyId, block) => {
+        try {
+            const data = await getAllFlatsApi(societyId, block);
+
+            console.log(data.flats, "All flats");
+
+            setAllFlats(
+                data.flats.map((item) => ({
+                    value: item.flat_number,
+                    label: item.flat_number,
+                }))
+            );
+        } catch (error) {
+            console.error("Error fetching flats:", error);
+        }
+    };
+
+    const getViewDetails = async (tenentId) => {
+        setTenantId(tenentId);
+        setActive("rentalsApplication");
     };
 
     const handlePageChange = (value) => {
         setPage(value);
-        getMembers(societyId, value);
+        getTenantMembers(societyId, value);
     };
 
     //function for validation
@@ -327,8 +244,8 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
         if (!flat) {
             errors.flat = "required";
         }
-        if (!moveInDate) {
-            errors.moveInDate = "required";
+        if (!startDate) {
+            errors.startDate = "required";
         }
         if (!memType) {
             errors.memType = "required";
@@ -360,8 +277,8 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
             }
         }
         if (memType === "tenant") {
-            if (!moveOutDate) {
-                errors.moveOutDate = "required";
+            if (!endDate) {
+                errors.endDate = "required";
             }
             if (!rentAgreement) {
                 errors.rentAgreement = "required";
@@ -397,9 +314,9 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                     emailId,
                     blocks?.value,
                     flat?.value,
-                    finalMemType,
-                    moveInDate,
-                    moveOutDate,
+                    ,
+                    startDate,
+                    endDate,
                     agreement,
                     rentAgreement,
                     policeNoc,
@@ -410,9 +327,9 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                     nominationDetails,
                 );
 
-                toast.success("Member updated successfully!");
+                toast.success("Tenant updated successfully!");
                 resetForm();
-                getMembers(societyId, page);
+                getTenantMembers(societyId, page);
             } else {
                 await AddMemberApi(
                     societyId,
@@ -423,9 +340,9 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                     emailId,
                     blocks?.value,
                     flat?.value,
-                    finalMemType,
-                    moveInDate,
-                    moveOutDate,
+                    ,
+                    startDate,
+                    endDate,
                     agreement,
                     rentAgreement,
                     policeNoc,
@@ -436,9 +353,9 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                     nominationDetails,
                 );
 
-                toast.success("Member created successfully!");
+                toast.success("Tenant created successfully!");
                 resetForm();
-                getMembers(societyId, page);
+                getTenantMembers(societyId, page);
             }
 
             setShow(false);
@@ -449,10 +366,10 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
-    const GetMemberDetailsById = async (memberId) => {
+    const GetTenantById = async (tenantId) => {
         try {
-            const data = await getMembersByIdApi(societyId, memberId);
-            setMId(memberId);
+            const data = await getMembersByIdApi(societyId, tenantId);
+            setMId(tenantId);
             setFirstName(data.first_name);
             setLastName(data.last_name);
             setEmailId(data.email);
@@ -473,8 +390,8 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                         ? "familyMember"
                         : data.occupancy_type,
             );
-            setMoveInDate(data.start_date);
-            setMoveOutDate(data.end_date);
+            setStartDate(data.start_date);
+            setEndDate(data.end_date);
             data.documents?.forEach((doc) => {
                 switch (doc.document_type) {
                     case "id_proof":
@@ -514,16 +431,15 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
-    const handleDelete = async (memberId) => {
+    const handleDelete = async (tenantId) => {
         try {
-            const data = await deleteMembersApi(memberId);
+            const data = await deleteMembersApi(tenantId);
 
             console.log(data, "Delete response");
 
-            toast.success("Member deleted successfully");
-            getMembers(societyId, page);
-            // Refresh member list if needed
-            // GetAllMembers();
+            toast.success("Tenant deleted successfully");
+            getTenantMembers(societyId, page);
+
         } catch (error) {
             console.error("Delete Error:", error);
 
@@ -531,6 +447,50 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
+    const formatDate = (date) =>
+        new Date(date).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        });
+
+    const getDuration = (startDate, endDate) => {
+        if (!startDate || !endDate) return "-";
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        const diffDays = Math.ceil(
+            (end - start) / (1000 * 60 * 60 * 24)
+        );
+
+        // Less than 30 days
+        if (diffDays <= 30) {
+            return `Expiring in ${diffDays} Day${diffDays > 1 ? "s" : ""}`;
+        }
+
+        let years = end.getFullYear() - start.getFullYear();
+        let months = end.getMonth() - start.getMonth();
+
+        if (end.getDate() < start.getDate()) {
+            months--;
+        }
+
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        if (years > 0 && months > 0) {
+            return `${years} Year${years > 1 ? "s" : ""} ${months} Month${months > 1 ? "s" : ""}`;
+        }
+
+        if (years > 0) {
+            return `${years} Year${years > 1 ? "s" : ""}`;
+        }
+
+        return `${months} Month${months > 1 ? "s" : ""}`;
+    };
     const resetForm = () => {
         setFirstName("");
         setLastName("");
@@ -538,8 +498,8 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
         setMobileNo("");
         // setBlocks(null);
         // setFlat("");
-        setMoveInDate("");
-        setMoveOutDate("");
+        setStartDate("");
+        setEndDate("");
         setFamilyType("");
         setAgreement("");
         setRentAgreement("");
@@ -553,77 +513,7 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
         setErrorText("");
     };
 
-    const exportData =
-        selectedRange === "all"
-            ? allMembersWithoutPagination
-            : selectedRange === "search"
-                ? allMembers
-                : "";
-
-
-    const downloadExcel = async () => {
-        exportFile({
-            data: exportData,
-            fileName: "Members",
-            sheetName: "Members",
-            type: "xlsx",
-        });
-    };
-
-    const downloadCSV = async () => {
-        exportFile({
-            data: exportData,
-            fileName: "Members",
-            sheetName: "Members",
-            type: "csv",
-        });
-    };
-
-    const downloadPDF = () => {
-        exportToPDF({
-            title: "Members Report",
-            fileName: "Members",
-            columns: [
-                "Member Name",
-                "Unit No.",
-                "Role",
-                "Contact Info",
-            ],
-            data: exportData.map((item) => [
-                item.first_name + " " + item.last_name,
-                item.flat_number,
-                item.occupancy_type,
-                item.mobile,
-            ]),
-        });
-    };
-
-    const handleExport = () => {
-        if (activeTab === "excel") {
-            downloadExcel();
-            setExportModal(false);
-        } else if (activeTab === "csv") {
-            downloadCSV();
-            setExportModal(false);
-        } else if (activeTab === "pdf") {
-            downloadPDF();
-            setExportModal(false);
-        }
-    };
-
-    const totalOwners = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "owner",
-    ).length;
-
-    const totalTenant = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "tenant",
-    ).length;
-
-    const totalFamilyMember = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "familyMember",
-    ).length;
-
-
+   
     const handleSearch = async (e) => {
         const value = e.target.value;
         setSearch(value);
@@ -631,7 +521,7 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
         try {
             if (!value.trim()) {
                 setPage(1);
-                await getMembers(societyId, 1);
+                await getTenantMembers(societyId, 1);
                 return;
             }
 
@@ -642,12 +532,38 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                 value
             );
 
-            setAllMembers(data?.members || []);
+            setAllTenantsMember(data?.members || []);
         } catch (error) {
             console.error("Search error:", error);
         }
     };
     const total = Math.ceil(totalCount / limit);
+
+    const pendingApprovals = allTenentsMember.filter(
+        item => item.status === "Pending"
+    ).length;
+
+    const activeRentals = allTenentsMember.filter(
+        item => item.status === "Approved"
+    ).length;
+
+    const kycUnverified = allTenentsMember.filter(
+        item => item.documents === 0
+    ).length;
+
+    const agreementsExpiring = allTenentsMember.filter(item => {
+        if (!item.end_date) return false;
+
+        const today = new Date();
+        const endDate = new Date(item.end_date);
+
+        const diffDays = Math.ceil(
+            (endDate - today) / (1000 * 60 * 60 * 24)
+        );
+
+        return diffDays >= 0 && diffDays <= 30;
+    }).length;
+
 
     return (
         <>
@@ -671,10 +587,10 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                 {/* Stats */}
                 <div className="row g-3 mb-4">
                     {[
-                        [totalCount, "Pending Approvals", "Action Required", "tile-yel"],
-                        [totalOwners, "Agreements Expiring", "In next 30 days", "tile-red"],
-                        [totalTenant, "KYC Unverified", "Pending review", "tile-blu"],
-                        [totalFamilyMember, "Active Rentals", "+3 this month", "tile-grn"],
+                        [pendingApprovals, "Pending Approvals", "Action Required", "tile-yel"],
+                        [agreementsExpiring, "Agreements Expiring", "In next 30 days", "tile-red"],
+                        [kycUnverified, "KYC Unverified", "Pending review", "tile-blu"],
+                        [activeRentals, "Active Rentals", "+3 this month", "tile-grn"],
                     ].map(([v, l, subText, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
                             <div className={`tile bg-white ${cls}`}>
@@ -764,6 +680,7 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
 
                     </div>
                 </div>
+
                 <div className="sv-card p-0 overflow-hidden">
                     <div className="sa-table-wrap">
                         <table className="sv-tbl">
@@ -779,33 +696,36 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                             </thead>
 
                             <tbody>
-                                {tenantData.map((item, index) => (
+                                {allTenentsMember.map((item, index) => (
                                     <tr key={index}>
                                         {/* Unit */}
                                         <td className="text-start">
-                                            <div className="fw-bold">{item.unitNo}</div>
+                                            <div className="fw-bold">{item.flat_number}</div>
                                             <small className="text-muted">
-                                                Owner: {item.owner}
+                                                Owner: {item.owner_name}
                                             </small>
                                         </td>
 
                                         {/* Tenant */}
                                         <td className="text-start">
                                             <div className="d-flex align-items-center gap-2">
-                                                <img
-                                                    src={item.avatar}
-                                                    alt=""
-                                                    width="40"
-                                                    height="40"
-                                                    className="rounded-circle"
-                                                />
 
+                                                <img
+                                                    src={
+                                                        item.profile_url ||
+                            /* "https://i.pravatar.cc/60?img=32" */ "../src/assets/profile.png"
+                                                    }
+                                                    alt="Profile"
+                                                    width={38}
+                                                    height={38}
+                                                    className="rounded-circle object-fit-cover"
+                                                />
                                                 <div>
                                                     <div className="fw-semibold">
-                                                        {item.tenantName}
+                                                        {item.first_name} {item.last_name}
                                                     </div>
                                                     <small className="text-muted">
-                                                        {item.tenantContact}
+                                                        {item.email}
                                                     </small>
                                                 </div>
                                             </div>
@@ -814,36 +734,32 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                         {/* Lease */}
                                         <td className="text-start">
                                             <div className="text-start">
-                                                {item.leaseStart} - {item.leaseEnd}
+                                                {formatDate(item.start_date)} -  {item.end_date ? formatDate(item.end_date) : ""}
                                             </div>
 
                                             <small
-                                                className={
-                                                    item.duration.includes("Expires")
-                                                        ? "text-danger"
-                                                        : "text-muted"
-                                                }
+                                            // className={
+                                            //     item.duration.includes("Expires")
+                                            //         ? "text-danger"
+                                            //         : "text-muted"
+                                            // }
                                             >
-                                                {item.duration}
+                                                {getDuration(item.start_date, item.end_date)}
                                             </small>
                                         </td>
 
                                         {/* KYC */}
                                         <td className="text-start">
-                                            {/* <span
-                                                className={`badge rounded-pill bg-${item.kycColor}-subtle text-${item.kycColor}`}
-                                            >
-                                                {item.kycIcon} {item.kycStatus}
-                                            </span> */}
+
                                             <Badge
-                                                label={item.kycStatus}
+                                                label={item.status}
                                                 c={
-                                                    item.kycStatus === "Verified"
+                                                    item.status === "Approved"
                                                         ? "green"
-                                                        : item.kycStatus === "Pending Verification"
+                                                        : item.status === "Pending"
                                                             ? "yellow"
-                                                            : item.kycStatus === "Pending KYC"
-                                                                ? "yellow"
+                                                            : item.status === "Rejected"
+                                                                ? "red"
                                                                 : "gray"
                                                 }
                                             />{" "}
@@ -851,23 +767,16 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                         </td>
                                         {/* Agreement */}
                                         <td className="text-start">
-                                            {/* <span
-                                                className={`badge rounded-pill bg-${item.agreementColor}-subtle text-${item.agreementColor}`}
-                                            >
-                                                {item.agreementIcon} {item.agreementStatus}
-                                            </span> */}
+
                                             <Badge
-                                                label={item.agreementStatus}
+                                                label={item.documents === 1 ? "Uploaded" : "Not Uploaded"}
                                                 c={
-                                                    item.agreementStatus === "Uploaded"
+                                                    item.documents === 1
                                                         ? "blue"
-                                                        : item.agreementStatus === "Expiring Soon"
+                                                        : item.documents === 0
                                                             ? "red"
-                                                            : item.agreementStatus === "Active"
-                                                                ? "green"
-                                                                : item.agreementStatus === "Not Uploaded"
-                                                                    ? "gray"
-                                                                    : "gray"
+
+                                                            : "gray"
                                                 }
                                             />{" "}
                                         </td>
@@ -896,10 +805,7 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            // onClick={() =>
-                                                            //     getMembersById(s.user_id, s.flat_id)
-                                                            // }
-                                                            onClick={() => setActive("rentalsApplication")}
+                                                            onClick={getViewDetails}
                                                         >
                                                             View Details
                                                         </button>
@@ -929,11 +835,11 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                        // onClick={() => {
-                                                        //     setMode("edit");
-                                                        //     setShow(true);
-                                                        //     GetMemberDetailsById(s.user_id);
-                                                        // }}
+                                                        onClick={() => {
+                                                            setMode("edit");
+                                                            setShow(true);
+                                                            GetTenantById(item.user_id);
+                                                        }}
                                                         >
                                                             Edit tenant
                                                         </button>
@@ -946,7 +852,7 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item member-action-delete"
-                                                            onClick={() => handleDelete(s.user_id)}
+                                                            onClick={() => handleDelete(item.user_id)}
                                                         >
                                                             Delete tenant
                                                         </button>
@@ -969,6 +875,7 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                 show={show}
                 setShow={setShow}
                 allBlocks={allBlocks}
+                handleBlockChange={handleBlockChange}
                 allFlats={allFlats}
                 addMemberType={addMemberType}
                 blocks={blocks}
@@ -986,11 +893,11 @@ const RentalAndTenants = ({ setActive, setMemberId, setFlatId }) => {
                 setMobileNo={setMobileNo}
                 emailId={emailId}
                 setEmailId={setEmailId}
-                moveInDate={moveInDate}
-                setMoveInDate={setMoveInDate}
+                startDate={startDate}
+                setStartDate={setStartDate}
                 mode={mode}
-                moveOutDate={moveOutDate}
-                setMoveOutDate={setMoveOutDate}
+                endDate={endDate}
+                setEndDate={setEndDate}
                 familyType={familyType}
                 setFamilyType={setFamilyType}
                 rentAgreement={rentAgreement}

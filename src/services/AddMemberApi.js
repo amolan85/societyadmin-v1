@@ -233,5 +233,26 @@ export const getAllMembersWithoutPaginationApi = async (societyId, search) => {
     });
 }
 
-
-
+//api function for get tenant members
+export const getTenantsMembersApi = async (societyId, page, limit, search) => {
+    const url = UrlData + 'member/GetTenantList';
+    const data = {
+        society_id: societyId,
+        page: page,
+        per_page: limit,
+        search: search
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data,
+        timeout: 30000,
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors get tenants members");
+        throw errors;
+    });
+}

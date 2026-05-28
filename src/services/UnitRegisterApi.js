@@ -106,10 +106,11 @@ export const UpdateUnitsApi = async (unitId, block, flatNo, floor, areaSqft, uni
     });
 }
 
-export const getAllFlatsApi = async (societyId, page) => {
+export const getAllFlatsApi = async (societyId, block, page) => {
     const url = UrlData + 'flat/GetFlatNumberList';
     const data = {
         society_id: societyId,
+        block : block,
         page: page
     }
     return await apiClient({

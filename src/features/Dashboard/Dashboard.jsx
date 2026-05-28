@@ -131,6 +131,7 @@ export default function App() {
 
   const [broadcastId, setBroadcastId] = useState(null);
   const [memberId, setMemberId] = useState(null);
+  const [tenantId, setTenantId] = useState(null);
   const [flatId, setFlatId] = useState(null)
   const [selectedNoticeData, setSelectedNoticeData] = useState()
   const [pollId, setPollId] = useState(null)
@@ -176,8 +177,8 @@ export default function App() {
     parkingRules: <ParkingRules setActive={setActive} />,
     viewParkingDetails: <ViewParkingDetails setActive={setActive} />,
     visitorDetails: <VisitorDetails setActive={setActive} />,
-    rentals: <RentalAndTenants setActive={setActive} />,
-    rentalsApplication: <TenantsReviewApplication setActive={setActive} />,
+    rentals: <RentalAndTenants setActive={setActive} setTenantId={setTenantId}/>,
+    rentalsApplication: <TenantsReviewApplication setActive={setActive} tenantId={tenantId}/>,
     staff: <StaffAttendance setActive={setActive} setStaffId={setStaffId} />,
     createStaff: <CreateStaffAttendance setActive={setActive} staffId={staffId} />,
     noticeboard: <NoticeBoard setActive={setActive} setSelectedNoticeData={setSelectedNoticeData} />,

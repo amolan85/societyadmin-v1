@@ -32,14 +32,11 @@ const RegisterTenantsModal = ({
     emailId = "",
     setEmailId = () => { },
 
-    moveInDate = "",
-    setMoveInDate = () => { },
+    startDate = "",
+    setStartDate = () => { },
 
-    moveOutDate = "",
-    setMoveOutDate = () => { },
-
-    familyType = "",
-    setFamilyType = () => { },
+    endDate = "",
+    setEndDate = () => { },
 
     // rentAgreement = null,
     setRentAgreement = () => { },
@@ -47,26 +44,9 @@ const RegisterTenantsModal = ({
     // policeNoc = null,
     setPoliceNoc = () => { },
 
-    // idProof = null,
-    setIdProof = () => { },
-
-    // agreement = null,
-    setAgreement = () => { },
-
-    // maintenanceReceipt = null,
-    setMaintenanceReceipt = () => { },
-
-    // nominationDetails = null,
-    setNominationDetails = () => { },
-
-    // familyPhoto = null,
-    setFamilyPhoto = () => { },
-
-    // ownershipDocuments = null,
-    setOwnershipDocuments = () => { },
-
     errors = {},
     errorText = "",
+    handleBlockChange = () => { },
     handleSubmit = () => { },
     mode,
 }) => {
@@ -123,7 +103,7 @@ const RegisterTenantsModal = ({
                                                 }}
                                                 options={allBlocks}
                                                 value={blocks}
-                                                onChange={(selectedOption) => setBlocks(selectedOption)}
+                                                onChange={handleBlockChange}
                                             />
                                         </div>
 
@@ -155,7 +135,7 @@ const RegisterTenantsModal = ({
                                                         },
                                                     }),
                                                 }}
-                                                placeholder="Select an available unit.."
+                                                placeholder="Select unit.."
                                                 options={allFlats}
                                                 value={flat}
                                                 onChange={(selectedOption) => setFlat(selectedOption)}
@@ -176,7 +156,7 @@ const RegisterTenantsModal = ({
                                     <div className="row">
 
                                         <div
-                                            className={`am-type-wrap mb-3 col-lg-5 mx-2 ${errors.memType ? "border border-danger  p-1" : ""
+                                            className={`am-type-wrap mb-3 col-lg-5 col-4 mx-2 ${errors.memType ? "border border-danger  p-1" : ""
                                                 }`}
                                         >
                                             {addMemberType.map((t) => (
@@ -299,17 +279,17 @@ const RegisterTenantsModal = ({
                                                             Start Date{" "}
                                                             <span className="text-danger">*</span>
                                                         </label>
-                                                        {errors.moveInDate && (
+                                                        {errors.startDate && (
                                                             <span className="text-danger mx-2">
-                                                                {errors.moveInDate}
+                                                                {errors.startDate}
                                                             </span>
                                                         )}
                                                     </div>
                                                     <input
-                                                        className={`sv-in ${errors.moveInDate ? "error-input" : ""}`}
+                                                        className={`sv-in ${errors.startDate ? "error-input" : ""}`}
                                                         type="date"
-                                                        value={moveInDate}
-                                                        onChange={(e) => setMoveInDate(e.target.value)}
+                                                        value={startDate}
+                                                        onChange={(e) => setStartDate(e.target.value)}
                                                     />
                                                 </div>
 
@@ -319,17 +299,17 @@ const RegisterTenantsModal = ({
                                                             End Date{" "}
                                                             <span className="text-danger">*</span>
                                                         </label>
-                                                        {errors.moveOutDate && (
+                                                        {errors.endDate && (
                                                             <span className="text-danger mx-2">
-                                                                {errors.moveOutDate}
+                                                                {errors.endDate}
                                                             </span>
                                                         )}
                                                     </div>
                                                     <input
-                                                        className={`sv-in ${errors.moveOutDate ? "error-input" : ""}`}
+                                                        className={`sv-in ${errors.endDate ? "error-input" : ""}`}
                                                         type="date"
-                                                        value={moveOutDate}
-                                                        onChange={(e) => setMoveOutDate(e.target.value)}
+                                                        value={endDate}
+                                                        onChange={(e) => setEndDate(e.target.value)}
                                                     />
                                                 </div>
                                             </div>

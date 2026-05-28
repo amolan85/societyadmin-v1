@@ -67,6 +67,7 @@ const MemberModal = ({
 
   errors = {},
   errorText = "",
+  handleBlockChange = () => { },
   handleSubmit = () => { },
   mode,
 }) => {
@@ -123,7 +124,7 @@ const MemberModal = ({
                         }}
                         options={allBlocks}
                         value={blocks}
-                        onChange={(selectedOption) => setBlocks(selectedOption)}
+                        onChange={handleBlockChange}
                       />
                     </div>
 
