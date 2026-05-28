@@ -39,7 +39,7 @@ import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import { BiCar } from "react-icons/bi";
 // import RegisterTenantsModal from "./RegisterTenantsModal";
 
-const Parking = ({ setActive, setMemberId, setFlatId }) => {
+const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
     const [memType, setMemType] = useState("tenant");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -562,6 +562,10 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
+    const handleParkingList = async ()=>{
+        setActive("parkingList")
+    }
+
     const resetForm = () => {
         setFirstName("");
         setLastName("");
@@ -800,20 +804,21 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
 
                 <div className="row g-3 mb-4">
                     {[
-                        [totalCount, "Total Slots", "Across 3 levels", "tile-black", <FiGrid />],
+                        [totalCount, "Total Slots", "Across 3 levels", "tile-black", <FiGrid />,handleParkingList],
                         [totalOwners, "Occupancy Rate", "+ 2% this week", "tile-black", <FiTrendingUp />],
                         [totalTenant, "Visitor Slots Active", "/ 25 Available", "tile-black", <FiClock />],
                         [totalFamilyMember, "Active Violations", "Needs attention", "tile-black", <FiAlertTriangle />],
-                    ].map(([v, l, subText, cls, icon]) => (
+                    ].map(([v, l, subText, cls, icon, onClick]) => (
                         <div className="col-6 col-md-3" key={l}>
-
                             <div
                                 className={`tile bg-white ${cls}`}
+                                 onClick={onClick}
                                 style={{
                                     borderRadius: "10px",
                                     padding: "18px",
                                     minHeight: "120px",
-                                    boxShadow: "0 1px 2px rgba(0,0,0,0.04)"
+                                    boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+                                    cursor:"pointer"
                                 }}
                             >
 
@@ -979,9 +984,9 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
                                 const Icon = item.icon;
 
                                 return (
-                                    <div key={item.id} className="vpd-row">
+                                    <div key={item.id} className="vpd-row" style={{ cursor: "pointer" }} onClick={() => setActive("visitorDetails")}>
 
-                                        <div className="d-flex align-items-center" style={{cursor:"pointer"}} onClick={()=>setActive("parkingSessionDetails")}>
+                                        <div className="d-flex align-items-center" >
                                             <div className="vpd-icon-wrapper">
                                                 <Icon size={18} color="#6b7280" />
                                             </div>
@@ -1078,7 +1083,7 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
                                                 />
                                             </div>
 
-                                            <div style={{ textAlign: "start", cursor:"pointer" }} onClick={() => setActive("viewParkingDetails")}>
+                                            <div style={{ textAlign: "start", cursor: "pointer" }} onClick={() => setActive("viewParkingDetails")}>
                                                 <div className="vpd-name">
                                                     {item.title}
                                                 </div>
@@ -1262,4 +1267,4 @@ const Parking = ({ setActive, setMemberId, setFlatId }) => {
     );
 };
 
-export default Parking;
+export default ParkingDashboard;

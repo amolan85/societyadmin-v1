@@ -29,10 +29,13 @@ import ParkingDetails from "../Register/ParkingRegister/ParkingDetails";
 import ParkingHistory from "../Register/ParkingRegister/ParkingHistory";
 import RentalAndTenants from "../RentalAndTenants/RentalAndTenants";
 import TenantsReviewApplication from "../RentalAndTenants/TenantsReviewApplication";
-import Parking from "../Parking/Parking";
+import Parking from "../Parking/ParkingDashboard";
 import ParkingRules from "../Parking/ParkingRules";
 import ViewParkingDetails from "../Parking/ViewParkingDetails";
-import ParkingSessionDetails from "../Parking/ParkingSessionDetails";
+import ParkingSessionDetails from "../Parking/VisitorDetails";
+import VisitorDetails from "../Parking/VisitorDetails";
+import ParkingDashboard from "../Parking/ParkingDashboard";
+import ParkingList from "../Parking/ParkingList";
 
 
 /* ══ OVERVIEW ══════════════════════════════════ */
@@ -74,7 +77,7 @@ const NAV = [
   {
     sec: "Operations", items: [
       { id: "complaints", icon: "🚨", lbl: "Complaints" },
-      { id: "parking", icon: "🚗", lbl: "Parking" },
+      { id: "parkingDashboard", icon: "🚗", lbl: "Parking" },
       { id: "rentals", icon: "🏢", lbl: "Rentals & Tenants" },
       { id: "staff", icon: "👥", lbl: "Staff Attendance" },
     ]
@@ -104,10 +107,11 @@ const TITLES = {
   rules: ["Administration", "Rules & By-laws"],
   complaints: ["Operations", "Complaints"],
   createComplaints: ["Operations", "Create Complaints"],
-  parking: ["Operations", "Parking"],
+  parkingList: ["Operations", "Parking"],
+  parkingDashboard: ["Operations", "Parking"],
   parkingRules: ["Operations", "Parking", "Parking Rules"],
   viewParkingDetails: ["Operations", "Parking", "Parking Details"],
-  parkingSessionDetails: ["Operations", "Parking", "KA-05-MH-2023"],
+  visitorDetails: ["Operations", "Parking", "KA-05-MH-2023"],
   rentals: ["Operations", "Rentals & Tenants"],
   rentalsApplication: ["Operations", "Rentals & Tenants", "Review Application"],
   staff: ["Operations", "Staff Attendance"],
@@ -167,10 +171,11 @@ export default function App() {
     rules: <Rules />,
     complaints: <Complaints setActive={setActive} />,
     createComplaints: <CreateComplaints setActive={setActive} />,
-    parking: <Parking setActive={setActive} />,
+    parkingList: <ParkingList setActive={setActive} />,
+    parkingDashboard: <ParkingDashboard setActive={setActive} />,
     parkingRules: <ParkingRules setActive={setActive} />,
     viewParkingDetails: <ViewParkingDetails setActive={setActive} />,
-    parkingSessionDetails: <ParkingSessionDetails setActive={setActive} />,
+    visitorDetails: <VisitorDetails setActive={setActive} />,
     rentals: <RentalAndTenants setActive={setActive} />,
     rentalsApplication: <TenantsReviewApplication setActive={setActive} />,
     staff: <StaffAttendance setActive={setActive} setStaffId={setStaffId} />,

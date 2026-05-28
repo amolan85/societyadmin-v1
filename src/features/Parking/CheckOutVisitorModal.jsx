@@ -92,7 +92,7 @@ const CheckOutVisitorModal = ({
 
                         <div className="modal-header cov-modal-header bg-light">
                             <h5 className="modal-title cov-modal-title" id="covCheckoutModalLabel">Check Out Visitor</h5>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={() => setCheckoutShow(false)}></button>
                         </div>
 
 
@@ -124,7 +124,7 @@ const CheckOutVisitorModal = ({
                             <div className="cov-payment-box">
                                 <div className="cov-payment-icon-wrap">
                                     {/* <i className="bi bi-check-lg"></i> */}
-                                    <BiCheck/>
+                                    <BiCheck />
                                 </div>
                                 <div>
                                     <div className="cov-payment-title text-start">No Payment Due</div>
@@ -135,7 +135,7 @@ const CheckOutVisitorModal = ({
 
 
                         <div className="modal-footer justify-content-between cov-modal-footer bg-light">
-                            <button type="button" className="btn btn-sm cov-btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" className="btn btn-sm cov-btn-cancel" data-bs-dismiss="modal" onClick={() => setCheckoutShow(false)}>Cancel</button>
                             <button type="button" className="btn btn-sm cov-btn-checkout">
                                 <i className="bi bi-box-arrow-right"></i> Confirm Check Out
                             </button>

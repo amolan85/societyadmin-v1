@@ -8,12 +8,14 @@ import ResolveViolationModal from './ResolveViolationModal';
 import WarningNotificationModal from './WarningNotificationModal';
 import ViewDocumentModal from './ViewDocumentModal';
 import CheckOutVisitorModal from './CheckOutVisitorModal';
-const ParkingSessionDetails = ({ setActive, /* memberId, setFlatId */ }) => {
+import ExtendTimeModal from './ExtendTimeModal';
+const VisitorDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
     const [deallocateShow, setDeallocateShow] = useState(false);
     const [showDocument, setShowDocument] = useState(false);
     const [show, setShow] = useState(false)
     const [checkoutShow, setCheckOutShow] = useState(false)
+    const [showExtendTime, setShowExtendTime] = useState(false)
     const [notificationShow, setNotificationShow] = useState(false)
 
     const handleWarningNotification = () => {
@@ -55,8 +57,8 @@ const ParkingSessionDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                         </div>
 
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
-                            <button className="btn btn-danger btn-sm" onClick={() => setActive("parkingRegister")}><FiPrinter /> Report Violation</button>
-                            <button className="btn btn-secondary btn-sm" onClick={() => setShow(true)}><FiCheckCircle /> Extend Time</button>
+                            <button className="btn btn-danger btn-sm" /* onClick={() => setActive("parkingRegister")} */><FiPrinter /> Report Violation</button>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setShowExtendTime(true)}><FiCheckCircle /> Extend Time</button>
 
                             <button className="btn btn-primary btn-sm" onClick={() => setCheckOutShow(true)}>Check Out</button>
                         </div>
@@ -423,16 +425,13 @@ const ParkingSessionDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                 setCheckoutShow={setCheckOutShow}
             />
 
-            <WarningNotificationModal
-                notificationShow={notificationShow}
-                setNotificationShow={setNotificationShow}
+            <ExtendTimeModal
+                showExtendTime={showExtendTime}
+                setShowExtendTime={setShowExtendTime}
             />
-            <ViewDocumentModal
-                showDocument={showDocument}
-                setShowDocument={setShowDocument}
-            />
+
         </>
     )
 }
 
-export default ParkingSessionDetails
+export default VisitorDetails
