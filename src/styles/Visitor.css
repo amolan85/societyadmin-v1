@@ -1,0 +1,35 @@
+
+.visitor-timeline {
+  position: relative;
+  padding-left: 25px;
+}
+
+.visitor-timeline::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #dee2e6;
+}
+
+.visitor-timeline-item {
+  position: relative;
+  margin-bottom: 25px;
+}
+
+.visitor-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -24px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  background: #6c757d;
+  border-radius: 50%;
+}
+
+.visitor-timeline-item.active::before {
+  background: #0d6efd;
+}

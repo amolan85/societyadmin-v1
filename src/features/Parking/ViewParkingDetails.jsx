@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FaBalanceScale, FaCar, FaSwimmingPool, FaUsers } from 'react-icons/fa';
-import { FiAlertTriangle, FiArrowLeft, FiCheckCircle, FiDownload, FiEdit, FiExternalLink, FiMessageSquare, FiPrinter, FiSlash, FiStopCircle ,FiFile,FiTruck,FiFileText} from "react-icons/fi";
+import { FiAlertTriangle, FiArrowLeft, FiCheckCircle, FiDownload, FiEdit, FiExternalLink, FiMessageSquare, FiPrinter, FiSlash, FiStopCircle, FiFile, FiTruck, FiFileText } from "react-icons/fi";
 import { CgFileDocument } from 'react-icons/cg';
 import { BiHistory, BiLocationPlus } from 'react-icons/bi';
 import "../../styles/RentalAndTenant.css";
@@ -115,39 +115,47 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                         <div className="card border-0 shadow-sm">
                             <div className="card-header bg-white d-flex justify-content-between align-items-center">
                                 <span className="fw-semibold">Evidence & Captures</span>
-
+                                <span className="fw-semibold text-primary">View All Cameras</span>
                             </div>
 
                             <div className="card-body">
                                 <div className="row g-4">
 
-                                    <div className="col-md-4">
-                                        <small className="text-muted d-block">LEASE INFORMATION</small>
-                                        <div className="fw-semibold">-</div>
+                                    <div className="col-md-6">
+                                        <div className="card shadow-sm">
+
+                                            <img
+                                                src="https://picsum.photos/600/350"
+                                                alt=""
+                                                className="card-img-top"
+                                                style={{
+                                                    height: "200px",
+                                                    objectFit: "cover"
+                                                }}
+                                            />
+
+
+
+                                        </div>
                                     </div>
 
-                                    <div className="col-md-4">
-                                        <small className="text-muted d-block">LEASE END DATE</small>
-                                        <div className="fw-semibold">-</div>
-                                    </div>
+                                    {/* Image Card */}
+                                    <div className="col-md-6">
+                                        <div className="card shadow-sm">
 
-                                    <div className="col-md-4">
-                                        <small className="text-muted d-block">DURATION</small>
-                                        <div className="fw-semibold">-</div>
-                                    </div>
+                                            <img
+                                                src="https://picsum.photos/601/350"
+                                                alt=""
+                                                className="card-img-top"
+                                                style={{
+                                                    height: "200px",
+                                                    objectFit: "cover"
+                                                }}
+                                            />
 
-                                    <div className="col-md-4">
-                                        <small className="text-muted d-block">MONTHLY RENT</small>
-                                        <div className="fw-semibold">-</div>
-                                    </div>
-                                    <div className="col-md-4">
-                                        <small className="text-muted d-block">SECURITY DEPOSIT</small>
-                                        <div className="fw-semibold">-</div>
-                                    </div>
 
-                                    <div className="col-md-4">
-                                        <small className="text-muted d-block">TOTAL OCCUPANTS</small>
-                                        <div className="fw-semibold">-</div>
+
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -250,47 +258,35 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                             </div>
                         </div>
-                        <div className="card shadow-sm border mt-3">
-                            <div className="card-header bg-light fw-bold py-3">
+                        <div className="card shadow-sm border mt-4 text-start">
+                            <div className="card-header bg-white fw-bold">
                                 Activity Log
                             </div>
 
                             <div className="card-body">
-                                <div className="form-check mb-2">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        checked
-                                        readOnly
-                                        id="docVerified"
-                                    />
-                                    <label className="form-check-label" htmlFor="docVerified">
-                                        Identity Documents Verified
-                                    </label>
-                                </div>
+                                <div className="visitor-timeline">
 
-                                <div className="form-check mb-2">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="policeVerification"
-                                    />
-                                    <label className="form-check-label" htmlFor="policeVerification">
-                                        Police Verification Complete
-                                    </label>
-                                </div>
+                                    <div className="visitor-timeline-item active">
+                                        <h6 className="mb-1">Check In Approved</h6>
+                                        <small className="text-muted">
+                                            10:45 AM • Guard Gate 1
+                                        </small>
+                                    </div>
 
-                                <div className="form-check">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        checked
-                                        readOnly
-                                        id="agreementMatch"
-                                    />
-                                    <label className="form-check-label" htmlFor="agreementMatch">
-                                        Agreement Matches Lease Period
-                                    </label>
+                                    <div className="visitor-timeline-item">
+                                        <h6 className="mb-1">Host Approval Received</h6>
+                                        <small className="text-muted">
+                                            10:42 AM • App Notification
+                                        </small>
+                                    </div>
+
+                                    <div className="visitor-timeline-item">
+                                        <h6 className="mb-1">Entry Request Created</h6>
+                                        <small className="text-muted">
+                                            10:40 AM • Gate System
+                                        </small>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>

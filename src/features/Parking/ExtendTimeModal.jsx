@@ -1,16 +1,18 @@
 // MemberModal.jsx
+import { FiTruck } from "react-icons/fi";
 import Select from "react-select";
 
 const ExtendTimeModal = ({
     showExtendTime,
     setShowExtendTime,
 
+    extendDurationType = [],
     allBlocks = [],
     allFlats = [],
     recordType = [],
 
-    blocks = null,
-    setBlocks = () => { },
+    extendDuration = null,
+    setExtendDuration = () => { },
 
     flat = null,
     setFlat = () => { },
@@ -67,7 +69,7 @@ const ExtendTimeModal = ({
 
     errors = {},
     errorText = "",
-    handleSubmit = () => {},
+    handleSubmit = () => { },
     mode,
 }) => {
     if (!showExtendTime) return null;
@@ -94,28 +96,64 @@ const ExtendTimeModal = ({
                         <div className="modal-body">
                             <div className="pg d-flex justify-content-center am-wrap">
                                 <div className="text-start am-card">
-                           
+                                    <div className="row g-3 mb-3">
+                                        <div className="col-12">
+                                            <div
+                                                className="card border-0 shadow-sm px-2 py-2"
+                                                style={{
+                                                    borderRadius: "10px",
+                                                    backgroundColor: "#f8f9fa",
+                                                }}
+                                            >
+                                                <div className="d-flex justify-content-between align-items-center">
+
+                                                    {/* Left Section */}
+                                                    <div className="d-flex align-items-center">
+                                                        <div className="me-3">
+                                                            <FiTruck size={24} className="text-secondary" />
+                                                        </div>
+
+                                                        <div>
+                                                            <h6 className="mb-1 fw-semibold">KA-05-MH-2023</h6>
+                                                            <small className="text-muted">
+                                                                Rahul Kumar · Visitor
+                                                            </small>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Right Section */}
+                                                    <div className="text-end">
+                                                        <small className="text-muted d-block">
+                                                            Current End Time
+                                                        </small>
+                                                        <h6 className="mb-0 fw-bold">4:00 PM</h6>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div className="d-flex">
                                         <label className="sv-lb">
-                                            Record Type <span className="text-danger">*</span>
+                                            Extend duration by <span className="text-danger">*</span>
                                         </label>
 
-                                        {errors.memType && (
-                                            <span className="text-danger mx-2">{errors.memType}</span>
+                                        {errors.extendDuration && (
+                                            <span className="text-danger mx-2">{errors.extendDuration}</span>
                                         )}
                                     </div>
                                     <div
-                                        className={`am-type-wrap mb-3  ${errors.recordTypeTab ? "border border-danger  p-1" : ""
+                                        className={`am-type-wrap mb-3  ${errors.extendDuration ? "border border-danger  p-1" : ""
                                             }`}
                                     >
-                                        {recordType.map((t) => (
+                                        {extendDurationType.map((t) => (
                                             <button
                                                 key={t.value}
                                                 onClick={() => {
-                                                    setRecordTypeTab(t.value);
+                                                    setExtendDuration(t.value);
                                                     resetForm();
                                                 }}
-                                                className={`am-type-btn ${recordTypeTab === t.value ? "active" : ""
+                                                className={`am-type-btn ${extendDuration === t.value ? "active" : ""
                                                     }`}
                                             >
                                                 {t.id}
@@ -125,30 +163,11 @@ const ExtendTimeModal = ({
 
                                     <>
                                         <div className="row g-3 mb-3">
-                                            <div className="col-6">
-                                                <div className="d-flex">
-                                                    <label className="sv-lb">
-                                                        Date{" "}
-                                                        <span className="text-danger">*</span>
-                                                    </label>
-                                                    {errors.moveInDate && (
-                                                        <span className="text-danger mx-2">
-                                                            {errors.moveInDate}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <input
-                                                    className={`sv-in ${errors.moveInDate ? "error-input" : ""}`}
-                                                    type="date"
-                                                    value={moveInDate}
-                                                    onChange={(e) => setMoveInDate(e.target.value)}
-                                                />
-                                            </div>
 
-                                            <div className="col-6">
+                                            <div className="col-12">
                                                 <div className="d-flex">
                                                     <label className="sv-lb">
-                                                        Time{" "}
+                                                        New End Time{" "}
                                                         <span className="text-danger">*</span>
                                                     </label>
                                                     {errors.moveOutDate && (
@@ -163,6 +182,7 @@ const ExtendTimeModal = ({
                                                     value={moveOutDate}
                                                     onChange={(e) => setMoveOutDate(e.target.value)}
                                                 />
+                                                <small className="text-muted">Original Expiry was 4:00 PM today.</small>
                                             </div>
                                         </div>
 
@@ -179,7 +199,7 @@ const ExtendTimeModal = ({
                                                         </span>
                                                     )}
                                                 </div>
-                                                <textarea className="form-control" rows={3} placeholder="Eg. Forgot ID Card, Biometric machiner Error, System override" />
+                                                <textarea className="form-control" rows={3} placeholder="Eg. Dinner plans, Meeting extended.." />
                                             </div>
                                         </div>
                                     </>
@@ -201,7 +221,7 @@ const ExtendTimeModal = ({
                             </button>
 
                             <button className="btn-ac px-4" onClick={handleSubmit}>
-                                Save Record
+                                Confirm Extension
                             </button>
                         </div>
                     </div>
