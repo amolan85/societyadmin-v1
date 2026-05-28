@@ -258,13 +258,10 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                             </div>
                         </div>
-<<<<<<< HEAD
                         <div className="card shadow-sm border mt-4 text-start">
                             <div className="card-header bg-white fw-bold">
-=======
-                        {/* <div className="card shadow-sm border mt-3">
+                                {/* <div className="card shadow-sm border mt-3">
                             <div className="card-header bg-light fw-bold py-3">
->>>>>>> 7b3e8c63bc089a29a7f0d949fe06c51eabc9e675
                                 Activity Log
                             </div>
 
@@ -295,235 +292,236 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                 </div>
                             </div>
                         </div> */}
-                        <div className="card shadow-sm border mt-3">
-                            <div className="card-header bg-light fw-bold py-3">
-                                Activity Log
-                            </div>
-
-                            <div className="card-body">
-                                <div className="d-flex flex-column">
-
-                                    {/* Violation Detected */}
-                                    <div className="d-flex align-items-start position-relative pb-4">
-                                        <div className="position-absolute top-0 start-0 translate-middle-x border-start border-2 h-100 mt-3" style={{ left: '9px' }} />
-                                        <div className="rounded-circle bg-danger flex-shrink-0 mt-1 z-1" style={{ width: '20px', height: '20px' }} />
-                                        <div className="ms-3">
-                                            <div className="fw-semibold small">Violation Detected</div>
-                                            <div className="text-muted small">System detected vehicle in reserved slot.</div>
-                                            <div className="text-muted small">10:42 AM</div>
-                                        </div>
+                                <div className="card shadow-sm border mt-3">
+                                    <div className="card-header bg-light fw-bold py-3">
+                                        Activity Log
                                     </div>
 
-                                    {/* Alert Sent to Admin */}
-                                    <div className="d-flex align-items-start position-relative pb-4">
-                                        <div className="position-absolute top-0 start-0 translate-middle-x border-start border-2 h-100 mt-3" style={{ left: '9px' }} />
-                                        <div className="rounded-circle bg-secondary flex-shrink-0 mt-1 z-1" style={{ width: '20px', height: '20px' }} />
-                                        <div className="ms-3">
-                                            <div className="fw-semibold small">Alert Sent to Admin</div>
-                                            <div className="text-muted small">Push notification sent to 3 active admins.</div>
-                                            <div className="text-muted small">10:43 AM</div>
+                                    <div className="card-body">
+                                        <div className="d-flex flex-column">
+
+                                            {/* Violation Detected */}
+                                            <div className="d-flex align-items-start position-relative pb-4">
+                                                <div className="position-absolute top-0 start-0 translate-middle-x border-start border-2 h-100 mt-3" style={{ left: '9px' }} />
+                                                <div className="rounded-circle bg-danger flex-shrink-0 mt-1 z-1" style={{ width: '20px', height: '20px' }} />
+                                                <div className="ms-3">
+                                                    <div className="fw-semibold small">Violation Detected</div>
+                                                    <div className="text-muted small">System detected vehicle in reserved slot.</div>
+                                                    <div className="text-muted small">10:42 AM</div>
+                                                </div>
+                                            </div>
+
+                                            {/* Alert Sent to Admin */}
+                                            <div className="d-flex align-items-start position-relative pb-4">
+                                                <div className="position-absolute top-0 start-0 translate-middle-x border-start border-2 h-100 mt-3" style={{ left: '9px' }} />
+                                                <div className="rounded-circle bg-secondary flex-shrink-0 mt-1 z-1" style={{ width: '20px', height: '20px' }} />
+                                                <div className="ms-3">
+                                                    <div className="fw-semibold small">Alert Sent to Admin</div>
+                                                    <div className="text-muted small">Push notification sent to 3 active admins.</div>
+                                                    <div className="text-muted small">10:43 AM</div>
+                                                </div>
+                                            </div>
+
+                                            {/* Pending Action */}
+                                            <div className="d-flex align-items-start">
+                                                <div className="rounded-circle bg-secondary flex-shrink-0 mt-1" style={{ width: '20px', height: '20px' }} />
+                                                <div className="ms-3">
+                                                    <div className="fw-semibold small">Pending Action</div>
+                                                    <div className="text-muted small">Awaiting resolution...</div>
+                                                </div>
+                                            </div>
+
                                         </div>
                                     </div>
-
-                                    {/* Pending Action */}
-                                    <div className="d-flex align-items-start">
-                                        <div className="rounded-circle bg-secondary flex-shrink-0 mt-1" style={{ width: '20px', height: '20px' }} />
-                                        <div className="ms-3">
-                                            <div className="fw-semibold small">Pending Action</div>
-                                            <div className="text-muted small">Awaiting resolution...</div>
-                                        </div>
-                                    </div>
-
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div >
                 </div>
-            </div >
+                </div>
+                {deallocateShow && (
+                    <>
+                        {/* Backdrop */}
+                        <div
+                            className="modal-backdrop fade show"
+                            onClick={() => setDeallocateShow(false)}
+                        ></div>
 
-            {deallocateShow && (
-                <>
-                    {/* Backdrop */}
-                    <div
-                        className="modal-backdrop fade show"
-                        onClick={() => setDeallocateShow(false)}
-                    ></div>
+                        {/* Modal */}
+                        <div
+                            className="modal fade show d-block"
+                            tabIndex="-1"
+                        >
+                            <div className="modal-dialog modal-dialog-centered">
+                                <div
+                                    className="modal-content border-0"
+                                    style={{ borderRadius: "16px" }}
+                                >
 
-                    {/* Modal */}
-                    <div
-                        className="modal fade show d-block"
-                        tabIndex="-1"
-                    >
-                        <div className="modal-dialog modal-dialog-centered">
-                            <div
-                                className="modal-content border-0"
-                                style={{ borderRadius: "16px" }}
-                            >
+                                    {/* Header */}
+                                    <div className="modal-header ">
 
-                                {/* Header */}
-                                <div className="modal-header ">
+                                        <div className="d-flex align-items-center gap-2">
+                                            <div
+                                                className="d-flex align-items-center justify-content-center"
+                                                style={{
+                                                    width: "34px",
+                                                    height: "34px",
+                                                    background: "#fdeaea",
+                                                    borderRadius: "8px",
+                                                }}
+                                            >
+                                                <FiAlertTriangle
+                                                    color="#ef4444"
+                                                    size={18}
+                                                />
+                                            </div>
 
-                                    <div className="d-flex align-items-center gap-2">
-                                        <div
-                                            className="d-flex align-items-center justify-content-center"
+                                            <h5 className="mb-0 fw-bold">
+                                                Deallocate Parking Slot
+                                            </h5>
+                                        </div>
+
+                                        <button
+                                            className="btn-close"
+                                            onClick={() => setDeallocateShow(false)}
+                                        ></button>
+
+                                    </div>
+
+                                    {/* Body */}
+                                    <div className="modal-body pt-3">
+
+                                        {/* Description */}
+                                        <p
+                                            className="text-muted text-start"
                                             style={{
-                                                width: "34px",
-                                                height: "34px",
-                                                background: "#fdeaea",
-                                                borderRadius: "8px",
+                                                fontSize: "14px",
+                                                lineHeight: "22px",
                                             }}
                                         >
-                                            <FiAlertTriangle
-                                                color="#ef4444"
-                                                size={18}
+                                            Are you sure you want to deallocate   <span style={{ fontWeight: "700", color: "#111827" }}>
+                                                Slot P-204
+                                            </span>? This action will remove
+                                            the assignment from   <span style={{ fontWeight: "700", color: "#111827" }}>Unit A-502
+                                                (Sarah Jenkins)</span> and make the slot available for
+                                            new allocation.
+                                        </p>
+
+                                        {/* Details Box */}
+                                        <div
+                                            className="rounded overflow-hidden mb-4"
+                                            style={{ background: "#f3f6f9" }}
+                                        >
+
+                                            {/* Row */}
+                                            <div className="d-flex justify-content-between p-2 border-bottom">
+                                                <span className="text-muted">
+                                                    Slot Number
+                                                </span>
+
+                                                <strong>P - 204</strong>
+                                            </div>
+
+                                            {/* Row */}
+                                            <div className="d-flex justify-content-between align-items-center p-2 border-bottom">
+                                                <span className="text-muted">
+                                                    Current Status
+                                                </span>
+
+                                                <span
+                                                    className="badge rounded-pill"
+                                                    style={{
+                                                        background: "#22c55e",
+                                                        padding: "7px 14px",
+                                                    }}
+                                                >
+                                                    Occupied
+                                                </span>
+                                            </div>
+
+                                            {/* Row */}
+                                            <div className="d-flex justify-content-between align-items-center p-2 border-bottom">
+                                                <span className="text-muted">
+                                                    Assigned To
+                                                </span>
+
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <img
+                                                        src="https://i.pravatar.cc/40?img=12"
+                                                        alt="profile"
+                                                        className="rounded-circle"
+                                                        width="28"
+                                                        height="28"
+                                                    />
+
+                                                    <span className="fw-semibold">
+                                                        Sarah Williams
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        {/* Reason */}
+                                        <div>
+                                            <label className="fw-semibold mb-2 text-start d-block">
+                                                Reason for Deallocation{" "}
+                                                <span className="text-muted fw-normal">
+                                                    (Optional)
+                                                </span>
+                                            </label>
+
+                                            <textarea
+                                                rows={3}
+                                                className="form-control border-0"
+                                                placeholder="E.g., Resident moved out, request for change..."
+                                                style={{
+                                                    background: "#f3f4f6",
+                                                    resize: "none",
+                                                }}
                                             />
                                         </div>
 
-                                        <h5 className="mb-0 fw-bold">
-                                            Deallocate Parking Slot
-                                        </h5>
                                     </div>
 
-                                    <button
-                                        className="btn-close"
-                                        onClick={() => setDeallocateShow(false)}
-                                    ></button>
+                                    {/* Footer */}
+                                    <div className="modal-footer">
 
-                                </div>
+                                        <button
+                                            className="btn btn-sm btn-light px-4 border"
+                                            onClick={() => setDeallocateShow(false)}
+                                        >
+                                            Cancel
+                                        </button>
 
-                                {/* Body */}
-                                <div className="modal-body pt-3">
-
-                                    {/* Description */}
-                                    <p
-                                        className="text-muted text-start"
-                                        style={{
-                                            fontSize: "14px",
-                                            lineHeight: "22px",
-                                        }}
-                                    >
-                                        Are you sure you want to deallocate   <span style={{ fontWeight: "700", color: "#111827" }}>
-                                            Slot P-204
-                                        </span>? This action will remove
-                                        the assignment from   <span style={{ fontWeight: "700", color: "#111827" }}>Unit A-502
-                                            (Sarah Jenkins)</span> and make the slot available for
-                                        new allocation.
-                                    </p>
-
-                                    {/* Details Box */}
-                                    <div
-                                        className="rounded overflow-hidden mb-4"
-                                        style={{ background: "#f3f6f9" }}
-                                    >
-
-                                        {/* Row */}
-                                        <div className="d-flex justify-content-between p-2 border-bottom">
-                                            <span className="text-muted">
-                                                Slot Number
-                                            </span>
-
-                                            <strong>P - 204</strong>
-                                        </div>
-
-                                        {/* Row */}
-                                        <div className="d-flex justify-content-between align-items-center p-2 border-bottom">
-                                            <span className="text-muted">
-                                                Current Status
-                                            </span>
-
-                                            <span
-                                                className="badge rounded-pill"
-                                                style={{
-                                                    background: "#22c55e",
-                                                    padding: "7px 14px",
-                                                }}
-                                            >
-                                                Occupied
-                                            </span>
-                                        </div>
-
-                                        {/* Row */}
-                                        <div className="d-flex justify-content-between align-items-center p-2 border-bottom">
-                                            <span className="text-muted">
-                                                Assigned To
-                                            </span>
-
-                                            <div className="d-flex align-items-center gap-2">
-                                                <img
-                                                    src="https://i.pravatar.cc/40?img=12"
-                                                    alt="profile"
-                                                    className="rounded-circle"
-                                                    width="28"
-                                                    height="28"
-                                                />
-
-                                                <span className="fw-semibold">
-                                                    Sarah Williams
-                                                </span>
-                                            </div>
-                                        </div>
+                                        <button className="btn btn-sm btn-danger px-4">
+                                            <FiSlash /> Confirm Deallocation
+                                        </button>
 
                                     </div>
 
-                                    {/* Reason */}
-                                    <div>
-                                        <label className="fw-semibold mb-2 text-start d-block">
-                                            Reason for Deallocation{" "}
-                                            <span className="text-muted fw-normal">
-                                                (Optional)
-                                            </span>
-                                        </label>
-
-                                        <textarea
-                                            rows={3}
-                                            className="form-control border-0"
-                                            placeholder="E.g., Resident moved out, request for change..."
-                                            style={{
-                                                background: "#f3f4f6",
-                                                resize: "none",
-                                            }}
-                                        />
-                                    </div>
-
                                 </div>
-
-                                {/* Footer */}
-                                <div className="modal-footer">
-
-                                    <button
-                                        className="btn btn-sm btn-light px-4 border"
-                                        onClick={() => setDeallocateShow(false)}
-                                    >
-                                        Cancel
-                                    </button>
-
-                                    <button className="btn btn-sm btn-danger px-4">
-                                        <FiSlash /> Confirm Deallocation
-                                    </button>
-
-                                </div>
-
                             </div>
                         </div>
-                    </div>
-                </>
-            )
-            }
-            <ResolveViolationModal
-                show={show}
-                setShow={setShow}
-            />
+                    </>
+                )
+                }
+                <ResolveViolationModal
+                    show={show}
+                    setShow={setShow}
+                />
 
-            <WarningNotificationModal
-                notificationShow={notificationShow}
-                setNotificationShow={setNotificationShow}
-            />
-            <ViewDocumentModal
-                showDocument={showDocument}
-                setShowDocument={setShowDocument}
-            />
-        </>
-    )
+                <WarningNotificationModal
+                    notificationShow={notificationShow}
+                    setNotificationShow={setNotificationShow}
+                />
+                <ViewDocumentModal
+                    showDocument={showDocument}
+                    setShowDocument={setShowDocument}
+                />
+</>
+                )
 }
 
-export default ViewParkingDetails
+                export default ViewParkingDetails
