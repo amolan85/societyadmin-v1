@@ -10,6 +10,7 @@ import ViewDocumentModal from './ViewDocumentModal';
 import CheckOutVisitorModal from './CheckOutVisitorModal';
 import ExtendTimeModal from './ExtendTimeModal';
 import { BsFillChatSquareFill, BsHouseDoor, BsInfoCircle } from 'react-icons/bs';
+import { FiLogOut } from 'react-icons/fi';
 const VisitorDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
     const [deallocateShow, setDeallocateShow] = useState(false);
@@ -49,7 +50,7 @@ const VisitorDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                                 <div className="text-muted text-start small mt-2">
                                     <div className="mb-1">
-                                        Reported 12 minutes ago at Slot P-102
+                                        Checked in today at 10:45 AM • Visitor Pass #VP-4921
                                     </div>
 
                                 </div>
@@ -57,10 +58,10 @@ const VisitorDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                         </div>
 
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
-                            <button className="btn btn-danger btn-sm" /* onClick={() => setActive("parkingRegister")} */><FiPrinter /> Report Violation</button>
-                            <button className="btn btn-secondary btn-sm" onClick={() => setShowExtendTime(true)}><FiCheckCircle /> Extend Time</button>
+                            <button className="btn btn-sm common-outline-btn print-btn" /* onClick={() => setActive("parkingRegister")} */><FiAlertTriangle /> Report Violation</button>
+                            <button className="btn btn-sm common-outline-btn extend-btn" onClick={() => setShowExtendTime(true)}><FiCheckCircle /> Extend Time</button>
 
-                            <button className="btn btn-primary btn-sm" onClick={() => setCheckOutShow(true)}>Check Out</button>
+                            <button className="btn btn-primary btn-sm" onClick={() => setCheckOutShow(true)}> <FiLogOut />Check Out</button>
                         </div>
                     </div>
                 </div>
@@ -143,7 +144,10 @@ const VisitorDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                                 <div className="d-flex align-items-center p-3 border-bottom">
                                     {/* <i className="bi bi-house-door fs-3 text-secondary me-3"></i> */}
-                                    <BsHouseDoor className='text-secondary me-3' />
+                                    {/* <BsHouseDoor className='text-secondary me-3' /> */}
+                                    <div className="house-icon-box me-3">
+                                        <BsHouseDoor className="house-icon" />
+                                    </div>
 
                                     <div>
                                         <div className="fw-semibold">Unit B-402</div>
@@ -156,11 +160,16 @@ const VisitorDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                 <div className="d-flex justify-content-between align-items-center p-3">
 
                                     <div className="d-flex align-items-center">
+                                        
                                         <img
-                                            src="https://via.placeholder.com/40"
-                                            alt=""
+                                            src='../src/assets/profile.png'
+                                            alt="profile"
                                             className="rounded-circle me-3"
+                                            width="50"
+                                            height="50"
                                         />
+
+                                   
 
                                         <div>
                                             <div className="fw-semibold">
