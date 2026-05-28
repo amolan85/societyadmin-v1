@@ -27,7 +27,7 @@ const Overview = () => {
         const data = await GetSessionData()
         console.log(data.data)
         const flats = data.data.flats[0]
-        GetDashboard(data.society_id)
+        GetDashboard(data.data.society_id)
 
     }
 
