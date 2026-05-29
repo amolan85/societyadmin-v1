@@ -151,17 +151,31 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
         setActive("createNoticeBoard");
     };
 
+    // const deleteNotice = async (noticeId) => {
+    //     try {
+    //         const data = await deleteNoticeApi(noticeId)
+    //         console.log(data)
+    //         toast.success("Notice deleted successfully!")
+    //         getNoticeBoard(societyId)
+    //     } catch (error) {
+    //         console.log(error)
+    //     }
+    // }
     const deleteNotice = async (noticeId) => {
+        const confirmed = window.confirm("Are you sure you want to delete this notice?");
+
+        if (!confirmed) return;
+
         try {
-            const data = await deleteNoticeApi(noticeId)
-            console.log(data)
-            toast.success("Notice deleted successfully!")
-            getNoticeBoard(societyId)
+            const data = await deleteNoticeApi(noticeId);
+            console.log(data);
+            toast.success("Notice deleted successfully!");
+            getNoticeBoard(societyId);
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
-    }
-    
+    };
+
     const timeAgo = (utcDate) => {
 
         // UTC date convert

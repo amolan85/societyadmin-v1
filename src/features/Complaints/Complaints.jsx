@@ -7,6 +7,7 @@ import { GetSessionData } from '../../utils/SessionManagement';
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
+import { CgExport } from "react-icons/cg";
 // import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -350,7 +351,13 @@ const Complaints = ({ setActive }) => {
             </p>
           </div>
           <div className='d-flex'>
-            <button className="btn-ol" onClick={() => setShow(true)}>⬇ Export</button>
+            {/* <button className="btn-ol" onClick={() => setShow(true)}>⬇ Export</button> */}
+            <button
+              className="btn-ol ms-2"
+              onClick={() => setShow(true)}
+            >
+              <CgExport /> Export
+            </button>
             <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("createComplaints")}>+ Log Complaint</button>
 
           </div>
@@ -381,7 +388,7 @@ const Complaints = ({ setActive }) => {
               {tabs.map((t) => (
                 <button
                   key={t.id}
-                  onClick={() => {setTab(t.value); setPage(1)}}
+                  onClick={() => { setTab(t.value); setPage(1) }}
                   className={`NoticeBoardTabs-btn ${tab === t.value ? "active" : ""}`}
                 >
                   {t.icon} {t.id}

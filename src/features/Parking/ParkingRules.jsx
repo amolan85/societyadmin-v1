@@ -512,19 +512,34 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
+    // const handleDelete = async (memberId) => {
+    //     try {
+    //         const data = await deleteMembersApi(memberId);
+
+    //         console.log(data, "Delete response");
+
+    //         toast.success("Member deleted successfully");
+    //         getMembers(societyId, page);
+    //         // Refresh member list if needed
+    //         // GetAllMembers();
+    //     } catch (error) {
+    //         console.error("Delete Error:", error);
+
+    //         toast.error(error);
+    //     }
+    // };
     const handleDelete = async (memberId) => {
+        const confirmed = window.confirm("Are you sure you want to delete this member?");
+
+        if (!confirmed) return;
+
         try {
             const data = await deleteMembersApi(memberId);
-
             console.log(data, "Delete response");
-
             toast.success("Member deleted successfully");
             getMembers(societyId, page);
-            // Refresh member list if needed
-            // GetAllMembers();
         } catch (error) {
             console.error("Delete Error:", error);
-
             toast.error(error);
         }
     };
@@ -662,6 +677,9 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
 
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
                             setShow(true)}>+ Create Rule</button>
+
+                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
+
 
                     </div>
 
