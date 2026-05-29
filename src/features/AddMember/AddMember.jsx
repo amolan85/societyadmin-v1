@@ -20,6 +20,7 @@ import {
 import { CgExport } from "react-icons/cg";
 import MemberModal from "./MemberModal";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
+import ExportModal from "../../components/Common/ExportModal";
 
 const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   const [memType, setMemType] = useState("");
@@ -121,30 +122,30 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     }
   };
 
-  
+
   const handleBlockChange = async (selectedOption) => {
-      setBlocks(selectedOption);
-  
-      if (selectedOption?.value) {
-          await getAllFlats(societyId, selectedOption.value);
-      }
+    setBlocks(selectedOption);
+
+    if (selectedOption?.value) {
+      await getAllFlats(societyId, selectedOption.value);
+    }
   };
-  
+
   const getAllFlats = async (societyId, block) => {
-      try {
-          const data = await getAllFlatsApi(societyId, block);
-  
-          console.log(data.flats, "All flats");
-  
-          setAllFlats(
-              data.flats.map((item) => ({
-                  value: item.flat_number,
-                  label: item.flat_number,
-              }))
-          );
-      } catch (error) {
-          console.error("Error fetching flats:", error);
-      }
+    try {
+      const data = await getAllFlatsApi(societyId, block);
+
+      console.log(data.flats, "All flats");
+
+      setAllFlats(
+        data.flats.map((item) => ({
+          value: item.flat_number,
+          label: item.flat_number,
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching flats:", error);
+    }
   };
   const getMembersById = async (memberId, flatId) => {
     setMemberId(memberId);
@@ -823,7 +824,18 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
         errorText={errorText}
         handleSubmit={handleSubmit}
       />
-      {exportModal && (
+      <ExportModal
+        show={exportModal}
+        onClose={() => setExportModal(false)}
+        onExport={handleExport}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        selectedRange={selectedRange}
+        setSelectedRange={setSelectedRange}
+        totalRecords={allMembersWithoutPagination.length}
+        currentRecords={allMembers.length}
+      />
+      {/* {exportModal && (
         <>
           <div className="modal-backdrop fade show"></div>
           <div className="modal show d-block">
@@ -843,7 +855,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                     Select Format
                   </h6>
                   <div className="row mb-4">
-                    {/* Excel */}
+                   
                     <div className="col-md-4">
                       <div
                         className={`format-card text-center p-3 rounded-3 ${activeTab === "excel" ? "active-format" : ""
@@ -872,7 +884,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                       </div>
                     </div>
 
-                    {/* CSV */}
+                  
                     <div className="col-md-4">
                       <div
                         className={`format-card text-center p-3 rounded-3 ${activeTab === "csv" ? "active-format" : ""
@@ -901,7 +913,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                       </div>
                     </div>
 
-                    {/* PDF */}
+                    
                     <div className="col-md-4">
                       <div
                         className={`format-card text-center p-3 rounded-3 ${activeTab === "pdf" ? "active-format" : ""
@@ -1008,8 +1020,9 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
             </div>
           </div>
         </>
-      )}
+      )} */}
     </>
+
   );
 };
 

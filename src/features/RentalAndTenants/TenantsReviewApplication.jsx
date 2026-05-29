@@ -41,6 +41,42 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
             console.log(error);
         }
     };
+
+    const getDuration = (start, end) => {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+
+        let years = endDate.getFullYear() - startDate.getFullYear();
+        let months = endDate.getMonth() - startDate.getMonth();
+        let days = endDate.getDate() - startDate.getDate();
+
+        if (days < 0) {
+            months--;
+
+            const lastMonthDays = new Date(
+                endDate.getFullYear(),
+                endDate.getMonth(),
+                0
+            ).getDate();
+
+            days += lastMonthDays;
+        }
+
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        if (years > 0) {
+            return `${years} year${years > 1 ? "s" : ""}`;
+        }
+
+        if (months > 0) {
+            return `${months} month${months > 1 ? "s" : ""}`;
+        }
+
+        return `${days} day${days > 1 ? "s" : ""}`;
+    };
     return (
         <>
             <div className="container-fluid min-vh-100">
@@ -71,7 +107,7 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
                                     <div className="mb-1">
                                         {/* <i className="bi bi-envelope me-1"></i> */}
                                         {/* <BiLocationPlus className="me-1" /> */}
-                                        submitted on 28 Feb 2024 by Amit Patel (Owner)
+                                        submitted on 28 Feb 2024 by {tenantData.owner_name} (Owner)
                                     </div>
 
                                     {/* <div>
@@ -170,7 +206,7 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
 
                                     <div className="col-md-4">
                                         <small className="text-muted d-block">DURATION</small>
-                                        <div className="fw-semibold">-</div>
+                                        <div className="fw-semibold"> {getDuration(tenantData.start_date, tenantData.end_date)}</div>
                                     </div>
 
                                     <div className="col-md-4">
@@ -210,7 +246,7 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
 
 
                                 <div>
-                                    <div className="fw-semibold">Amit Patel</div>
+                                    <div className="fw-semibold">{tenantData.owner_name}</div>
                                     <small className="text-muted">Unit B-204  Owner</small>
                                 </div>
 
@@ -238,7 +274,7 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
                                 </div>
 
                                 <div className="text-center">
-                                    <button className='btn btn-sm d-block' style={{ backgroundColor: "#37c759", color: "#fff", borderColor: "#37c759"}}><FiCheckCircle /> Owner Approved Registration</button>
+                                    <button className='btn btn-sm d-block' style={{ backgroundColor: "#37c759", color: "#fff", borderColor: "#37c759" }}><FiCheckCircle /> Owner Approved Registration</button>
                                 </div>
                             </div>
                         </div>
@@ -252,42 +288,36 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
                             </div>
 
                             <div className="card-body">
-                                <div className="form-check mb-2">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        checked
-                                        readOnly
-                                        id="docVerified"
-                                    />
-                                    <label className="form-check-label" htmlFor="docVerified">
-                                        Identity Documents Verified
-                                    </label>
-                                </div>
+                                {[
+                                    {
+                                        label: "Police Verification",
+                                        type: "police_noc",
+                                    },
+                                    {
+                                        label: "Rent Agreement",
+                                        type: "rent_agreement",
+                                    },
+                                ].map((doc, index) => {
+                                    const matchedDoc = tenantData?.documents?.find(
+                                        (item) => item.document_type === doc.type
+                                    );
 
-                                <div className="form-check mb-2">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="policeVerification"
-                                    />
-                                    <label className="form-check-label" htmlFor="policeVerification">
-                                        Police Verification Complete
-                                    </label>
-                                </div>
+                                    return (
+                                        <div className="form-check mb-2" key={index}>
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                checked={!!matchedDoc?.url}
+                                                readOnly
+                                                id={doc.type}
+                                            />
 
-                                <div className="form-check">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        checked
-                                        readOnly
-                                        id="agreementMatch"
-                                    />
-                                    <label className="form-check-label" htmlFor="agreementMatch">
-                                        Agreement Matches Lease Period
-                                    </label>
-                                </div>
+                                            <label className="form-check-label" htmlFor={doc.type}>
+                                                {doc.label}
+                                            </label>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>

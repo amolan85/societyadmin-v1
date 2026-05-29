@@ -13,23 +13,18 @@ import {
 import { toast } from "react-toastify";
 import { FiFilter, FiSearch } from "react-icons/fi";
 import {
-    FaFileUpload,
-    FaCheckCircle,
-    FaExclamationTriangle,
-    FaClock,
-} from "react-icons/fa";
-
-import {
     getAllBlocksApi,
     getAllFlatsApi,
 } from "../../services/UnitRegisterApi";
 import { CgExport } from "react-icons/cg";
-// import MemberModal from "./MemberModal";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import RegisterTenantsModal from "./RegisterTenantsModal";
 import FilterRentalsModal from "./FilterRentalsModal";
+import UploadModal from "./UploadModal";
+import ApproveModal from "./ApproveModal";
+import ExportModal from "../../components/Common/ExportModal";
 
-const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
+const RentalAndTenants = ({ setActive, setTenantId }) => {
     const [memType, setMemType] = useState("tenant");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -58,7 +53,7 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
     const [mode, setMode] = useState("add");
 
     const [allTenentsMember, setAllTenantsMember] = useState([]);
-    const [allTenentsMemberWithoutPagination, setAllTenantsMemberWithoutPagination] = useState([]);
+    const [allExportTenent, setAllExportTenent] = useState([]);
     const [blocks, setBlocks] = useState("");
     const [allBlocks, setAllBlocks] = useState([]);
     const [activeTab, setActiveTab] = useState("excel");
@@ -69,6 +64,8 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
     const [selectedRange, setSelectedRange] = useState("all");
     const [mangementTypeTab, setManagementTypeTab] = useState("");
     const [showFilterRentals, setShowFilterRentals] = useState(false)
+    const [showUpload, setShowUpload] = useState(false)
+    const [showApprove, setShowApprove] = useState(false)
 
     const filterData = {
         blocks: [
@@ -110,9 +107,9 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
 
     const mangementType = [
         { id: "All Rentals", value: "" },
-        { id: "Pending Registration", value: "pendingResitration" },
-        { id: "Expiring Soon", value: "emergency" },
-        { id: "KYC Pending", value: "circular" },
+        { id: "Pending Registration", value: "Pending" },
+        { id: "Expiring Soon", value: "expiry" },
+        { id: "KYC Pending", value: 0 },
 
     ];
 
@@ -144,12 +141,11 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
         }
     };
 
-    const getAllMembersWithoutPagination = async (societyId, search) => {
+    const getAllExportData = async (societyId) => {
         try {
-            const data = await getAllMembersWithoutPaginationApi(societyId, search);
-            console.log(data.members, "All members without pagination");
+            const data = await getTenantsMembersApi(societyId);
 
-            setAllTenantsMemberWithoutPagination(data.members);
+            setAllExportTenent(data.tenants);
         } catch (error) {
             console.error("Error fetching members:", error);
         }
@@ -304,7 +300,7 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                 return;
             }
 
-            if (mode === "edit") {
+            if (mode === "edit" || mode === "upload") {
                 await UpdateMemberApi(
                     societyId,
                     mId,
@@ -314,6 +310,7 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                     emailId,
                     blocks?.value,
                     flat?.value,
+                    memType,
                     startDate,
                     endDate,
                     agreement,
@@ -325,9 +322,13 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                     ownershipDocuments,
                     nominationDetails,
                 );
+                {
+                    mode === "upload" ? toast.success("Document uploaded successfully!") : toast.success("Tenant updated successfully!")
+                }
 
-                toast.success("Tenant updated successfully!");
                 resetForm();
+                setShow(false)
+                setShowUpload(false)
                 getTenantMembers(societyId, page);
             } else {
                 await AddMemberApi(
@@ -339,6 +340,7 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                     emailId,
                     blocks?.value,
                     flat?.value,
+                    memType,
                     startDate,
                     endDate,
                     agreement,
@@ -353,6 +355,7 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
 
                 toast.success("Tenant created successfully!");
                 resetForm();
+                setShow(false)
                 getTenantMembers(societyId, page);
             }
 
@@ -489,13 +492,14 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
 
         return `${months} Month${months > 1 ? "s" : ""}`;
     };
+
     const resetForm = () => {
         setFirstName("");
         setLastName("");
         setEmailId("");
         setMobileNo("");
-        // setBlocks(null);
-        // setFlat("");
+        setBlocks(null);
+        setFlat("");
         setStartDate("");
         setEndDate("");
         setFamilyType("");
@@ -509,32 +513,88 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
         setNominationDetails("");
         setErrors({});
         setErrorText("");
+        setMId("")
     };
-
 
     const handleSearch = async (e) => {
         const value = e.target.value;
         setSearch(value);
 
         try {
-            if (!value.trim()) {
-                setPage(1);
-                await getTenantMembers(societyId, 1);
-                return;
-            }
 
-            if (value.length < 3) return;
+            // if (value.length < 2) return;
 
-            const data = await getAllMembersWithoutPaginationApi(
-                societyId,
-                value
-            );
+            const data = await getTenantsMembersApi(societyId, page, limit, value);
 
-            setAllTenantsMember(data?.members || []);
+            setAllTenantsMember(data?.tenants || []);
         } catch (error) {
             console.error("Search error:", error);
         }
     };
+
+    const exportData =
+        selectedRange === "all"
+            ? allExportTenent
+            : selectedRange === "search"
+                ? allTenentsMember
+                : "";
+
+
+    const downloadExcel = async () => {
+        exportFile({
+            data: exportData,
+            fileName: "Tenants",
+            sheetName: "Tenants",
+            type: "xlsx",
+        });
+    };
+
+    const downloadCSV = async () => {
+        exportFile({
+            data: exportData,
+            fileName: "Tenants",
+            sheetName: "Tenants",
+            type: "csv",
+        });
+    };
+
+    const downloadPDF = () => {
+        exportToPDF({
+            title: "Tenants Report",
+            fileName: "Tenants",
+            columns: [
+                "Unit No.",
+                "Tenant Name",
+                "Email",
+                "Lease Period",
+                "KYC Status",
+                "Agreement",
+            ],
+            data: exportData.map((item) => [
+                item.flat_number,
+                `${item.first_name || ""} ${item.last_name || ""}`,
+                item.email || "",
+                `${item.start_date ? formatDate(item.start_date) : ""}${item.end_date ? ` - ${formatDate(item.end_date)}` : ""
+                }`,
+                item.status || "",
+                item.documents === 1 ? "Uploaded" : "Not Uploaded",
+            ]),
+        });
+    };
+
+    const handleExport = () => {
+        if (activeTab === "excel") {
+            downloadExcel();
+            setExportModal(false);
+        } else if (activeTab === "csv") {
+            downloadCSV();
+            setExportModal(false);
+        } else if (activeTab === "pdf") {
+            downloadPDF();
+            setExportModal(false);
+        }
+    };
+
     const total = Math.ceil(totalCount / limit);
 
     const pendingApprovals = allTenentsMember.filter(
@@ -562,7 +622,30 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
         return diffDays >= 0 && diffDays <= 30;
     }).length;
 
+    const getRemainingDays = (endDate) => {
+        if (!endDate) return -1;
 
+        const today = new Date();
+        const expiry = new Date(endDate);
+
+        return Math.ceil(
+            (expiry - today) / (1000 * 60 * 60 * 24)
+        );
+    };
+
+    const filteredData =
+        mangementTypeTab === ""
+            ? allTenentsMember
+            : mangementTypeTab === "expiry"
+                ? allTenentsMember.filter((item) => {
+                    const remainingDays = getRemainingDays(item.end_date);
+                    return remainingDays >= 0 && remainingDays <= 30;
+                })
+                : allTenentsMember.filter(
+                    (item) =>
+                        item.status === mangementTypeTab ||
+                        item.document === mangementTypeTab
+                );
     return (
         <>
             <div className="pg cp-wrap">
@@ -574,19 +657,19 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                             Manage tenant registrations, verify KYC, and track rental agreements.
                         </p>
                     </div>
-                   
+
                     <div className='d-flex'>
                         <button
                             className="btn-ol ms-2"
                             onClick={() => {
-                                getAllMembersWithoutPagination(societyId, "");
+                                getAllExportData(societyId);
                                 setExportModal(true);
                             }}
                         >
-                            <CgExport /> Export List
+                            <CgExport /> Export
                         </button>
-                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
-                            setShow(true)}>+ Register New Tenant</button>
+                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => { resetForm(); setShow(true); setMode("add") }
+                        }>+ Register New Tenant</button>
 
                     </div>
 
@@ -648,7 +731,7 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
 
                 <div className="d-flex justify-content-between align-items-center mb-4 text-start">
                     {/* <div>
-                        <h4 className="cp-title">Members</h4>
+                        <h4 className="cp-title">Tenants</h4>
                         <p className="cp-sub">
                             Manage and track all society members
                         </p>
@@ -703,11 +786,11 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                             </thead>
 
                             <tbody>
-                                {allTenentsMember.map((item, index) => (
+                                {filteredData.map((item, index) => (
                                     <tr key={index}>
                                         {/* Unit */}
                                         <td className="text-start">
-                                            <div className="fw-bold">{item.flat_number}</div>
+                                            <div className="fw-bold">{item.block} - {item.flat_number}</div>
                                             <small className="text-muted">
                                                 Owner: {item.owner_name}
                                             </small>
@@ -741,20 +824,22 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                                         {/* Lease */}
                                         <td className="text-start">
                                             <div className="text-start">
-                                                {formatDate(item.start_date)} -  {item.end_date ? formatDate(item.end_date) : ""}
+                                                {item.start_date ? formatDate(item.start_date) : ""}
+
+                                                {item.end_date && !isNaN(new Date(item.end_date))
+                                                    ? ` - ${formatDate(item.end_date)}`
+                                                    : ""}
                                             </div>
 
-                                            <small
-                                            // className={
-                                            //     item.duration.includes("Expires")
-                                            //         ? "text-danger"
-                                            //         : "text-muted"
-                                            // }
-                                            >
-                                                {getDuration(item.start_date, item.end_date)}
+                                            <small>
+                                                {item.start_date &&
+                                                    item.end_date &&
+                                                    !isNaN(new Date(item.start_date)) &&
+                                                    !isNaN(new Date(item.end_date))
+                                                    ? getDuration(item.start_date, item.end_date)
+                                                    : ""}
                                             </small>
                                         </td>
-
                                         {/* KYC */}
                                         <td className="text-start">
                                             <Badge
@@ -820,9 +905,11 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                        // onClick={() =>
-                                                        //     getMembersById(s.user_id, s.flat_id)
-                                                        // }
+                                                            onClick={() => {
+                                                                setMode("approve");
+                                                                setShowApprove(true)
+                                                                GetTenantById(item.user_id)
+                                                            }}
                                                         >
                                                             Review & Approve
                                                         </button>
@@ -831,9 +918,11 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                        // onClick={() =>
-                                                        //     getMembersById(s.user_id, s.flat_id)
-                                                        // }
+                                                            onClick={() => {
+                                                                setMode("upload");
+                                                                setShowUpload(true)
+                                                                GetTenantById(item.user_id)
+                                                            }}
                                                         >
                                                             Upload
                                                         </button>
@@ -931,6 +1020,76 @@ const RentalAndTenants = ({ setActive, setTenantId, setFlatId }) => {
                 showFilterRentals={showFilterRentals}
                 setShowFilterRentals={setShowFilterRentals}
                 filterData={filterData}
+            />
+
+            <UploadModal
+                mode={mode}
+                showUpload={showUpload}
+                setShowUpload={setShowUpload}
+                errors={errors}
+                errorText={errorText}
+                handleSubmit={handleSubmit}
+            />
+
+            <ApproveModal
+                mode={mode}
+                showApprove={showApprove}
+                setShowApprove={setShowApprove}
+                allBlocks={allBlocks}
+                handleBlockChange={handleBlockChange}
+                allFlats={allFlats}
+                addMemberType={addMemberType}
+                blocks={blocks}
+                setBlocks={setBlocks}
+                flat={flat}
+                setFlat={setFlat}
+                memType={memType}
+                setMemType={setMemType}
+                resetForm={resetForm}
+                firstName={firstName}
+                setFirstName={setFirstName}
+                lastName={lastName}
+                setLastName={setLastName}
+                mobileNo={mobileNo}
+                setMobileNo={setMobileNo}
+                emailId={emailId}
+                setEmailId={setEmailId}
+                startDate={startDate}
+                setStartDate={setStartDate}
+                mode={mode}
+                endDate={endDate}
+                setEndDate={setEndDate}
+                familyType={familyType}
+                setFamilyType={setFamilyType}
+                rentAgreement={rentAgreement}
+                setRentAgreement={setRentAgreement}
+                policeNoc={policeNoc}
+                setPoliceNoc={setPoliceNoc}
+                idProof={idProof}
+                setIdProof={setIdProof}
+                agreement={agreement}
+                setAgreement={setAgreement}
+                maintenanceReceipt={maintenanceReceipt}
+                setMaintenanceReceipt={setMaintenanceReceipt}
+                nominationDetails={nominationDetails}
+                setNominationDetails={setNominationDetails}
+                familyPhoto={familyPhoto}
+                setFamilyPhoto={setFamilyPhoto}
+                ownershipDocuments={ownershipDocuments}
+                setOwnershipDocuments={setOwnershipDocuments}
+                errors={errors}
+                errorText={errorText}
+            />
+            <ExportModal
+                show={exportModal}
+                onClose={() => setExportModal(false)}
+                onExport={handleExport}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                selectedRange={selectedRange}
+                setSelectedRange={setSelectedRange}
+                totalRecords={allExportTenent.length}
+                currentRecords={allTenentsMember.length}
             />
         </>
     );
