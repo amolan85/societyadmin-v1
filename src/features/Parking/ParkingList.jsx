@@ -629,7 +629,7 @@ const ParkingList = ({ setActive, setMemberId, setFlatId }) => {
 
                         {/* <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
                             setShow(true)}>+ Register New Tenant</button> */}
-
+                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
                     </div>
 
                 </div>

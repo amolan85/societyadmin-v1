@@ -56,3 +56,7 @@
     opacity: 1 !important;
     cursor: not-allowed !important;
 }
+.sa-table-wrap {
+    overflow-x: auto !important;
+}
+

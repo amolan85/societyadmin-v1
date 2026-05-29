@@ -29,3 +29,29 @@
 .sidebar.collapsed .nav-item.active::after {
     display: none;
 }
+
+.nav-item:hover {
+    background-color: #ffffff  !important;
+    border-radius: 8px !important;
+}
+.nav-item.active:hover {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+.nav-item.active:hover .ni,
+.nav-item.active:hover .nl {
+    color: #ffffff !important;
+}
+
+.nav-item.active:hover::after {
+    content: "";
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 65%;
+    width: 3px;
+    background-color: #ffffff;
+    border-radius: 4px;
+}
