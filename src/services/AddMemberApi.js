@@ -169,7 +169,6 @@ export const deleteMembersApi = async (memberId) => {
     });
 }
 
-
 export const getMembersByIdApi = async (societyId, memberId) => {
     const url = UrlData + 'member/GetMemberById';
     const data = {
@@ -253,6 +252,29 @@ export const getTenantsMembersApi = async (societyId, page, limit, search) => {
         console.log(error);
         const errors = ErrorHandler(error);
         console.log(errors, "Errors get tenants members");
+        throw errors;
+    });
+}
+
+export const ApproveFlatApi = async (societyId, flatId, status, userId) => {
+    const url = UrlData + 'flat/UpdateFlatOccupantApproval';
+    const data = {
+        society_id : societyId,
+        flat_id: flatId,
+        status: status,
+        approved_by: userId,
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data,
+        timeout: 30000,
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors approve flat");
         throw errors;
     });
 }

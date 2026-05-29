@@ -43,7 +43,7 @@ const ApproveModal = ({
 
     // policeNoc = null,
     setPoliceNoc = () => { },
-
+    approveStatus = "",
     errors = {},
     errorText = "",
     handleBlockChange = () => { },
@@ -61,7 +61,7 @@ const ApproveModal = ({
                     <div className="modal-content">
                         <div className="modal-header bg-light">
                             <h5 className="modal-title">
-                                Approve Tenant
+                                Approve Flat
                             </h5>
 
                             <button
@@ -170,7 +170,7 @@ const ApproveModal = ({
                                                     }}
                                                     className={`am-type-btn ${memType === t.value ? "active" : ""
                                                         }`}
-                                                        disabled
+                                                    disabled
                                                 >
                                                     {t.id}
                                                 </button>
@@ -375,14 +375,19 @@ const ApproveModal = ({
                         <div className="modal-footer bg-light">
                             <button
                                 type="button"
-                                className="btn btn-outline-secondary"  onClick={() => {
+                                className="btn btn-outline-secondary"
+                                onClick={() => {
                                     setShowApprove(false);
-                                    resetForm();
+                                    handleSubmit("Rejected");
                                 }}
                             >
                                 Reject
                             </button>
-                            <button className="btn-ac px-4" onClick={handleSubmit}>
+
+                            <button
+                                className="btn-ac px-4"
+                                onClick={() => handleSubmit("Approved")}
+                            >
                                 Approve
                             </button>
                         </div>

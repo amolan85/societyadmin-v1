@@ -9,6 +9,7 @@ import {
     UpdateMemberApi,
     deleteMembersApi,
     getTenantsMembersApi,
+    ApproveFlatApi,
 } from "../../services/AddMemberApi";
 import { toast } from "react-toastify";
 import { FiFilter, FiSearch } from "react-icons/fi";
@@ -32,6 +33,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
     const [mobileNo, setMobileNo] = useState("");
     const [allFlats, setAllFlats] = useState([]);
     const [flat, setFlat] = useState("");
+    const [flatId, setFlatId] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [familyType, setFamilyType] = useState("");
@@ -384,6 +386,10 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                 value: data.flat_number,
                 label: data.flat_number,
             });
+            setFlatId({
+                value: data.flat_id,
+                label: data.flat_number,
+            });
             setFamilyType(data.occupancy_type);
             setMemType(
                 data.occupancy_type === "owner_relative"
@@ -394,6 +400,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
             );
             setStartDate(data.start_date);
             setEndDate(data.end_date);
+
             data.documents?.forEach((doc) => {
                 switch (doc.document_type) {
                     case "id_proof":
@@ -433,21 +440,6 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
         }
     };
 
-    // const handleDelete = async (tenantId) => {
-    //     try {
-    //         const data = await deleteMembersApi(tenantId);
-
-    //         console.log(data, "Delete response");
-
-    //         toast.success("Tenant deleted successfully");
-    //         getTenantMembers(societyId, page);
-
-    //     } catch (error) {
-    //         console.error("Delete Error:", error);
-
-    //         toast.error(error);
-    //     }
-    // };
     const handleDelete = async (tenantId) => {
         const confirmed = window.confirm("Are you sure you want to delete this tenant?");
 
@@ -463,6 +455,18 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
             toast.error(error);
         }
     };
+
+    const ApproveFlat = async (approveStatus) => {
+        try {
+            await ApproveFlatApi(societyId, flatId.value, approveStatus, userId);
+            toast.success("Status updated successfull!")
+            getTenantMembers(societyId, page)
+            setShowApprove(false)
+        } catch (error) {
+            console.error("Error fetching tenent:", error);
+        }
+    }
+
     const formatDate = (date) =>
         new Date(date).toLocaleDateString("en-GB", {
             day: "2-digit",
@@ -1094,6 +1098,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                 setOwnershipDocuments={setOwnershipDocuments}
                 errors={errors}
                 errorText={errorText}
+                handleSubmit={ApproveFlat}
             />
             <ExportModal
                 show={exportModal}

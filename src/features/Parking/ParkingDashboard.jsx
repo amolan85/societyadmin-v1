@@ -37,6 +37,7 @@ import { CgExport } from "react-icons/cg";
 // import MemberModal from "./MemberModal";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import { BiCar } from "react-icons/bi";
+import { parkingDashboardApi } from "../../services/ParkingApi";
 // import RegisterTenantsModal from "./RegisterTenantsModal";
 
 const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
@@ -228,18 +229,6 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
         },
     ];
 
-    const addMemberType = [
-        { id: "Tenant", value: "tenant" },
-    ];
-
-    const mangementType = [
-        { id: "All Rentals", value: "" },
-        { id: "Pending Registration", value: "pendingResitration" },
-        { id: "Expiring Soon", value: "emergency" },
-        { id: "KYC Pending", value: "circular" },
-
-    ];
-
     const finalMemType = memType === "familyMember" ? familyType : memType;
 
     useEffect(() => {
@@ -252,74 +241,23 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
         const flats = data.data.flats[0];
         setSocietyId(flats.society_id);
         setUserId(flats.user_id);
-        getMembers(flats.society_id);
-        getAllFlats(flats.society_id);
-        getAllBlocks(flats.society_id);
+        parkingDashboard(flats.society_id);
+ 
     };
 
     //function for get members
-    const getMembers = async (societyId, page) => {
+    const parkingDashboard = async (societyId) => {
         try {
-            const data = await getMembersApi(societyId, page);
-            setAllMembers(data.members);
-            setPage(data.page);
-            setLimit(data.per_page);
-            setTotalCount(data.total_count);
+            const data = await parkingDashboardApi(societyId);
+            console.log(data)
         } catch (error) {
             console.error("Error fetching members:", error);
         }
-    };
-
-    const getAllMembersWithoutPagination = async (societyId, search) => {
-        try {
-            const data = await getAllMembersWithoutPaginationApi(societyId, search);
-            console.log(data.members, "All members without pagination");
-
-            setAllMembersWithoutPagination(data.members);
-        } catch (error) {
-            console.error("Error fetching members:", error);
-        }
-    };
-
-    const getAllFlats = async (societyId) => {
-        try {
-            const data = await getAllFlatsApi(societyId);
-            console.log(data.flats, "All flats");
-            setAllFlats(
-                data.flats.map((item) => ({
-                    value: item.flat_number,
-                    label: item.flat_number,
-                })),
-            );
-        } catch (error) {
-            console.error("Error fetching members:", error);
-        }
-    };
-
-    const getAllBlocks = async (societyId) => {
-        try {
-            const data = await getAllBlocksApi(societyId);
-            console.log(data.blocks, "All blocks");
-            setAllBlocks(
-                data.blocks.map((item) => ({
-                    value: item.block,
-                    label: item.block,
-                })),
-            );
-        } catch (error) {
-            console.error("Error fetching members:", error);
-        }
-    };
-
-    const getMembersById = async (memberId, flatId) => {
-        setMemberId(memberId);
-        setFlatId(flatId);
-        setActive("memberDetails");
     };
 
     const handlePageChange = (value) => {
         setPage(value);
-        getMembers(societyId, value);
+        // getMembers(societyId, value);
     };
 
     //function for validation
@@ -469,7 +407,7 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
 
                 toast.success("Member created successfully!");
                 resetForm();
-                getMembers(societyId, page);
+                // getMembers(societyId, page);
             }
 
             setShow(false);
@@ -480,87 +418,7 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
-    const GetMemberDetailsById = async (memberId) => {
-        try {
-            const data = await getMembersByIdApi(societyId, memberId);
-            setMId(memberId);
-            setFirstName(data.first_name);
-            setLastName(data.last_name);
-            setEmailId(data.email);
-            setMobileNo(data.mobile);
-            setBlocks({
-                value: data.block,
-                label: data.block,
-            });
-            setFlat({
-                value: data.flat_number,
-                label: data.flat_number,
-            });
-            setFamilyType(data.occupancy_type);
-            setMemType(
-                data.occupancy_type === "owner_relative"
-                    ? "familyMember"
-                    : data.occupancy_type === "tenant_relative"
-                        ? "familyMember"
-                        : data.occupancy_type,
-            );
-            setMoveInDate(data.start_date);
-            setMoveOutDate(data.end_date);
-            data.documents?.forEach((doc) => {
-                switch (doc.document_type) {
-                    case "id_proof":
-                        setIdProof(doc.url);
-                        break;
-
-                    case "family_photo":
-                        setFamilyPhoto(doc.url);
-                        break;
-
-                    case "agreement":
-                        setAgreement(doc.url);
-                        break;
-
-                    case "ownership":
-                        setOwnershipDocuments(doc.url);
-                        break;
-
-                    case "maintenance_receipt":
-                        setMaintenanceReceipt(doc.url);
-                        break;
-
-                    case "rent_agreement":
-                        setRentAgreement(doc.url);
-                        break;
-
-                    case "police_noc":
-                        setPoliceNoc(doc.url);
-                        break;
-
-                    default:
-                        break;
-                }
-            });
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    // const handleDelete = async (memberId) => {
-    //     try {
-    //         const data = await deleteMembersApi(memberId);
-
-    //         console.log(data, "Delete response");
-
-    //         toast.success("Member deleted successfully");
-    //         getMembers(societyId, page);
-    //         // Refresh member list if needed
-    //         // GetAllMembers();
-    //     } catch (error) {
-    //         console.error("Delete Error:", error);
-
-    //         toast.error(error);
-    //     }
-    // };
+   
     const handleDelete = async (memberId) => {
     const confirmed = window.confirm("Are you sure you want to delete this Parking slot?");
     
@@ -570,7 +428,7 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
         const data = await deleteMembersApi(memberId);
         console.log(data, "Delete response");
         toast.success("Member deleted successfully");
-        getMembers(societyId, page);
+        // getMembers(societyId, page);
     } catch (error) {
         console.error("Delete Error:", error);
         toast.error(error);
@@ -661,19 +519,7 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
-    const totalOwners = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "owner",
-    ).length;
-
-    const totalTenant = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "tenant",
-    ).length;
-
-    const totalFamilyMember = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "familyMember",
-    ).length;
-
-
+ 
     const handleSearch = async (e) => {
         const value = e.target.value;
         setSearch(value);
@@ -681,7 +527,7 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
         try {
             if (!value.trim()) {
                 setPage(1);
-                await getMembers(societyId, 1);
+                // await getMembers(societyId, 1);
                 return;
             }
 
@@ -719,110 +565,14 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
                     </div>
 
                 </div>
-                {/* Stats */}
-                {/* <div className="row g-3 mb-4">
-                    {[
-                        [totalCount, "Total Slots", "Across 3 levels", "tile-black", "bi-grid"],
-                        [totalOwners, "Occupancy Rate", "+ 2% this week", "tile-black", "bi-graph-up-arrow"],
-                        [totalTenant, "Visitor Slots Active", " / 25 Available", "tile-black", "bi-clock"],
-                        [totalFamilyMember, "Active Violations", "Needs attention", "tile-black", "bi-exclamation-triangle"],
-                    ].map(([v, l, subText, cls]) => (
-                        <div className="col-6 col-md-3" key={l}>
-                            <div className={`tile bg-white ${cls}`}
-                                style={{
-                                    borderRadius: "10px",
-                                    padding: "18px",
-                                    minHeight: "120px",
-                                    boxShadow: "0 1px 2px rgba(0,0,0,0.04)"
-                                }}>
-                                <div className="text-start text-muted"
-                                    style={{
-                                        fontSize: "13px",
-                                        fontWeight: "500"
-                                    }}>
-                                    {l}
-                                </div>
-                                <div
-                                    style={{
-                                        fontSize: "42px",
-                                        fontWeight: "700",
-                                        lineHeight: "1",
-                                        color: "#111",
-                                        marginTop: "8px"
-                                    }}
-                                >
-                                    {v}
-                                </div>
-
-                                {subText && (
-                                    <div
-                                        style={{
-                                            fontSize: "12px",
-                                            fontWeight: "600",
-                                            marginTop: "14px",
-                                            color:
-                                                l === "Occupancy Rate"
-                                                    ? "#22c55e"
-                                                    : l === "Active Violations"
-                                                        ? "#ef4444"
-                                                        : "#999"
-                                        }}
-                                    >
-                                        {subText}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="d-flex justify-content-between align-items-start">
-
-                                <div className="text-start text-muted"
-                                    style={{
-                                        fontSize: "13px",
-                                        fontWeight: "500"
-                                    }}>
-                                    {l}
-                                </div>
-
-                                <div
-                                    style={{
-                                        width: "36px",
-                                        height: "36px",
-                                        borderRadius: "8px",
-                                        background:
-                                            l === "Total Slots"
-                                                ? "#e8f1ff"
-                                                : l === "Occupancy Rate"
-                                                    ? "#fff1e7"
-                                                    : l === "Visitor Slots Active"
-                                                        ? "#f5e8ff"
-                                                        : "#ffe9e9",
-                                        color:
-                                            l === "Total Slots"
-                                                ? "#3b82f6"
-                                                : l === "Occupancy Rate"
-                                                    ? "#fb923c"
-                                                    : l === "Visitor Slots Active"
-                                                        ? "#d946ef"
-                                                        : "#ef4444",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        fontSize: "18px"
-                                    }}
-                                >
-                                    <i className={`bi ${icon}`}></i>
-                                </div>
-
-                            </div>
-                        </div>
-                    ))}
-                </div> */}
+               
 
                 <div className="row g-3 mb-4">
                     {[
                         [totalCount, "Total Slots", "Across 3 levels", "tile-black", <FiGrid />, handleParkingList],
-                        [totalOwners, "Occupancy Rate", "+ 2% this week", "tile-black", <FiTrendingUp />],
-                        [totalTenant, "Visitor Slots Active", "/ 25 Available", "tile-black", <FiClock />],
-                        [totalFamilyMember, "Active Violations", "Needs attention", "tile-black", <FiAlertTriangle />],
+                        ["", "Occupancy Rate", "+ 2% this week", "tile-black", <FiTrendingUp />],
+                        ["", "Visitor Slots Active", "/ 25 Available", "tile-black", <FiClock />],
+                        ["", "Active Violations", "Needs attention", "tile-black", <FiAlertTriangle />],
                     ].map(([v, l, subText, cls, icon, onClick]) => (
                         <div className="col-6 col-md-3" key={l}>
                             <div

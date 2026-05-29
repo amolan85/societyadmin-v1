@@ -35,8 +35,8 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
     }, [])
 
     useEffect(() => {
-        if (staffId) {
-            StffById();
+        if (staffId ) {
+            StaffById();
         }
     }, [staffId]);
 
@@ -47,7 +47,7 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
         setSocietyId(flats.society_id)
     }
 
-    const StffById = async () => {
+    const StaffById = async () => {
         const data = await getStaffByIdApi(staffId)
         console.log(data)
         setFirstName(data.first_name)
@@ -100,7 +100,7 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
                 return;
             }
             if (sId) {
-                const data = await UpdateStaffApi(
+                await UpdateStaffApi(
                     sId,
                     firstName,
                     lastName,
@@ -114,7 +114,7 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
                 setActive("staff");
             }
             else {
-                const data = await createStaffApi(
+                await createStaffApi(
                     societyId,
                     firstName,
                     lastName,
@@ -146,7 +146,7 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
                         <h5 className="bc-title">{sId ? "Update" : "Create"} Staff Attendance</h5>
                         <button
                             className="btn btn-sm btn-primary"
-                            onClick={() => setActive("staff")}
+                            onClick={() => {setSId(null); setActive("staff"); }}
                         >
                             Back
                         </button>
