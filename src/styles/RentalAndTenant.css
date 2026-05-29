@@ -44,3 +44,15 @@
 .unauth-timeline-item.active::before {
   background: #fd0d0d;
 }
+
+.sv-in:disabled {
+    background-color: #e9ecef !important;
+    opacity: 1 !important;
+    color: #495057 !important;
+    cursor: not-allowed !important;
+}
+
+.am-type-btn:disabled {
+    opacity: 1 !important;
+    cursor: not-allowed !important;
+}

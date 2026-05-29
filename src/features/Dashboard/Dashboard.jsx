@@ -36,6 +36,7 @@ import ParkingSessionDetails from "../Parking/VisitorDetails";
 import VisitorDetails from "../Parking/VisitorDetails";
 import ParkingDashboard from "../Parking/ParkingDashboard";
 import ParkingList from "../Parking/ParkingList";
+import "../../styles/dashboard.css";
 
 
 /* ══ OVERVIEW ══════════════════════════════════ */
