@@ -3,11 +3,14 @@ import ErrorHandler from "../utils/ErrorHandler";
 import UrlData from "../utils/Url";
 
 //api function for get staff attendance
-export const getStaffAttendanceApi = async (societyId, date) => {
+export const getStaffAttendanceApi = async (societyId, page, limit, date, search) => {
     const url = UrlData + 'staff/GetAllStaffAttendance';
     const data = {
         society_id: societyId,
-        date: date
+        page: page,
+        per_page: limit,
+        date: date,
+        search: search
     }
     return await apiClient({
         method: 'post',
@@ -78,10 +81,11 @@ export const UpdateStaffApi = async (staffId, firstName, lastName, emailId, mobi
 }
 
 //mark attendance staff api
-export const markAttendanceStaffApi = async (staffId, societyId, attendanceDate, attendanceTime, status, recordTypeTab) => {
+export const markAttendanceStaffApi = async (staffId, attendanceId, societyId, attendanceDate, attendanceTime, status, recordTypeTab) => {
     const url = UrlData + 'staff/mark_attendance';
     const data = {
         staff_id: staffId,
+        attendance_id: attendanceId,
         society_id: societyId,
         date: attendanceDate,
         status: status,

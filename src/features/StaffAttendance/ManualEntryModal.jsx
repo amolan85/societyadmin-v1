@@ -150,7 +150,7 @@ const ManualEntryModal = ({
                                                     key={t.value}
                                                     onClick={() => {
                                                         setRecordTypeTab(t.value);
-                                                        resetForm();
+                                                      
                                                     }}
                                                     className={`am-type-btn ${recordTypeTab === t.value ? "active" : ""
                                                         }`}
@@ -175,7 +175,7 @@ const ManualEntryModal = ({
                                                         )}
                                                     </div>
                                                     <input
-                                                        className={`sv-in ${errors.moveInDate ? "error-input" : ""}`}
+                                                        className={`sv-in ${errors.attendanceDate ? "error-input" : ""}`}
                                                         type="date"
                                                         value={attendanceDate}
                                                         onChange={(e) => setAttendanceDate(e.target.value)}

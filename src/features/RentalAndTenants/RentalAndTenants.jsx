@@ -56,11 +56,12 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
     const [allExportTenent, setAllExportTenent] = useState([]);
     const [blocks, setBlocks] = useState("");
     const [allBlocks, setAllBlocks] = useState([]);
-    const [activeTab, setActiveTab] = useState("excel");
+
     const [exportModal, setExportModal] = useState(false);
     const [errorText, setErrorText] = useState("");
     const [search, setSearch] = useState("");
     const [mId, setMId] = useState("");
+    const [activeTab, setActiveTab] = useState("excel");
     const [selectedRange, setSelectedRange] = useState("all");
     const [mangementTypeTab, setManagementTypeTab] = useState("");
     const [showFilterRentals, setShowFilterRentals] = useState(false)

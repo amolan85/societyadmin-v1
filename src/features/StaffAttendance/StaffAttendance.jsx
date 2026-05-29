@@ -8,12 +8,18 @@ import ManualEntryModal from './ManualEntryModal';
 import { FiFilter, FiSearch } from 'react-icons/fi';
 import FilterAttendanceModal from './FilterAttendanceModal';
 import { CgExport } from 'react-icons/cg';
+import ExportModal from '../../components/Common/ExportModal';
+import { exportFile, exportToPDF } from '../../components/Common/ExportFile';
 
 const StaffAttendance = ({ setActive, setStaffId }) => {
     const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
+    const [totalCount, setTotalCount] = useState(10);
+    const [search, setSearch] = useState("");
     const [societyId, setSocietyId] = useState("")
     const [allStaff, setAllStaff] = useState([])
     const [allStaffData, setAllStaffData] = useState([])
+    const [allExportStaff, setAllExportStaff] = useState([])
     const [selectedStaff, setSelectedStaff] = useState(null)
     const [date, setDate] = useState(new Date().toISOString().split("T")[0])
     const [totalStaff, setTotalStaff] = useState("")
@@ -27,7 +33,11 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
     const [attendanceDate, setAttendanceDate] = useState("")
     const [attendanceTime, setAttendanceTime] = useState("")
     const [reason, setReason] = useState("")
-
+    const [errors, setErrors] = useState({});
+    const [exportModal, setExportModal] = useState(false)
+    const [activeTab, setActiveTab] = useState("excel");
+    const [selectedRange, setSelectedRange] = useState("all");
+    const total = Math.ceil(totalCount / limit);
 
     const recordType = [
         { id: "Check In", value: "checkIn" },
@@ -76,18 +86,27 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
     }
     //function for get staff
     const getStaff = async (societyId) => {
-        const data = await getStaffAttendanceApi(societyId, date)
+        const data = await getStaffAttendanceApi(societyId, page, limit, date)
         console.log(data)
         setAllStaff(data.list)
         setAllStaffData(
             data.list.map((item) => ({
                 value: item.staff_id,
                 label: item.first_name + " " + item.last_name,
+                attendance_id: item.attendance_id,
             }))
         );
         setTotalStaff(data.count)
         setPresent(data.summary.present)
         setAbsent(data.summary.absent)
+        setLimit(data.pagination.per_page)
+        setTotalCount(data.pagination.total_records)
+    }
+
+    const getAllExportStaff = async (societyId) => {
+        const data = await getStaffAttendanceApi(societyId, "", "", date)
+        console.log(data)
+        setAllExportStaff(data.list)
     }
 
     const GetStaffById = async (staffId) => {
@@ -106,88 +125,149 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
         }
     }
 
-    const markAttendance = async () =>{
-     try {
-            const data = await markAttendanceStaffApi(selectedStaff.value, societyId, attendanceDate, attendanceTime, attendanceStatus, recordTypeTab)
+    const validateForm = () => {
+        let errors = {};
+
+        if (!selectedStaff) {
+            errors.selectedStaff = "required";
+        }
+
+        if (!recordTypeTab) {
+            errors.recordTypeTab = "required";
+        }
+
+        if (!attendanceDate) {
+            errors.attendanceDate = "required";
+        }
+
+        if (!attendanceTime) {
+            errors.attendanceTime = "required";
+        }
+
+        return errors;
+    };
+
+    const markAttendance = async () => {
+        try {
+            const validationErrors = validateForm();
+
+            if (Object.keys(validationErrors).length > 0) {
+                setErrors(validationErrors);
+                return;
+            }
+
+            const data = await markAttendanceStaffApi(selectedStaff.value, selectedStaff?.attendance_id, societyId, attendanceDate, attendanceTime, attendanceStatus, recordTypeTab)
             console.log(data)
             toast.success("Attendance mark successfully!")
             getStaff(societyId)
+            setShow(false)
+            resetForm("")
         } catch (error) {
             console.log(error)
         }
     }
 
-    const per = 5, total = Math.ceil(allStaff.length / per);
-    const rows = allStaff.slice((page - 1) * per, page * per);
+    // const per = 5, total = Math.ceil(allStaff.length / per);
+    // const rows = allStaff.slice((page - 1) * per, page * per);
 
     const dateHandleChange = async (e) => {
         setDate(e.target.value)
-        const data = await getStaffAttendanceApi(societyId, e.target.value)
-        console.log(data)
+        const data = await getStaffAttendanceApi(societyId, page, limit, e.target.value)
+        setAllStaff(data.list)
     }
 
-    //   const exportData =
-    //     selectedRange === "all"
-    //       ? allUnitsWithoutPagination
-    //       : selectedRange === "search"
-    //         ? allUnits
-    //         : "customData";
+    const handlePageChange = (value) => {
+        setPage(value);
+        getStaff(societyId, value, limit);
+    };
 
-    //   const downloadExcel = async () => {
-    //     exportFile({
-    //       data: exportData,
-    //       fileName: "Units",
-    //       sheetName: "Units",
-    //       type: "xlsx",
-    //     });
-    //   };
+    const handleSearch = async (e) => {
+        const value = e.target.value;
+        setSearch(value);
 
-    //   const downloadCSV = async () => {
-    //     exportFile({
-    //       data: exportData,
-    //       fileName: "Units",
-    //       sheetName: "Units",
-    //       type: "csv",
-    //     });
-    //   };
+        if (value && value.length < 4) return;
 
-    //   const downloadPDF = () => {
-    //     exportToPDF({
-    //       title: "Units Report",
-    //       fileName: "Units",
-    //       columns: [
-    //         "Unit No.",
-    //         "Type & Area",
-    //         "Block/Floor",
-    //         "Owner",
-    //         "Tenant"
-    //       ],
-    //       data: exportData.map((item) => [
-    //         item.flat_number,
-    //         `${item.unit_type || ""} (${item.area_sqft || ""} sq.ft)`,
-    //         `${item.block || "-"} / ${item.floor || "-"} Flr`,
-    //         item.members?.find((m) => m.occupancy_type === "owner")
-    //           ? `${item.members.find((m) => m.occupancy_type === "owner")?.first_name || ""} ${item.members.find((m) => m.occupancy_type === "owner")?.last_name || ""}`
-    //           : "-",
-    //         item.members?.find((m) => m.occupancy_type === "tenant")
-    //           ? `${item.members.find((m) => m.occupancy_type === "tenant")?.first_name || ""} ${item.members.find((m) => m.occupancy_type === "tenant")?.last_name || ""}`
-    //           : "-",
-    //       ]),
-    //     });
-    //   };
+        const data = await getStaffAttendanceApi(
+            societyId,
+            page,
+            limit,
+            date,
+            value
+        );
 
-    //   const handleExport = () => {
-    //     if (activeTab === "excel") {
-    //       downloadExcel();
-    //       setExportModal(false);
-    //     } else if (activeTab === "csv") {
-    //       downloadCSV();
-    //       setExportModal(false);
-    //     } else if (activeTab === "pdf") {
-    //       downloadPDF();
-    //       setExportModal(false);
-    //     }
-    //   };
+        setAllStaff(data?.list || []);
+    };
+
+    const exportData =
+        selectedRange === "all"
+            ? allExportStaff
+            : selectedRange === "search"
+                ? allStaff
+                : "";
+
+
+    const downloadExcel = async () => {
+        exportFile({
+            data: exportData,
+            fileName: "Staff",
+            sheetName: "Staff",
+            type: "xlsx",
+        });
+    };
+
+    const downloadCSV = async () => {
+        exportFile({
+            data: exportData,
+            fileName: "Staff",
+            sheetName: "Staff",
+            type: "csv",
+        });
+    };
+
+    const downloadPDF = () => {
+        exportToPDF({
+            title: "Staff Report",
+            fileName: "Staff",
+            columns: [
+                "Name",
+                "Role",
+                "Shift",
+                "Status",
+                "Time In",
+                "Time Out",
+            ],
+            data: exportData.map((item) => [
+                item.first_name + " " + item.last_name,
+                item.role,
+                item.shift,
+                item.status,
+                item.check_in,
+                item.check_out
+
+            ]),
+        });
+    };
+
+    const handleExport = () => {
+        if (activeTab === "excel") {
+            downloadExcel();
+            setExportModal(false);
+        } else if (activeTab === "csv") {
+            downloadCSV();
+            setExportModal(false);
+        } else if (activeTab === "pdf") {
+            downloadPDF();
+            setExportModal(false);
+        }
+    };
+
+
+    const resetForm = () => {
+        setSelectedStaff(null)
+        setRecordTypeTab("")
+        setAttendanceDate("")
+        setAttendanceTime("")
+    }
 
 
     return (
@@ -206,18 +286,17 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                         value={date}
                         onChange={dateHandleChange}
                     />
-                    {/* <button className="btn-ol">⬇ Export</button> */}
                     <button
                         className="btn-ol"
-                    // onClick={() => {
-                    //     getAllMembersWithoutPagination(societyId, "");
-                    //     setExportModal(true);
-                    // }}
+                        onClick={() => {
+                            getAllExportStaff(societyId);
+                            setExportModal(true);
+                        }}
                     >
                         <CgExport /> Export
                     </button>
                     <button className="btn btn-sm btn-primary" onClick={() => setActive("createStaff")}>Create</button>
-                    <button className="btn btn-sm btn-primary" onClick={() => setShow(true)}>Manual Entry</button>
+                    <button className="btn btn-sm btn-primary" onClick={() => { setShow(true); resetForm() }}>Manual Entry</button>
                 </div>
             </div>
 
@@ -268,9 +347,9 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                         type="text"
                         className="form-control rounded-pill"
                         placeholder="Search by name, role"
-                        // value={search}
-                        // onChange={(e) => setSearch(e.target.value)}
-                        // onChange={handleSearch}
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={handleSearch}
                         style={{ paddingLeft: "35px" }}
                     />
                 </div>
@@ -298,7 +377,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {rows.map((s, i) => (
+                            {allStaff.map((s, i) => (
                                 <tr className="text-start" key={i}>
 
                                     <td className="sa-name">{s.first_name + " " + s.last_name}</td>
@@ -379,7 +458,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                 <Pagination
                     page={page}
                     total={total}
-                    onChange={setPage}
+                    onChange={handlePageChange}
                 />
 
             </div>
@@ -406,7 +485,11 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
 
                 reason={reason}
                 setReason={setReason}
+
+                errors={errors}
+                resetForm={resetForm}
                 handleSubmit={markAttendance}
+
             />
 
             <FilterAttendanceModal
@@ -414,6 +497,19 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                 setShowFilterAttendance={setShowFilterAttendance}
                 filterData={filterData}
             />
+
+            <ExportModal
+                show={exportModal}
+                onClose={() => setExportModal(false)}
+                onExport={handleExport}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                selectedRange={selectedRange}
+                setSelectedRange={setSelectedRange}
+                totalRecords={allExportStaff.length}
+                currentRecords={allStaff.length}
+            />
+
         </div>
     );
 }
