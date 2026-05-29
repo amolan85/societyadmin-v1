@@ -7,6 +7,7 @@ import { GetSessionData } from '../../utils/SessionManagement';
 import ManualEntryModal from './ManualEntryModal';
 import { FiFilter, FiSearch } from 'react-icons/fi';
 import FilterAttendanceModal from './FilterAttendanceModal';
+import { CgExport } from 'react-icons/cg';
 
 const StaffAttendance = ({ setActive, setStaffId }) => {
     const [page, setPage] = useState(1);
@@ -26,34 +27,34 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
         { id: "Check Out", value: "checkOut" },
 
     ];
-const filterData = {
-  date: "14 Sept, 2025",
+    const filterData = {
+        date: "14 Sept, 2025",
 
-  status: [
-    "On Duty",
-    "Late Entry",
-    "Shift Completed",
-    "Absent",
-  ],
+        status: [
+            "On Duty",
+            "Late Entry",
+            "Shift Completed",
+            "Absent",
+        ],
 
-  departments: [
-    "Security Guard",
-    "Technicians",
-    "Technicians",
-  ],
+        departments: [
+            "Security Guard",
+            "Technicians",
+            "Technicians",
+        ],
 
-  shiftTypes: [
-    "Morning Shift",
-    "Evening Shift",
-    "Night Shift",
-  ],
+        shiftTypes: [
+            "Morning Shift",
+            "Evening Shift",
+            "Night Shift",
+        ],
 
-  checkInMethods: [
-    "Biometric",
-    "Mobile App",
-    "Manual Entry",
-  ],
-};
+        checkInMethods: [
+            "Biometric",
+            "Mobile App",
+            "Manual Entry",
+        ],
+    };
     useEffect(() => {
         SessionData()
     }, [])
@@ -181,7 +182,16 @@ const filterData = {
                         value={date}
                         onChange={dateHandleChange}
                     />
-                    <button className="btn-ol">⬇ Export</button>
+                    {/* <button className="btn-ol">⬇ Export</button> */}
+                    <button
+                        className="btn-ol ms-2"
+                        // onClick={() => {
+                        //     getAllMembersWithoutPagination(societyId, "");
+                        //     setExportModal(true);
+                        // }}
+                    >
+                        <CgExport /> Export
+                    </button>
                     <button className="btn  btn-primary" onClick={() => setShow(true)}>Manual Entry</button>
                 </div>
             </div>
@@ -242,7 +252,7 @@ const filterData = {
                 <div className="d-flex">
                     <button
                         className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
-                        data-bs-toggle="dropdown" onClick={()=>setShowFilterAttendance(true)}
+                        data-bs-toggle="dropdown" onClick={() => setShowFilterAttendance(true)}
                     >
                         <FiFilter size={14} />
                         Filter

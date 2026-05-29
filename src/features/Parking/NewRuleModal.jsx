@@ -321,7 +321,7 @@ const NewRuleModal = ({
 
                         <div className="modal-footer bg-light">
                             <button
-                                className="btn-ol btn close"
+                                className="btn btn-sm cov-btn-cancel" data-bs-dismiss="modal"
                                 onClick={() => {
                                     setShow(false);
                                     resetForm();

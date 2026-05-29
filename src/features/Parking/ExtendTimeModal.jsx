@@ -1,6 +1,8 @@
 // MemberModal.jsx
 import { FiTruck } from "react-icons/fi";
 import Select from "react-select";
+import { FaCar } from "react-icons/fa"
+import "../../styles/Parking.css";
 
 const ExtendTimeModal = ({
     showExtendTime,
@@ -109,10 +111,12 @@ const ExtendTimeModal = ({
 
                                                     {/* Left Section */}
                                                     <div className="d-flex align-items-center">
-                                                        <div className="me-3">
-                                                            <FiTruck size={24} className="text-secondary" />
+                                                        {/* <div className="me-3">
+                                                        <FaCar size={24} className="text-secondary" />
+                                                        </div> */}
+                                                        <div className="me-3 parking-card-icon">
+                                                            <FaCar size={20} className="text-secondary" />
                                                         </div>
-
                                                         <div>
                                                             <h6 className="mb-1 fw-semibold">KA-05-MH-2023</h6>
                                                             <small className="text-muted">
@@ -211,7 +215,7 @@ const ExtendTimeModal = ({
 
                         <div className="modal-footer bg-light">
                             <button
-                                className="btn-ol btn close"
+                                className="btn btn-sm cov-btn-cancel" data-bs-dismiss="modal"
                                 onClick={() => {
                                     setShowExtendTime(false);
                                     resetForm();

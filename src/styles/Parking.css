@@ -275,3 +275,30 @@
   font-weight: 600;
   color: #374151;
 }
+.alert-icon-box {
+    width: 50px;
+    height: 50px;
+    background: #ffeaea;
+    border-radius: 8px;
+    color: #ff5a5a;
+}
+.violation-warning-card {
+    border-radius: 10px;
+}
+
+.violation-warning-text {
+    margin-left: 12px;
+    margin-bottom: 0;
+    color: #212529;
+}
+/* parking-card-icon */
+.parking-card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+}

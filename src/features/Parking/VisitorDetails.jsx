@@ -62,6 +62,7 @@ const VisitorDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                             <button className="btn btn-sm common-outline-btn extend-btn" onClick={() => setShowExtendTime(true)}><FiCheckCircle /> Extend Time</button>
 
                             <button className="btn btn-primary btn-sm" onClick={() => setCheckOutShow(true)}> <FiLogOut />Check Out</button>
+                            <button className="btn btn-primary btn-sm" /*onClick={() => setActive("parkingRegister")}*/>Back</button>
                         </div>
                     </div>
                 </div>
@@ -160,7 +161,7 @@ const VisitorDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                 <div className="d-flex justify-content-between align-items-center p-3">
 
                                     <div className="d-flex align-items-center">
-                                        
+
                                         <img
                                             src='../src/assets/profile.png'
                                             alt="profile"
@@ -169,7 +170,7 @@ const VisitorDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                             height="50"
                                         />
 
-                                   
+
 
                                         <div>
                                             <div className="fw-semibold">
