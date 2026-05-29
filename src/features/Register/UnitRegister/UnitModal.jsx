@@ -405,7 +405,7 @@ const UnitModal = ({
                         <div className="modal-footer bg-light">
                             <div className="d-flex gap-2 justify-content-end">
                                 <button
-                                    className="btn-ol btn close"
+                                    className="btn btn-sm cov-btn-cancel" data-bs-dismiss="modal"
                                     onClick={() => setShow(false)}
                                 >
                                     Cancel

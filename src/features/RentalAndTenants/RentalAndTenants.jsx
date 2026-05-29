@@ -433,22 +433,36 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
         }
     };
 
+    // const handleDelete = async (tenantId) => {
+    //     try {
+    //         const data = await deleteMembersApi(tenantId);
+
+    //         console.log(data, "Delete response");
+
+    //         toast.success("Tenant deleted successfully");
+    //         getTenantMembers(societyId, page);
+
+    //     } catch (error) {
+    //         console.error("Delete Error:", error);
+
+    //         toast.error(error);
+    //     }
+    // };
     const handleDelete = async (tenantId) => {
+        const confirmed = window.confirm("Are you sure you want to delete this tenant?");
+
+        if (!confirmed) return;
+
         try {
             const data = await deleteMembersApi(tenantId);
-
             console.log(data, "Delete response");
-
             toast.success("Tenant deleted successfully");
             getTenantMembers(societyId, page);
-
         } catch (error) {
             console.error("Delete Error:", error);
-
             toast.error(error);
         }
     };
-
     const formatDate = (date) =>
         new Date(date).toLocaleDateString("en-GB", {
             day: "2-digit",

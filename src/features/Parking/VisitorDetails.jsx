@@ -62,7 +62,7 @@ const VisitorDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                             <button className="btn btn-sm common-outline-btn extend-btn" onClick={() => setShowExtendTime(true)}><FiCheckCircle /> Extend Time</button>
 
                             <button className="btn btn-primary btn-sm" onClick={() => setCheckOutShow(true)}> <FiLogOut />Check Out</button>
-                            <button className="btn btn-primary btn-sm" /*onClick={() => setActive("parkingRegister")}*/>Back</button>
+                            <button className="btn btn-primary btn-sm" onClick={() => setActive("parkingDashboard")}>Back</button>
                         </div>
                     </div>
                 </div>

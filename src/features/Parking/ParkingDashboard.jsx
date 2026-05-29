@@ -545,22 +545,37 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
+    // const handleDelete = async (memberId) => {
+    //     try {
+    //         const data = await deleteMembersApi(memberId);
+
+    //         console.log(data, "Delete response");
+
+    //         toast.success("Member deleted successfully");
+    //         getMembers(societyId, page);
+    //         // Refresh member list if needed
+    //         // GetAllMembers();
+    //     } catch (error) {
+    //         console.error("Delete Error:", error);
+
+    //         toast.error(error);
+    //     }
+    // };
     const handleDelete = async (memberId) => {
-        try {
-            const data = await deleteMembersApi(memberId);
-
-            console.log(data, "Delete response");
-
-            toast.success("Member deleted successfully");
-            getMembers(societyId, page);
-            // Refresh member list if needed
-            // GetAllMembers();
-        } catch (error) {
-            console.error("Delete Error:", error);
-
-            toast.error(error);
-        }
-    };
+    const confirmed = window.confirm("Are you sure you want to delete this Parking slot?");
+    
+    if (!confirmed) return;
+    
+    try {
+        const data = await deleteMembersApi(memberId);
+        console.log(data, "Delete response");
+        toast.success("Member deleted successfully");
+        getMembers(societyId, page);
+    } catch (error) {
+        console.error("Delete Error:", error);
+        toast.error(error);
+    }
+};
 
     const handleParkingList = async () => {
         setActive("parkingList")

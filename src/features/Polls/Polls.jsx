@@ -99,17 +99,31 @@ const Polls = ({ setActive, setPollId }) => {
         setActive("createPoll")
         setPollId(pollId)
     }
-    
+
+    // const deletePoll = async (pollId) => {
+    //     try {
+    //         const data = await deletePollApi(pollId)
+    //         console.log(data)
+    //         toast.success("Poll deleted successfully!")
+    //         GetPollsData(societyId, userId)
+    //     } catch (error) {
+    //         console.log(error)
+    //     }
+    // }
     const deletePoll = async (pollId) => {
+        const confirmed = window.confirm("Are you sure you want to delete this poll?");
+
+        if (!confirmed) return;
+
         try {
-            const data = await deletePollApi(pollId)
-            console.log(data)
-            toast.success("Poll deleted successfully!")
-            GetPollsData(societyId, userId)
+            const data = await deletePollApi(pollId);
+            console.log(data);
+            toast.success("Poll deleted successfully!");
+            GetPollsData(societyId, userId);
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
-    }
+    };
 
     const totalUsers = 300; // ⚠️ replace with API value if available
 

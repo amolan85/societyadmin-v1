@@ -312,7 +312,21 @@ const UnitRegister = ({ setActive, setFlatId }) => {
     }
   };
 
+  // const handleDelete = async (unitId) => {
+  //   try {
+  //     await deleteUnitApi(unitId);
+  //     toast.success("Unit deleted successfully");
+  //     getAllUnits(societyId, page);
+  //   } catch (error) {
+  //     console.error("Delete Error:", error);
+  //     toast.error(error);
+  //   }
+  // };
   const handleDelete = async (unitId) => {
+    const confirmed = window.confirm("Are you sure you want to delete this unit?");
+
+    if (!confirmed) return;
+
     try {
       await deleteUnitApi(unitId);
       toast.success("Unit deleted successfully");
