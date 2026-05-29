@@ -114,21 +114,12 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
         setStaffId(staffId)
     }
 
-    // const deleteStaff = async (staffId) => {
-    //     try {
-    //         const data = await deleteStaffApi(staffId)
-    //         console.log(data)
-    //         toast.success("Poll deleted successfully!")
-    //         getStaff(societyId)
-    //     } catch (error) {
-    //         console.log(error)
-    //     }
-    // }
-   const deleteStaff = async (staffId) => {
+
+    const deleteStaff = async (staffId) => {
         const confirmed = window.confirm("Are you sure you want to delete this staff?");
- 
+
         if (!confirmed) return;
- 
+
         try {
             const data = await deleteStaffApi(staffId);
             console.log(data);
@@ -171,20 +162,6 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
             }
 
             const data = await markAttendanceStaffApi(selectedStaff.value, selectedStaff?.attendance_id, societyId, attendanceDate, attendanceTime, attendanceStatus, recordTypeTab)
-        if (!confirmed) return;
-
-        try {
-            const data = await deleteStaffApi(staffId);
-            console.log(data);
-            toast.success("Staff deleted successfully!");
-            getStaff(societyId);
-        } catch (error) {
-            console.log(error);
-        }
-    };
-    const markAttendance = async () => {
-        try {
-            const data = await markAttendanceStaffApi(selectedStaff.value, societyId, attendanceDate, attendanceTime, attendanceStatus, recordTypeTab)
             console.log(data)
             toast.success("Attendance mark successfully!")
             getStaff(societyId)
