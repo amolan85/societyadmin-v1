@@ -78,15 +78,15 @@ export const UpdateStaffApi = async (staffId, firstName, lastName, emailId, mobi
 }
 
 //mark attendance staff api
-export const markAttendanceStaffApi = async (staffId, societyId, date, status, checkIn, checkOut) => {
+export const markAttendanceStaffApi = async (staffId, societyId, attendanceDate, attendanceTime, status, recordTypeTab) => {
     const url = UrlData + 'staff/mark_attendance';
     const data = {
         staff_id: staffId,
         society_id: societyId,
-        date: date,
+        date: attendanceDate,
         status: status,
-        check_in: checkIn,
-        check_out: checkOut
+        check_in: recordTypeTab === "checkIn" && attendanceTime,
+        check_out: recordTypeTab === "checkOut" && attendanceTime
     }
     return await apiClient({
         method: 'post',

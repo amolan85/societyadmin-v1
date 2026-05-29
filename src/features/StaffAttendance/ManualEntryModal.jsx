@@ -6,11 +6,11 @@ const ManualEntryModal = ({
     setShow,
 
     allBlocks = [],
-    allFlats = [],
+    allStaffData = [],
     recordType = [],
 
-    blocks = null,
-    setBlocks = () => { },
+    selectedStaff = null,
+    setSelectedStaff = () => { },
 
     flat = null,
     setFlat = () => { },
@@ -32,11 +32,11 @@ const ManualEntryModal = ({
     emailId = "",
     setEmailId = () => { },
 
-    moveInDate = "",
-    setMoveInDate = () => { },
+    attendanceDate = "",
+    setAttendanceDate = () => { },
 
-    moveOutDate = "",
-    setMoveOutDate = () => { },
+    attendanceTime = "",
+    setAttendanceTime = () => { },
 
     familyType = "",
     setFamilyType = () => { },
@@ -100,9 +100,9 @@ const ManualEntryModal = ({
                                                 <label className="sv-lb">
                                                     Staff Member <span className="text-danger">*</span>
                                                 </label>
-                                                {errors.blocks && (
+                                                {errors.selectedStaff && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.blocks}
+                                                        {errors.selectedStaff}
                                                     </span>
                                                 )}
                                             </div>
@@ -110,20 +110,20 @@ const ManualEntryModal = ({
                                                 styles={{
                                                     control: (baseStyles) => ({
                                                         ...baseStyles,
-                                                        borderColor: errors.blocks
+                                                        borderColor: errors.selectedStaff
                                                             ? "red"
                                                             : baseStyles.borderColor,
                                                         boxShadow: "none",
                                                         "&:hover": {
-                                                            borderColor: errors.blocks
+                                                            borderColor: errors.selectedStaff
                                                                 ? "red"
                                                                 : baseStyles.borderColor,
                                                         },
                                                     }),
                                                 }}
-                                                options={allBlocks}
-                                                value={blocks}
-                                                onChange={(selectedOption) => setBlocks(selectedOption)}
+                                                options={allStaffData}
+                                                value={selectedStaff}
+                                                onChange={(selectedOption) => setSelectedStaff(selectedOption)}
                                             />
                                         </div>
 
@@ -168,17 +168,17 @@ const ManualEntryModal = ({
                                                              Date{" "}
                                                             <span className="text-danger">*</span>
                                                         </label>
-                                                        {errors.moveInDate && (
+                                                        {errors.attendanceDate && (
                                                             <span className="text-danger mx-2">
-                                                                {errors.moveInDate}
+                                                                {errors.attendanceDate}
                                                             </span>
                                                         )}
                                                     </div>
                                                     <input
                                                         className={`sv-in ${errors.moveInDate ? "error-input" : ""}`}
                                                         type="date"
-                                                        value={moveInDate}
-                                                        onChange={(e) => setMoveInDate(e.target.value)}
+                                                        value={attendanceDate}
+                                                        onChange={(e) => setAttendanceDate(e.target.value)}
                                                     />
                                                 </div>
 
@@ -188,17 +188,17 @@ const ManualEntryModal = ({
                                                              Time{" "}
                                                             <span className="text-danger">*</span>
                                                         </label>
-                                                        {errors.moveOutDate && (
+                                                        {errors.attendanceTime && (
                                                             <span className="text-danger mx-2">
-                                                                {errors.moveOutDate}
+                                                                {errors.attendanceTime}
                                                             </span>
                                                         )}
                                                     </div>
                                                     <input
-                                                        className={`sv-in ${errors.moveOutDate ? "error-input" : ""}`}
+                                                        className={`sv-in ${errors.attendanceTime ? "error-input" : ""}`}
                                                         type="time"
-                                                        value={moveOutDate}
-                                                        onChange={(e) => setMoveOutDate(e.target.value)}
+                                                        value={attendanceTime}
+                                                        onChange={(e) => setAttendanceTime(e.target.value)}
                                                     />
                                                 </div>
                                             </div>

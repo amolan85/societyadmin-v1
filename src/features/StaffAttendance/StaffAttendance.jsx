@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/StaffAttendance.css"
 import { toast } from 'react-toastify';
-import { deleteStaffApi, getStaffAttendanceApi } from '../../services/StaffAttendanceApi';
+import { deleteStaffApi, getStaffAttendanceApi, markAttendanceStaffApi } from '../../services/StaffAttendanceApi';
 import { GetSessionData } from '../../utils/SessionManagement';
 import ManualEntryModal from './ManualEntryModal';
 import { FiFilter, FiSearch } from 'react-icons/fi';
@@ -13,6 +13,8 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
     const [page, setPage] = useState(1);
     const [societyId, setSocietyId] = useState("")
     const [allStaff, setAllStaff] = useState([])
+    const [allStaffData, setAllStaffData] = useState([])
+    const [selectedStaff, setSelectedStaff] = useState(null)
     const [date, setDate] = useState(new Date().toISOString().split("T")[0])
     const [totalStaff, setTotalStaff] = useState("")
     const [present, setPresent] = useState("")
@@ -21,6 +23,11 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
     const [show, setShow] = useState(false)
     const [showFilterAttendance, setShowFilterAttendance] = useState(false)
     const [recordTypeTab, setRecordTypeTab] = useState("")
+    const [attendanceStatus, setAttendanceStatus] = useState("present")
+    const [attendanceDate, setAttendanceDate] = useState("")
+    const [attendanceTime, setAttendanceTime] = useState("")
+    const [reason, setReason] = useState("")
+
 
     const recordType = [
         { id: "Check In", value: "checkIn" },
@@ -72,6 +79,12 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
         const data = await getStaffAttendanceApi(societyId, date)
         console.log(data)
         setAllStaff(data.list)
+        setAllStaffData(
+            data.list.map((item) => ({
+                value: item.staff_id,
+                label: item.first_name + " " + item.last_name,
+            }))
+        );
         setTotalStaff(data.count)
         setPresent(data.summary.present)
         setAbsent(data.summary.absent)
@@ -87,6 +100,17 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
             const data = await deleteStaffApi(staffId)
             console.log(data)
             toast.success("Poll deleted successfully!")
+            getStaff(societyId)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const markAttendance = async () =>{
+     try {
+            const data = await markAttendanceStaffApi(selectedStaff.value, societyId, attendanceDate, attendanceTime, attendanceStatus, recordTypeTab)
+            console.log(data)
+            toast.success("Attendance mark successfully!")
             getStaff(societyId)
         } catch (error) {
             console.log(error)
@@ -175,7 +199,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                 <h4 className="sa-title">Staff Attendance & Tracking</h4>
 
                 <div className="d-flex gap-2">
-                    <button className="btn  btn-primary" onClick={() => setActive("createStaff")}>Create</button>
+
                     <input
                         type="date"
                         className="sv-in sa-date"
@@ -184,15 +208,16 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                     />
                     {/* <button className="btn-ol">⬇ Export</button> */}
                     <button
-                        className="btn-ol ms-2"
-                        // onClick={() => {
-                        //     getAllMembersWithoutPagination(societyId, "");
-                        //     setExportModal(true);
-                        // }}
+                        className="btn-ol"
+                    // onClick={() => {
+                    //     getAllMembersWithoutPagination(societyId, "");
+                    //     setExportModal(true);
+                    // }}
                     >
                         <CgExport /> Export
                     </button>
-                    <button className="btn  btn-primary" onClick={() => setShow(true)}>Manual Entry</button>
+                    <button className="btn btn-sm btn-primary" onClick={() => setActive("createStaff")}>Create</button>
+                    <button className="btn btn-sm btn-primary" onClick={() => setShow(true)}>Manual Entry</button>
                 </div>
             </div>
 
@@ -363,10 +388,27 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                 show={show}
                 setShow={setShow}
 
+                allStaffData={allStaffData}
+                selectedStaff={selectedStaff}
+                setSelectedStaff={setSelectedStaff}
                 recordType={recordType}
                 recordTypeTab={recordTypeTab}
                 setRecordTypeTab={setRecordTypeTab}
+
+                attendanceStatus={attendanceStatus}
+                setAttendanceStatus={setAttendanceStatus}
+
+                attendanceDate={attendanceDate}
+                setAttendanceDate={setAttendanceDate}
+
+                attendanceTime={attendanceTime}
+                setAttendanceTime={setAttendanceTime}
+
+                reason={reason}
+                setReason={setReason}
+                handleSubmit={markAttendance}
             />
+
             <FilterAttendanceModal
                 showFilterAttendance={showFilterAttendance}
                 setShowFilterAttendance={setShowFilterAttendance}
