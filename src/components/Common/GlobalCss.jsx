@@ -145,7 +145,7 @@ body {
 .bx-green  { background: var(--success-lt); color: #15803d; }
 .bx-red    { background: var(--danger-lt);  color: #b91c1c; }
 .bx-orange { background: var(--warning-lt); color: #c2410c; }
-.bx-yellow { background: #fff2bd; color:  #ffd21e; }
+.bx-yellow { background: #ffc10717; color:  #ffd21e; }
 .bx-blue {
   background: var(--accent-lt);   /* Medium blue */
   color:  #1d4ed8;

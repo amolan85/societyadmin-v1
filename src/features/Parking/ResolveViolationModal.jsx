@@ -1,5 +1,7 @@
 // ResolveViolationModal.jsx
+import { FiAlertCircle } from "react-icons/fi";
 import Select from "react-select";
+import "../../styles/Parking.css";
 
 const ResolveViolationModal = ({
     show,
@@ -12,7 +14,7 @@ const ResolveViolationModal = ({
     typeOptions = [],
 
     resolutionMethodField = "",
-    setResolutionMethodField = () => {},
+    setResolutionMethodField = () => { },
     statusField = "",
     setStatusField = () => { },
 
@@ -107,11 +109,20 @@ const ResolveViolationModal = ({
                                 <div className="text-start am-card">
                                     <div className="row g-3 mb-3">
                                         <div className="col-12">
-                                            <div
+
+                                            {/* <div
                                                 className="card bg-light d-flex justify-content-center  py-1"
                                                 style={{ minHeight: "10px" }}
-                                            >
+                                            ><FiAlertCircle/>
                                                 <p className="mb-0 ms-2">
+                                                    You are marking violation <strong>#VIO-2023-889</strong> as resolved.
+                                                    This action cannot be undone.
+                                                </p>
+                                            </div> */}
+                                            <div className="card bg-light border-0 p-3 d-flex flex-row align-items-start violation-warning-card">
+                                                <FiAlertCircle size={50} className="text-dark mt-1" />
+
+                                                <p className="violation-warning-text">
                                                     You are marking violation <strong>#VIO-2023-889</strong> as resolved.
                                                     This action cannot be undone.
                                                 </p>
@@ -187,7 +198,7 @@ const ResolveViolationModal = ({
 
                         <div className="modal-footer bg-light">
                             <button
-                                className="btn-ol btn close"
+                                className="btn btn-sm cov-btn-cancel" data-bs-dismiss="modal"
                                 onClick={() => {
                                     setShow(false);
                                     resetForm();

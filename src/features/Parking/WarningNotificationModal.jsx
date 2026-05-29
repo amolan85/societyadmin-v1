@@ -1,5 +1,7 @@
 // WarningNotificationModal.jsx
 import Select from "react-select";
+import { FiAlertTriangle } from "react-icons/fi";
+import "../../styles/Parking.css";
 
 const WarningNotificationModal = ({
     notificationShow,
@@ -104,18 +106,37 @@ const WarningNotificationModal = ({
                             <div className="pg d-flex justify-content-center am-wrap">
                                 <div className="text-start am-card">
                                     <div className="row g-3 mb-3">
-                                        <div className="col-12">
+                                        {/* <div className="col-12">
                                             <div
                                                 className="card bg-light d-flex justify-content-center  py-2"
                                                 style={{ minHeight: "15px" }}
-                                            >
+                                            > <FiAlertTriangle className="me-2" />
                                                 <p className="mb-0 ms-2">
                                                     Violation #VIO-2023-889
                                                 </p>
                                                 <small className="text-muted ms-2">Unauthorized Parking at Slot P-102 (Basement 1)</small>
                                             </div>
-                                        </div>
+                                        </div> */}
+                                        <div className="col-12">
+                                            <div
+                                                className="card bg-light border-0 p-3 d-flex flex-row align-items-start"
+                                                style={{ borderRadius: "10px" }}
+                                            >
+                                                <div className="alert-icon-box d-flex align-items-center justify-content-center">
+                                                    <FiAlertTriangle size={18} />
+                                                </div>
 
+                                                <div className="ms-3">
+                                                    <p className="mb-1 fw-medium">
+                                                        Violation #VIO-2023-889
+                                                    </p>
+
+                                                    <small className="text-muted">
+                                                        Unauthorized Parking at Slot P-102 (Basement 1)
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className="row g-3 mb-3">
                                         <div className="col-12">
@@ -226,7 +247,7 @@ const WarningNotificationModal = ({
 
                         <div className="modal-footer bg-light">
                             <button
-                                className="btn-ol btn close"
+                                className="btn btn-sm cov-btn-cancel" data-bs-dismiss="modal"
                                 onClick={() => {
                                     setNotificationShow(false);
                                     resetForm();

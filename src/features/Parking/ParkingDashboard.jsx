@@ -562,7 +562,7 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
-    const handleParkingList = async ()=>{
+    const handleParkingList = async () => {
         setActive("parkingList")
     }
 
@@ -804,7 +804,7 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
 
                 <div className="row g-3 mb-4">
                     {[
-                        [totalCount, "Total Slots", "Across 3 levels", "tile-black", <FiGrid />,handleParkingList],
+                        [totalCount, "Total Slots", "Across 3 levels", "tile-black", <FiGrid />, handleParkingList],
                         [totalOwners, "Occupancy Rate", "+ 2% this week", "tile-black", <FiTrendingUp />],
                         [totalTenant, "Visitor Slots Active", "/ 25 Available", "tile-black", <FiClock />],
                         [totalFamilyMember, "Active Violations", "Needs attention", "tile-black", <FiAlertTriangle />],
@@ -812,13 +812,13 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
                         <div className="col-6 col-md-3" key={l}>
                             <div
                                 className={`tile bg-white ${cls}`}
-                                 onClick={onClick}
+                                onClick={onClick}
                                 style={{
                                     borderRadius: "10px",
                                     padding: "18px",
                                     minHeight: "120px",
                                     boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-                                    cursor:"pointer"
+                                    cursor: "pointer"
                                 }}
                             >
 
@@ -877,7 +877,9 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
                                         marginTop: "8px"
                                     }}
                                 >
-                                    {v}
+                                    {v}{l === "Occupancy Rate" && (
+                                        <span style={{ fontSize: "28px", fontWeight: "600", color: "#555" }}>%</span>
+                                    )}
                                 </div>
 
                                 {subText && (
@@ -893,7 +895,8 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
                                                         ? "#ef4444"
                                                         : "#999"
                                         }}
-                                    >
+                                    >{l === "Occupancy Rate" && <FiTrendingUp size={12} />}
+
                                         {subText}
                                     </div>
                                 )}
