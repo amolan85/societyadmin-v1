@@ -392,20 +392,20 @@ const MemberDetails = ({
 
             <div className="d-flex gap-2 mt-3 mt-lg-0">
               <button
-                className="btn btn-outline-secondary btn-sm"
+                className="btn btn-sm btn-ad grey-btn"
                 onClick={() => {
                   setPreviousTab(active);
                   setActive("registerHistory");
                 }}
               >
                 {/* <i className="bi bi-clock-history me-1"></i> */}
-                <BiHistory className="me-1" />
+                <BiHistory className="me-1" size={16} />
                 History
               </button>
 
-              <button className="btn btn-outline-secondary btn-sm">
+              <button className="btn btn-sm btn-ad grey-btn">
                 {/* <i className="bi bi-chat-left-text me-1"></i> */}
-                <BiMessage className="me-1" />
+                <BiMessage className="me-1" size={16} />
                 Message
               </button>
 
@@ -417,7 +417,7 @@ const MemberDetails = ({
                 }}
               >
                 {/* <i className="bi bi-pencil-square me-1"></i> */}
-                <BiEdit className="me-1" />
+                <BiEdit className="me-1" size={16} />
                 Edit Profile
               </button>
               <button
@@ -489,7 +489,7 @@ const MemberDetails = ({
                 </span>
 
                 <button
-                  className="btn btn-outline-secondary btn-sm"
+                  className="btn btn-sm btn-ad grey-btn"
                   onClick={() => {
                     setFlatId(flatIdNo);
                     setActive("viewUnit");

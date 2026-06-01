@@ -34,16 +34,19 @@
   background-color: #ffc5c6 !important;
   color: #fe484a !important;
   border: 1px solid #fe484a !important;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-weight: 600;
+  padding: 9px 20px !important;
+  border-radius: 10px !important;
+  font-weight: 700;
+  font-size: 13px;
+  font-family: inherit;
 }
 
 .deallocate-btn:hover {
   background-color: #dc3545 !important;
   color: #fff !important;
 }
+
 .timeline-dot {
-    width: 20px;
-    height: 20px;
+  width: 20px;
+  height: 20px;
 }

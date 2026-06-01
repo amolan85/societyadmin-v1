@@ -58,14 +58,14 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                         </div>
 
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
-                            <button className="btn btn-outline-secondary btn-sm" onClick={() => setActive("parkingHistory")}>
+                            <button className="btn btn-sm btn-ad grey-btn" onClick={() => setActive("parkingHistory")}>
                                 {/* <i className="bi bi-chat-left-text me-1"></i> */}
-                                <BiHistory className="me-1" />
+                                <BiHistory className="me-1" size={16} />
                                 History
                             </button>
-                            <button className="btn btn-outline-secondary btn-sm">
+                            <button className="btn btn-sm btn-ad grey-btn">
                                 {/* <i className="bi bi-chat-left-text me-1"></i> */}
-                                <FiEdit className="me-1" />
+                                <FiEdit className="me-1" size={16} />
                                 Edit Details
                             </button>
 
