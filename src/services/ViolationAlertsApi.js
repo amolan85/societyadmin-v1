@@ -2,12 +2,18 @@ import apiClient from "./apiClient";
 import ErrorHandler from "../utils/ErrorHandler";
 import UrlData from "../utils/Url";
 
-
-//api function for get members
-export const parkingDashboardApi = async (societyId) => {
-    const url = UrlData + 'parking_dashboard/ParkingDashboard';
+//api function for get violation alerts
+export const violationAlertsApi = async (societyId, page, limit) => {
+    const url = UrlData + 'parking_violation/ListViolationAlerts';
     const data = {
         society_id: societyId,
+        page: page,
+        limit: limit, status: "",
+        violation_type: "",
+        search: "",
+        date_from: "",
+        date_to: "",
+        slot_id: "",
     }
     return await apiClient({
         method: 'post',
@@ -19,23 +25,16 @@ export const parkingDashboardApi = async (societyId) => {
     }).catch((error) => {
         console.log(error);
         const errors = ErrorHandler(error);
-        console.log(errors, "Errors get parking");
+        console.log(errors, "Errors get violation alerts");
         throw errors;
     });
 }
 
-export const visitorParkingApi = async (societyId, page, limit) => {
-    const url = UrlData + 'visitor_parking/ListVisitorParking';
+export const getViolationAlertsByIdApi = async (societyId, violationId) => {
+    const url = UrlData + 'parking_violation/GetViolationAlert';
     const data = {
         society_id: societyId,
-        page: page,
-        limit: limit,
-        status: "",
-        search: "",
-        visitor_entry_id: "",
-        date_from: "",
-        date_to: ""
-
+       violation_id: violationId,
     }
     return await apiClient({
         method: 'post',
@@ -47,7 +46,7 @@ export const visitorParkingApi = async (societyId, page, limit) => {
     }).catch((error) => {
         console.log(error);
         const errors = ErrorHandler(error);
-        console.log(errors, "Errors get visitor parking");
+        console.log(errors, "Errors get violation alerts by id");
         throw errors;
     });
 }

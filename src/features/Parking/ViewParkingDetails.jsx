@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FaBalanceScale, FaCar, FaSwimmingPool, FaUsers } from 'react-icons/fa';
 import { FiAlertTriangle, FiArrowLeft, FiCheckCircle, FiDownload, FiEdit, FiExternalLink, FiMessageSquare, FiPrinter, FiSlash, FiStopCircle, FiFile, FiTruck, FiFileText } from "react-icons/fi";
 import { CgFileDocument } from 'react-icons/cg';
@@ -7,15 +7,20 @@ import "../../styles/RentalAndTenant.css";
 import ResolveViolationModal from './ResolveViolationModal';
 import WarningNotificationModal from './WarningNotificationModal';
 import ViewDocumentModal from './ViewDocumentModal';
-const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
+import { GetSessionData } from '../../utils/SessionManagement';
+import { getViolationAlertsByIdApi } from '../../services/ViolationAlertsApi';
+import { Badge } from '../../components/Common/ReusableFunction';
+const ViewParkingDetails = ({ setActive, violationId }) => {
 
     const [deallocateShow, setDeallocateShow] = useState(false);
     const [showDocument, setShowDocument] = useState(false);
     const [show, setShow] = useState(false)
     const [notificationShow, setNotificationShow] = useState(false)
     const [resolutionMethodField, setResolutionMethodField] = useState("")
+    const [societyId, setSocietyId] = useState("")
+    const [violationDetails, setViolationDetails] = useState("")
 
-      const resolutionMethod = [
+    const resolutionMethod = [
         {
             value: "unauthorized_parking",
             label: "Vehicle Removed by Owner",
@@ -38,6 +43,32 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
             label: "Mark as Error/ Dismissed",
         },
     ]
+    useEffect(() => {
+        SessionData();
+    }, []);
+
+    const SessionData = async () => {
+        try {
+            const data = await GetSessionData();
+            const flats = data.data.flats[0];
+            setSocietyId(flats.society_id);
+
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    useEffect(() => {
+        if (violationId && societyId) {
+            getViolationDetailsById();
+        }
+    }, [violationId, societyId]);
+
+    const getViolationDetailsById = async () => {
+        const data = await getViolationAlertsByIdApi(societyId, violationId);
+        console.log(data, "Violation Details by id");
+        setViolationDetails(data);
+    }
     const handleWarningNotification = () => {
         setNotificationShow(true)
     };
@@ -53,10 +84,11 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                             <div>
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
-                                    <h5 className="mb-0 fw-bold">Unauthorized Parking</h5>
-                                    <span className="badge bg-danger text-white">
+                                    <h5 className="mb-0 fw-bold">{violationDetails.violation_type}</h5>
+                                    {/* <span className="badge bg-danger text-white">
                                         Active Violation
-                                    </span>
+                                    </span> */}
+                                    <Badge label={violationDetails.status === "open" ? "Active" : ""} c={violationDetails.status === "open" ? "green" : violationDetails.status === "resolved" ? "blue" : violationDetails.status === "dismissed" ? "red" : "gray"} />
                                 </div>
 
                                 <div className="text-muted text-start small mt-2">
@@ -113,7 +145,7 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">DETECTED VEHICLE</small>
-                                        <div className="fw-semibold">-</div>
+                                        <div className="fw-semibold">{violationDetails.vehicle_number || ""}</div>
                                         <div className="fw-semibold text-danger" /* onClick={() => setShowDocument(true)} */ style={{ cursor: "pointer" }}>
                                             Unregistered vehicle
                                         </div>
@@ -324,28 +356,28 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                     <div className="unauth-timeline-item active">
                                         <h6 className="mb-1">Violation Detected</h6>
                                         <small className="text-muted">
-                                          System detected vehicle in reserved slot.
-                                        </small><br/>
-                                         <small className="text-muted">
-                                           10:42 AM
+                                            System detected vehicle in reserved slot.
+                                        </small><br />
+                                        <small className="text-muted">
+                                            10:42 AM
                                         </small>
                                     </div>
 
                                     <div className="unauth-timeline-item">
                                         <h6 className="mb-1">Alert Sent to Admin</h6>
                                         <small className="text-muted">
-                                           Push notification sent to 3 active admins.
-                                        </small><br/>
+                                            Push notification sent to 3 active admins.
+                                        </small><br />
                                         <small className="text-muted">
-                                           10:43 AM
+                                            10:43 AM
                                         </small>
                                     </div>
 
                                     <div className="unauth-timeline-item">
                                         <h6 className="mb-1">Pending Action</h6>
                                         <small className="text-muted">
-                                           Awaiting resolution...
-                                        </small><br/>
+                                            Awaiting resolution...
+                                        </small><br />
                                         <small className="text-muted">
                                         </small>
                                     </div>
@@ -357,7 +389,7 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                     </div >
                 </div>
             </div>
-             <ResolveViolationModal
+            <ResolveViolationModal
                 show={show}
                 setShow={setShow}
 
@@ -373,7 +405,7 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
             <ViewDocumentModal
                 showDocument={showDocument}
                 setShowDocument={setShowDocument}
-            />    
+            />
         </>
     )
 }

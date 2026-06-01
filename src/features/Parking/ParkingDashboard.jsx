@@ -28,10 +28,11 @@ import {
 // import MemberModal from "./MemberModal";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import { BiCar } from "react-icons/bi";
-import { parkingDashboardApi, violationAlertsApi, visitorParkingApi } from "../../services/ParkingApi";
+import { parkingDashboardApi, visitorParkingApi } from "../../services/ParkingApi";
+import { violationAlertsApi } from "../../services/ViolationAlertsApi";
 // import RegisterTenantsModal from "./RegisterTenantsModal";
 
-const ParkingDashboard = ({ setActive }) => {
+const ParkingDashboard = ({ setActive , setViolationId}) => {
     const [societyId, setSocietyId] = useState("");
     const [userId, setUserId] = useState("");
     const [errors, setErrors] = useState({});
@@ -255,6 +256,11 @@ const ParkingDashboard = ({ setActive }) => {
         }
     };
 
+    const getViolationDetails = (violationId) => {
+        setActive("viewParkingDetails")
+        setViolationId(violationId);
+
+    }
     const handlePageChange = (value) => {
         setPage(value);
         // getMembers(societyId, value);
@@ -630,7 +636,7 @@ const ParkingDashboard = ({ setActive }) => {
                                                 /> */}
                                             </div>
 
-                                            <div style={{ textAlign: "start", cursor: "pointer" }} onClick={() => setActive("viewParkingDetails")}>
+                                            <div style={{ textAlign: "start", cursor: "pointer" }} onClick={() => { getViolationDetails(item.id) }}>
                                                 <div className="vpd-name">
                                                     {item.violation_type}
                                                 </div>

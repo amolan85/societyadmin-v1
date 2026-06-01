@@ -137,6 +137,7 @@ export default function App() {
   const [selectedNoticeData, setSelectedNoticeData] = useState()
   const [pollId, setPollId] = useState(null)
   const [staffId, setStaffId] = useState(null)
+  const [violationId, setViolationId] = useState(null)
 
 
   useLayoutEffect(() => {
@@ -174,12 +175,12 @@ export default function App() {
     complaints: <Complaints setActive={setActive} />,
     createComplaints: <CreateComplaints setActive={setActive} />,
     parkingList: <ParkingList setActive={setActive} />,
-    parkingDashboard: <ParkingDashboard setActive={setActive} />,
+    parkingDashboard: <ParkingDashboard setActive={setActive} setViolationId={setViolationId} />,
     parkingRules: <ParkingRules setActive={setActive} />,
-    viewParkingDetails: <ViewParkingDetails setActive={setActive} />,
+    viewParkingDetails: <ViewParkingDetails setActive={setActive} violationId={violationId} />,
     visitorDetails: <VisitorDetails setActive={setActive} />,
-    rentals: <RentalAndTenants setActive={setActive} setTenantId={setTenantId}/>,
-    rentalsApplication: <TenantsReviewApplication setActive={setActive} tenantId={tenantId}/>,
+    rentals: <RentalAndTenants setActive={setActive} setTenantId={setTenantId} />,
+    rentalsApplication: <TenantsReviewApplication setActive={setActive} tenantId={tenantId} />,
     staff: <StaffAttendance setActive={setActive} setStaffId={setStaffId} />,
     createStaff: <CreateStaffAttendance setActive={setActive} staffId={staffId} />,
     noticeboard: <NoticeBoard setActive={setActive} setSelectedNoticeData={setSelectedNoticeData} />,
@@ -314,7 +315,7 @@ export default function App() {
           </main>
         </div>
       </div>
-      
+
     </>
 
 
