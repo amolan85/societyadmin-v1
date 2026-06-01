@@ -80,7 +80,7 @@ const ViewParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                             <button className="btn btn-sm common-outline-btn print-btn" /*onClick={() => setActive("parkingRegister")}*/><FiPrinter /> Print Ticket</button>
                             <button className="btn btn-danger btn-sm" onClick={() => setShow(true)}><FiCheckCircle /> Resolve Violation</button>
 
-                            <button className="btn btn-primary btn-sm" onClick={() => setActive("parkingDashboard")}>Back</button>
+                            <button className="btn btn-sm btn-ac btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
                         </div>
                     </div>
                 </div>

@@ -192,7 +192,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
                             {noticeId ? "Update" : "Create"} Notice Board
                         </h5>
                         <button
-                            className="btn btn-sm btn-primary"
+                            className="btn btn-sm btn-ac ms-2 btn-primary"
                             onClick={() => setActive("noticeboard")}
                         >
                             Back
