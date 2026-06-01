@@ -37,6 +37,8 @@ import VisitorDetails from "../Parking/VisitorDetails";
 import ParkingDashboard from "../Parking/ParkingDashboard";
 import ParkingList from "../Parking/ParkingList";
 import "../../styles/dashboard.css";
+import ViolationAlertsList from "../Parking/ViolationAlertsList";
+import VisitorParkingList from "../Parking/VisitorParkingList";
 
 
 /* ══ OVERVIEW ══════════════════════════════════ */
@@ -110,9 +112,11 @@ const TITLES = {
   createComplaints: ["Operations", "Create Complaints"],
   parkingList: ["Operations", "Parking"],
   parkingDashboard: ["Operations", "Parking"],
+  visitorParking: ["Operations", "Parking", "Visitor Parking"],
+  violationAlerts: ["Operations", "Parking", "Violation Alerts"],
   parkingRules: ["Operations", "Parking", "Parking Rules"],
-  viewParkingDetails: ["Operations", "Parking", "Parking Details"],
-  visitorDetails: ["Operations", "Parking", "KA-05-MH-2023"],
+  viewParkingDetails: ["Operations", "Parking", "Violation Details"],
+  visitorDetails: ["Operations", "Parking", "Visitor Details"],
   rentals: ["Operations", "Rentals & Tenants"],
   rentalsApplication: ["Operations", "Rentals & Tenants", "Review Application"],
   staff: ["Operations", "Staff Attendance"],
@@ -176,6 +180,8 @@ export default function App() {
     createComplaints: <CreateComplaints setActive={setActive} />,
     parkingList: <ParkingList setActive={setActive} />,
     parkingDashboard: <ParkingDashboard setActive={setActive} setViolationId={setViolationId} />,
+    visitorParking: <VisitorParkingList setActive={setActive} /* setViolationId={setViolationId} */ />,
+    violationAlerts: <ViolationAlertsList setActive={setActive} /* setViolationId={setViolationId} */ />,
     parkingRules: <ParkingRules setActive={setActive} />,
     viewParkingDetails: <ViewParkingDetails setActive={setActive} violationId={violationId} />,
     visitorDetails: <VisitorDetails setActive={setActive} />,
@@ -276,7 +282,10 @@ export default function App() {
               })}</span>
 
               <button className="tb-avatar">🔔</button>
-              <button className="tb-avatar" style={{ background: "#e2e8f0", color: "var(--text)" }}><img src={profileUrl || null} alt="Profile" className="img-fluid rounded-circle" /></button>
+              <button className="tb-avatar" style={{ background: "#e2e8f0", color: "var(--text)" }}><img src={
+                 profileUrl  ||
+                  "../src/assets/profile.png"
+              } alt="Profile" className="img-fluid rounded-circle" /></button>
               {/* <span className="tb-name">{firstName} {lastName}</span> */}
               <div className="dropdown">
 

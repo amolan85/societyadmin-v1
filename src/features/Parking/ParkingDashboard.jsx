@@ -70,6 +70,7 @@ const ParkingDashboard = ({ setActive , setViolationId}) => {
         };
         return icons[violationType] ?? icons.other;
     };
+
     const getVehicleIcon = (vehicleType) => {
         const icons = {
             "2_wheeler": { icon: <TbMotorbike size={18} />, color: "#f97316" },
@@ -168,62 +169,62 @@ const ParkingDashboard = ({ setActive , setViolationId}) => {
         },
     ];
 
-    const visitorParkingData = [
-        {
-            id: 1,
-            vehicleNo: "KA-05-MH-2023",
-            description: "Visiting: Unit B-402",
-            slot: "V-12",
-            remaining: "2h 15m remaining",
-            remainingColor: "#22c55e",
-            icon: BiCar,
-        },
-        {
-            id: 2,
-            vehicleNo: "MH-12-AB-9988",
-            description: "Visiting: Unit A-101",
-            slot: "V-04",
-            remaining: "15m remaining",
-            remainingColor: "#f59e0b",
-            icon: BiCar,
-        },
-        {
-            id: 3,
-            vehicleNo: "DL-3C-CC-1122",
-            description: "Delivery: Maintenance",
-            slot: "V-01",
-            remaining: "4h remaining",
-            remainingColor: "#22c55e",
-            icon: FiTruck,
-        },
-    ];
+    // const visitorParkingData = [
+    //     {
+    //         id: 1,
+    //         vehicleNo: "KA-05-MH-2023",
+    //         description: "Visiting: Unit B-402",
+    //         slot: "V-12",
+    //         remaining: "2h 15m remaining",
+    //         remainingColor: "#22c55e",
+    //         icon: BiCar,
+    //     },
+    //     {
+    //         id: 2,
+    //         vehicleNo: "MH-12-AB-9988",
+    //         description: "Visiting: Unit A-101",
+    //         slot: "V-04",
+    //         remaining: "15m remaining",
+    //         remainingColor: "#f59e0b",
+    //         icon: BiCar,
+    //     },
+    //     {
+    //         id: 3,
+    //         vehicleNo: "DL-3C-CC-1122",
+    //         description: "Delivery: Maintenance",
+    //         slot: "V-01",
+    //         remaining: "4h remaining",
+    //         remainingColor: "#22c55e",
+    //         icon: FiTruck,
+    //     },
+    // ];
 
-    const violationAlertsData = [
-        {
-            id: 1,
-            title: "Unauthorized Parking",
-            description: "Slot P-102 (Reserved for A-302)",
-            icon: FiAlertTriangle,
-            iconColor: "#ef4444",
-            bgColor: "#fee2e2",
-        },
-        {
-            id: 2,
-            title: "Visitor Overstay",
-            description: "Slot V-05 (Visitor of C-101)",
-            icon: FiClock,
-            iconColor: "#ef4444",
-            bgColor: "#fee2e2",
-        },
-        {
-            id: 3,
-            title: "Wrong Slot Usage",
-            description: "Member parked in Visitor Zone",
-            icon: FiSlash,
-            iconColor: "#ef4444",
-            bgColor: "#fee2e2",
-        },
-    ];
+    // const violationAlertsData = [
+    //     {
+    //         id: 1,
+    //         title: "Unauthorized Parking",
+    //         description: "Slot P-102 (Reserved for A-302)",
+    //         icon: FiAlertTriangle,
+    //         iconColor: "#ef4444",
+    //         bgColor: "#fee2e2",
+    //     },
+    //     {
+    //         id: 2,
+    //         title: "Visitor Overstay",
+    //         description: "Slot V-05 (Visitor of C-101)",
+    //         icon: FiClock,
+    //         iconColor: "#ef4444",
+    //         bgColor: "#fee2e2",
+    //     },
+    //     {
+    //         id: 3,
+    //         title: "Wrong Slot Usage",
+    //         description: "Member parked in Visitor Zone",
+    //         icon: FiSlash,
+    //         iconColor: "#ef4444",
+    //         bgColor: "#fee2e2",
+    //     },
+    // ];
 
     useEffect(() => {
         SessionData();
@@ -552,7 +553,7 @@ const ParkingDashboard = ({ setActive , setViolationId}) => {
                                 </div>
                             </div>
 
-                            {allVisitorParking.map((item) => {
+                            {allVisitorParking.slice(0, 3).map((item) => {
                                 // const Icon = item.icon;
 
                                 return (
@@ -591,7 +592,7 @@ const ParkingDashboard = ({ setActive , setViolationId}) => {
                                     </div>
                                 );
                             })}
-                            <div className="vpd-footer">
+                            <div className="vpd-footer" onClick={() => setActive("visitorParking")}>
                                 View All Visitors
                             </div>
                         </div>
@@ -636,7 +637,7 @@ const ParkingDashboard = ({ setActive , setViolationId}) => {
                                 </div>
                             </div>
 
-                            {allViolationAlerts.map((item) => {
+                            {allViolationAlerts.slice(0, 3).map((item) => {
                                 // const Icon = item.icon;
                                 const { icon, color } = getViolationIcon(item.violation_type);
                                 return (
@@ -674,7 +675,7 @@ const ParkingDashboard = ({ setActive , setViolationId}) => {
                                 );
                             })}
 
-                            <div className="vpd-footer">
+                            <div className="vpd-footer" onClick={() => setActive("violationAlerts")}>
                                 View All Violations
                             </div>
                         </div>
