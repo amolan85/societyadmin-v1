@@ -171,6 +171,7 @@ body {
 /* ── BUTTONS ─────────────────────────────────── */
 .btn-ac { background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 9px 20px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
 .btn-ac:hover { background: var(--accent-dk); }
+.btn-ad { background: transparent !important; color: #fff; border: none; border-radius: 10px; padding: 9px 20px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
 .btn-ol { background: #fff; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 8px 18px; font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit; }
 .btn-ol:hover { background: #f8fafc; }
 .btn-dk { background: var(--dark); color: #fff; border: none; border-radius: 10px; padding: 9px 20px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }

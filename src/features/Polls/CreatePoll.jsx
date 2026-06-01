@@ -150,7 +150,7 @@ const CreatePoll = ({ setActive, pollId }) => {
                     <div className="d-flex justify-content-between align-items-center">
                         <h5 className="bc-title"><BiEdit className='text-primary' />{pId ? "Update" : "Create"} Poll</h5>
                         <button
-                            className="btn btn-sm btn-primary"
+                            className="btn btn-sm btn-ac ms-2 btn-primary"
                             onClick={() => setActive("polls")}
                         >
                             Back

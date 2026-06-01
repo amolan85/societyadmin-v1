@@ -74,7 +74,7 @@ const ParkingDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                                 <FiSlash className="me-1" />
                                 <strong>Deallocate</strong>
                             </button>
-                            <button className="btn btn-primary btn-sm" onClick={() => setActive("parkingRegister")}>Back</button>
+                            <button className="btn btn-sm btn-ac btn-primary" onClick={() => setActive("parkingRegister")}>Back</button>
                         </div>
                     </div>
                 </div>

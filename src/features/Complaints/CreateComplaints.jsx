@@ -190,7 +190,7 @@ const CreateComplaints = ({ setActive }) => {
                         <div className="d-flex justify-content-between align-items-center">
                             <h5 className="bc-title">Create Complaints</h5>
                             <button
-                                className="btn btn-sm btn-primary"
+                                className="btn btn-sm btn-ac ms-2 btn-primary"
                                 onClick={() => setActive("complaints")}
                             >
                                 Back

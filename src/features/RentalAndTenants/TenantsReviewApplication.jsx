@@ -122,7 +122,7 @@ const TenantsReviewApplication = ({ setActive, tenantId }) => {
 
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
 
-                            <button className="btn btn-primary btn-sm" onClick={() => setActive("rentals")}>Back</button>
+                            <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("rentals")}>Back</button>
                         </div>
                     </div>
                 </div>

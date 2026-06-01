@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { deleteStaffApi, getStaffAttendanceApi, markAttendanceStaffApi } from '../../services/StaffAttendanceApi';
 import { GetSessionData } from '../../utils/SessionManagement';
 import ManualEntryModal from './ManualEntryModal';
-import { FiFilter, FiSearch } from 'react-icons/fi';
+import { FiDelete, FiFilter, FiSearch } from 'react-icons/fi';
 import FilterAttendanceModal from './FilterAttendanceModal';
 import { CgExport } from 'react-icons/cg';
 import ExportModal from '../../components/Common/ExportModal';
@@ -129,7 +129,69 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
             console.log(error);
         }
     };
+    // const deleteStaff = (staffId) => {
+    //     const backdrop = document.createElement("div");
+    //     backdrop.id = "delete-backdrop";
+    //     backdrop.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9998;pointer-events:all;";
+    //     document.body.appendChild(backdrop);
+    //     toast(
+    //         ({ closeToast }) => (
+    //             <div className="delete-popup">
+    //                 <div className="delete-popup-icon">
+    //                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+    //                         <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#dc2626" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    //                         <path d="M10 11v5M14 11v5" stroke="#dc2626" strokeWidth="1.8" strokeLinecap="round" />
+    //                     </svg>
+    //                 </div>
 
+    //                 {/* <h3>Delete Staff Member</h3> */}
+
+    //                 <p>
+    //                     Are you sure you want to delete this staff?
+    //                     <br />
+    //                     This action cannot be undone.
+    //                 </p>
+
+    //                 <div className="delete-popup-divider"></div>
+
+    //                 <div className="delete-popup-actions">
+    //                     <button className="delete-popup-cancel" onClick={() => {
+    //                         document.getElementById("delete-backdrop")?.remove();
+    //                         closeToast();
+    //                     }}>
+    //                         Cancel
+    //                     </button>
+
+    //                     <button
+    //                         className="delete-popup-delete"
+    //                         onClick={async () => {
+    //                             try {
+    //                                 await deleteStaffApi(staffId);
+    //                                 document.getElementById("delete-backdrop")?.remove();
+    //                                 closeToast();
+    //                                 toast.success("Staff deleted successfully!");
+    //                                 getStaff(societyId);
+    //                             } catch (error) {
+    //                                 document.getElementById("delete-backdrop")?.remove();
+    //                                 closeToast();
+    //                                 toast.error("Failed to delete staff!");
+    //                             }
+    //                         }}
+    //                     >
+    //                         Delete
+    //                     </button>
+    //                 </div>
+    //             </div>
+    //         ),
+    //         {
+    //             position: "top-center",
+    //             autoClose: false,
+    //             hideProgressBar: true,
+    //             closeButton: false,
+    //             overlayClassName: "Toastify__overlay",
+    //         }
+    //     );
+    // };
     const validateForm = () => {
         let errors = {};
 
@@ -300,8 +362,8 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                     >
                         <CgExport /> Export
                     </button>
-                    <button className="btn btn-sm btn-primary" onClick={() => setActive("createStaff")}>Create</button>
-                    <button className="btn btn-sm btn-primary" onClick={() => { setShow(true); resetForm() }}>Manual Entry</button>
+                    <button className="btn btn-sm btn-ac  btn-primary" onClick={() => setActive("createStaff")}>Create</button>
+                    <button className="btn btn-sm btn-ac  btn-primary" onClick={() => { setShow(true); resetForm() }}>Manual Entry</button>
                 </div>
             </div>
 

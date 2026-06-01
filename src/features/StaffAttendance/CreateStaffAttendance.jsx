@@ -145,7 +145,7 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
                     <div className="d-flex justify-content-between align-items-center">
                         <h5 className="bc-title">{sId ? "Update" : "Create"} Staff Attendance</h5>
                         <button
-                            className="btn btn-sm btn-primary"
+                            className="btn btn-sm btn-ac ms-2 btn-primary"
                             onClick={() => {setSId(null); setActive("staff"); }}
                         >
                             Back

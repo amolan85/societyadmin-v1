@@ -227,6 +227,7 @@
 }
 
 .print-btn {
+  border: 1px solid #dc3545 !important;
   color: #dc3545 !important;
   border-color: #dc3545 !important;
 }
@@ -237,6 +238,7 @@
 }
 
 .extend-btn {
+  border:1px solid #6c757d !important;
   color: #6c757d !important;
   border-color: #6c757d !important;
 }

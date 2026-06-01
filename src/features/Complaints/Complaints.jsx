@@ -540,7 +540,7 @@ const Complaints = ({ setActive }) => {
                     View Details
                   </button>
 
-                  <button className="btn btn-sm btn-primary">
+                  <button className="btn btn-sm btn-ac btn-primary">
                     Assign Staff
                   </button>
 

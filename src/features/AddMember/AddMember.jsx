@@ -584,7 +584,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
           </div>
           <div className="d-flex">
             <button
-              className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
+              className="btn-ol ms-2"
               data-bs-toggle="dropdown"
             >
               <FiFilter size={14} />
@@ -600,7 +600,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
               <CgExport /> Export
             </button>
             <button
-              className="btn btn-sm btn-primary ms-2"
+              className="btn btn-sm btn-ac ms-2 btn-primary"
               onClick={() => {
                 setMode("add");
                 setShow(true);

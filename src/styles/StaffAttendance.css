@@ -25,3 +25,125 @@
 .sa-wrap .sa-time {
   color: var(--text);
 }
+
+/* .Toastify__toast-container--top-center {
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: auto !important;
+}
+
+.Toastify__toast-container {
+  z-index: 9999 !important;
+}
+
+.Toastify__toast {
+  width: 450px !important;
+  min-height: auto !important;
+  border-radius: 18px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  background: #fff !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .15) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  /* add karo */
+  /* align-items: center !important; */
+  /* add karo */
+/* } */
+
+/* .Toastify__overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 9998 !important;
+} */
+
+/* .Toastify__toast-body {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  /* add karo 
+} */
+
+/* .Toastify__close-button {
+  display: none !important;
+} */
+
+/* .delete-popup {
+  padding: 15px;
+  text-align: center !important;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+} */
+
+/* .delete-popup-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #fef2f2;
+  color: #dc2626;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+} */
+
+/* .delete-popup h3 {
+  text-align: center;
+  margin: 15px 0;
+  width: 100%;
+} */
+
+/* .delete-popup p {
+  text-align: center;
+  width: 100%;
+  margin: auto 20px;
+  line-height: 1.6;
+} */
+
+/* .delete-popup-divider {
+  width: 100%;
+  border-top: 1px solid #e5e7eb;
+  margin: 15px 0;
+} */
+
+/* .delete-popup-actions {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+} */
+
+/* .delete-popup-cancel,
+.delete-popup-delete {
+  flex: none;
+  height: 35px;
+  width: 100px;
+  border-radius: 10px;
+} */
+
+/* .delete-popup-cancel {
+  border: 1px solid #d1d5db;
+  background: #fff;
+}
+
+.delete-popup-delete {
+  border: none;
+  background: #ef4444;
+  color: white;
+}
+.Toastify__toast-container {
+    z-index: 9999 !important;
+} */ 
+/* .Toastify__toast--success,
+.Toastify__toast--error {
+    width: auto !important;
+    min-height: auto !important;
+    padding: 16px !important; 
+    border-radius: 8px !important;
+} */

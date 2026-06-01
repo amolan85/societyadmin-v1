@@ -221,7 +221,7 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
                 <div className="col-12 col-lg-8">
                     <div className="sv-card">
                         <div className="d-flex justify-content-end">
-                            <button className='btn btn-primary btn-sm'
+                            <button className='btn btn-sm btn-ac ms-2 btn-primary'
                                 onClick={() => {
                                     setActive("createNoticeBoard");
                                     setSelectedNoticeData("")

@@ -410,7 +410,7 @@ const MemberDetails = ({
               </button>
 
               <button
-                className="btn btn-primary btn-sm"
+                className="btn btn-sm btn-ac btn-primary"
                 onClick={() => {
                   setMode("edit");
                   setShow(true);
@@ -421,7 +421,7 @@ const MemberDetails = ({
                 Edit Profile
               </button>
               <button
-                className="btn btn-primary btn-sm"
+                className="btn btn-sm btn-ac btn-primary"
                 onClick={() => {
                   // console.log(previousTab);
                   // setActive(previousTab)

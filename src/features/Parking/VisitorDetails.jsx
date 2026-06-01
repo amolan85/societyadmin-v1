@@ -58,11 +58,11 @@ const VisitorDetails = ({ setActive, /* memberId, setFlatId */ }) => {
                         </div>
 
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
-                            <button className="btn btn-sm common-outline-btn print-btn" /* onClick={() => setActive("parkingRegister")} */><FiAlertTriangle /> Report Violation</button>
-                            <button className="btn btn-sm common-outline-btn extend-btn" onClick={() => setShowExtendTime(true)}><FiCheckCircle /> Extend Time</button>
+                            <button className="btn btn-sm btn-ad print-btn" /* onClick={() => setActive("parkingRegister")} */><FiAlertTriangle /> Report Violation</button>
+                            <button className="btn btn-sm btn-ad extend-btn" onClick={() => setShowExtendTime(true)}><FiCheckCircle /> Extend Time</button>
 
-                            <button className="btn btn-primary btn-sm" onClick={() => setCheckOutShow(true)}> <FiLogOut />Check Out</button>
-                            <button className="btn btn-primary btn-sm" onClick={() => setActive("parkingDashboard")}>Back</button>
+                            <button className="btn btn-sm btn-ac  btn-primary" onClick={() => setCheckOutShow(true)}> <FiLogOut />Check Out</button>
+                            <button className="btn btn-sm btn-ac  btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
                         </div>
                     </div>
                 </div>

@@ -276,7 +276,7 @@ const ViewUnit = ({ setActive, flatId }) => {
               </button>
 
               <button
-                className="btn btn-primary btn-sm"
+                className="btn btn-sm btn-ac btn-primary"
                 onClick={() => {
                   setMode("edit");
                   setShow(true);
@@ -286,7 +286,7 @@ const ViewUnit = ({ setActive, flatId }) => {
                 Edit Unit
               </button>
               <button
-                className="btn btn-primary btn-sm"
+                className="btn btn-sm btn-ac btn-primary"
                 onClick={() => setActive("unitRegister")}
               >
                 Back
