@@ -3,6 +3,8 @@ import "../../styles/AddMember.css";
 import "../../styles/Parking.css";
 import { Badge, Pagination } from "../../components/Common/ReusableFunction";
 import { GetSessionData } from "../../utils/SessionManagement";
+import { TbParking, TbMapPinOff, TbLayersIntersect, TbFileOff, TbClockX, TbAlertCircle, TbMotorbike, TbCar } from "react-icons/tb";
+
 import {
     AddMemberApi,
     getAllMembersWithoutPaginationApi,
@@ -56,7 +58,24 @@ const ParkingDashboard = ({ setActive }) => {
     const [allVisitorParking, setAllVisitorParking] = useState([]);
     const [allViolationAlerts, setAllViolationAlerts] = useState([]);
 
-
+    const getViolationIcon = (violationType) => {
+        const icons = {
+            unauthorized_parking: { icon: <TbParking size={18} />, color: "#ef4444" },
+            wrong_slot: { icon: <TbMapPinOff size={18} />, color: "#f97316" },
+            double_parking: { icon: <TbLayersIntersect size={18} />, color: "#eab308" },
+            no_sticker: { icon: <TbFileOff size={18} />, color: "#8b5cf6" },
+            visitor_overstay: { icon: <TbClockX size={18} />, color: "#3b82f6" },
+            other: { icon: <TbAlertCircle size={18} />, color: "#6b7280" },
+        };
+        return icons[violationType] ?? icons.other;
+    };
+    const getVehicleIcon = (vehicleType) => {
+        const icons = {
+            "2_wheeler": { icon: <TbMotorbike size={18} />, color: "#f97316" },
+            "4_wheeler": { icon: <TbCar size={18} />, color: "#3b82f6" },
+        };
+        return icons[vehicleType] ?? icons["4_wheeler"];
+    };
     const tenantData = [
         {
             unitNo: "Unit B-402",
@@ -534,8 +553,9 @@ const ParkingDashboard = ({ setActive }) => {
                                     <div key={item.id} className="vpd-row" style={{ cursor: "pointer" }} onClick={() => setActive("visitorDetails")}>
 
                                         <div className="d-flex align-items-center" >
-                                            <div className="vpd-icon-wrapper">
+                                            <div className="vpd-icon-wrapper" style={{ color: getVehicleIcon(item.vehicle_type).color }}>
                                                 {/* <Icon size={18} color="#6b7280" /> */}
+                                                 {getVehicleIcon(item.vehicle_type).icon}
                                             </div>
 
                                             <div>
@@ -612,18 +632,20 @@ const ParkingDashboard = ({ setActive }) => {
 
                             {allViolationAlerts.map((item) => {
                                 // const Icon = item.icon;
-
+                                const { icon, color } = getViolationIcon(item.violation_type);
                                 return (
                                     <div key={item.id} className="vpd-row">
 
                                         <div className="d-flex align-items-center">
 
                                             <div
-                                                className="vpd-alert-icon"
-                                                style={{
-                                                    background: item.bgColor, textAlign: "start"
-                                                }}
-                                            >
+                                            // className="vpd-alert-icon"
+                                            // style={{
+                                            //     background: item.bgColor, textAlign: "start"
+                                            // }}
+                                            >  <div className="vpd-icon-wrapper" style={{ color }}>
+                                                    {icon}
+                                                </div>
                                                 {/* <Icon
                                                     size={18}
                                                     color={item.iconColor}

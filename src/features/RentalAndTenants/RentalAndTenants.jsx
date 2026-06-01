@@ -780,8 +780,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                     </div>
                     <div className="d-flex">
                         <button
-                            className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
-                            data-bs-toggle="dropdown" onClick={() => setShowFilterRentals(true)}
+                            className="btn-ol ms-2" onClick={() => setShowFilterRentals(true)}
                         >
                             <FiFilter size={14} />
                             Filter
