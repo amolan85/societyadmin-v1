@@ -1,6 +1,4 @@
 // MemberModal.jsx
-import { FiTruck } from "react-icons/fi";
-import Select from "react-select";
 import { FaCar } from "react-icons/fa"
 import "../../styles/Parking.css";
 
@@ -9,70 +7,19 @@ const ExtendTimeModal = ({
     setShowExtendTime,
 
     extendDurationType = [],
-    allBlocks = [],
-    allFlats = [],
-    recordType = [],
 
     extendDuration = null,
     setExtendDuration = () => { },
 
-    flat = null,
-    setFlat = () => { },
-
-    recordTypeTab = "",
-    setRecordTypeTab = () => { },
-
     resetForm = () => { },
-
-    firstName = "",
-    setFirstName = () => { },
-
-    lastName = "",
-    setLastName = () => { },
-
-    mobileNo = "",
-    setMobileNo = () => { },
-
-    emailId = "",
-    setEmailId = () => { },
-
-    moveInDate = "",
-    setMoveInDate = () => { },
 
     moveOutDate = "",
     setMoveOutDate = () => { },
 
-    familyType = "",
-    setFamilyType = () => { },
-
-    // rentAgreement = null,
-    setRentAgreement = () => { },
-
-    // policeNoc = null,
-    setPoliceNoc = () => { },
-
-    // idProof = null,
-    setIdProof = () => { },
-
-    // agreement = null,
-    setAgreement = () => { },
-
-    // maintenanceReceipt = null,
-    setMaintenanceReceipt = () => { },
-
-    // nominationDetails = null,
-    setNominationDetails = () => { },
-
-    // familyPhoto = null,
-    setFamilyPhoto = () => { },
-
-    // ownershipDocuments = null,
-    setOwnershipDocuments = () => { },
-
     errors = {},
     errorText = "",
     handleSubmit = () => { },
-    mode,
+ 
 }) => {
     if (!showExtendTime) return null;
 

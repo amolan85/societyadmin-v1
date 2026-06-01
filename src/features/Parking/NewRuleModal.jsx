@@ -4,10 +4,9 @@ import Select from "react-select";
 const NewRuleModal = ({
     show,
     setShow,
-
-    allBlocks = [],
+    mode,
     allFlats = [],
-    addMemberType = [],
+
     statusOptions = [],
     typeOptions = [],
     violationTypeOptions = [],
@@ -20,66 +19,25 @@ const NewRuleModal = ({
 
     violationTypeField = "",
     setViolationTypeField = () => { },
-    blocks = null,
-    setBlocks = () => { },
 
-    flat = null,
-    setFlat = () => { },
+    ruleTitle = null,
+    setRuleTitle = () => { },
 
-    memType = "",
-    setMemType = () => { },
+    description = null,
+    setDescription = () => { },
+
+    frequency = null,
+    setFrequency = () => { },
+
+    penalty = null,
+    setPenalty = () => { },
 
     resetForm = () => { },
-
-    firstName = "",
-    setFirstName = () => { },
-
-    lastName = "",
-    setLastName = () => { },
-
-    mobileNo = "",
-    setMobileNo = () => { },
-
-    emailId = "",
-    setEmailId = () => { },
-
-    moveInDate = "",
-    setMoveInDate = () => { },
-
-    moveOutDate = "",
-    setMoveOutDate = () => { },
-
-    familyType = "",
-    setFamilyType = () => { },
-
-    // rentAgreement = null,
-    setRentAgreement = () => { },
-
-    // policeNoc = null,
-    setPoliceNoc = () => { },
-
-    // idProof = null,
-    setIdProof = () => { },
-
-    // agreement = null,
-    setAgreement = () => { },
-
-    // maintenanceReceipt = null,
-    setMaintenanceReceipt = () => { },
-
-    // nominationDetails = null,
-    setNominationDetails = () => { },
-
-    // familyPhoto = null,
-    setFamilyPhoto = () => { },
-
-    // ownershipDocuments = null,
-    setOwnershipDocuments = () => { },
 
     errors = {},
     errorText = "",
     handleSubmit = () => { },
-    mode,
+
 }) => {
     if (!show) return null;
 
@@ -93,7 +51,7 @@ const NewRuleModal = ({
                         <div className="modal-header bg-light">
                             <div className="d-flex flex-column">
                                 <h5 className="modal-title mb-1 text-start">
-                                    Create New Rule
+                                    {mode === "add" ? "Create New Rule" : "Edit Rule"}
                                 </h5>
                                 <small className="text-muted">
                                     Define a new parking regulation or policy.
@@ -116,17 +74,17 @@ const NewRuleModal = ({
                                                 <label className="sv-lb">
                                                     Rule Title <span className="text-danger">*</span>
                                                 </label>
-                                                {errors.firstName && (
+                                                {errors.ruleTitle && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.firstName}
+                                                        {errors.ruleTitle}
                                                     </span>
                                                 )}
                                             </div>
                                             <input
-                                                className={`sv-in ${errors.firstName ? "error-input" : ""}`}
+                                                className={`sv-in ${errors.ruleTitle ? "error-input" : ""}`}
                                                 placeholder="e.g. Wrong slot usage"
-                                                value={firstName}
-                                                onChange={(e) => setFirstName(e.target.value)}
+                                                value={ruleTitle}
+                                                onChange={(e) => setRuleTitle(e.target.value)}
                                             />
                                         </div>
 
@@ -207,18 +165,18 @@ const NewRuleModal = ({
                                                 <label className="sv-lb">
                                                     Description<span className="text-danger">*</span>
                                                 </label>
-                                                {errors.firstName && (
+                                                {errors.description && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.firstName}
+                                                        {errors.description}
                                                     </span>
                                                 )}
                                             </div>
                                             <textarea
-                                                className={`sv-in ${errors.firstName ? "error-input" : ""}`}
+                                                className={`sv-in ${errors.description ? "error-input" : ""}`}
                                                 placeholder="Enter detailed description of the rule"
                                                 rows={4}
-                                                value={firstName}
-                                                onChange={(e) => setFirstName(e.target.value)}
+                                                value={description}
+                                                onChange={(e) => setDescription(e.target.value)}
                                             />
                                         </div>
                                     </div>
@@ -261,33 +219,33 @@ const NewRuleModal = ({
                                             <div className="d-flex">
                                                 <label className="sv-lb">
                                                     Frequency {" "}
-                                                    <span className="text-danger">*</span>
+                                                    {/* <span className="text-danger">*</span> */}
                                                 </label>
-                                                {errors.flat && (
+                                                {/* {errors.frequency && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.flat}
+                                                        {errors.frequency}
                                                     </span>
-                                                )}
+                                                )} */}
                                             </div>
 
                                             <Select
                                                 styles={{
                                                     control: (baseStyles) => ({
                                                         ...baseStyles,
-                                                        borderColor: errors.flat
+                                                        borderColor: errors.frequency
                                                             ? "red"
                                                             : baseStyles.borderColor,
                                                         boxShadow: "none",
                                                         "&:hover": {
-                                                            borderColor: errors.flat
+                                                            borderColor: errors.frequency
                                                                 ? "red"
                                                                 : baseStyles.borderColor,
                                                         },
                                                     }),
                                                 }}
                                                 options={allFlats}
-                                                value={flat}
-                                                onChange={(selectedOption) => setFlat(selectedOption)}
+                                                value={frequency}
+                                                onChange={(selectedOption) => setFrequency(selectedOption)}
                                             />
                                         </div>
                                     </div>
@@ -298,18 +256,18 @@ const NewRuleModal = ({
                                                 <label className="sv-lb">
                                                     Penalty Amount(₹)<span className="text-danger">*</span>
                                                 </label>
-                                                {errors.firstName && (
+                                                {errors.penalty && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.firstName}
+                                                        {errors.penalty}
                                                     </span>
                                                 )}
                                             </div>
                                             <input
-                                                className={`sv-in ${errors.firstName ? "error-input" : ""}`}
+                                                className={`sv-in ${errors.penalty ? "error-input" : ""}`}
                                                 placeholder="00.00"
 
-                                                value={firstName}
-                                                onChange={(e) => setFirstName(e.target.value)}
+                                                value={penalty}
+                                                onChange={(e) => setPenalty(e.target.value)}
                                             />
                                         </div>
                                     </div>
@@ -331,7 +289,7 @@ const NewRuleModal = ({
                             </button>
 
                             <button className="btn-ac px-4" onClick={handleSubmit}>
-                                Create Rule
+                               {mode === "add" ? "Create Rule" : "Update Rule"}
                             </button>
                         </div>
                     </div>

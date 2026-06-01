@@ -1,80 +1,10 @@
 // CheckOutVisitorModal.jsx
 import { BiCheck } from "react-icons/bi";
 import { FiLogOut } from "react-icons/fi";
-import Select from "react-select";
 import "../../styles/Parking.css";
 const CheckOutVisitorModal = ({
     checkoutShow,
     setCheckoutShow,
-
-    allBlocks = [],
-    allFlats = [],
-    addMemberType = [],
-    statusOptions = [],
-    typeOptions = [],
-
-    statusField = "",
-    setStatusField = () => { },
-
-    typeField = "",
-    setTypeField = () => { },
-
-    blocks = null,
-    setBlocks = () => { },
-
-    flat = null,
-    setFlat = () => { },
-
-    memType = "",
-    setMemType = () => { },
-
-    resetForm = () => { },
-
-    firstName = "",
-    setFirstName = () => { },
-
-    lastName = "",
-    setLastName = () => { },
-
-    mobileNo = "",
-    setMobileNo = () => { },
-
-    emailId = "",
-    setEmailId = () => { },
-
-    moveInDate = "",
-    setMoveInDate = () => { },
-
-    moveOutDate = "",
-    setMoveOutDate = () => { },
-
-    familyType = "",
-    setFamilyType = () => { },
-
-    // rentAgreement = null,
-    setRentAgreement = () => { },
-
-    // policeNoc = null,
-    setPoliceNoc = () => { },
-
-    // idProof = null,
-    setIdProof = () => { },
-
-    // agreement = null,
-    setAgreement = () => { },
-
-    // maintenanceReceipt = null,
-    setMaintenanceReceipt = () => { },
-
-    // nominationDetails = null,
-    setNominationDetails = () => { },
-
-    // familyPhoto = null,
-    setFamilyPhoto = () => { },
-
-    // ownershipDocuments = null,
-    setOwnershipDocuments = () => { },
-
     errors = {},
     errorText = "",
     handleSubmit = () => { },

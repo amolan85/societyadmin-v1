@@ -11,7 +11,6 @@ import {
   deleteMembersApi,
 } from "../../services/AddMemberApi";
 import { toast } from "react-toastify";
-import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import { FiFilter, FiSearch } from "react-icons/fi";
 import {
   getAllBlocksApi,
@@ -512,7 +511,8 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     try {
       if (!value.trim()) {
         setPage(1);
-        await getMembers(societyId, 1);
+        const data = await getMembers(societyId, 1);
+        setAllMembers(data?.members || []);
         return;
       }
 

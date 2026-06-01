@@ -2,57 +2,20 @@ import { useState, useEffect } from "react";
 import "../../styles/AddMember.css";
 import { Badge, Pagination } from "../../components/Common/ReusableFunction";
 import { GetSessionData } from "../../utils/SessionManagement";
-import {
-    AddMemberApi,
-    getMembersApi,
-    getAllMembersWithoutPaginationApi,
-    getMembersByIdApi,
-    UpdateMemberApi,
-    deleteMembersApi,
-} from "../../services/AddMemberApi";
 import { toast } from "react-toastify";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import { FiFilter, FiSearch } from "react-icons/fi";
-import {
-    FaUserCircle,
-    FaFileUpload,
-    FaCheckCircle,
-    FaExclamationTriangle,
-    FaClock,
-    FaFileImport,
-} from "react-icons/fa";
-
-import {
-    getAllBlocksApi,
-    getAllFlatsApi,
-} from "../../services/UnitRegisterApi";
 import { CgExport } from "react-icons/cg";
-// import MemberModal from "./MemberModal";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import { BiImport } from "react-icons/bi";
 import NewRuleModal from "./NewRuleModal";
 import EditRuleModal from "./EditRuleModal";
+import { createParkingRuleApi, deleteParkingRuleApi, getParkingRuleByIdApi, listParkingRulesApi, updateParkingRuleApi } from "../../services/ParkingRulesApi";
+import ExportModal from "../../components/Common/ExportModal";
 
 
 const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
-    const [memType, setMemType] = useState("tenant");
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [emailId, setEmailId] = useState("");
-    const [mobileNo, setMobileNo] = useState("");
-    const [allFlats, setAllFlats] = useState([]);
-    const [flat, setFlat] = useState("");
-    const [moveInDate, setMoveInDate] = useState("");
-    const [moveOutDate, setMoveOutDate] = useState("");
-    const [familyType, setFamilyType] = useState("");
-    const [agreement, setAgreement] = useState("");
-    const [rentAgreement, setRentAgreement] = useState("");
-    const [policeNoc, setPoliceNoc] = useState("");
-    const [idProof, setIdProof] = useState("");
-    const [familyPhoto, setFamilyPhoto] = useState("");
-    const [maintenanceReceipt, setMaintenanceReceipt] = useState("");
-    const [ownershipDocuments, setOwnershipDocuments] = useState("");
-    const [nominationDetails, setNominationDetails] = useState("");
+
     const [societyId, setSocietyId] = useState("");
     const [userId, setUserId] = useState("");
     const [errors, setErrors] = useState({});
@@ -63,83 +26,22 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
     const [totalCount, setTotalCount] = useState(0);
     const [mode, setMode] = useState("add");
 
-    const [allMembers, setAllMembers] = useState([]);
-    const [allMembersWithoutPagination, setAllMembersWithoutPagination] = useState([]);
-    const [blocks, setBlocks] = useState("");
-    const [allBlocks, setAllBlocks] = useState([]);
+    const [allParkingRules, setAllParkingRules] = useState([]);
+    const [allExportParkingRules, setAllExportParkingRules] = useState([]);
     const [activeTab, setActiveTab] = useState("excel");
     const [exportModal, setExportModal] = useState(false);
     const [errorText, setErrorText] = useState("");
     const [search, setSearch] = useState("");
-    const [mId, setMId] = useState("");
     const [selectedRange, setSelectedRange] = useState("all");
 
-    const [statusField, setStatusField] = useState("");
-    const [typeField, setTypeField] = useState("");
-    const [violationTypeField, setViolationTypeField] = useState("");
-
-    const parkingRulesData = [
-        {
-            ruleId: "#RULE-P-01",
-            ruleTitle: "Visitor Parking Time Limit",
-            description: "Max 4 hours without extension",
-            type: "BY - LAW",
-            typeBg: "#dbeafe",
-            typeColor: "#3b82f6",
-            penalty: "₹200 / hr overdue",
-            status: "Active",
-            statusBg: "#dcfce7",
-            statusColor: "#22c55e",
-        },
-        {
-            ruleId: "#RULE-P-02",
-            ruleTitle: "Wrong Slot Usage Gilbert",
-            description: "Parking in unassigned or reserved slot",
-            type: "BY - LAW",
-            typeBg: "#dbeafe",
-            typeColor: "#3b82f6",
-            penalty: "₹500 / hr overdue",
-            status: "Active",
-            statusBg: "#dcfce7",
-            statusColor: "#22c55e",
-        },
-        {
-            ruleId: "#RULE-P-03",
-            ruleTitle: "Basement Speed Limit",
-            description: "Maximum speed of 10 km/h",
-            type: "Policy",
-            typeBg: "#f3f4f6",
-            typeColor: "#6b7280",
-            penalty: "Warning Only",
-            status: "Active",
-            statusBg: "#dcfce7",
-            statusColor: "#22c55e",
-        },
-        {
-            ruleId: "#RULE-P-04",
-            ruleTitle: "Overnight Guest Parking",
-            description: "Requires prior approval from Admin",
-            type: "Policy",
-            typeBg: "#f3f4f6",
-            typeColor: "#6b7280",
-            penalty: "Towing (If unapproved)",
-            status: "Reviewing",
-            statusBg: "#ffedd5",
-            statusColor: "#f97316",
-        },
-        {
-            ruleId: "#RULE-P-05",
-            ruleTitle: "EV Charging Station Usage",
-            description: "EV Charging Station Usage",
-            type: "Policy",
-            typeBg: "#f3f4f6",
-            typeColor: "#6b7280",
-            penalty: "₹100 / hr overdue",
-            status: "Active",
-            statusBg: "#dcfce7",
-            statusColor: "#22c55e",
-        },
-    ];
+    const [statusField, setStatusField] = useState(null);
+    const [typeField, setTypeField] = useState(null);
+    const [violationTypeField, setViolationTypeField] = useState(null);
+    const [frequency, setFrequency] = useState(null);
+    const [ruleTitle, setRuleTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [penalty, setPenalty] = useState("");
+    const [ruleId, setRuleId] = useState("");
 
     const statusOptions = [
         {
@@ -151,7 +53,7 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
             label: "Draft",
         },
         {
-            value: "underReview",
+            value: "under_review",
             label: "Under Review",
         },
     ]
@@ -195,20 +97,6 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
         },
     ]
 
-    const addMemberType = [
-        { id: "Tenant", value: "tenant" },
-    ];
-
-    const mangementType = [
-        { id: "All Rentals", value: "" },
-        { id: "Pending Registration", value: "pendingResitration" },
-        { id: "Expiring Soon", value: "emergency" },
-        { id: "KYC Pending", value: "circular" },
-
-    ];
-
-    const finalMemType = memType === "familyMember" ? familyType : memType;
-
     useEffect(() => {
         SessionData();
     }, []);
@@ -219,164 +107,70 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
         const flats = data.data.flats[0];
         setSocietyId(flats.society_id);
         setUserId(flats.user_id);
-        getMembers(flats.society_id);
-        getAllFlats(flats.society_id);
-        getAllBlocks(flats.society_id);
+        getAllParkingRules(flats.society_id);
+
     };
 
-    //function for get members
-    const getMembers = async (societyId, page) => {
+    //function for get parking rules
+    const getAllParkingRules = async (societyId, page) => {
         try {
-            const data = await getMembersApi(societyId, page);
-            setAllMembers(data.members);
+            const data = await listParkingRulesApi(societyId, page, limit);
+            setAllParkingRules(data.rules || []);
             setPage(data.page);
-            setLimit(data.per_page);
-            setTotalCount(data.total_count);
+            setLimit(data.limit);
+            setTotalCount(data.rules.length);
         } catch (error) {
-            console.error("Error fetching members:", error);
+            console.error("Error fetching parking rules:", error);
         }
     };
 
-    const getAllMembersWithoutPagination = async (societyId, search) => {
+    //total count for pagination
+    const total = Math.ceil(totalCount / limit);
+
+
+    const getAllExportData = async (societyId) => {
         try {
-            const data = await getAllMembersWithoutPaginationApi(societyId, search);
-            console.log(data.members, "All members without pagination");
+            const data = await listParkingRulesApi(societyId);
 
-            setAllMembersWithoutPagination(data.members);
+            setAllExportParkingRules(data.rules);
         } catch (error) {
             console.error("Error fetching members:", error);
         }
     };
 
-    const getAllFlats = async (societyId) => {
-        try {
-            const data = await getAllFlatsApi(societyId);
-            console.log(data.flats, "All flats");
-            setAllFlats(
-                data.flats.map((item) => ({
-                    value: item.flat_number,
-                    label: item.flat_number,
-                })),
-            );
-        } catch (error) {
-            console.error("Error fetching members:", error);
-        }
-    };
-
-    const getAllBlocks = async (societyId) => {
-        try {
-            const data = await getAllBlocksApi(societyId);
-            console.log(data.blocks, "All blocks");
-            setAllBlocks(
-                data.blocks.map((item) => ({
-                    value: item.block,
-                    label: item.block,
-                })),
-            );
-        } catch (error) {
-            console.error("Error fetching members:", error);
-        }
-    };
-
-    const getMembersById = async (memberId, flatId) => {
-        setMemberId(memberId);
-        setFlatId(flatId);
-        setActive("memberDetails");
-    };
-
-    const handlePageChange = (value) => {
-        setPage(value);
-        getMembers(societyId, value);
-    };
-
-    //function for validation
+    //validation for create parking rule
     const validateForm = () => {
         let errors = {};
 
-        if (!firstName) {
-            errors.firstName = "required";
+        if (!ruleTitle?.trim()) {
+            errors.ruleTitle = "required";
         }
 
-        if (!lastName) {
-            errors.lastName = "required";
+        if (!description?.trim()) {
+            errors.description = "required";
         }
 
-        if (!emailId) {
-            errors.emailId = "required";
-        } else if (!/\S+@\S+\.\S+/.test(emailId)) {
-            errors.emailId = "Invalid email";
-        }
-        // else {
-        //     errors.emailId = ""
-        // }
-        if (!mobileNo) {
-            errors.mobileNo = "required";
-        } else if (!/^[0-9]{10}$/.test(mobileNo)) {
-            errors.mobileNo = "Invalid mobile no.";
-        }
-        // else {
-        //     errors.mobileNo = ""
-        // }
-
-        if (!blocks) {
-            errors.blocks = "required";
+        if (!typeField?.value) {
+            errors.typeField = "required";
         }
 
-        if (!flat) {
-            errors.flat = "required";
-        }
-        if (!moveInDate) {
-            errors.moveInDate = "required";
-        }
-        if (!memType) {
-            errors.memType = "required";
+        if (!statusField?.value) {
+            errors.statusField = "required";
         }
 
-        if (memType === "owner") {
-            if (!idProof) {
-                errors.idProof = "required";
-            }
-
-            if (!agreement) {
-                errors.agreement = "required";
-            }
-
-            if (!maintenanceReceipt) {
-                errors.maintenanceReceipt = "required";
-            }
-
-            if (!nominationDetails) {
-                errors.nominationDetails = "required";
-            }
-
-            if (!familyPhoto) {
-                errors.familyPhoto = "required";
-            }
-
-            if (!ownershipDocuments) {
-                errors.ownershipDocuments = "required";
-            }
+        if (!violationTypeField?.value) {
+            errors.violationTypeField = "required";
         }
-        if (memType === "tenant") {
-            if (!moveOutDate) {
-                errors.moveOutDate = "required";
-            }
-            if (!rentAgreement) {
-                errors.rentAgreement = "required";
-            }
-            if (!policeNoc) {
-                errors.policeNoc = "required";
-            }
+
+        if (!penalty) {
+            errors.penalty = "required";
         }
-        if (memType === "familyMember") {
-            if (!familyType) {
-                errors.familyType = "required";
-            }
-        }
+
         return errors;
     };
 
-    const handleSubmit = async () => {
+    //function for create parking rule
+    const createParkingRule = async () => {
         try {
             const validationErrors = validateForm();
 
@@ -384,201 +178,94 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                 setErrors(validationErrors);
                 return;
             }
-
             if (mode === "edit") {
-                await UpdateMemberApi(
-                    societyId,
-                    mId,
-                    firstName,
-                    lastName,
-                    mobileNo,
-                    emailId,
-                    blocks?.value,
-                    flat?.value,
-                    finalMemType,
-                    moveInDate,
-                    moveOutDate,
-                    agreement,
-                    rentAgreement,
-                    policeNoc,
-                    idProof,
-                    familyPhoto,
-                    maintenanceReceipt,
-                    ownershipDocuments,
-                    nominationDetails,
-                );
-
-                toast.success("Member updated successfully!");
-                resetForm();
-                getMembers(societyId, page);
-            } else {
-                await AddMemberApi(
-                    societyId,
-                    userId,
-                    firstName,
-                    lastName,
-                    mobileNo,
-                    emailId,
-                    blocks?.value,
-                    flat?.value,
-                    finalMemType,
-                    moveInDate,
-                    moveOutDate,
-                    agreement,
-                    rentAgreement,
-                    policeNoc,
-                    idProof,
-                    familyPhoto,
-                    maintenanceReceipt,
-                    ownershipDocuments,
-                    nominationDetails,
-                );
-
-                toast.success("Member created successfully!");
-                resetForm();
-                getMembers(societyId, page);
+                const data = await updateParkingRuleApi(societyId, ruleId, ruleTitle, description, typeField?.value, statusField?.value, violationTypeField?.value, penalty, userId);
+                console.log(data, "update response");
+                toast.success("Parking rule updated successfully");
             }
-
+            else {
+                const data = await createParkingRuleApi(societyId, ruleTitle, description, typeField?.value, statusField?.value, violationTypeField?.value, penalty, userId);
+                console.log(data, "Create response");
+                toast.success("Parking rule created successfully");
+            }
             setShow(false);
+            resetForm();
+            getAllParkingRules(societyId, page);
         } catch (error) {
-            console.log(error);
-            toast.error(error);
-            setErrorText(error);
+            console.error("Error fetching create parking rule:", error);
         }
     };
 
-    const GetMemberDetailsById = async (memberId) => {
+    //function for get parking rule
+    const getParkingRuleById = async (ruleId) => {
+
         try {
-            const data = await getMembersByIdApi(societyId, memberId);
-            setMId(memberId);
-            setFirstName(data.first_name);
-            setLastName(data.last_name);
-            setEmailId(data.email);
-            setMobileNo(data.mobile);
-            setBlocks({
-                value: data.block,
-                label: data.block,
-            });
-            setFlat({
-                value: data.flat_number,
-                label: data.flat_number,
-            });
-            setFamilyType(data.occupancy_type);
-            setMemType(
-                data.occupancy_type === "owner_relative"
-                    ? "familyMember"
-                    : data.occupancy_type === "tenant_relative"
-                        ? "familyMember"
-                        : data.occupancy_type,
+            const data = await getParkingRuleByIdApi(societyId, ruleId);
+            console.log(data, "Get response");
+            setRuleTitle(data.rule_title);
+            setDescription(data.rule_description);
+            // setTypeField({ value: data.by, label: data.by });
+            setTypeField(
+                typeOptions.find((item) => item.value === data.by) || null
             );
-            setMoveInDate(data.start_date);
-            setMoveOutDate(data.end_date);
-            data.documents?.forEach((doc) => {
-                switch (doc.document_type) {
-                    case "id_proof":
-                        setIdProof(doc.url);
-                        break;
+               setStatusField(
+                statusOptions.find((item) => item.value === data.status) || null
+            );
+            // setStatusField({ value: data.status, label: data.status });
+            setViolationTypeField(
+                violationTypeOptions.find((item) => item.value === data.violation_type) || null
+            );
+              setStatusField(
+                statusOptions.find((item) => item.value === data.status) || null
+            );
+            setPenalty(data.penalty_amount);
+            setRuleId(data.id);
 
-                    case "family_photo":
-                        setFamilyPhoto(doc.url);
-                        break;
-
-                    case "agreement":
-                        setAgreement(doc.url);
-                        break;
-
-                    case "ownership":
-                        setOwnershipDocuments(doc.url);
-                        break;
-
-                    case "maintenance_receipt":
-                        setMaintenanceReceipt(doc.url);
-                        break;
-
-                    case "rent_agreement":
-                        setRentAgreement(doc.url);
-                        break;
-
-                    case "police_noc":
-                        setPoliceNoc(doc.url);
-                        break;
-
-                    default:
-                        break;
-                }
-            });
         } catch (error) {
-            console.log(error);
+            console.error("Get Error:", error);
+            toast.error(error);
         }
     };
 
-    // const handleDelete = async (memberId) => {
-    //     try {
-    //         const data = await deleteMembersApi(memberId);
 
-    //         console.log(data, "Delete response");
-
-    //         toast.success("Member deleted successfully");
-    //         getMembers(societyId, page);
-    //         // Refresh member list if needed
-    //         // GetAllMembers();
-    //     } catch (error) {
-    //         console.error("Delete Error:", error);
-
-    //         toast.error(error);
-    //     }
-    // };
-    const handleDelete = async (memberId) => {
-        const confirmed = window.confirm("Are you sure you want to delete this member?");
+    //function for delete parking rule
+    const handleDelete = async (ruleId) => {
+        const confirmed = window.confirm("Are you sure you want to delete this parking rule?");
 
         if (!confirmed) return;
 
         try {
-            const data = await deleteMembersApi(memberId);
+            const data = await deleteParkingRuleApi(societyId, ruleId);
             console.log(data, "Delete response");
-            toast.success("Member deleted successfully");
-            getMembers(societyId, page);
+            toast.success("Parking rule deleted successfully");
+            getAllParkingRules(societyId, page);
         } catch (error) {
             console.error("Delete Error:", error);
             toast.error(error);
         }
     };
 
-    const resetForm = () => {
-        setFirstName("");
-        setLastName("");
-        setEmailId("");
-        setMobileNo("");
-        // setBlocks(null);
-        // setFlat("");
-        setMoveInDate("");
-        setMoveOutDate("");
-        setFamilyType("");
-        setAgreement("");
-        setRentAgreement("");
-        setPoliceNoc("");
-        setIdProof("");
-        setFamilyPhoto("");
-        setMaintenanceReceipt("");
-        setOwnershipDocuments("");
-        setNominationDetails("");
-        setErrors({});
-        setErrorText("");
+    //function for handle page change in pagination
+    const handlePageChange = (value) => {
+        setPage(value);
+        getAllParkingRules(societyId, value);
     };
 
+    //function for handle export data based on selected range
     const exportData =
         selectedRange === "all"
-            ? allMembersWithoutPagination
+            ? allExportParkingRules
             : selectedRange === "search"
-                ? allMembers
+                ? allParkingRules
                 : "";
 
 
+    //function for download export data in excel, csv and pdf format
     const downloadExcel = async () => {
         exportFile({
             data: exportData,
-            fileName: "Members",
-            sheetName: "Members",
+            fileName: "Parking_Rules",
+            sheetName: "Parking_Rules",
             type: "xlsx",
         });
     };
@@ -586,27 +273,31 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
     const downloadCSV = async () => {
         exportFile({
             data: exportData,
-            fileName: "Members",
-            sheetName: "Members",
+            fileName: "Parking_Rules",
+            sheetName: "Parking_Rules",
             type: "csv",
         });
     };
 
     const downloadPDF = () => {
         exportToPDF({
-            title: "Members Report",
-            fileName: "Members",
+            title: "Parking Rules Report",
+            fileName: "Parking_Rules",
             columns: [
-                "Member Name",
-                "Unit No.",
-                "Role",
-                "Contact Info",
+                "Rule Id",
+                "Rule Title",
+                "Description",
+                "Penalty Amount",
+                "Type",
+                "Status",
             ],
             data: exportData.map((item) => [
-                item.first_name + " " + item.last_name,
-                item.flat_number,
-                item.occupancy_type,
-                item.mobile,
+                item.id,
+                item.rule_title,
+                item.rule_description,
+                item.penalty_amount,
+                item.by,
+                item.status,
             ]),
         });
     };
@@ -624,18 +315,6 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
-    const totalOwners = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "owner",
-    ).length;
-
-    const totalTenant = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "tenant",
-    ).length;
-
-    const totalFamilyMember = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "familyMember",
-    ).length;
-
 
     const handleSearch = async (e) => {
         const value = e.target.value;
@@ -644,23 +323,30 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
         try {
             if (!value.trim()) {
                 setPage(1);
-                await getMembers(societyId, 1);
-                return;
+                const data = await listParkingRulesApi(societyId, page, limit);
+                setAllParkingRules(data?.rules || []);
             }
+            if (value.length < 2) return;
 
-            if (value.length < 3) return;
+            const data = await listParkingRulesApi(societyId, page, limit, value);
 
-            const data = await getAllMembersWithoutPaginationApi(
-                societyId,
-                value
-            );
-
-            setAllMembers(data?.members || []);
+            setAllParkingRules(data?.rules || []);
         } catch (error) {
             console.error("Search error:", error);
         }
     };
-    const total = Math.ceil(totalCount / limit);
+
+
+    const resetForm = () => {
+        setRuleTitle("");
+        setDescription("");
+        setTypeField(null);
+        setStatusField(null);
+        setViolationTypeField(null);
+        setPenalty("");
+        setErrors({});
+        setErrorText("");
+    };
 
     return (
         <>
@@ -675,8 +361,11 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                     </div>
                     <div className='d-flex'>
 
-                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
-                            setShow(true)}>+ Create Rule</button>
+                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => {
+                            resetForm();
+                            setShow(true)
+                            setMode("add");
+                        }}>+ Create Rule</button>
 
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
 
@@ -726,6 +415,10 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                         <button
                             className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white ms-2"
                             data-bs-toggle="dropdown"
+                            onClick={() => {
+                                getAllExportData(societyId);
+                                setExportModal(true);
+                            }}
                         >
                             <BiImport size={14} />
                             Export
@@ -747,17 +440,17 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                             </thead>
 
                             <tbody>
-                                {parkingRulesData.map((item, index) => (
+                                {allParkingRules.map((item, index) => (
                                     <tr key={index}>
                                         {/* Unit */}
                                         <td className="text-start">
-                                            <div className="fw-bold">{item.ruleId}</div>
+                                            <div className="fw-bold">#RULE-P-{item.id}</div>
 
                                         </td>
                                         <td className="text-start">
-                                            <div className="fw-bold">{item.ruleTitle}</div>
+                                            <div className="fw-bold">{item.rule_title}</div>
                                             <small className="text-muted">
-                                                {item.description}
+                                                {item.rule_description}
                                             </small>
                                         </td>
 
@@ -770,11 +463,11 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                                                 {item.kycIcon} {item.kycStatus}
                                             </span> */}
                                             <Badge
-                                                label={item.type}
+                                                label={item.by === "law" ? "By Law" : item.by === "society_policy" ? " Policy" : ""}
                                                 c={
-                                                    item.type === "BY - LAW"
+                                                    item.by === "law"
                                                         ? "blue"
-                                                        : item.type === "Policy"
+                                                        : item.by === "society_policy"
                                                             ? "gray"
 
                                                             : "gray"
@@ -783,7 +476,7 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
 
                                         </td>
                                         <td className="text-start">
-                                            <div className="fw-bold">{item.penalty}</div>
+                                            <div className="fw-bold">{item.penalty_amount}</div>
 
                                         </td>
                                         {/* Agreement */}
@@ -794,14 +487,15 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                                                 {item.agreementIcon} {item.status}
                                             </span> */}
                                             <Badge
-                                                label={item.status}
+                                                label={item.status === "active" ? "Active" : item.status === "draft" ? "Draft" : item.status === "under_review" ? "Reviewing" : ""}
                                                 c={
-                                                    item.status === "Active"
+                                                    item.status === "active"
                                                         ? "green"
-                                                        : item.status === "Reviewing"
+                                                        : item.status === "draft"
                                                             ? "red"
-
-                                                            : "gray"
+                                                            : item.status === "under_review"
+                                                                ? "orange"
+                                                                : "gray"
                                                 }
                                             />{" "}
                                         </td>
@@ -844,8 +538,9 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                                                             className="dropdown-item member-action-item"
                                                             onClick={() => {
 
-                                                                // setEditRuleShow(true);
-                                                                // GetMemberDetailsById(s.user_id);
+                                                                setShow(true)
+                                                                setMode("edit");
+                                                                getParkingRuleById(item.id);
                                                             }}
                                                         >
                                                             Edit Rules
@@ -859,7 +554,7 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item member-action-delete"
-                                                            onClick={() => handleDelete(s.user_id)}
+                                                            onClick={() => handleDelete(item.id)}
                                                         >
                                                             Delete Rules
                                                         </button>
@@ -878,6 +573,7 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                 </div>
             </div>
             <NewRuleModal
+                mode={mode}
                 show={show}
                 setShow={setShow}
 
@@ -892,9 +588,25 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                 violationTypeOptions={violationTypeOptions}
                 violationTypeField={violationTypeField}
                 setViolationTypeField={setViolationTypeField}
+
+                ruleTitle={ruleTitle}
+                setRuleTitle={setRuleTitle}
+
+                description={description}
+                setDescription={setDescription}
+
+                frequency={frequency}
+                setFrequency={setFrequency}
+
+                penalty={penalty}
+                setPenalty={setPenalty}
+
+                handleSubmit={createParkingRule}
+                errors={errors}
+                resetForm={resetForm}
             />
 
-            <EditRuleModal
+            {/* <EditRuleModal
                 editRuleShow={editRuleShow}
                 setEditRuleShow={setEditRuleShow}
 
@@ -905,6 +617,17 @@ const ParkingRules = ({ setActive, setMemberId, setFlatId }) => {
                 typeOptions={typeOptions}
                 typeField={typeField}
                 setTypeField={setTypeField}
+            /> */}
+            <ExportModal
+                show={exportModal}
+                onClose={() => setExportModal(false)}
+                onExport={handleExport}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                selectedRange={selectedRange}
+                setSelectedRange={setSelectedRange}
+                totalRecords={allExportParkingRules.length}
+                currentRecords={allParkingRules.length}
             />
         </>
     );

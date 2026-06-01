@@ -10,7 +10,7 @@ const MemberModal = ({
   addMemberType = [],
 
   blocks = null,
-  setBlocks = () => { },
+
 
   flat = null,
   setFlat = () => { },

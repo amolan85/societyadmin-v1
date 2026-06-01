@@ -5,32 +5,16 @@ const ManualEntryModal = ({
     show,
     setShow,
 
-    allBlocks = [],
     allStaffData = [],
     recordType = [],
 
     selectedStaff = null,
     setSelectedStaff = () => { },
 
-    flat = null,
-    setFlat = () => { },
-
     recordTypeTab = "",
     setRecordTypeTab = () => { },
 
     resetForm = () => { },
-
-    firstName = "",
-    setFirstName = () => { },
-
-    lastName = "",
-    setLastName = () => { },
-
-    mobileNo = "",
-    setMobileNo = () => { },
-
-    emailId = "",
-    setEmailId = () => { },
 
     attendanceDate = "",
     setAttendanceDate = () => { },
@@ -38,37 +22,10 @@ const ManualEntryModal = ({
     attendanceTime = "",
     setAttendanceTime = () => { },
 
-    familyType = "",
-    setFamilyType = () => { },
-
-    // rentAgreement = null,
-    setRentAgreement = () => { },
-
-    // policeNoc = null,
-    setPoliceNoc = () => { },
-
-    // idProof = null,
-    setIdProof = () => { },
-
-    // agreement = null,
-    setAgreement = () => { },
-
-    // maintenanceReceipt = null,
-    setMaintenanceReceipt = () => { },
-
-    // nominationDetails = null,
-    setNominationDetails = () => { },
-
-    // familyPhoto = null,
-    setFamilyPhoto = () => { },
-
-    // ownershipDocuments = null,
-    setOwnershipDocuments = () => { },
-
     errors = {},
     errorText = "",
     handleSubmit = () => { },
-    mode,
+
 }) => {
     if (!show) return null;
 

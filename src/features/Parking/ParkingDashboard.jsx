@@ -5,14 +5,11 @@ import { Badge, Pagination } from "../../components/Common/ReusableFunction";
 import { GetSessionData } from "../../utils/SessionManagement";
 import {
     AddMemberApi,
-    getMembersApi,
     getAllMembersWithoutPaginationApi,
-    getMembersByIdApi,
     UpdateMemberApi,
     deleteMembersApi,
 } from "../../services/AddMemberApi";
 import { toast } from "react-toastify";
-import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import { FiAlertCircle, FiDownload, FiFilter, FiGrid, FiPlus, FiSearch, FiTrendingUp } from "react-icons/fi";
 import {
     FiEye,
@@ -22,43 +19,19 @@ import {
     FiSlash,
 } from "react-icons/fi";
 import {
-    FaUserCircle,
     FaFileUpload,
     FaCheckCircle,
     FaExclamationTriangle,
     FaClock,
 } from "react-icons/fa";
 
-import {
-    getAllBlocksApi,
-    getAllFlatsApi,
-} from "../../services/UnitRegisterApi";
-import { CgExport } from "react-icons/cg";
 // import MemberModal from "./MemberModal";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import { BiCar } from "react-icons/bi";
-import { parkingDashboardApi } from "../../services/ParkingApi";
+import { parkingDashboardApi, violationAlertsApi, visitorParkingApi } from "../../services/ParkingApi";
 // import RegisterTenantsModal from "./RegisterTenantsModal";
 
-const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
-    const [memType, setMemType] = useState("tenant");
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [emailId, setEmailId] = useState("");
-    const [mobileNo, setMobileNo] = useState("");
-    const [allFlats, setAllFlats] = useState([]);
-    const [flat, setFlat] = useState("");
-    const [moveInDate, setMoveInDate] = useState("");
-    const [moveOutDate, setMoveOutDate] = useState("");
-    const [familyType, setFamilyType] = useState("");
-    const [agreement, setAgreement] = useState("");
-    const [rentAgreement, setRentAgreement] = useState("");
-    const [policeNoc, setPoliceNoc] = useState("");
-    const [idProof, setIdProof] = useState("");
-    const [familyPhoto, setFamilyPhoto] = useState("");
-    const [maintenanceReceipt, setMaintenanceReceipt] = useState("");
-    const [ownershipDocuments, setOwnershipDocuments] = useState("");
-    const [nominationDetails, setNominationDetails] = useState("");
+const ParkingDashboard = ({ setActive }) => {
     const [societyId, setSocietyId] = useState("");
     const [userId, setUserId] = useState("");
     const [errors, setErrors] = useState({});
@@ -66,12 +39,9 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
-    const [mode, setMode] = useState("add");
 
     const [allMembers, setAllMembers] = useState([]);
     const [allMembersWithoutPagination, setAllMembersWithoutPagination] = useState([]);
-    const [blocks, setBlocks] = useState("");
-    const [allBlocks, setAllBlocks] = useState([]);
     const [activeTab, setActiveTab] = useState("excel");
     const [exportModal, setExportModal] = useState(false);
     const [errorText, setErrorText] = useState("");
@@ -79,7 +49,13 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
     const [mId, setMId] = useState("");
     const [selectedRange, setSelectedRange] = useState("all");
 
-    const [mangementTypeTab, setManagementTypeTab] = useState("");
+    const [totalSlots, setTotalSlots] = useState("");
+    const [occupanyRate, setOccupanyRate] = useState("");
+    const [visitorSlots, setVisitorSlots] = useState("");
+    const [activeViolation, setActiveViolation] = useState("");
+    const [allVisitorParking, setAllVisitorParking] = useState([]);
+    const [allViolationAlerts, setAllViolationAlerts] = useState([]);
+
 
     const tenantData = [
         {
@@ -229,8 +205,6 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
         },
     ];
 
-    const finalMemType = memType === "familyMember" ? familyType : memType;
-
     useEffect(() => {
         SessionData();
     }, []);
@@ -242,16 +216,42 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
         setSocietyId(flats.society_id);
         setUserId(flats.user_id);
         parkingDashboard(flats.society_id);
- 
+        visitorParking(flats.society_id);
+        violationAlerts(flats.society_id);
+
     };
 
     //function for get members
     const parkingDashboard = async (societyId) => {
         try {
             const data = await parkingDashboardApi(societyId);
-            console.log(data)
+
+            setTotalSlots(data.overview.total_slots);
+            setOccupanyRate(data.overview.occupancy_rate_percent);
+            setVisitorSlots(data.allocations.visitor_slots_available);
+            setActiveViolation(data.violations.open_violations)
         } catch (error) {
             console.error("Error fetching members:", error);
+        }
+    };
+
+    //function for get visitor parking details
+    const visitorParking = async (societyId) => {
+        try {
+            const data = await visitorParkingApi(societyId, page, limit);
+            setAllVisitorParking(data.visitor_parking || []);
+        } catch (error) {
+            console.error("Error fetching visitor parking list:", error);
+        }
+    };
+
+    //function for get violation alerts details
+    const violationAlerts = async (societyId) => {
+        try {
+            const data = await violationAlertsApi(societyId, page, limit);
+            setAllViolationAlerts(data.violations || []);
+        } catch (error) {
+            console.error("Error fetching violation alerts:", error);
         }
     };
 
@@ -260,206 +260,25 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
         // getMembers(societyId, value);
     };
 
-    //function for validation
-    const validateForm = () => {
-        let errors = {};
-
-        if (!firstName) {
-            errors.firstName = "required";
-        }
-
-        if (!lastName) {
-            errors.lastName = "required";
-        }
-
-        if (!emailId) {
-            errors.emailId = "required";
-        } else if (!/\S+@\S+\.\S+/.test(emailId)) {
-            errors.emailId = "Invalid email";
-        }
-        // else {
-        //     errors.emailId = ""
-        // }
-        if (!mobileNo) {
-            errors.mobileNo = "required";
-        } else if (!/^[0-9]{10}$/.test(mobileNo)) {
-            errors.mobileNo = "Invalid mobile no.";
-        }
-        // else {
-        //     errors.mobileNo = ""
-        // }
-
-        if (!blocks) {
-            errors.blocks = "required";
-        }
-
-        if (!flat) {
-            errors.flat = "required";
-        }
-        if (!moveInDate) {
-            errors.moveInDate = "required";
-        }
-        if (!memType) {
-            errors.memType = "required";
-        }
-
-        if (memType === "owner") {
-            if (!idProof) {
-                errors.idProof = "required";
-            }
-
-            if (!agreement) {
-                errors.agreement = "required";
-            }
-
-            if (!maintenanceReceipt) {
-                errors.maintenanceReceipt = "required";
-            }
-
-            if (!nominationDetails) {
-                errors.nominationDetails = "required";
-            }
-
-            if (!familyPhoto) {
-                errors.familyPhoto = "required";
-            }
-
-            if (!ownershipDocuments) {
-                errors.ownershipDocuments = "required";
-            }
-        }
-        if (memType === "tenant") {
-            if (!moveOutDate) {
-                errors.moveOutDate = "required";
-            }
-            if (!rentAgreement) {
-                errors.rentAgreement = "required";
-            }
-            if (!policeNoc) {
-                errors.policeNoc = "required";
-            }
-        }
-        if (memType === "familyMember") {
-            if (!familyType) {
-                errors.familyType = "required";
-            }
-        }
-        return errors;
-    };
-
-    const handleSubmit = async () => {
-        try {
-            const validationErrors = validateForm();
-
-            if (Object.keys(validationErrors).length > 0) {
-                setErrors(validationErrors);
-                return;
-            }
-
-            if (mode === "edit") {
-                await UpdateMemberApi(
-                    societyId,
-                    mId,
-                    firstName,
-                    lastName,
-                    mobileNo,
-                    emailId,
-                    blocks?.value,
-                    flat?.value,
-                    finalMemType,
-                    moveInDate,
-                    moveOutDate,
-                    agreement,
-                    rentAgreement,
-                    policeNoc,
-                    idProof,
-                    familyPhoto,
-                    maintenanceReceipt,
-                    ownershipDocuments,
-                    nominationDetails,
-                );
-
-                toast.success("Member updated successfully!");
-                resetForm();
-                getMembers(societyId, page);
-            } else {
-                await AddMemberApi(
-                    societyId,
-                    userId,
-                    firstName,
-                    lastName,
-                    mobileNo,
-                    emailId,
-                    blocks?.value,
-                    flat?.value,
-                    finalMemType,
-                    moveInDate,
-                    moveOutDate,
-                    agreement,
-                    rentAgreement,
-                    policeNoc,
-                    idProof,
-                    familyPhoto,
-                    maintenanceReceipt,
-                    ownershipDocuments,
-                    nominationDetails,
-                );
-
-                toast.success("Member created successfully!");
-                resetForm();
-                // getMembers(societyId, page);
-            }
-
-            setShow(false);
-        } catch (error) {
-            console.log(error);
-            toast.error(error);
-            setErrorText(error);
-        }
-    };
-
-   
     const handleDelete = async (memberId) => {
-    const confirmed = window.confirm("Are you sure you want to delete this Parking slot?");
-    
-    if (!confirmed) return;
-    
-    try {
-        const data = await deleteMembersApi(memberId);
-        console.log(data, "Delete response");
-        toast.success("Member deleted successfully");
-        // getMembers(societyId, page);
-    } catch (error) {
-        console.error("Delete Error:", error);
-        toast.error(error);
-    }
-};
+        const confirmed = window.confirm("Are you sure you want to delete this Parking slot?");
+
+        if (!confirmed) return;
+
+        try {
+            const data = await deleteMembersApi(memberId);
+            console.log(data, "Delete response");
+            toast.success("Member deleted successfully");
+            // getMembers(societyId, page);
+        } catch (error) {
+            console.error("Delete Error:", error);
+            toast.error(error);
+        }
+    };
 
     const handleParkingList = async () => {
         setActive("parkingList")
     }
-
-    const resetForm = () => {
-        setFirstName("");
-        setLastName("");
-        setEmailId("");
-        setMobileNo("");
-        // setBlocks(null);
-        // setFlat("");
-        setMoveInDate("");
-        setMoveOutDate("");
-        setFamilyType("");
-        setAgreement("");
-        setRentAgreement("");
-        setPoliceNoc("");
-        setIdProof("");
-        setFamilyPhoto("");
-        setMaintenanceReceipt("");
-        setOwnershipDocuments("");
-        setNominationDetails("");
-        setErrors({});
-        setErrorText("");
-    };
 
     const exportData =
         selectedRange === "all"
@@ -519,7 +338,7 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
- 
+
     const handleSearch = async (e) => {
         const value = e.target.value;
         setSearch(value);
@@ -565,14 +384,14 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
                     </div>
 
                 </div>
-               
+
 
                 <div className="row g-3 mb-4">
                     {[
-                        [totalCount, "Total Slots", "Across 3 levels", "tile-black", <FiGrid />, handleParkingList],
-                        ["", "Occupancy Rate", "+ 2% this week", "tile-black", <FiTrendingUp />],
-                        ["", "Visitor Slots Active", "/ 25 Available", "tile-black", <FiClock />],
-                        ["", "Active Violations", "Needs attention", "tile-black", <FiAlertTriangle />],
+                        [totalSlots, "Total Slots", "Across 3 levels", "tile-black", <FiGrid />, handleParkingList],
+                        [occupanyRate, "Occupancy Rate", "+ 2% this week", "tile-black", <FiTrendingUp />],
+                        [visitorSlots, "Visitor Slots Active", "/ 25 Available", "tile-black", <FiClock />],
+                        [activeViolation, "Active Violations", "Needs attention", "tile-black", <FiAlertTriangle />],
                     ].map(([v, l, subText, cls, icon, onClick]) => (
                         <div className="col-6 col-md-3" key={l}>
                             <div
@@ -671,41 +490,7 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
                         </div>
                     ))}
                 </div>
-                {/* <div className="d-flex justify-content-between align-items-center mb-4 text-start">
-                    <div className="col-12 col-md-4 col-lg-3 position-relative">
-                        <span
-                            style={{
-                                position: "absolute",
-                                left: "15px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                color: "#aaa",
-                            }}
-                        >
-                            <FiSearch size={16} />
-                        </span>
 
-                        <input
-                            type="text"
-                            className="form-control rounded-pill"
-                            placeholder="Search by unit no.,tenant name..."
-                            value={search}
-                            // onChange={(e) => setSearch(e.target.value)}
-                            onChange={handleSearch}
-                            style={{ paddingLeft: "35px" }}
-                        />
-                    </div>
-                    <div className="d-flex">
-                        <button
-                            className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
-                            data-bs-toggle="dropdown"
-                        >
-                            <FiFilter size={14} />
-                            Filter
-                        </button>
-
-                    </div>
-                </div> */}
                 <div className="row g-3">
 
                     {/* Visitor Parking */}
@@ -718,12 +503,6 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
                                     VISITOR PARKING
                                 </div>
 
-                                {/* <div className="d-flex gap-2">
-                                    <FiSearch />
-                                    <FiFilter />
-                                    <FiDownload />
-                                    <FiPlus />
-                                </div> */}
                                 <div className="d-flex align-items-center gap-2">
                                     {[FiSearch, FiFilter, FiDownload, FiPlus].map((Icon, i) => (
                                         <button
@@ -748,31 +527,32 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
                                 </div>
                             </div>
 
-                            {visitorParkingData.map((item) => {
-                                const Icon = item.icon;
+                            {allVisitorParking.map((item) => {
+                                // const Icon = item.icon;
 
                                 return (
                                     <div key={item.id} className="vpd-row" style={{ cursor: "pointer" }} onClick={() => setActive("visitorDetails")}>
 
                                         <div className="d-flex align-items-center" >
                                             <div className="vpd-icon-wrapper">
-                                                <Icon size={18} color="#6b7280" />
+                                                {/* <Icon size={18} color="#6b7280" /> */}
                                             </div>
 
                                             <div>
                                                 <div className="vpd-name text-start">
-                                                    {item.vehicleNo}
+                                                    {item.vehicle_number}
                                                 </div>
 
                                                 <div className="vpd-subtitle text-start">
-                                                    {item.description}
+                                                    {/* {item.description} */}
+                                                    {item.vehicle_type} {item.block}
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div className="text-end">
                                             <div className="vpd-slot">
-                                                {item.slot}
+                                                {item.slot_number}
                                             </div>
 
                                             <div
@@ -785,7 +565,6 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
                                     </div>
                                 );
                             })}
-
                             <div className="vpd-footer">
                                 View All Visitors
                             </div>
@@ -831,8 +610,8 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
                                 </div>
                             </div>
 
-                            {violationAlertsData.map((item) => {
-                                const Icon = item.icon;
+                            {allViolationAlerts.map((item) => {
+                                // const Icon = item.icon;
 
                                 return (
                                     <div key={item.id} className="vpd-row">
@@ -845,15 +624,15 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
                                                     background: item.bgColor, textAlign: "start"
                                                 }}
                                             >
-                                                <Icon
+                                                {/* <Icon
                                                     size={18}
                                                     color={item.iconColor}
-                                                />
+                                                /> */}
                                             </div>
 
                                             <div style={{ textAlign: "start", cursor: "pointer" }} onClick={() => setActive("viewParkingDetails")}>
                                                 <div className="vpd-name">
-                                                    {item.title}
+                                                    {item.violation_type}
                                                 </div>
 
                                                 <div className="vpd-subtitle">
@@ -868,7 +647,7 @@ const ParkingDashboard = ({ setActive, setMemberId, setFlatId }) => {
                             })}
 
                             <div className="vpd-footer">
-                                View All Visitors
+                                View All Violations
                             </div>
                         </div>
                     </div>

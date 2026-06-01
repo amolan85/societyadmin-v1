@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/NoticeBoard.css"
 import { deleteNoticeApi, getNoticeBoardApi } from '../../services/NoticeBoardApi';
