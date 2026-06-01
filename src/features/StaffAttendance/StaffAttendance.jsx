@@ -422,7 +422,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                 </div>
                 <div className="d-flex">
                     <button
-                        className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
+                        className="btn-ol ms-2"
                         data-bs-toggle="dropdown" onClick={() => setShowFilterAttendance(true)}
                     >
                         <FiFilter size={14} />

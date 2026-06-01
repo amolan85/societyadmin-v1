@@ -237,18 +237,6 @@
   color: #fff !important;
 }
 
-.extend-btn {
-  border:1px solid #6c757d !important;
-  color: #6c757d !important;
-  border-color: #6c757d !important;
-}
-
-
-.extend-btn:hover {
-  background-color: #6c757d !important;
-  color: #fff !important;
-}
-
 .cov-detail-table {
   width: 100%;
   border-collapse: separate;
@@ -303,4 +291,29 @@
     align-items: center;
     justify-content: center;
     background-color: #fff;
+}
+/* Visitor Parking - gray circle */
+.vpd-icon-wrapper {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+/* Violation Alerts - red/pink circle */
+.vad-icon-wrapper {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #fee2e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
 }

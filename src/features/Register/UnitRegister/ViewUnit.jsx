@@ -270,8 +270,8 @@ const ViewUnit = ({ setActive, flatId }) => {
             </div>
 
             <div className="d-flex gap-2 mt-3 mt-lg-0">
-              <button className="btn btn-outline-secondary btn-sm">
-                <FiMessageSquare className="me-1" />
+              <button className="btn btn-sm btn-ad grey-btn">
+                <FiMessageSquare className="me-1" size={16} />
                 Message
               </button>
 
@@ -282,7 +282,7 @@ const ViewUnit = ({ setActive, flatId }) => {
                   setShow(true);
                 }}
               >
-                <FiEdit className="me-1" />
+                <FiEdit className="me-1" size={16} />
                 Edit Unit
               </button>
               <button
@@ -348,7 +348,7 @@ const ViewUnit = ({ setActive, flatId }) => {
                 <span className="fw-semibold">Primary Owner</span>
 
                 <button
-                  className="btn btn-outline-secondary btn-sm"
+                  className="btn btn-sm btn-ad grey-btn"
                   onClick={() => setActive("memberDetails")}
                 >
                   View Profile

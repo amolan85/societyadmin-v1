@@ -88,7 +88,7 @@ const UploadModal = ({
                         <div className="modal-footer bg-light">
                             <button
                                 type="button"
-                                className="btn btn-outline-secondary" onClick={() => {
+                                className="btn btn-ad grey-btn" onClick={() => {
                                     setShowUpload(false);
                                     resetForm();
                                 }}

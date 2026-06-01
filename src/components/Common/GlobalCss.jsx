@@ -178,6 +178,17 @@ body {
 .btn-ok { background: var(--success); color: #fff; border: none; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
 .btn-er { background: var(--danger);  color: #fff; border: none; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
 
+.grey-btn {
+  border:1px solid #6c757d !important;
+  color: #6c757d !important;
+  border-color: #6c757d !important;
+}
+
+
+.grey-btn:hover {
+  background-color: #6c757d !important;
+  color: #fff !important;
+}
 /* ── INPUTS ─────────────────────────────────── */
 .sv-in, .sv-sel, .sv-ta {
   width: 100%; padding: 9px 14px;

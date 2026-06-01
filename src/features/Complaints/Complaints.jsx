@@ -536,7 +536,7 @@ const Complaints = ({ setActive }) => {
 
                 {/* Buttons */}
                 <div className="d-flex justify-content-end gap-3 ">
-                  <button className="btn btn-sm btn-outline-secondary">
+                  <button className="btn btn-sm btn-ad grey-btn">
                     View Details
                   </button>
 
