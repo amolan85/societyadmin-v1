@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "../../styles/AddMember.css";
 import { Badge, Pagination } from "../../components/Common/ReusableFunction";
 import { GetSessionData } from "../../utils/SessionManagement";
+import ViolationAlertModal from "./ViolationAlertModal";
 import {
     AddMemberApi,
     getMembersApi,
@@ -52,6 +53,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
     const [nominationDetails, setNominationDetails] = useState("");
     const [societyId, setSocietyId] = useState("");
     const [userId, setUserId] = useState("");
+    const [showViolationAlert, setShowViolationAlert] = useState(false);
     const [errors, setErrors] = useState({});
     const [show, setShow] = useState(false);
     const [page, setPage] = useState(1);
@@ -582,8 +584,8 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                     </div>
                     <div className='d-flex'>
 
-                        {/* <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
-                            setShow(true)}>+ Register New Tenant</button> */}
+                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
+                            setShowViolationAlert(true)}>+ Create Violation Alert</button>
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
                     </div>
 
@@ -591,10 +593,10 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                 {/* Stats */}
                 <div className="row g-3 mb-4">
                     {[
-                        [totalCount, "Pending Approvals", "Action Required", "tile-yel"],
-                        [totalOwners, "Agreements Expiring", "In next 30 days", "tile-red"],
-                        [totalTenant, "KYC Unverified", "Pending review", "tile-blu"],
-                        [totalFamilyMember, "Active Rentals", "+3 this month", "tile-grn"],
+                        [totalCount, "All Violations Alerts", "", "tile-blu"],
+                        [totalOwners, "Open Violations Alerts", "", "tile-grn"],
+                        [totalTenant, "Resolved Violations Alerts", "", "tile-yel"],
+                        [totalFamilyMember, "Dismissed Violations Alerts", "", "tile-red"],
                     ].map(([v, l, subText, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
                             <div className={`tile bg-white ${cls}`}>
@@ -675,7 +677,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                     </div>
                     <div className="d-flex">
                         <button
-                            className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
+                            className="btn-ol ms-2"
                             data-bs-toggle="dropdown"
                         >
                             <FiFilter size={14} />
@@ -794,6 +796,14 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
 
                     {/* Pagination */}
                     <Pagination page={page} total={total} onChange={handlePageChange} />
+                    <ViolationAlertModal
+                        showViolationAlert={showViolationAlert}
+                        setShowViolationAlert={setShowViolationAlert}
+                        allBlocks={allBlocks}
+                        allFlats={allFlats}
+                        handleSubmit={handleSubmit}
+                        mode={mode}
+                    />
                 </div>
             </div>
 
