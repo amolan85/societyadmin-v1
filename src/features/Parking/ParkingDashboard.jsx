@@ -3,7 +3,7 @@ import "../../styles/AddMember.css";
 import "../../styles/Parking.css";
 import { Badge, Pagination } from "../../components/Common/ReusableFunction";
 import { GetSessionData } from "../../utils/SessionManagement";
-import {TbCircleMinus , TbParking, TbMapPinOff, TbFileOff, TbAlertCircle, TbClockX, TbAlertTriangle, TbMotorbike, TbCar, TbTruck } from "react-icons/tb";
+import { TbCircleMinus, TbParking, TbMapPinOff, TbFileOff, TbAlertCircle, TbClockX, TbAlertTriangle, TbMotorbike, TbCar, TbTruck } from "react-icons/tb";
 
 import {
     AddMemberApi,
@@ -30,8 +30,10 @@ import {
 // import MemberModal from "./MemberModal";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import { BiCar } from "react-icons/bi";
-import { parkingDashboardApi, visitorParkingApi } from "../../services/ParkingApi";
+import { parkingDashboardApi } from "../../services/ParkingApi";
 import { violationAlertsApi } from "../../services/ViolationAlertsApi";
+import AllocateSlotModal from "./AllocateSlotModal";
+import { visitorParkingApi } from "../../services/VisitorParkingApi";
 // import RegisterTenantsModal from "./RegisterTenantsModal";
 
 const ParkingDashboard = ({ setActive, setViolationId }) => {
@@ -58,6 +60,7 @@ const ParkingDashboard = ({ setActive, setViolationId }) => {
     const [activeViolation, setActiveViolation] = useState("");
     const [allVisitorParking, setAllVisitorParking] = useState([]);
     const [allViolationAlerts, setAllViolationAlerts] = useState([]);
+    const [showAllocateSlot, setShowAllocateSlot] = useState(false);
 
     const getViolationIcon = (violationType) => {
         const icons = {
@@ -405,7 +408,7 @@ const ParkingDashboard = ({ setActive, setViolationId }) => {
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
                             setActive("parkingRules")}>Parking Rules</button>
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
-                            setShow(true)}>+ Allocate Slot</button>
+                            setShowAllocateSlot(true)}>+ Allocate Slot</button>
 
                     </div>
 
@@ -654,7 +657,7 @@ const ParkingDashboard = ({ setActive, setViolationId }) => {
                                                 </div>
 
                                                 <div className="vpd-subtitle">
-                                                    {item.description}
+                                                    Slot {item.slot_number}
                                                 </div>
                                             </div>
 
@@ -827,7 +830,10 @@ const ParkingDashboard = ({ setActive, setViolationId }) => {
                     <Pagination page={page} total={total} onChange={handlePageChange} />
                 </div>
             </div >
-
+            <AllocateSlotModal 
+            showAllocateSlot={showAllocateSlot}
+            setShowAllocateSlot={setShowAllocateSlot}
+            />
         </>
     );
 };

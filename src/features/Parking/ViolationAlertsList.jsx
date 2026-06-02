@@ -28,6 +28,7 @@ import {
 import { CgExport } from "react-icons/cg";
 // import MemberModal from "./MemberModal";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
+import { violationAlertsApi } from "../../services/ViolationAlertsApi";
 
 
 const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
@@ -69,7 +70,8 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
     const [mId, setMId] = useState("");
     const [selectedRange, setSelectedRange] = useState("all");
 
-    const [mangementTypeTab, setManagementTypeTab] = useState("");
+    const [violationStatusTab, setViolationStatusTab] = useState("");
+    const [allViolationAlerts, setAllViolationAlerts] = useState([]);
 
     const tenantData = [
         {
@@ -162,15 +164,11 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
         },
     ];
 
-    const addMemberType = [
-        { id: "Tenant", value: "tenant" },
-    ];
-
-    const mangementType = [
-        { id: "All Rentals", value: "" },
-        { id: "Pending Registration", value: "pendingResitration" },
-        { id: "Expiring Soon", value: "emergency" },
-        { id: "KYC Pending", value: "circular" },
+    const violationStatus = [
+        { id: "All", value: "" },
+        { id: "Open", value: "open" },
+        { id: "Resolved", value: "resolved" },
+        { id: "Dismissed", value: "dismissed" },
 
     ];
 
@@ -186,74 +184,27 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
         const flats = data.data.flats[0];
         setSocietyId(flats.society_id);
         setUserId(flats.user_id);
-        getMembers(flats.society_id);
-        getAllFlats(flats.society_id);
-        getAllBlocks(flats.society_id);
+        getAllVisitorAlerts(flats.society_id);
     };
 
     //function for get members
-    const getMembers = async (societyId, page) => {
+    const getAllVisitorAlerts = async (societyId, page) => {
+
         try {
-            const data = await getMembersApi(societyId, page);
-            setAllMembers(data.members);
+            const data = await violationAlertsApi(societyId, page, limit);
+            setAllViolationAlerts(data.violations || []);
             setPage(data.page);
-            setLimit(data.per_page);
-            setTotalCount(data.total_count);
+            setLimit(data.limit);
+            setTotalCount(data.total);
         } catch (error) {
-            console.error("Error fetching members:", error);
+            console.error("Error fetching violation alerts:", error);
         }
     };
-
-    const getAllMembersWithoutPagination = async (societyId, search) => {
-        try {
-            const data = await getAllMembersWithoutPaginationApi(societyId, search);
-            console.log(data.members, "All members without pagination");
-
-            setAllMembersWithoutPagination(data.members);
-        } catch (error) {
-            console.error("Error fetching members:", error);
-        }
-    };
-
-    const getAllFlats = async (societyId) => {
-        try {
-            const data = await getAllFlatsApi(societyId);
-            console.log(data.flats, "All flats");
-            setAllFlats(
-                data.flats.map((item) => ({
-                    value: item.flat_number,
-                    label: item.flat_number,
-                })),
-            );
-        } catch (error) {
-            console.error("Error fetching members:", error);
-        }
-    };
-
-    const getAllBlocks = async (societyId) => {
-        try {
-            const data = await getAllBlocksApi(societyId);
-            console.log(data.blocks, "All blocks");
-            setAllBlocks(
-                data.blocks.map((item) => ({
-                    value: item.block,
-                    label: item.block,
-                })),
-            );
-        } catch (error) {
-            console.error("Error fetching members:", error);
-        }
-    };
-
-    const getMembersById = async (memberId, flatId) => {
-        setMemberId(memberId);
-        setFlatId(flatId);
-        setActive("memberDetails");
-    };
+    ;
 
     const handlePageChange = (value) => {
         setPage(value);
-        getMembers(societyId, value);
+        getAllVisitorAlerts(societyId, page, limit, value);
     };
 
     //function for validation
@@ -563,6 +514,10 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
         });
     };
 
+    const filteredData = violationStatusTab === ""
+        ? allViolationAlerts
+        : allViolationAlerts.filter((item) => item.status === violationStatusTab);
+
     const handleExport = () => {
         if (activeTab === "excel") {
             downloadExcel();
@@ -675,11 +630,11 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                     <div className='col-lg-8'>
                         <div className="NoticeBoardTabs mt-3 bg-white"
                         >
-                            {mangementType.map((t) => (
+                            {violationStatus.map((t) => (
                                 <button
                                     key={t.id}
-                                    onClick={() => { setManagementTypeTab(t.value); setPage(1); }}
-                                    className={`NoticeBoardTabs-btn ${mangementTypeTab === t.value ? "active" : ""}`}
+                                    onClick={() => { setViolationStatusTab(t.value); setPage(1); }}
+                                    className={`NoticeBoardTabs-btn ${violationStatusTab === t.value ? "active" : ""}`}
                                 >
                                     {t.icon} &nbsp;{t.id}
                                 </button>
@@ -711,7 +666,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                         <input
                             type="text"
                             className="form-control rounded-pill"
-                            placeholder="Search by unit no.,tenant name..."
+                            placeholder="Search by violation type, slot no..."
                             value={search}
                             // onChange={(e) => setSearch(e.target.value)}
                             onChange={handleSearch}
@@ -734,118 +689,52 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                         <table className="sv-tbl">
                             <thead>
                                 <tr>
-                                    <th>UNIT NO.</th>
-                                    <th>TENANT INFORMATION</th>
-                                    <th>LEASE PERIOD</th>
-                                    <th>KYC STATUS</th>
-                                    <th>AGREEMENT</th>
+                                    <th>VIOLATION TYPE</th>
+                                    <th>SLOT NO</th>
+                                    <th>VEHICLE NO</th>
+                                    <th>PENALTY AMOUNT</th>
+                                    <th>STATUS</th>
                                     <th>ACTION</th>
                                 </tr>
                             </thead>
 
                             <tbody>
-                                {tenantData.map((item, index) => (
+                                {filteredData.map((item, index) => (
                                     <tr key={index}>
                                         {/* Unit */}
                                         <td className="text-start">
-                                            <div className="fw-bold">{item.unitNo}</div>
-                                            <small className="text-muted">
-                                                Owner: {item.owner}
-                                            </small>
+                                            <div className="fw-bold">{item.violation_type}</div>
+
                                         </td>
-
-                                        {/* Tenant */}
                                         <td className="text-start">
-                                            <div className="d-flex align-items-center gap-2">
-                                                <img
-                                                    src={item.avatar}
-                                                    alt=""
-                                                    width="40"
-                                                    height="40"
-                                                    className="rounded-circle"
-                                                />
+                                            <div className="fw-bold">{item.slot_number}</div>
 
-                                                <div>
-                                                    <div className="fw-semibold">
-                                                        {item.tenantName}
-                                                    </div>
-                                                    <small className="text-muted">
-                                                        {item.tenantContact}
-                                                    </small>
-                                                </div>
-                                            </div>
                                         </td>
-
-                                        {/* Lease */}
                                         <td className="text-start">
-                                            <div className="text-start">
-                                                {item.leaseStart} - {item.leaseEnd}
-                                            </div>
+                                            <div className="fw-bold">{item.vehicle_number}</div>
 
-                                            <small
-                                                className={
-                                                    item.duration.includes("Expires")
-                                                        ? "text-danger"
-                                                        : "text-muted"
-                                                }
-                                            >
-                                                {item.duration}
-                                            </small>
                                         </td>
-
-                                        {/* KYC */}
                                         <td className="text-start">
-                                            {/* <span
-                                                className={`badge rounded-pill bg-${item.kycColor}-subtle text-${item.kycColor}`}
-                                            >
-                                                {item.kycIcon} {item.kycStatus}
-                                            </span> */}
+                                            <div className="fw-bold">{item.penalty_amount}</div>
+
+                                        </td>
+                                        {/* STATUS*/}
+                                        <td className="text-start">
                                             <Badge
-                                                label={item.kycStatus}
+                                                label={item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : ""}
                                                 c={
-                                                    item.kycStatus === "Verified"
+                                                    item.status === "open"
                                                         ? "green"
-                                                        : item.kycStatus === "Pending Verification"
+                                                        : item.status === "resolved"
                                                             ? "yellow"
-                                                            : item.kycStatus === "Pending KYC"
-                                                                ? "yellow"
+                                                            : item.status === "dismissed"
+                                                                ? "red"
                                                                 : "gray"
                                                 }
                                             />{" "}
 
                                         </td>
-                                        {/* Agreement */}
-                                        <td className="text-start">
-                                            {/* <span
-                                                className={`badge rounded-pill bg-${item.agreementColor}-subtle text-${item.agreementColor}`}
-                                            >
-                                                {item.agreementIcon} {item.agreementStatus}
-                                            </span> */}
-                                            <Badge
-                                                label={item.agreementStatus}
-                                                c={
-                                                    item.agreementStatus === "Uploaded"
-                                                        ? "blue"
-                                                        : item.agreementStatus === "Expiring Soon"
-                                                            ? "red"
-                                                            : item.agreementStatus === "Active"
-                                                                ? "green"
-                                                                : item.agreementStatus === "Not Uploaded"
-                                                                    ? "gray"
-                                                                    : "gray"
-                                                }
-                                            />{" "}
-                                        </td>
 
-                                        {/* Action */}
-                                        {/* <td className="text-start">
-                                            <button
-                                                className={`btn btn-sm btn-outline-${item.actionColor}`}
-                                           onClick={()=>setActive("rentalsApplication")}
-                                           >
-                                                {item.action}
-                                            </button>
-                                        </td> */}
                                         <td className="text-start">
                                             <div className="member-action-dropdown dropdown">
                                                 <button
@@ -861,10 +750,10 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            // onClick={() =>
-                                                            //     getMembersById(s.user_id, s.flat_id)
-                                                            // }
-                                                            onClick={() => setActive("rentalsApplication")}
+                                                        // onClick={() =>
+                                                        //     getMembersById(s.user_id, s.flat_id)
+                                                        // }
+                                                        // onClick={() => setActive("rentalsApplication")}
                                                         >
                                                             View Details
                                                         </button>
@@ -878,7 +767,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                                                         //     GetMemberDetailsById(s.user_id);
                                                         // }}
                                                         >
-                                                            Edit Parking
+                                                            Edit violation alerts
                                                         </button>
                                                     </li>
 
@@ -889,9 +778,9 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item member-action-delete"
-                                                            onClick={() => handleDelete(s.user_id)}
+                                                            onClick={() => handleDelete(item.id)}
                                                         >
-                                                            Delete Parking
+                                                            Delete Violation Alerts
                                                         </button>
                                                     </li>
                                                 </ul>

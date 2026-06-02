@@ -8,12 +8,13 @@ export const violationAlertsApi = async (societyId, page, limit) => {
     const data = {
         society_id: societyId,
         page: page,
-        limit: limit, status: "",
-        violation_type: "",
-        search: "",
-        date_from: "",
-        date_to: "",
-        slot_id: "",
+        limit: limit,
+         status: null,
+        violation_type: null,
+        search: null,
+        date_from: null,
+        date_to: null,
+        slot_id: null,
     }
     return await apiClient({
         method: 'post',

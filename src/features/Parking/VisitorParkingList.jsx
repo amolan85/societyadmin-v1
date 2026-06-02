@@ -25,11 +25,13 @@ import {
     getAllBlocksApi,
     getAllFlatsApi,
 } from "../../services/UnitRegisterApi";
-import { CgExport } from "react-icons/cg";
+import { CgExport, CgImport } from "react-icons/cg";
 // import MemberModal from "./MemberModal";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import { TbCar, TbMotorbike } from "react-icons/tb";
-import { visitorParkingApi } from "../../services/ParkingApi";
+
+import { visitorParkingApi, deleteVisitorParkingApi } from "../../services/VisitorParkingApi";
+import ExportModal from "../../components/Common/ExportModal";
 
 
 const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
@@ -73,6 +75,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
 
     const [allocationStatusTab, setAllocationStatusTab] = useState("");
     const [allVisitorParking, setAllVisitorParking] = useState([]);
+    const [allExportVisitorParking, setAllExportVisitorParking] = useState([]);
 
     const getVehicleIcon = (vehicleType) => {
         const icons = {
@@ -205,11 +208,22 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
         try {
             const data = await visitorParkingApi(societyId, page, limit);
             setAllVisitorParking(data.visitor_parking || []);
+            setPage(data.page);
+            setLimit(data.limit);
+            setTotalCount(data.total);
         } catch (error) {
             console.error("Error fetching visitor parking list:", error);
         }
     };
 
+    const getAllExportParking = async (societyId) => {
+        try {
+            const data = await visitorParkingApi(societyId);
+            setAllExportVisitorParking(data.visitor_parking || []);
+        } catch (error) {
+            console.error("Error fetching visitor parking list:", error);
+        }
+    };
 
     const handlePageChange = (value) => {
         setPage(value);
@@ -439,14 +453,18 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
-    const handleDelete = async (memberId) => {
+    const handleDelete = async (visitorParkingId) => {
+        const confirmed = window.confirm("Are you sure you want to delete this Visitor Parking?");
+
+        if (!confirmed) return;
+
         try {
-            const data = await deleteMembersApi(memberId);
+            const data = await deleteVisitorParkingApi(societyId, visitorParkingId);
 
             console.log(data, "Delete response");
 
-            toast.success("Member deleted successfully");
-            getMembers(societyId, page);
+            toast.success("Visitor parking deleted successfully");
+            visitorParking(societyId, page);
             // Refresh member list if needed
             // GetAllMembers();
         } catch (error) {
@@ -480,17 +498,17 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
 
     const exportData =
         selectedRange === "all"
-            ? allMembersWithoutPagination
+            ? allExportVisitorParking
             : selectedRange === "search"
-                ? allMembers
+                ? allVisitorParking
                 : "";
 
 
     const downloadExcel = async () => {
         exportFile({
             data: exportData,
-            fileName: "Members",
-            sheetName: "Members",
+            fileName: "VisitorParking",
+            sheetName: "VisitorParking",
             type: "xlsx",
         });
     };
@@ -498,27 +516,29 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
     const downloadCSV = async () => {
         exportFile({
             data: exportData,
-            fileName: "Members",
-            sheetName: "Members",
+            fileName: "VisitorParking",
+            sheetName: "VisitorParking",
             type: "csv",
         });
     };
 
     const downloadPDF = () => {
         exportToPDF({
-            title: "Members Report",
-            fileName: "Members",
+            title: "Visitor Parking Report",
+            fileName: "VisitorParking",
             columns: [
-                "Member Name",
-                "Unit No.",
-                "Role",
-                "Contact Info",
+                "Visitor Name",
+                "Visitor Mobile",
+                "Vehicle No",
+                "Vehicle Type",
+                "Slot No",
             ],
             data: exportData.map((item) => [
-                item.first_name + " " + item.last_name,
-                item.flat_number,
-                item.occupancy_type,
-                item.mobile,
+                item.visitor_name,
+                item.visitor_mobile,
+                item.vehicle_number,
+                item.vehicle_type,
+                item.slot_number,
             ]),
         });
     };
@@ -536,18 +556,21 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
-    const totalOwners = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "owner",
-    ).length;
+    // const totalOwners = allMembers.filter(
+    //     (item) => item.occupancy_type?.toLowerCase() === "owner",
+    // ).length;
 
-    const totalTenant = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "tenant",
-    ).length;
+    // const totalTenant = allMembers.filter(
+    //     (item) => item.occupancy_type?.toLowerCase() === "tenant",
+    // ).length;
 
-    const totalFamilyMember = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "familyMember",
-    ).length;
+    // const totalFamilyMember = allMembers.filter(
+    //     (item) => item.occupancy_type?.toLowerCase() === "familyMember",
+    // ).length;
 
+    const filteredData = allocationStatusTab === ""
+        ? allVisitorParking
+        : allVisitorParking.filter((item) => item.status === allocationStatusTab);
 
     const handleSearch = async (e) => {
         const value = e.target.value;
@@ -556,18 +579,15 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
         try {
             if (!value.trim()) {
                 setPage(1);
-                await getMembers(societyId, 1);
-                return;
+                const data = await visitorParkingApi(societyId, page, limit);
+                setAllVisitorParking(data.visitor_parking || []);
             }
 
             if (value.length < 3) return;
 
-            const data = await getAllMembersWithoutPaginationApi(
-                societyId,
-                value
-            );
+            const data = await visitorParkingApi(societyId, page, limit, value);
 
-            setAllMembers(data?.members || []);
+            setAllVisitorParking(data.visitor_parking || []);
         } catch (error) {
             console.error("Search error:", error);
         }
@@ -589,7 +609,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
 
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
                             setShow(true)}>+ Create Visitor</button>
-                              <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
+                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
                             setShow(true)}>+ Allot Parking</button>
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
                     </div>
@@ -599,9 +619,9 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                 <div className="row g-3 mb-4">
                     {[
                         [totalCount, "Pending Approvals", "Action Required", "tile-yel"],
-                        [totalOwners, "Agreements Expiring", "In next 30 days", "tile-red"],
-                        [totalTenant, "KYC Unverified", "Pending review", "tile-blu"],
-                        [totalFamilyMember, "Active Rentals", "+3 this month", "tile-grn"],
+                        ["", "Agreements Expiring", "In next 30 days", "tile-red"],
+                        ["", "KYC Unverified", "Pending review", "tile-blu"],
+                        ["", "Active Rentals", "+3 this month", "tile-grn"],
                     ].map(([v, l, subText, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
                             <div className={`tile bg-white ${cls}`}>
@@ -673,7 +693,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                         <input
                             type="text"
                             className="form-control rounded-pill"
-                            placeholder="Search by unit no.,tenant name..."
+                            placeholder="Search by visitor name,vehicle no..."
                             value={search}
                             // onChange={(e) => setSearch(e.target.value)}
                             onChange={handleSearch}
@@ -682,13 +702,21 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                     </div>
                     <div className="d-flex">
                         <button
-                            className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
+                            className="btn btn-ol btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
                             data-bs-toggle="dropdown"
                         >
                             <FiFilter size={14} />
                             Filter
                         </button>
-
+                        <button
+                            className="btn-ol ms-2"
+                            onClick={() => {
+                                getAllExportParking(societyId);
+                                setExportModal(true);
+                            }}
+                        >
+                            <CgImport /> Export
+                        </button>
                     </div>
                 </div>
                 <div className="sv-card p-0 overflow-hidden">
@@ -707,7 +735,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                             </thead>
 
                             <tbody>
-                                {allVisitorParking.map((item, index) => (
+                                {filteredData.map((item, index) => (
                                     <tr key={index}>
                                         {/* Unit */}
                                         <td className="text-start">
@@ -724,9 +752,9 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
 
                                         </td>
                                         <td className="text-start">
-                                             <Badge
+                                            <Badge
                                                 label={item.vehicle_type == "4_wheeler" ? "4 Wheeler" : item.vehicle_type == "2_wheeler" ? "2 Wheeler" : ""}
-                                                  c={
+                                                c={
                                                     item.vehicle_type === "4_wheeler"
                                                         ? "blue"
                                                         : item.vehicle_type === "2_wheeler"
@@ -801,7 +829,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item member-action-delete"
-                                                            onClick={() => handleDelete(s.user_id)}
+                                                            onClick={() => handleDelete(item.id)}
                                                         >
                                                             Delete Parking
                                                         </button>
@@ -820,6 +848,17 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                 </div>
             </div>
 
+            <ExportModal
+                show={exportModal}
+                onClose={() => setExportModal(false)}
+                onExport={handleExport}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                selectedRange={selectedRange}
+                setSelectedRange={setSelectedRange}
+                totalRecords={allExportVisitorParking.length}
+                currentRecords={allVisitorParking.length}
+            />
         </>
     );
 };
