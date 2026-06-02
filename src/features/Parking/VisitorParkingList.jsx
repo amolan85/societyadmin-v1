@@ -30,6 +30,8 @@ import { CgExport } from "react-icons/cg";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import { TbCar, TbMotorbike } from "react-icons/tb";
 import { visitorParkingApi } from "../../services/ParkingApi";
+import AllotVisitorParkingModal from "./AllotVisitorParkingModal";
+import CreateVisitorParkingModal from "./CreateVisitorParkingModal";
 
 
 const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
@@ -55,6 +57,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
     const [userId, setUserId] = useState("");
     const [errors, setErrors] = useState({});
     const [show, setShow] = useState(false);
+    const [createvisitorparkingshow, createvisitorparkingsetShow] = useState(false);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
@@ -588,8 +591,8 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                     <div className='d-flex'>
 
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
-                            setShow(true)}>+ Create Visitor</button>
-                              <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
+                            createvisitorparkingsetShow(true)}>+ Create Visitor</button>
+                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
                             setShow(true)}>+ Allot Parking</button>
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
                     </div>
@@ -598,12 +601,12 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                 {/* Stats */}
                 <div className="row g-3 mb-4">
                     {[
-                        [totalCount, "Pending Approvals", "Action Required", "tile-yel"],
-                        [totalOwners, "Agreements Expiring", "In next 30 days", "tile-red"],
-                        [totalTenant, "KYC Unverified", "Pending review", "tile-blu"],
-                        [totalFamilyMember, "Active Rentals", "+3 this month", "tile-grn"],
+                        [totalCount, "All Visitors", "", "tile-yel"],
+                        [totalOwners, "Active Visitor Parking", "", "tile-grn"],
+                        [totalTenant, "Released Visitor Parking", "", "tile-blu"],
+                        // [totalFamilyMember, "Active Rentals", "+3 this month", "tile-grn"],
                     ].map(([v, l, subText, cls]) => (
-                        <div className="col-6 col-md-3" key={l}>
+                        <div className="col-6 col-md-4" key={l}>
                             <div className={`tile bg-white ${cls}`}>
                                 <div className="text-start text-muted">
                                     {l}
@@ -682,7 +685,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                     </div>
                     <div className="d-flex">
                         <button
-                            className="btn btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
+                            className="btn-ol ms-2"
                             data-bs-toggle="dropdown"
                         >
                             <FiFilter size={14} />
@@ -724,9 +727,9 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
 
                                         </td>
                                         <td className="text-start">
-                                             <Badge
+                                            <Badge
                                                 label={item.vehicle_type == "4_wheeler" ? "4 Wheeler" : item.vehicle_type == "2_wheeler" ? "2 Wheeler" : ""}
-                                                  c={
+                                                c={
                                                     item.vehicle_type === "4_wheeler"
                                                         ? "blue"
                                                         : item.vehicle_type === "2_wheeler"
@@ -819,6 +822,12 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                     <Pagination page={page} total={total} onChange={handlePageChange} />
                 </div>
             </div>
+            <AllotVisitorParkingModal
+                show={show}
+                setShow={setShow} />
+            <CreateVisitorParkingModal
+                createvisitorparkingshow={createvisitorparkingshow}
+                createvisitorparkingsetShow={createvisitorparkingsetShow} />
 
         </>
     );
