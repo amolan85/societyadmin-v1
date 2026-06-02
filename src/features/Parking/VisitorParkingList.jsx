@@ -11,15 +11,7 @@ import {
     deleteMembersApi,
 } from "../../services/AddMemberApi";
 import { toast } from "react-toastify";
-import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import { FiFilter, FiSearch } from "react-icons/fi";
-import {
-    FaUserCircle,
-    FaFileUpload,
-    FaCheckCircle,
-    FaExclamationTriangle,
-    FaClock,
-} from "react-icons/fa";
 
 import {
     getAllBlocksApi,
@@ -79,6 +71,13 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
     const [allocationStatusTab, setAllocationStatusTab] = useState("");
     const [allVisitorParking, setAllVisitorParking] = useState([]);
     const [allExportVisitorParking, setAllExportVisitorParking] = useState([]);
+    const [visitorName, setVisitorName] = useState("");
+    const [visitorMobile, setVisitorMobile] = useState("");
+    const [visitorEmail, setVisitorEmail] = useState("");
+    const [vehicleNumber, setVehicleNumber] = useState("");
+    const [visitorGender, setVisitorGender] = useState("");
+    const [vehicleType, setVehicleType] = useState("");
+    const [purpose, setPurpose] = useState("");
 
     const getVehicleIcon = (vehicleType) => {
         const icons = {
@@ -87,101 +86,31 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
         };
         return icons[vehicleType] ?? icons["4_wheeler"];
     };
+    const vehicleTypeOptions = [
+        {
+            value: "2_wheeler",
+            label: "2 Wheeler",
+        },
+        {
+            value: "4_wheeler",
+            label: "4 Wheeler",
+        },
+    ]
 
-    // const tenantData = [
-    //     {
-    //         unitNo: "Unit B-402",
-    //         owner: "Amit Patel",
-    //         tenantName: "Rohan Sharma",
-    //         tenantContact: "rohan.s@email.com",
-    //         avatar: "https://i.pravatar.cc/40?img=1",
-
-    //         leaseStart: "01 Mar 2024",
-    //         leaseEnd: "28 Feb 2025",
-    //         duration: "11 Months",
-
-    //         kycStatus: "Pending Verification",
-    //         kycColor: "warning",
-    //         kycIcon: <FaClock />,
-
-    //         agreementStatus: "Uploaded",
-    //         agreementColor: "primary",
-    //         agreementIcon: <FaFileUpload />,
-
-    //         action: "Review & Approve",
-    //         actionColor: "warning",
-    //     },
-    //     {
-    //         unitNo: "Unit A-105",
-    //         owner: "Rajesh Kumar",
-    //         tenantName: "Sarah Jenkins",
-    //         tenantContact: "+91 98765 43210",
-    //         avatar: "https://i.pravatar.cc/40?img=2",
-
-    //         leaseStart: "15 Nov 2023",
-    //         leaseEnd: "14 Nov 2024",
-    //         duration: "Expires in 12 Days",
-
-    //         kycStatus: "Verified",
-    //         kycColor: "success",
-    //         kycIcon: <FaCheckCircle />,
-
-    //         agreementStatus: "Expiring Soon",
-    //         agreementColor: "danger",
-    //         agreementIcon: <FaExclamationTriangle />,
-
-    //         action: "View Details",
-    //         actionColor: "primary",
-    //     },
-    //     {
-    //         unitNo: "Unit C-301",
-    //         owner: "Priya Singh",
-    //         tenantName: "David Osei",
-    //         tenantContact: "david.o@email.com",
-    //         avatar: "https://i.pravatar.cc/40?img=3",
-
-    //         leaseStart: "10 Jan 2024",
-    //         leaseEnd: "09 Jan 2025",
-    //         duration: "11 Months",
-
-    //         kycStatus: "Verified",
-    //         kycColor: "success",
-    //         kycIcon: <FaCheckCircle />,
-
-    //         agreementStatus: "Active",
-    //         agreementColor: "success",
-    //         agreementIcon: <FaCheckCircle />,
-
-    //         action: "View Details",
-    //         actionColor: "primary",
-    //     },
-    //     {
-    //         unitNo: "Unit D-204",
-    //         owner: "Vikram Reddy",
-    //         tenantName: "Neha Gupta",
-    //         tenantContact: "+91 98111 22233",
-    //         avatar: "https://i.pravatar.cc/40?img=4",
-
-    //         leaseStart: "--",
-    //         leaseEnd: "--",
-    //         duration: "Awaiting Draft",
-
-    //         kycStatus: "Pending KYC",
-    //         kycColor: "warning",
-    //         kycIcon: <FaClock />,
-
-    //         agreementStatus: "Not Uploaded",
-    //         agreementColor: "secondary",
-    //         agreementIcon: <FaFileUpload />,
-
-    //         action: "Upload",
-    //         actionColor: "secondary",
-    //     },
-    // ];
-
-    // const addMemberType = [
-    //     { id: "Tenant", value: "tenant" },
-    // ];
+    const genderOptions = [
+        {
+            value: "male",
+            label: "Male",
+        },
+        {
+            value: "female",
+            label: "Female",
+        },
+           {
+            value: "other",
+            label: "Other",
+        },
+    ]
 
     const allocationStatus = [
         { id: "All Visitor", value: "" },
@@ -203,6 +132,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
         setSocietyId(flats.society_id);
         setUserId(flats.user_id);
         visitorParking(flats.society_id, 1);
+        getAllBlocks(flats.society_id);
 
     };
 
@@ -227,6 +157,49 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
             console.error("Error fetching visitor parking list:", error);
         }
     };
+
+    const getAllBlocks = async (societyId) => {
+        try {
+            const data = await getAllBlocksApi(societyId);
+
+            const blockOptions = data.blocks.map((item) => ({
+                value: item.block,
+                label: item.block,
+            }));
+
+            setAllBlocks(blockOptions);
+
+
+        } catch (error) {
+            console.error("Error fetching blocks:", error);
+        }
+    };
+
+    const handleBlockChange = async (selectedOption) => {
+        setBlocks(selectedOption);
+
+        if (selectedOption?.value) {
+            await getAllFlats(societyId, selectedOption.value);
+        }
+    };
+
+    const getAllFlats = async (societyId, block) => {
+        try {
+            const data = await getAllFlatsApi(societyId, block);
+
+            console.log(data.flats, "All flats");
+
+            setAllFlats(
+                data.flats.map((item) => ({
+                    value: item.flat_number,
+                    label: item.flat_number,
+                }))
+            );
+        } catch (error) {
+            console.error("Error fetching flats:", error);
+        }
+    };
+
 
     const handlePageChange = (value) => {
         setPage(value);
@@ -357,25 +330,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                 getMembers(societyId, page);
             } else {
                 await AddMemberApi(
-                    societyId,
-                    userId,
-                    firstName,
-                    lastName,
-                    mobileNo,
-                    emailId,
-                    blocks?.value,
-                    flat?.value,
-                    finalMemType,
-                    moveInDate,
-                    moveOutDate,
-                    agreement,
-                    rentAgreement,
-                    policeNoc,
-                    idProof,
-                    familyPhoto,
-                    maintenanceReceipt,
-                    ownershipDocuments,
-                    nominationDetails,
+                   societyId, flat?.value, visitorName, mobileNo, emailId, visitorGender?.value,  vehicleNumber, purpose
                 );
 
                 toast.success("Member created successfully!");
@@ -476,6 +431,18 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
             toast.error(error);
         }
     };
+
+    const totalVisitorParking = allVisitorParking.length;
+
+    const totalActive = allVisitorParking.filter(
+        (item) => item.status?.toLowerCase() === "active",
+    ).length;
+
+    const totalReleased = allVisitorParking.filter(
+        (item) => item.status?.toLowerCase() === "released",
+    ).length;
+
+
 
     const resetForm = () => {
         setFirstName("");
@@ -621,9 +588,9 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                 {/* Stats */}
                 <div className="row g-3 mb-4">
                     {[
-                        [totalCount, "All Visitors", "", "tile-yel"],
-                        ["", "Active Visitor Parking", "", "tile-grn"],
-                        ["", "Released Visitor Parking", "", "tile-blu"],
+                        [totalVisitorParking, "All Visitors", "", "tile-blu"],
+                        [totalActive, "Active Visitor Parking", "", "tile-grn"],
+                        [totalReleased, "Released Visitor Parking", "", "tile-red"],
                         // [totalFamilyMember, "Active Rentals", "+3 this month", "tile-grn"],
                     ].map(([v, l, subText, cls]) => (
                         <div className="col-6 col-md-4" key={l}>
@@ -850,12 +817,37 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                     <Pagination page={page} total={total} onChange={handlePageChange} />
                 </div>
             </div>
+
             <AllotVisitorParkingModal
                 show={show}
                 setShow={setShow} />
+
             <CreateVisitorParkingModal
                 createvisitorparkingshow={createvisitorparkingshow}
-                createvisitorparkingsetShow={createvisitorparkingsetShow} />
+                createvisitorparkingsetShow={createvisitorparkingsetShow}
+                allBlocks={allBlocks}
+                handleBlockChange={handleBlockChange}
+                blocks={blocks}
+                allFlats={allFlats}
+                flat={flat}
+                setFlat={setFlat}
+                visitorName={visitorName}
+                setVisitorName={setVisitorName}
+                visitorMobile={visitorMobile}
+                setVisitorMobile={setVisitorMobile}
+                visitorEmail={visitorEmail}
+                setVisitorEmail={setVisitorEmail}
+                vehicleNumber={vehicleNumber}
+                setVehicleNumber={setVehicleNumber}
+                genderOptions={genderOptions}
+                visitorGender={visitorGender}
+                setVisitorGender={setVisitorGender}
+                vehicleTypeOptions={vehicleTypeOptions}
+                vehicleType={vehicleType}
+                setVehicleType={setVehicleType}
+                purpose={purpose}
+                setPurpose={setPurpose}
+            />
 
             <ExportModal
                 show={exportModal}

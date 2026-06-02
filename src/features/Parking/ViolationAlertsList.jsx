@@ -544,18 +544,19 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
-    const totalOwners = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "owner",
+    const totalAlerts = allViolationAlerts.length;
+
+    const totalOpen = allViolationAlerts.filter(
+        (item) => item.status?.toLowerCase() === "open",
     ).length;
 
-    const totalTenant = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "tenant",
+    const totalResolved = allViolationAlerts.filter(
+        (item) => item.status?.toLowerCase() === "resolved",
     ).length;
 
-    const totalFamilyMember = allMembers.filter(
-        (item) => item.occupancy_type?.toLowerCase() === "familyMember",
+     const totalDismissed = allViolationAlerts.filter(
+        (item) => item.status?.toLowerCase() === "dismissed",
     ).length;
-
 
     const handleSearch = async (e) => {
         const value = e.target.value;
@@ -601,10 +602,10 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                 {/* Stats */}
                 <div className="row g-3 mb-4">
                     {[
-                        [totalCount, "All Violations Alerts", "", "tile-blu"],
-                        [totalOwners, "Open Violations Alerts", "", "tile-grn"],
-                        [totalTenant, "Resolved Violations Alerts", "", "tile-yel"],
-                        [totalFamilyMember, "Dismissed Violations Alerts", "", "tile-red"],
+                        [totalAlerts, "All Violations Alerts", "", "tile-blu"],
+                        [totalOpen, "Open Violations Alerts", "", "tile-grn"],
+                        [totalResolved, "Resolved Violations Alerts", "", "tile-yel"],
+                        [totalDismissed, "Dismissed Violations Alerts", "", "tile-red"],
                     ].map(([v, l, subText, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
                             <div className={`tile bg-white ${cls}`}>

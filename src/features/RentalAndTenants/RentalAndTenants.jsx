@@ -127,7 +127,6 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
         setSocietyId(flats.society_id);
         setUserId(flats.user_id);
         getTenantMembers(flats.society_id, page);
-
         getAllBlocks(flats.society_id);
     };
 

@@ -11,8 +11,8 @@ export const listParkingRulesApi = async (societyId, page, limit, search) => {
         page: page,
         limit: limit,
         search: search,
-        applies_to: "",
-        violation_type: "",
+        applies_to: null,
+        violation_type: null,
         //"is_active": true
     }
     return await apiClient({

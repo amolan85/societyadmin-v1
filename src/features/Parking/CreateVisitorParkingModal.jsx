@@ -7,10 +7,10 @@ const CreateVisitorParkingModal = ({
 
     allBlocks = [],
     allFlats = [],
-    addMemberType = [],
+    vehicleTypeOptions = [],
+    genderOptions = [],
 
     blocks = null,
-    setBlocks = () => { },
 
     flat = null,
     setFlat = () => { },
@@ -22,6 +22,25 @@ const CreateVisitorParkingModal = ({
 
     firstName = "",
     setFirstName = () => { },
+
+    visitorName = "",
+    setVisitorName = () => { },
+
+    visitorGender = "",
+    setVisitorGender = () => { },
+
+    visitorMobile = "",
+    setVisitorMobile = () => { },
+
+    visitorEmail = "",
+    setVisitorEmail = () => { },
+
+    vehicleNumber = "",
+    setVehicleNumber = () => { },
+    vehicleType = "",
+    setVehicleType = () => { },
+    purpose = "",
+    setPurpose = () => { },
 
     lastName = "",
     setLastName = () => { },
@@ -150,17 +169,17 @@ const CreateVisitorParkingModal = ({
                                                 <label className="sv-lb">
                                                     Visitor Name <span className="text-danger">*</span>
                                                 </label>
-                                                {errors.firstName && (
+                                                {errors.visitorName && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.firstName}
+                                                        {errors.visitorName}
                                                     </span>
                                                 )}
                                             </div>
                                             <input
-                                                className={`sv-in ${errors.firstName ? "error-input" : ""}`}
+                                                className={`sv-in ${errors.visitorName ? "error-input" : ""}`}
                                                 placeholder="Enter Visitor Name"
-                                                value={firstName}
-                                                onChange={(e) => setFirstName(e.target.value)}
+                                                value={visitorName}
+                                                onChange={(e) => setVisitorName(e.target.value)}
                                             />
                                         </div>
 
@@ -169,28 +188,28 @@ const CreateVisitorParkingModal = ({
                                                 <label className="sv-lb">
                                                     Phone No. <span className="text-danger">*</span>
                                                 </label>
-                                                {errors.mobileNo && (
+                                                {errors.visitorMobile && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.mobileNo}
+                                                        {errors.visitorMobile}
                                                     </span>
                                                 )}
                                             </div>
 
                                             <div className="d-flex">
                                                 <span
-                                                    className={`am-code ${errors.mobileNo ? "error-input" : ""}`}
+                                                    className={`am-code ${errors.visitorMobile ? "error-input" : ""}`}
                                                 >
                                                     +91
                                                 </span>
                                                 <input
-                                                    className={`sv-in am-phone ${errors.mobileNo ? "error-input" : ""}`}
-                                                    // className={`form-control ${errors.mobileNo ? "is-invalid" : ""}`}
+                                                    className={`sv-in am-phone ${errors.visitorMobile ? "error-input" : ""}`}
+                                                    // className={`form-control ${errors.visitorMobile ? "is-invalid" : ""}`}
                                                     type="text"
                                                     maxLength={10}
                                                     placeholder="98765 43210"
-                                                    value={mobileNo}
+                                                    value={visitorMobile}
                                                     onChange={(e) =>
-                                                        setMobileNo(e.target.value.replace(/\D/g, ""))
+                                                        setVisitorMobile(e.target.value.replace(/\D/g, ""))
                                                     }
                                                 />
                                             </div>
@@ -203,17 +222,17 @@ const CreateVisitorParkingModal = ({
                                                 <label className="sv-lb">
                                                     Email Address <span className="text-danger">*</span>
                                                 </label>
-                                                {errors.emailId && (
+                                                {errors.visitorEmail && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.emailId}
+                                                        {errors.visitorEmail}
                                                     </span>
                                                 )}
                                             </div>
                                             <input
-                                                className={`sv-in ${errors.emailId ? "error-input" : ""}`}
+                                                className={`sv-in ${errors.visitorEmail ? "error-input" : ""}`}
                                                 placeholder="Enter Email Address"
-                                                value={emailId}
-                                                onChange={(e) => setEmailId(e.target.value)}
+                                                value={visitorEmail}
+                                                onChange={(e) => setVisitorEmail(e.target.value)}
                                             />
                                         </div>
                                         <div className="col-6">
@@ -221,9 +240,9 @@ const CreateVisitorParkingModal = ({
                                                 <label className="sv-lb">
                                                     Gender <span className="text-danger">*</span>
                                                 </label>
-                                                {errors.flat && (
+                                                {errors.visitorGender && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.flat}
+                                                        {errors.visitorGender}
                                                     </span>
                                                 )}
                                             </div>
@@ -232,21 +251,21 @@ const CreateVisitorParkingModal = ({
                                                 styles={{
                                                     control: (baseStyles) => ({
                                                         ...baseStyles,
-                                                        borderColor: errors.flat
+                                                        borderColor: errors.visitorGender
                                                             ? "red"
                                                             : baseStyles.borderColor,
                                                         boxShadow: "none",
                                                         "&:hover": {
-                                                            borderColor: errors.flat
+                                                            borderColor: errors.visitorGender
                                                                 ? "red"
                                                                 : baseStyles.borderColor,
                                                         },
                                                     }),
                                                 }}
                                                 placeholder="Select Gender.."
-                                                options={allFlats}
-                                                value={flat}
-                                                onChange={(selectedOption) => setFlat(selectedOption)}
+                                                options={genderOptions}
+                                                value={visitorGender}
+                                                onChange={(selectedOption) => setVisitorGender(selectedOption)}
                                             />
                                         </div>
 
@@ -259,17 +278,17 @@ const CreateVisitorParkingModal = ({
                                                 <label className="sv-lb">
                                                     Vehicle no. <span className="text-danger">*</span>
                                                 </label>
-                                                {errors.firstName && (
+                                                {errors.vehicleNumber && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.firstName}
+                                                        {errors.vehicleNumber}
                                                     </span>
                                                 )}
                                             </div>
                                             <input
-                                                className={`sv-in ${errors.firstName ? "error-input" : ""}`}
+                                                className={`sv-in ${errors.vehicleNumber ? "error-input" : ""}`}
                                                 placeholder="Enter Vehicle no"
-                                                value={firstName}
-                                                onChange={(e) => setFirstName(e.target.value)}
+                                                value={vehicleNumber}
+                                                onChange={(e) => setVehicleNumber(e.target.value)}
                                             />
                                         </div>
 
@@ -278,9 +297,9 @@ const CreateVisitorParkingModal = ({
                                                 <label className="sv-lb">
                                                     Vehicle Type <span className="text-danger">*</span>
                                                 </label>
-                                                {errors.flat && (
+                                                {errors.vehicleType && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.flat}
+                                                        {errors.vehicleType}
                                                     </span>
                                                 )}
                                             </div>
@@ -289,21 +308,21 @@ const CreateVisitorParkingModal = ({
                                                 styles={{
                                                     control: (baseStyles) => ({
                                                         ...baseStyles,
-                                                        borderColor: errors.flat
+                                                        borderColor: errors.vehicleType
                                                             ? "red"
                                                             : baseStyles.borderColor,
                                                         boxShadow: "none",
                                                         "&:hover": {
-                                                            borderColor: errors.flat
+                                                            borderColor: errors.vehicleType
                                                                 ? "red"
                                                                 : baseStyles.borderColor,
                                                         },
                                                     }),
                                                 }}
                                                 placeholder="Select Vehicle Type.."
-                                                options={allFlats}
-                                                value={flat}
-                                                onChange={(selectedOption) => setFlat(selectedOption)}
+                                                options={vehicleTypeOptions}
+                                                value={vehicleType}
+                                                onChange={(selectedOption) => setVehicleType(selectedOption)}
                                             />
                                         </div>
                                     </div>
@@ -313,17 +332,17 @@ const CreateVisitorParkingModal = ({
                                                 <label className="sv-lb">
                                                     Purpose <span className="text-danger">*</span>
                                                 </label>
-                                                {errors.firstName && (
+                                                {errors.purpose && (
                                                     <span className="text-danger mx-2 ">
-                                                        {errors.firstName}
+                                                        {errors.purpose}
                                                     </span>
                                                 )}
                                             </div>
                                             <input
-                                                className={`sv-in ${errors.firstName ? "error-input" : ""}`}
+                                                className={`sv-in ${errors.purpose ? "error-input" : ""}`}
                                                 placeholder=""
-                                                value={firstName}
-                                                onChange={(e) => setFirstName(e.target.value)}
+                                                value={purpose}
+                                                onChange={(e) => setPurpose(e.target.value)}
                                             />
                                         </div>
                                     </div>
