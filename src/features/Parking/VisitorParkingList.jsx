@@ -587,8 +587,10 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                     </div>
                     <div className='d-flex'>
 
-                        {/* <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
-                            setShow(true)}>+ Register New Tenant</button> */}
+                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
+                            setShow(true)}>+ Create Visitor</button>
+                              <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
+                            setShow(true)}>+ Allot Parking</button>
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
                     </div>
 
