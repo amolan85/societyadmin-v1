@@ -32,6 +32,8 @@ import { TbCar, TbMotorbike } from "react-icons/tb";
 
 import { visitorParkingApi, deleteVisitorParkingApi } from "../../services/VisitorParkingApi";
 import ExportModal from "../../components/Common/ExportModal";
+import AllotVisitorParkingModal from "./AllotVisitorParkingModal";
+import CreateVisitorParkingModal from "./CreateVisitorParkingModal";
 
 
 const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
@@ -57,6 +59,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
     const [userId, setUserId] = useState("");
     const [errors, setErrors] = useState({});
     const [show, setShow] = useState(false);
+    const [createvisitorparkingshow, createvisitorparkingsetShow] = useState(false);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
@@ -608,7 +611,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                     <div className='d-flex'>
 
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
-                            setShow(true)}>+ Create Visitor</button>
+                            createvisitorparkingsetShow(true)}>+ Create Visitor</button>
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
                             setShow(true)}>+ Allot Parking</button>
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
@@ -618,12 +621,12 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                 {/* Stats */}
                 <div className="row g-3 mb-4">
                     {[
-                        [totalCount, "Pending Approvals", "Action Required", "tile-yel"],
-                        ["", "Agreements Expiring", "In next 30 days", "tile-red"],
-                        ["", "KYC Unverified", "Pending review", "tile-blu"],
-                        ["", "Active Rentals", "+3 this month", "tile-grn"],
+                        [totalCount, "All Visitors", "", "tile-yel"],
+                        ["", "Active Visitor Parking", "", "tile-grn"],
+                        ["", "Released Visitor Parking", "", "tile-blu"],
+                        // [totalFamilyMember, "Active Rentals", "+3 this month", "tile-grn"],
                     ].map(([v, l, subText, cls]) => (
-                        <div className="col-6 col-md-3" key={l}>
+                        <div className="col-6 col-md-4" key={l}>
                             <div className={`tile bg-white ${cls}`}>
                                 <div className="text-start text-muted">
                                     {l}
@@ -702,7 +705,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                     </div>
                     <div className="d-flex">
                         <button
-                            className="btn btn-ol btn-sm filter-btn d-flex align-items-center gap-2 bg-white"
+                            className="btn-ol ms-2"
                             data-bs-toggle="dropdown"
                         >
                             <FiFilter size={14} />
@@ -847,6 +850,12 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                     <Pagination page={page} total={total} onChange={handlePageChange} />
                 </div>
             </div>
+            <AllotVisitorParkingModal
+                show={show}
+                setShow={setShow} />
+            <CreateVisitorParkingModal
+                createvisitorparkingshow={createvisitorparkingshow}
+                createvisitorparkingsetShow={createvisitorparkingsetShow} />
 
             <ExportModal
                 show={exportModal}
