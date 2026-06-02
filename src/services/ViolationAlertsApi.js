@@ -3,7 +3,7 @@ import ErrorHandler from "../utils/ErrorHandler";
 import UrlData from "../utils/Url";
 
 //api function for get violation alerts
-export const violationAlertsApi = async (societyId, page, limit) => {
+export const violationAlertsApi = async (societyId, page, limit, search) => {
     const url = UrlData + 'parking_violation/ListViolationAlerts';
     const data = {
         society_id: societyId,
@@ -11,7 +11,7 @@ export const violationAlertsApi = async (societyId, page, limit) => {
         limit: limit,
          status: null,
         violation_type: null,
-        search: null,
+        search: search,
         date_from: null,
         date_to: null,
         slot_id: null,
@@ -74,6 +74,28 @@ export const resolveViolationApi = async (societyId, violationId, status, resolv
         console.log(error);
         const errors = ErrorHandler(error);
         console.log(errors, "Errors get resolveviolation alerts by id");
+        throw errors;
+    });
+}
+
+//api function for delete violation alerts
+export const deleteViolationAlertsApi = async (societyId, violationId) => {
+    const url = UrlData + 'parking_violation/DeleteViolationAlert';
+    const data = {
+        society_id: societyId,
+        violation_id: violationId
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data,
+        timeout: 30000,
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors delete violation alerts");
         throw errors;
     });
 }

@@ -202,12 +202,12 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
         const flats = data.data.flats[0];
         setSocietyId(flats.society_id);
         setUserId(flats.user_id);
-        visitorParking(flats.society_id);
+        visitorParking(flats.society_id, 1);
 
     };
 
     //function for get visitor parking details
-    const visitorParking = async (societyId) => {
+    const visitorParking = async (societyId, page) => {
         try {
             const data = await visitorParkingApi(societyId, page, limit);
             setAllVisitorParking(data.visitor_parking || []);
@@ -230,7 +230,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
 
     const handlePageChange = (value) => {
         setPage(value);
-        visitorParking(societyId, page, limit, value);
+        visitorParking(societyId, value);
     };
 
     //function for validation

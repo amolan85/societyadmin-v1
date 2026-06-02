@@ -25,10 +25,11 @@ import {
     getAllBlocksApi,
     getAllFlatsApi,
 } from "../../services/UnitRegisterApi";
-import { CgExport } from "react-icons/cg";
+import { CgExport, CgImport } from "react-icons/cg";
 // import MemberModal from "./MemberModal";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
-import { violationAlertsApi } from "../../services/ViolationAlertsApi";
+import { violationAlertsApi,deleteViolationAlertsApi } from "../../services/ViolationAlertsApi";
+import ExportModal from "../../components/Common/ExportModal";
 
 
 const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
@@ -72,7 +73,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
 
     const [violationStatusTab, setViolationStatusTab] = useState("");
     const [allViolationAlerts, setAllViolationAlerts] = useState([]);
-
+    const [allExportViolationAlerts, setAllExportViolationAlerts] = useState([]);
     const tenantData = [
         {
             unitNo: "Unit B-402",
@@ -200,11 +201,21 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
             console.error("Error fetching violation alerts:", error);
         }
     };
-    ;
+
+    const getAllExportViolationAlerts = async (societyId) => {
+
+        try {
+            const data = await violationAlertsApi(societyId);
+            setAllExportViolationAlerts(data.violations || []);
+
+        } catch (error) {
+            console.error("Error fetching violation alerts:", error);
+        }
+    };
 
     const handlePageChange = (value) => {
         setPage(value);
-        getAllVisitorAlerts(societyId, page, limit, value);
+        getAllVisitorAlerts(societyId, value);
     };
 
     //function for validation
@@ -430,14 +441,14 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
-    const handleDelete = async (memberId) => {
+    const handleDelete = async (violationId) => {
         try {
-            const data = await deleteMembersApi(memberId);
+            const data = await deleteViolationAlertsApi(societyId, violationId);
 
             console.log(data, "Delete response");
 
-            toast.success("Member deleted successfully");
-            getMembers(societyId, page);
+            toast.success("Violation alert deleted successfully");
+            getAllVisitorAlerts(societyId, page, limit);
             // Refresh member list if needed
             // GetAllMembers();
         } catch (error) {
@@ -471,17 +482,17 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
 
     const exportData =
         selectedRange === "all"
-            ? allMembersWithoutPagination
+            ? allExportViolationAlerts
             : selectedRange === "search"
-                ? allMembers
+                ? allViolationAlerts
                 : "";
 
 
     const downloadExcel = async () => {
         exportFile({
             data: exportData,
-            fileName: "Members",
-            sheetName: "Members",
+            fileName: "ViolationAlerts",
+            sheetName: "ViolationAlerts",
             type: "xlsx",
         });
     };
@@ -489,27 +500,27 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
     const downloadCSV = async () => {
         exportFile({
             data: exportData,
-            fileName: "Members",
-            sheetName: "Members",
+            fileName: "ViolationAlerts",
+            sheetName: "ViolationAlerts",
             type: "csv",
         });
     };
 
     const downloadPDF = () => {
         exportToPDF({
-            title: "Members Report",
-            fileName: "Members",
+            title: "Violation Alerts Report",
+            fileName: "ViolationAlerts",
             columns: [
-                "Member Name",
-                "Unit No.",
-                "Role",
-                "Contact Info",
+                "Violation Type",
+                "Slot No.",
+                "Vehicle No.",
+                "penalty Amount",
             ],
             data: exportData.map((item) => [
-                item.first_name + " " + item.last_name,
-                item.flat_number,
-                item.occupancy_type,
-                item.mobile,
+                item.violation_type ,
+                item.slot_number,
+                item.vehicle_number,
+                item.penalty_amount,
             ]),
         });
     };
@@ -551,23 +562,20 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
         try {
             if (!value.trim()) {
                 setPage(1);
-                await getMembers(societyId, 1);
-                return;
+                const data = await violationAlertsApi(societyId, page, limit);
+                setAllViolationAlerts(data.violations || []);
             }
 
             if (value.length < 3) return;
 
-            const data = await getAllMembersWithoutPaginationApi(
-                societyId,
-                value
-            );
+            const data = await violationAlertsApi(societyId, page, limit, value);
 
-            setAllMembers(data?.members || []);
+            setAllViolationAlerts(data.violations || []);
         } catch (error) {
             console.error("Search error:", error);
         }
     };
-    const total = Math.ceil(totalCount / limit);
+     const total = Math.ceil(totalCount / limit);
 
     return (
         <>
@@ -666,7 +674,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                         <input
                             type="text"
                             className="form-control rounded-pill"
-                            placeholder="Search by violation type, slot no..."
+                            placeholder="Search by vehicle no..."
                             value={search}
                             // onChange={(e) => setSearch(e.target.value)}
                             onChange={handleSearch}
@@ -681,7 +689,15 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                             <FiFilter size={14} />
                             Filter
                         </button>
-
+                        <button
+                            className="btn-ol ms-2"
+                            onClick={() => {
+                                getAllExportViolationAlerts(societyId);
+                                setExportModal(true);
+                            }}
+                        >
+                            <CgImport /> Export
+                        </button>
                     </div>
                 </div>
                 <div className="sv-card p-0 overflow-hidden">
@@ -796,7 +812,17 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                     <Pagination page={page} total={total} onChange={handlePageChange} />
                 </div>
             </div>
-
+            <ExportModal
+                show={exportModal}
+                onClose={() => setExportModal(false)}
+                onExport={handleExport}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                selectedRange={selectedRange}
+                setSelectedRange={setSelectedRange}
+                totalRecords={allExportViolationAlerts.length}
+                currentRecords={allViolationAlerts.length}
+            />
         </>
     );
 };
