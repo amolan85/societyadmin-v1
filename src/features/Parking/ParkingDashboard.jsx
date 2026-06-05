@@ -33,10 +33,10 @@ import { BiCar } from "react-icons/bi";
 import { parkingDashboardApi } from "../../services/ParkingApi";
 import { violationAlertsApi } from "../../services/ViolationAlertsApi";
 import AllocateSlotModal from "./AllocateSlotModal";
-import { visitorParkingApi } from "../../services/VisitorParkingApi";
+import { visitorParkingApi, getVisitorParkingByIdApi } from "../../services/VisitorParkingApi";
 // import RegisterTenantsModal from "./RegisterTenantsModal";
 
-const ParkingDashboard = ({ setActive, setViolationId }) => {
+const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) => {
     const [societyId, setSocietyId] = useState("");
     const [userId, setUserId] = useState("");
     const [errors, setErrors] = useState({});
@@ -80,6 +80,18 @@ const ParkingDashboard = ({ setActive, setViolationId }) => {
             "4_wheeler": <TbCar size={18} color="#6b7280" />,
         };
         return icons[vehicleType] ?? <TbCar size={18} color="#6b7280" />;
+    };
+    // getViolationDetails function ke neeche add karo
+    const handleVisitorClick = async (visitorParkingId) => {
+        try {
+            const data = await getVisitorParkingByIdApi(visitorParkingId);
+            console.log("Visitor Detail:", data);
+            setVisitorParkingId(visitorParkingId);
+            setActive("visitorDetails");
+        } catch (error) {
+            console.error("Error fetching visitor detail:", error);
+            toast.error("Failed to fetch visitor details");
+        }
     };
     const tenantData = [
         {
@@ -560,7 +572,7 @@ const ParkingDashboard = ({ setActive, setViolationId }) => {
                                 // const Icon = item.icon;
 
                                 return (
-                                    <div key={item.id} className="vpd-row" style={{ cursor: "pointer" }} onClick={() => setActive("visitorDetails")}>
+                                    <div key={item.id} className="vpd-row" style={{ cursor: "pointer" }} onClick={() => handleVisitorClick(item.id)}>
 
                                         <div className="d-flex align-items-center" >
                                             {/* Visitor Parking */}
@@ -830,9 +842,9 @@ const ParkingDashboard = ({ setActive, setViolationId }) => {
                     <Pagination page={page} total={total} onChange={handlePageChange} />
                 </div>
             </div >
-            <AllocateSlotModal 
-            showAllocateSlot={showAllocateSlot}
-            setShowAllocateSlot={setShowAllocateSlot}
+            <AllocateSlotModal
+                showAllocateSlot={showAllocateSlot}
+                setShowAllocateSlot={setShowAllocateSlot}
             />
         </>
     );

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "../../styles/AddMember.css";
+import "../../styles/RentalAndTenant.css";
 import { Badge, Pagination } from "../../components/Common/ReusableFunction";
 import { GetSessionData } from "../../utils/SessionManagement";
 import {
@@ -109,10 +110,10 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
     ];
 
     const mangementType = [
-        { id: "All Rentals", value: "" },
-        { id: "Pending Registration", value: "Pending" },
-        { id: "Expiring Soon", value: "expiry" },
-        { id: "KYC Pending", value: 0 },
+        { id: "All Rentals", value: "", count: 0, color: "" },
+        { id: "Pending Registration", value: "Pending", count: 12, color: "yellow" },
+        { id: "Expiring Soon", value: "expiry", count: 5, color: "red" },
+        { id: "KYC Pending", value: 0, count: 8, color: "blue" },
 
     ];
 
@@ -741,6 +742,11 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                                     className={`NoticeBoardTabs-btn ${mangementTypeTab === t.value ? "active" : ""}`}
                                 >
                                     {t.icon} &nbsp;{t.id}
+                                    {t.count > 0 && (
+                                        <span className={`tab-count ${t.color}`}>
+                                            {t.count}
+                                        </span>
+                                    )}
                                 </button>
                             ))}
                         </div>
@@ -840,6 +846,30 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
 
                                         {/* Lease */}
                                         <td className="text-start">
+                                            <div className="lease-date">
+                                                {item.start_date ? formatDate(item.start_date) : ""}
+
+                                                {item.end_date && !isNaN(new Date(item.end_date))
+                                                    ? ` - ${formatDate(item.end_date)}`
+                                                    : ""}
+                                            </div>
+
+                                            <small
+                                                className={
+                                                    getDuration(item.start_date, item.end_date)?.includes("Expires")
+                                                        ? "lease-expired"
+                                                        : "lease-normal"
+                                                }
+                                            >
+                                                {item.start_date &&
+                                                    item.end_date &&
+                                                    !isNaN(new Date(item.start_date)) &&
+                                                    !isNaN(new Date(item.end_date))
+                                                    ? getDuration(item.start_date, item.end_date)
+                                                    : ""}
+                                            </small>
+                                        </td>
+                                        {/* <td className="text-start">
                                             <div className="text-start">
                                                 {item.start_date ? formatDate(item.start_date) : ""}
 
@@ -856,7 +886,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                                                     ? getDuration(item.start_date, item.end_date)
                                                     : ""}
                                             </small>
-                                        </td>
+                                        </td> */}
                                         {/* KYC */}
                                         <td className="text-start">
                                             <Badge

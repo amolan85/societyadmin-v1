@@ -133,7 +133,7 @@ export default function App() {
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [profileUrl, setProfileUrl] = useState("")
-
+  const [visitorParkingId, setVisitorParkingId] = useState(null)
   const [broadcastId, setBroadcastId] = useState(null);
   const [memberId, setMemberId] = useState(null);
   const [tenantId, setTenantId] = useState(null);
@@ -179,12 +179,12 @@ export default function App() {
     complaints: <Complaints setActive={setActive} />,
     createComplaints: <CreateComplaints setActive={setActive} />,
     parkingList: <ParkingList setActive={setActive} />,
-    parkingDashboard: <ParkingDashboard setActive={setActive} setViolationId={setViolationId} />,
-    visitorParking: <VisitorParkingList setActive={setActive} /* setViolationId={setViolationId} */ />,
+    parkingDashboard: <ParkingDashboard setActive={setActive} setViolationId={setViolationId} setVisitorParkingId={setVisitorParkingId}  />,
+    visitorParking: <VisitorParkingList setActive={setActive} setVisitorParkingId={setVisitorParkingId} /* setViolationId={setViolationId} */ />,
     violationAlerts: <ViolationAlertsList setActive={setActive} /* setViolationId={setViolationId} */ />,
     parkingRules: <ParkingRules setActive={setActive} />,
-    viewParkingDetails: <ViewParkingDetails setActive={setActive} violationId={violationId} />,
-    visitorDetails: <VisitorDetails setActive={setActive} />,
+    viewParkingDetails: <ViewParkingDetails setActive={setActive} violationId={violationId}  setVisitorParkingId={setVisitorParkingId}/>,
+    visitorDetails: <VisitorDetails setActive={setActive}   visitorParkingId={visitorParkingId}/>,
     rentals: <RentalAndTenants setActive={setActive} setTenantId={setTenantId} />,
     rentalsApplication: <TenantsReviewApplication setActive={setActive} tenantId={tenantId} />,
     staff: <StaffAttendance setActive={setActive} setStaffId={setStaffId} />,
@@ -283,8 +283,8 @@ export default function App() {
 
               <button className="tb-avatar">🔔</button>
               <button className="tb-avatar" style={{ background: "#e2e8f0", color: "var(--text)" }}><img src={
-                 profileUrl  ||
-                  "../src/assets/profile.png"
+                profileUrl ||
+                "../src/assets/profile.png"
               } alt="Profile" className="img-fluid rounded-circle" /></button>
               {/* <span className="tb-name">{firstName} {lastName}</span> */}
               <div className="dropdown">

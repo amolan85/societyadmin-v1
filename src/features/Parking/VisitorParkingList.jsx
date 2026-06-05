@@ -22,13 +22,13 @@ import { CgExport, CgImport } from "react-icons/cg";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import { TbCar, TbMotorbike } from "react-icons/tb";
 
-import { visitorParkingApi, deleteVisitorParkingApi } from "../../services/VisitorParkingApi";
+import { visitorParkingApi, deleteVisitorParkingApi, getVisitorParkingByIdApi } from "../../services/VisitorParkingApi";
 import ExportModal from "../../components/Common/ExportModal";
 import AllotVisitorParkingModal from "./AllotVisitorParkingModal";
 import CreateVisitorParkingModal from "./CreateVisitorParkingModal";
 
 
-const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
+const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParkingId }) => {
     const [memType, setMemType] = useState("tenant");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -86,6 +86,17 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
         };
         return icons[vehicleType] ?? icons["4_wheeler"];
     };
+    const handleViewDetails = async (visitorParkingId) => {
+        try {
+            const data = await getVisitorParkingByIdApi(visitorParkingId);
+            console.log("Visitor Detail:", data);
+            setVisitorParkingId(visitorParkingId);   // parent me ID save
+            setActive("visitorDetails");              // detail page pe navigate
+        } catch (error) {
+            console.error("Error fetching visitor detail:", error);
+            toast.error("Failed to fetch visitor details");
+        }
+    };
     const vehicleTypeOptions = [
         {
             value: "2_wheeler",
@@ -106,7 +117,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
             value: "female",
             label: "Female",
         },
-           {
+        {
             value: "other",
             label: "Other",
         },
@@ -330,7 +341,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                 getMembers(societyId, page);
             } else {
                 await AddMemberApi(
-                   societyId, flat?.value, visitorName, mobileNo, emailId, visitorGender?.value,  vehicleNumber, purpose
+                    societyId, flat?.value, visitorName, mobileNo, emailId, visitorGender?.value, vehicleNumber, purpose
                 );
 
                 toast.success("Member created successfully!");
@@ -774,7 +785,8 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId }) => {
                                                             // onClick={() =>
                                                             //     getMembersById(s.user_id, s.flat_id)
                                                             // }
-                                                            onClick={() => setActive("rentalsApplication")}
+                                                            // onClick={() => setActive("rentalsApplication")}
+                                                             onClick={() => handleViewDetails(item.id)}
                                                         >
                                                             View Details
                                                         </button>

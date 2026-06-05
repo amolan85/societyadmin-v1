@@ -30,13 +30,30 @@ export const visitorParkingApi = async (societyId, page, limit, search, status) 
         throw errors;
     });
 }
-
+export const getVisitorParkingByIdApi = async (visitorParkingId) => {
+    const url = UrlData + 'visitor_parking/GetVisitorParking';
+    const data = {
+        visitor_parking_id: visitorParkingId
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data,
+        timeout: 30000,
+    }).then((response) => {
+        return response.data.data;
+        
+    }).catch((error) => {
+        const errors = ErrorHandler(error);
+        throw errors;
+    });
+}
 
 export const deleteVisitorParkingApi = async (societyId, visitorParkingId) => {
     const url = UrlData + 'visitor_parking/DeleteVisitorParking';
     const data = {
         society_id: societyId,
-        visitor_parking_id : visitorParkingId,
+        visitor_parking_id: visitorParkingId,
 
     }
     return await apiClient({
@@ -44,6 +61,7 @@ export const deleteVisitorParkingApi = async (societyId, visitorParkingId) => {
         url: url,
         data: data,
         timeout: 30000,
+        
     }).then((response) => {
         return response.data.data;
     }).catch((error) => {
