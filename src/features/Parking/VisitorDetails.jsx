@@ -272,7 +272,7 @@ const VisitorDetails = ({ setActive, visitorParkingId /* memberId, setFlatId */ 
 
                                 <div className="mt-3">
                                     <small className="text-muted">
-                                        Vehicle Number
+                                       Driver License / ID
                                     </small>
                                     {/* ✅ vehicle_number */}
                                     <div className="fw-semibold">
@@ -294,7 +294,7 @@ const VisitorDetails = ({ setActive, visitorParkingId /* memberId, setFlatId */ 
 
                                     {/* ✅ allotted_at */}
                                     <div className="visitor-timeline-item active">
-                                        <h6 className="mb-1">Check In</h6>
+                                        <h6 className="mb-1">Check In Approved</h6>
                                         <small className="text-muted">
                                             {visitorData?.allotted_at} • {visitorData?.zone}
                                         </small>
@@ -302,7 +302,7 @@ const VisitorDetails = ({ setActive, visitorParkingId /* memberId, setFlatId */ 
 
                                     {/* ✅ slot_number */}
                                     <div className="visitor-timeline-item">
-                                        <h6 className="mb-1">Slot Assigned</h6>
+                                        <h6 className="mb-1">Host Approval Received</h6>
                                         <small className="text-muted">
                                             {visitorData?.slot_number} • Block {visitorData?.block}
                                         </small>
@@ -311,7 +311,7 @@ const VisitorDetails = ({ setActive, visitorParkingId /* memberId, setFlatId */ 
                                     {/* ✅ released_at — sirf tab show karo jab released ho */}
                                     {visitorData?.released_at && (
                                         <div className="visitor-timeline-item">
-                                            <h6 className="mb-1">Released</h6>
+                                            <h6 className="mb-1">Entry Request Created</h6>
                                             <small className="text-muted">
                                                 {visitorData?.released_at}
                                             </small>

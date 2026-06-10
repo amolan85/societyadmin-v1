@@ -1,5 +1,5 @@
 import "../../styles/Register.css"
-import { FiBox, FiHome, FiSmile } from 'react-icons/fi'
+import { FiBox, FiHome, FiSmile,FiUsers  } from 'react-icons/fi'
 import { FaCar } from 'react-icons/fa';
 import {  BsPerson } from 'react-icons/bs';
 import { BiDiamond } from 'react-icons/bi';
@@ -12,6 +12,7 @@ const Register = ({ setActive }) => {
     { icon: <BiDiamond color='green' />, title: "Vendor Register", val: "28", sub: "Active service providers", meta: "3 Pending approval", mc: "", bg: "#dcfce7" },
     { icon: <FiBox color='blue' />, title: "Asset Register", val: "$1.2M", sub: "Total Asset Value", meta: "85 Items Tracked", mc: "", bg: "#c3cefe" },
     { icon: <FiSmile color='red' />, title: "Complaint Register", val: "12", sub: "Open issues", meta: "3 High Priority", mc: "tx-danger", bg: "#fee2e2" },
+    { icon: <FiUsers   color='teal' />, title: "Visitor Register", val: "1,245", sub: "Total visitors", meta: "↑ 12 this week", mc: "tx-success", bg: "#dbeafe", tab: "visitorRegister" },
   ];
   return (
 
