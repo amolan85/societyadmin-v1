@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import {
     CreateGuestVisitorApi, CreateDeliveryApi, ListVisitorsApi,
     GetVisitorApi, DeleteVisitorApi, VisitorCheckoutApi,
-    UpdateVisitorApprovalApi, GetMonthlyVisitorSummaryApi, UpdateVisitorApi
+    UpdateVisitorApprovalApi, UpdateVisitorApi
 } from '../../../services/VisitorApi';
 import VisitorModal from "./VisitorModal";
 
@@ -26,7 +26,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [flatsList, setFlatsList] = useState([]);
     const [isEdit, setIsEdit] = useState(false);
     const [editVisitorId, setEditVisitorId] = useState(null);
-
+    const [userId, setUserId] = useState(null);
     // Stats
     const [stats, setStats] = useState({ total: 0, today: 0, pending: 0, checkedOut: 0 });
 
@@ -68,25 +68,14 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
 
     const SessionData = async () => {
         const data = await GetSessionData();
+        setUserId(data.data.user_id);
         const allFlats = data.data.flats;
         const firstFlat = allFlats[0];
         setSocietyId(firstFlat.society_id);
         setFlatsList(allFlats);
         getVisitors(firstFlat.society_id, 1);
-        getSummary(firstFlat.society_id);
     };
 
-    const getSummary = async (sId) => {
-        try {
-            const data = await GetMonthlyVisitorSummaryApi(sId);
-            setStats({
-                total: data.total_visitors ?? 0,
-                today: data.today_visitors ?? 0,
-                pending: data.pending_approval ?? 0,
-                checkedOut: data.checked_out_today ?? 0,
-            });
-        } catch (e) { console.error("Summary error:", e); }
-    };
 
     const getVisitors = async (sId, pg,) => {
         try {
@@ -189,7 +178,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             setShow(false);
             resetForm();
             getVisitors(societyId, 1);
-            getSummary(societyId);
         } catch (error) {
             toast.error(error?.message || "Something went wrong");
             setErrorText(error?.message || "Error occurred");
@@ -202,7 +190,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             await DeleteVisitorApi(visitorId, societyId);
             toast.success("Visitor deleted successfully");
             getVisitors(societyId, page);
-            getSummary(societyId);
         } catch (e) { toast.error(e?.message || "Delete failed"); }
     };
 
@@ -212,19 +199,17 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             await VisitorCheckoutApi(visitorId, societyId);
             toast.success("Visitor checked out");
             getVisitors(societyId, page);
-            getSummary(societyId);
         } catch (e) { toast.error(e?.message || "Checkout failed"); }
     };
 
     const handleApproval = async (status) => {
         try {
-            await UpdateVisitorApprovalApi(selectedVisitor.id, societyId, status, rejectionReason);
+            await UpdateVisitorApprovalApi(selectedVisitor.id, societyId, status, rejectionReason, userId);
             toast.success(`Visitor ${status === "approved" ? "approved" : "rejected"} successfully`);
             setApprovalModal(false);
             setSelectedVisitor(null);
             setRejectionReason("");
             getVisitors(societyId, page);
-            getSummary(societyId);
         } catch (e) { toast.error(e?.message || "Action failed"); }
     };
 
@@ -422,7 +407,20 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
+                                                            disabled={
+                                                                v.approval_status === "approved" ||
+                                                                v.approval_status === "rejected" ||
+                                                                v.entry_status === "checked_out"
+                                                            }
                                                             onClick={() => {
+                                                                if (
+                                                                    v.approval_status === "approved" ||
+                                                                    v.approval_status === "rejected" ||
+                                                                    v.entry_status === "checked_out"
+                                                                ) {
+                                                                    return;
+                                                                }
+
                                                                 resetForm();
                                                                 setIsEdit(true);
                                                                 setEditVisitorId(v.id);
@@ -453,15 +451,14 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                             </button>
                                                         </li>
                                                     )}
-                                                    <li><hr className="dropdown-divider" /></li>
-                                                    <li>
+                                                    {/* <li>
                                                         <button
                                                             className="dropdown-item member-action-item member-action-delete"
                                                             onClick={() => handleDelete(v.id)}
                                                         >
                                                             Delete Visitor
                                                         </button>
-                                                    </li>
+                                                    </li> */}
                                                 </ul>
                                             </div>
                                         </td>

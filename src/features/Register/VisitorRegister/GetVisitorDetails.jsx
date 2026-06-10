@@ -240,15 +240,27 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                                     ✓ Checkout
                                 </button>
                             )}
+                            {/* <button
+                                className="btn btn-sm btn-primary"
+                                onClick={() => setShow(true)}
+                                style={{ borderRadius: 8 }}
+                            >
+                                Edit Visitor
+                            </button> */}
                             <button
                                 className="btn btn-sm btn-primary"
+                                disabled={
+                                    visitor?.approval_status === "approved" ||
+                                    visitor?.approval_status === "rejected" ||
+                                    visitor?.entry_status === "checked_out"
+                                }
                                 onClick={() => setShow(true)}
                                 style={{ borderRadius: 8 }}
                             >
                                 Edit Visitor
                             </button>
                             <button
-                                className="btn btn-sm btn-outline-secondary"
+                                className="btn btn-sm btn-primary"
                                 onClick={() => setActive("visitorRegister")}
                                 style={{ borderRadius: 8 }}
                             >
