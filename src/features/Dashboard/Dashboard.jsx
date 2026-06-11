@@ -77,6 +77,7 @@ const NAV = [
       { id: "flattransfer", icon: "🏠", lbl: "Flat Transfer" },
       { id: "registers", icon: "📔", lbl: "Registers" },
       { id: "rules", icon: "⚖️", lbl: "Rules & By-laws" },
+      { id: "visitorRegister", icon: "🚶", lbl: "Visitors" },
     ]
   },
   {
@@ -116,6 +117,7 @@ const TITLES = {
   parkingList: ["Operations", "Parking"],
   parkingDashboard: ["Operations", "Parking"],
   visitorParking: ["Operations", "Parking", "Visitor Parking"],
+  visitorDetailsPage: ["Administration","Visitor Register","Visitor Details"],
   violationAlerts: ["Operations", "Parking", "Violation Alerts"],
   parkingRules: ["Operations", "Parking", "Parking Rules"],
   viewParkingDetails: ["Operations", "Parking", "Violation Details"],

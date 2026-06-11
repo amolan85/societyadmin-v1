@@ -5,6 +5,7 @@ import {
     DeleteVisitorApi, UpdateVisitorApi, AllotVisitorParkingApi
 } from '../../../services/VisitorApi';
 import { ListParkingSlotsApi } from '../../../services/ParkingApi';
+// import { getVisitorParkingByIdApi } from '../../../services/VisitorParkingApi';
 import { Badge } from '../../../components/Common/ReusableFunction';
 import { toast } from "react-toastify";
 import { FiPhone, FiMail, FiMapPin } from 'react-icons/fi';
@@ -32,6 +33,7 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
     const [vehicleType, setVehicleType] = useState("4_wheeler");
     const [parkingRemarks, setParkingRemarks] = useState("");
     const [parkingErrors, setParkingErrors] = useState({});
+    // const [parkingDetails, setParkingDetails] = useState(null);
     // Form fields
     const [visitorType, setVisitorType] = useState("guest");
     const [visitorName, setVisitorName] = useState("");
@@ -57,7 +59,11 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
             setFlatId(visitor.flat_id || "");
         }
     }, [visitor]);
-
+    // useEffect(() => {
+    //     if (visitor?.visitor_parking_id) {
+    //         fetchParkingDetails(visitor.visitor_parking_id);
+    //     }
+    // }, [visitor]);
     const SessionData = async () => {
         const data = await GetSessionData();
         const firstFlat = data.data.flats[0];
@@ -83,21 +89,21 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
         if (Object.keys(errs).length > 0) { setParkingErrors(errs); return; }
 
         try {
-            await AllotVisitorParkingApi(
-                societyId,
-                visitor.id,
-                slotId,
-                userId,
-                visitor.vehicle_number || vehicleNumber,
-                vehicleType,
-                parkingRemarks
+            const res = await AllotVisitorParkingApi(
+                societyId, visitor.id, slotId, userId,
+                vehicleNumber, vehicleType, parkingRemarks
             );
             toast.success("Parking allotted successfully");
+
+            // ✅ res.data.id se directly fetch karo
+            // const parkingId = res?.data?.id;
+            // if (parkingId) {
+            //     await fetchParkingDetails(parkingId);
+            // }
+
             setParkingModal(false);
-            setSlotId("");
-            setVehicleType("4_wheeler");
-            setParkingRemarks("");
-            setParkingErrors({});
+            fetchVisitor(societyId);
+
         } catch (e) {
             toast.error(e?.message || "Failed to allot parking");
         }
@@ -106,7 +112,10 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
         try {
             setLoading(true);
             const res = await GetVisitorApi(visitorId, sId);
-            setVisitor(res.data || res);
+            console.log("Allot Parking Response", res);
+            const v = res.data || res;
+            console.log("Visitor data:", v); // ← check if visitor_parking_id exists
+            setVisitor(v);
         } catch (e) {
             toast.error("Could not load visitor details");
         } finally {
@@ -122,7 +131,17 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
             fetchVisitor(societyId);
         } catch (e) { toast.error(e?.message || "Checkout failed"); }
     };
-
+    // const fetchParkingDetails = async (visitorParkingId) => {
+    //     try {
+    //         const res = await getVisitorParkingByIdApi(visitorParkingId);
+    //         setParkingDetails(res?.data || res);
+    //          console.log("Parking Response:", res);
+    //     } catch (err) {
+    //         console.error(err);
+    //            console.error("Parking Error:", err);
+    //         // toast.error("Failed to load parking details");
+    //     }
+    // };
     const handleApproval = async (status) => {
         try {
             await UpdateVisitorApprovalApi(visitor.id, societyId, status, rejectionReason, userId);
@@ -387,7 +406,30 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                                 </div>
                             </div>
                         )}
-
+                        {/* {parkingDetails && (
+                            <div className="sv-card p-4 mb-3">
+                                <h6 className="fw-bold mb-3 text-start">Parking Details</h6>
+                                <div className="row g-3 text-start">
+                                    {[
+                                        ["Slot Number", parkingDetails.slot_number],
+                                        ["Zone", parkingDetails.zone || "—"],
+                                        ["Block / Floor", `${parkingDetails.block || "—"} / ${parkingDetails.floor || "—"}`],
+                                        ["Vehicle Number", parkingDetails.vehicle_number || "—"],
+                                        ["Vehicle Type", parkingDetails.vehicle_type?.replace("_", " ") || "—"],
+                                        ["Status", parkingDetails.status || "—"],
+                                        ["Allotted At", parkingDetails.allotted_at
+                                            ? fmt(parkingDetails.allotted_at, "date") + " • " + fmt(parkingDetails.allotted_at, "time")
+                                            : "—"],
+                                        ["Remarks", parkingDetails.remarks || "—"],
+                                    ].map(([label, value]) => (
+                                        <div className="col-6 col-md-4" key={label}>
+                                            <div className="text-muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</div>
+                                            <div className="fw-semibold mt-1 text-capitalize" style={{ fontSize: 14 }}>{value}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )} */}
                         {/* Rejection Reason */}
                         {visitor.approval_status === "rejected" && visitor.rejection_reason && (
                             <div className="sv-card p-4 mb-3" style={{ borderLeft: "4px solid #ef4444" }}>

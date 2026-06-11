@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect,useRef  } from 'react'
 import { GetSessionData } from "../../../utils/SessionManagement";
 import "../../../styles/AddMember.css"
 import "../../../styles/ParkingRegister.css"
@@ -86,6 +86,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             toDate: ""
         });
     };
+    const initialLoadDone = useRef(false);
     // Auto re-fetch when filters change (except search)
     useEffect(() => {
         if (!societyId) return;
@@ -258,6 +259,14 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
 
             setShow(false);
             resetForm();
+            getVisitors({
+                sid: societyId,
+                pg: 1,
+                searchText: search,
+                status: approvalStatus,
+                fromDate: dateFrom,
+                toDate: dateTo
+            });
             getVisitors(societyId, 1);
         } catch (error) {
             toast.error(error?.message || "Something went wrong");
