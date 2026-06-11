@@ -27,6 +27,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [isEdit, setIsEdit] = useState(false);
     const [editVisitorId, setEditVisitorId] = useState(null);
     const [userId, setUserId] = useState(null);
+    const [loading, setLoading] = useState(false);
     // Stats
     const [stats, setStats] = useState({ total: 0, today: 0, pending: 0, checkedOut: 0 });
 
@@ -58,7 +59,9 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [idType, setIdType] = useState("");
     const [idNumber, setIdNumber] = useState("");
     const [flatId, setFlatId] = useState("");
-
+    const [approvalStatus, setApprovalStatus] = useState("");
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
     // Delivery fields
     const [parcelDescription, setParcelDescription] = useState("");
     const [parcelCompany, setParcelCompany] = useState("");
@@ -73,20 +76,96 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         const firstFlat = allFlats[0];
         setSocietyId(firstFlat.society_id);
         setFlatsList(allFlats);
-        getVisitors(firstFlat.society_id, 1);
+        // Pass directly, don't rely on state
+        getVisitors({
+            sid: firstFlat.society_id,
+            pg: 1,
+            searchText: "",
+            status: "",
+            fromDate: "",
+            toDate: ""
+        });
     };
+    // Auto re-fetch when filters change (except search)
+    useEffect(() => {
+        if (!societyId) return;
+        getVisitors({
+            sid: societyId,
+            pg: page,
+            searchText: search,
+            status: approvalStatus,
+            fromDate: dateFrom,
+            toDate: dateTo
+        });
+    }, [page, approvalStatus, dateFrom, dateTo]);
 
-
-    const getVisitors = async (sId, pg,) => {
+    // const getVisitors = async (sId, pg,) => {
+    //     try {
+    //         const data = await ListVisitorsApi(sId, pg);
+    //         setVisitorsList(data.visitors || []);
+    //         setTotalCount(data.total || 0);
+    //         setTotalPages(data.total_pages || 1);
+    //         setPage(data.page || pg);
+    //     } catch (error) { console.error("Error fetching visitors:", error); }
+    // };
+    const getVisitors = async ({
+        sid, pg, searchText, status, fromDate, toDate
+    }) => {
         try {
-            const data = await ListVisitorsApi(sId, pg);
+            setLoading(true);
+            const data = await ListVisitorsApi({
+                societyId: sid,
+                currentPage: pg,
+                currentSearch: searchText,
+                currentStatus: status,
+                currentFromDate: fromDate,
+                currentToDate: toDate,
+            });
             setVisitorsList(data.visitors || []);
             setTotalCount(data.total || 0);
             setTotalPages(data.total_pages || 1);
             setPage(data.page || pg);
-        } catch (error) { console.error("Error fetching visitors:", error); }
+            setStats({
+                total: data?.total || 0,
+                today: 0,
+                pending: 0,
+                checkedOut: 0,
+            });
+        } catch (error) {
+            console.error("Error fetching visitors:", error);
+            toast.error("Failed to load visitors");
+        } finally {
+            setLoading(false);
+        }
     };
 
+    // Search fires only on button click
+    // const handleSearch = () => {
+    //     setPage(1);
+    //     getVisitors({
+    //         sid: societyId,
+    //         pg: 1,
+    //         searchText: search,
+    //         status: approvalStatus,
+    //         fromDate: dateFrom,
+    //         toDate: dateTo
+    //     });
+    // };
+
+    // const handlePageChange = (value) => {
+    //     setPage(value);
+    //     // useEffect [page] will fire automatically
+    // };
+    // const handleSearch = () => {
+    //     getVisitors(
+    //         societyId,
+    //         1,
+    //         search,
+    //         approvalStatus,
+    //         dateFrom,
+    //         dateTo
+    //     );
+    // };
     const GetVisitorDetailsById = async (id) => {
         try {
             const data = await GetVisitorApi(id, societyId);
@@ -110,11 +189,13 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         }
     };
 
+    // const handlePageChange = (value) => {
+    //     setPage(value);
+    //     getVisitors(societyId, value);
+    // };
     const handlePageChange = (value) => {
         setPage(value);
-        getVisitors(societyId, value);
     };
-
     const resetForm = () => {
         setVisitorName(""); setMobile(""); setEmail(""); setGender("");
         setComingFrom(""); setVehicleNumber(""); setPurpose("");
@@ -215,9 +296,22 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
 
     const fmt = (dt, type) => {
         if (!dt) return "—";
+
+        const date = new Date(
+            dt + (dt.includes("Z") || dt.includes("+") ? "" : "Z")
+        );
+
         return type === "time"
-            ? new Date(dt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
-            : new Date(dt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+            ? date.toLocaleTimeString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true
+            })
+            : date.toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric"
+            });
     };
 
     return (
@@ -292,7 +386,21 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                 onChange={(e) => setSearch(e.target.value)}
                             />
 
-                            <button className="btn btn-primary">
+                            {/* Search button */}
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => {
+                                    setPage(1);
+                                    getVisitors({
+                                        sid: societyId,
+                                        pg: 1,
+                                        searchText: search,
+                                        status: approvalStatus,
+                                        fromDate: dateFrom,
+                                        toDate: dateTo
+                                    });
+                                }}
+                            >
                                 <FiSearch />
                             </button>
                         </div>
@@ -302,13 +410,19 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                     <div className="row g-2">
 
                         <div className="col-md-4">
-                            <select className="form-select">
-                                <option>All Status</option>
-                                <option>Pending</option>
-                                <option>Approved</option>
-                                <option>Rejected</option>
-                                <option>Checked In</option>
-                                <option>Checked Out</option>
+                            <select
+                                className="form-select"
+                                value={approvalStatus}
+                                onChange={(e) => {
+                                    setApprovalStatus(e.target.value);
+                                    setPage(1);
+                                    // REMOVE the direct getVisitors call here
+                                }}
+                            >
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
                             </select>
                         </div>
 
@@ -316,6 +430,12 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                             <input
                                 type="date"
                                 className="form-control"
+                                value={dateFrom}
+                                onChange={(e) => {
+                                    setDateFrom(e.target.value);
+                                    setPage(1);
+                                    // REMOVE the direct getVisitors call here
+                                }}
                             />
                         </div>
 
@@ -323,6 +443,12 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                             <input
                                 type="date"
                                 className="form-control"
+                                value={dateTo}
+                                onChange={(e) => {
+                                    setDateTo(e.target.value);
+                                    setPage(1);
+                                    // REMOVE the direct getVisitors call here
+                                }}
                             />
                         </div>
 

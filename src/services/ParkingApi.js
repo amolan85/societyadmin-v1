@@ -24,4 +24,26 @@ export const parkingDashboardApi = async (societyId) => {
     });
 }
 
-
+export const ListParkingSlotsApi = async (societyId) => {
+    const url = UrlData + 'parking_slot/ListParkingSlots';
+    return await apiClient({
+        method: 'post',
+        url,
+        data: {
+            society_id: societyId,
+            page: 1,
+            limit: 100,
+            search: "",
+            slot_status: "available",  // only available slots
+            parking_type: "",
+            vehicle_type: "",
+            block: "",
+            floor: "",
+            zone: "",
+            is_ev_ready: false
+        },
+        timeout: 30000
+    })
+    .then(res => res.data.data)
+    .catch(error => { throw ErrorHandler(error); });
+};

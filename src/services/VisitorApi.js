@@ -86,16 +86,27 @@ export const CreateDeliveryApi = async (societyId, flatId, visitorName, mobile, 
         .catch(error => { throw ErrorHandler(error); });
 }
 
-export const ListVisitorsApi = async (societyId, page) => {
+export const ListVisitorsApi = async (data) => {
     const url = UrlData + 'visitor/ListVisitors';
-    const data = {
-        society_id: societyId,
-        page: page || 1,
-    }
-    return await apiClient({ method: 'post', url, data, timeout: 30000 })
+    const isValidDate = (date) => date && !isNaN(new Date(date).getTime());
+
+    const payload = {
+        society_id: data.societyId,
+        page: data.currentPage,
+        limit: 10,
+        search: data.currentSearch,
+        visitor_type: "",
+        entry_status: "",
+        approval_status: data.currentStatus,
+        flat_id: "",
+        date_from: isValidDate(data.currentFromDate) ? data.currentFromDate : null,
+        date_to: isValidDate(data.currentToDate) ? data.currentToDate : null,
+    };
+
+    return await apiClient({ method: 'post', url, data: payload, timeout: 30000 })
         .then(res => res.data.data)
         .catch(error => { throw ErrorHandler(error); });
-}
+};
 export const GetVisitorApi = async (visitorId, societyId) => {
     const url = UrlData + 'visitor/GetVisitor';
     return await apiClient({ method: 'post', url, data: { visitor_id: visitorId, society_id: societyId }, timeout: 30000 })
@@ -170,4 +181,24 @@ export const UpdateVisitorApi = async (
         const errors = ErrorHandler(error);
         throw errors;
     }
+};
+
+export const AllotVisitorParkingApi = async (societyId, visitorEntryId, slotId, allottedBy, vehicleNumber, vehicleType, remarks) => {
+    const url = UrlData + 'visitor_parking/AllotVisitorParking';
+    return await apiClient({
+        method: 'post',
+        url,
+        data: {
+            society_id: societyId,
+            visitor_entry_id: visitorEntryId,
+            slot_id: slotId,
+            allotted_by: allottedBy,
+            vehicle_number: vehicleNumber,
+            vehicle_type: vehicleType,
+            remarks: remarks || ""
+        },
+        timeout: 30000
+    })
+    .then(res => res.data)
+    .catch(error => { throw ErrorHandler(error); });
 };

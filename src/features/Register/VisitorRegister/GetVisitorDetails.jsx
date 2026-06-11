@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { GetSessionData } from "../../../utils/SessionManagement";
 import {
     GetVisitorApi, VisitorCheckoutApi, UpdateVisitorApprovalApi,
-    DeleteVisitorApi, UpdateVisitorApi
+    DeleteVisitorApi, UpdateVisitorApi, AllotVisitorParkingApi
 } from '../../../services/VisitorApi';
+import { ListParkingSlotsApi } from '../../../services/ParkingApi';
 import { Badge } from '../../../components/Common/ReusableFunction';
 import { toast } from "react-toastify";
 import { FiPhone, FiMail, FiMapPin } from 'react-icons/fi';
@@ -23,6 +24,14 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
     const [errorText, setErrorText] = useState("");
     const [flatId, setFlatId] = useState("");
 
+    //allot parking
+    const [parkingSlots, setParkingSlots] = useState([]);
+    const [slotsLoading, setSlotsLoading] = useState(false);
+    const [parkingModal, setParkingModal] = useState(false);
+    const [slotId, setSlotId] = useState("");
+    const [vehicleType, setVehicleType] = useState("4_wheeler");
+    const [parkingRemarks, setParkingRemarks] = useState("");
+    const [parkingErrors, setParkingErrors] = useState({});
     // Form fields
     const [visitorType, setVisitorType] = useState("guest");
     const [visitorName, setVisitorName] = useState("");
@@ -56,7 +65,43 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
         setUserId(data.data.user_id);
         fetchVisitor(firstFlat.society_id);
     };
+    const loadParkingSlots = async () => {
+        try {
+            setSlotsLoading(true);
+            const data = await ListParkingSlotsApi(societyId);
+            setParkingSlots(data?.slots || data?.parking_slots || []);
+        } catch (e) {
+            toast.error("Failed to load parking slots");
+        } finally {
+            setSlotsLoading(false);
+        }
+    };
+    const handleAllotParking = async () => {
+        let errs = {};
+        if (!slotId) errs.slotId = "required";
+        if (!vehicleType) errs.vehicleType = "required";
+        if (Object.keys(errs).length > 0) { setParkingErrors(errs); return; }
 
+        try {
+            await AllotVisitorParkingApi(
+                societyId,
+                visitor.id,
+                slotId,
+                userId,
+                visitor.vehicle_number || vehicleNumber,
+                vehicleType,
+                parkingRemarks
+            );
+            toast.success("Parking allotted successfully");
+            setParkingModal(false);
+            setSlotId("");
+            setVehicleType("4_wheeler");
+            setParkingRemarks("");
+            setParkingErrors({});
+        } catch (e) {
+            toast.error(e?.message || "Failed to allot parking");
+        }
+    };
     const fetchVisitor = async (sId) => {
         try {
             setLoading(true);
@@ -240,13 +285,13 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                                     ✓ Checkout
                                 </button>
                             )}
-                            {/* <button
+                            <button
                                 className="btn btn-sm btn-primary"
-                                onClick={() => setShow(true)}
+                                onClick={() => { setParkingModal(true); loadParkingSlots(); }}
                                 style={{ borderRadius: 8 }}
                             >
-                                Edit Visitor
-                            </button> */}
+                                + Allot Parking
+                            </button>
                             <button
                                 className="btn btn-sm btn-primary"
                                 disabled={
@@ -430,12 +475,25 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                                         </div>
                                     </div>
                                 )}
-                                {(visitor.entry_status === "checked_in" || visitor.entry_status === "inside") && (
+                                {visitor.check_in_time && (
                                     <div className="d-flex gap-3 align-items-start">
-                                        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#22c55e", marginTop: 4, flexShrink: 0 }} />
+                                        <div
+                                            style={{
+                                                width: 10,
+                                                height: 10,
+                                                borderRadius: "50%",
+                                                background: "#22c55e",
+                                                marginTop: 4,
+                                                flexShrink: 0
+                                            }}
+                                        />
                                         <div>
-                                            <div className="fw-semibold" style={{ fontSize: 13 }}>Checked In</div>
-                                            <small className="text-muted">{fmt(visitor.check_in_time, "date")} &bull; {fmt(visitor.check_in_time, "time")}</small>
+                                            <div className="fw-semibold" style={{ fontSize: 13 }}>
+                                                Checked In
+                                            </div>
+                                            <small className="text-muted">
+                                                {fmt(visitor.check_in_time, "date")} &bull; {fmt(visitor.check_in_time, "time")}
+                                            </small>
                                         </div>
                                     </div>
                                 )}
@@ -588,6 +646,87 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                                     <div className="d-flex gap-2 justify-content-end">
                                         <button className="btn btn-sm btn-danger" onClick={() => handleApproval("rejected")}>Reject</button>
                                         <button className="btn btn-sm btn-success" onClick={() => handleApproval("approved")}>Approve</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+            {/* ── Allot Parking Modal ── */}
+            {parkingModal && (
+                <>
+                    <div className="modal-backdrop fade show"></div>
+                    <div className="modal show d-block">
+                        <div className="modal-dialog modal-sm">
+                            <div className="modal-content">
+                                <div className="modal-header bg-light">
+                                    <h1 className="modal-title fs-5">Allot Parking</h1>
+                                    <button type="button" className="btn-close"
+                                        onClick={() => { setParkingModal(false); setParkingErrors({}); }} />
+                                </div>
+                                <div className="modal-body text-start">
+
+                                    <label className="sv-lb">Slot <span className="text-danger">*</span></label>
+                                    <select
+                                        className={`sv-in mt-1 mb-3 ${parkingErrors.slotId ? "is-invalid" : ""}`}
+                                        value={slotId}
+                                        onChange={e => { setSlotId(e.target.value); setParkingErrors(p => ({ ...p, slotId: "" })); }}
+                                    >
+                                        {slotsLoading ? (
+                                            <option value="">Loading slots...</option>
+                                        ) : (
+                                            <>
+                                                <option value="">Select a slot</option>
+                                                {parkingSlots.map(slot => (
+                                                    <option key={slot.id} value={slot.id}>
+                                                        {slot.slot_number} — {slot.parking_type || ""} {slot.vehicle_type ? `(${slot.vehicle_type})` : ""}
+                                                    </option>
+                                                ))}
+                                            </>
+                                        )}
+                                    </select>
+
+                                    <label className="sv-lb">Vehicle Type <span className="text-danger">*</span></label>
+                                    <select
+                                        className={`sv-in mt-1 mb-3 ${parkingErrors.vehicleType ? "is-invalid" : ""}`}
+                                        value={vehicleType}
+                                        onChange={e => setVehicleType(e.target.value)}
+                                    >
+                                        <option value="4_wheeler">4 Wheeler</option>
+                                        <option value="2_wheeler">2 Wheeler</option>
+                                    </select>
+
+                                    <label className="sv-lb">Vehicle Number</label>
+                                    <input
+                                        className="sv-in mt-1 mb-3"
+                                        placeholder="Vehicle number"
+                                        value={vehicleNumber}
+                                        onChange={e => setVehicleNumber(e.target.value)}
+                                    />
+
+                                    <label className="sv-lb">Remarks</label>
+                                    <input
+                                        className="sv-in mt-1"
+                                        placeholder="e.g. Visitor parked near Gate B"
+                                        value={parkingRemarks}
+                                        onChange={e => setParkingRemarks(e.target.value)}
+                                    />
+                                </div>
+                                <div className="modal-footer bg-light">
+                                    <div className="d-flex gap-2 justify-content-end">
+                                        <button
+                                            className="btn btn-sm btn-outline-secondary"
+                                            onClick={() => { setParkingModal(false); setParkingErrors({}); }}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            className="btn btn-sm btn-primary fw-semibold"
+                                            onClick={handleAllotParking}
+                                        >
+                                            Allot Parking
+                                        </button>
                                     </div>
                                 </div>
                             </div>
