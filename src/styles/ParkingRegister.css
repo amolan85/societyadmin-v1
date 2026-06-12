@@ -5,29 +5,30 @@
 }
 
 .ps-type-btn {
+  flex: 1;
+  padding: 8px 0;
   border: none;
-  outline: none;
-  padding: 12px 22px;
-  border-radius: 999px;
-  background: #f3f4f6;
-  color: #6b7280;
-  font-size: 14px;
+  border-radius: 26px;
   font-weight: 600;
-  /* transition: all 0.25s ease; */
+  font-size: 13px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--muted);
+  /* ✅ same as member */
   display: flex;
   align-items: center;
-  cursor: pointer;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
-.ps-type-btn:hover {
+/* .ps-type-btn:hover {
   background: #e5e7eb;
-}
+} */
 
 .ps-type-btn.active {
-  background: #e0f2fe;
-  color: #0284c7;
-  border: 1px solid #7dd3fc;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15);
+  background: var(--accent);
+  /* ✅ same as member */
+  color: #fff;
 }
 
 .deallocate-btn {
@@ -49,4 +50,36 @@
 .timeline-dot {
   width: 20px;
   height: 20px;
+}
+
+/* Parking Type Toggle - same as am-type-wrap */
+.ps-type-wrap {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 30px;
+  padding: 4px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.ps-type-btn {
+  flex: 1;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 26px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  background: transparent;
+  color: #6c757d;
+  transition: all 0.2s ease;
+}
+
+.ps-type-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.ps-type-btn.error-btn {
+  border: 1px solid #ef4444;
 }

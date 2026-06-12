@@ -117,7 +117,7 @@ const TITLES = {
   parkingList: ["Operations", "Parking"],
   parkingDashboard: ["Operations", "Parking"],
   visitorParking: ["Operations", "Parking", "Visitor Parking"],
-  visitorDetailsPage: ["Administration","Visitor Register","Visitor Details"],
+  visitorDetailsPage: ["Administration", "Visitor Register", "Visitor Details"],
   violationAlerts: ["Operations", "Parking", "Violation Alerts"],
   parkingRules: ["Operations", "Parking", "Parking Rules"],
   viewParkingDetails: ["Operations", "Parking", "Violation Details"],
@@ -148,6 +148,7 @@ export default function App() {
   const [staffId, setStaffId] = useState(null)
   const [violationId, setViolationId] = useState(null)
   const [visitorId, setVisitorId] = useState(null);
+  const [selectedSlotId, setSelectedSlotId] = useState(null);
 
   useLayoutEffect(() => {
     if (!document.getElementById("bs-css")) {
@@ -197,8 +198,8 @@ export default function App() {
     noticeboard: <NoticeBoard setActive={setActive} setSelectedNoticeData={setSelectedNoticeData} />,
     createNoticeBoard: <CreateNoticeBoard setActive={setActive} selectedNoticeData={selectedNoticeData} />,
     unitRegister: <UnitRegister setActive={setActive} setFlatId={setFlatId} />,
-    parkingRegister: <ParkingRegister setActive={setActive} />,
-    parkingDetails: <ParkingDetails setActive={setActive} />,
+    parkingRegister: <ParkingRegister setActive={setActive} setSelectedSlotId={setSelectedSlotId} />,
+    parkingDetails: <ParkingDetails setActive={setActive} slotId={selectedSlotId} />,
     parkingHistory: <ParkingHistory setActive={setActive} />,
     visitorRegister: <VisitorRegister setActive={setActive} setVisitorId={setVisitorId} />,
     visitorDetailsPage: <GetVisitorDetails setActive={setActive} visitorId={visitorId} />,
