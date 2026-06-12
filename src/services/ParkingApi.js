@@ -30,11 +30,11 @@ export const ListParkingSlotsApi = async (societyId) => {
         method: 'post',
         url,
         data: {
-            society_id: societyId,
+            society_id: societyId,   // ✅ societyId is now a plain string
             page: 1,
             limit: 100,
             search: "",
-            slot_status: "available",  // only available slots
+            slot_status: "",          // ✅ empty = all slots (available + occupied)
             parking_type: "",
             vehicle_type: "",
             block: "",
@@ -47,3 +47,4 @@ export const ListParkingSlotsApi = async (societyId) => {
     .then(res => res.data.data)
     .catch(error => { throw ErrorHandler(error); });
 };
+

@@ -1,4 +1,4 @@
-// MemberModal.jsx
+// ViolationAlertModal.jsx
 import Select from "react-select";
 
 const ViolationAlertModal = ({
@@ -7,62 +7,84 @@ const ViolationAlertModal = ({
 
     allBlocks = [],
     allFlats = [],
-    addMemberType = [],
+    allSlots = [],
 
     blocks = null,
-    setBlocks = () => { },
+    setBlocks = () => {},
 
     flat = null,
-    setFlat = () => { },
+    setFlat = () => {},
 
-    memType = "",
-    setMemType = () => { },
+    // ✅ violationType — drives the violation_type field sent to the API
+    violationType = null,
+    setViolationType = () => {},
 
-    resetForm = () => { },
+    // ✅ vehicleType — drives the vehicle_type field (separate from violation type)
+    vehicleType = null,
+    setVehicleType = () => {},
 
-    firstName = "",
-    setFirstName = () => { },
+    slot = null,
+    setSlot = () => {},
 
-    lastName = "",
-    setLastName = () => { },
+    vehicleNo = "",
+    setVehicleNo = () => {},
+
+    resetForm = () => {},
+
+    firstName = "",       // penalty_amount
+    setFirstName = () => {},
+
+    lastName = "",        // description
+    setLastName = () => {},
 
     mobileNo = "",
-    setMobileNo = () => { },
+    setMobileNo = () => {},
 
     emailId = "",
-    setEmailId = () => { },
+    setEmailId = () => {},
 
     startDate = "",
-    setStartDate = () => { },
+    setStartDate = () => {},
 
     endDate = "",
-    setEndDate = () => { },
-
-    // rentAgreement = null,
-    setRentAgreement = () => { },
-
-    // policeNoc = null,
-    setPoliceNoc = () => { },
+    setEndDate = () => {},
 
     errors = {},
     errorText = "",
-    handleBlockChange = () => { },
-    handleSubmit = () => { },
+    handleBlockChange = () => {},
+    handleSubmit = () => {},
     mode,
 }) => {
     if (!showViolationAlert) return null;
 
+    // ✅ Violation type options — these are the actual violation_type values the API accepts
+    const violationTypeOptions = [
+        { value: "unauthorized_parking", label: "Unauthorized Parking" },
+        { value: "visitor_overstay",     label: "Visitor Overstay" },
+        { value: "wrong_slot",           label: "Wrong Slot" },
+        { value: "double_parking",       label: "Double Parking" },
+        { value: "no_sticker",           label: "No Sticker" },
+        { value: "other",                label: "Other" },
+    ];
+
+    // ✅ Vehicle type options — 2-wheeler or 4-wheeler
+    const vehicleTypeOptions = [
+        { value: "2_wheeler", label: "2 Wheeler" },
+        { value: "4_wheeler", label: "4 Wheeler" },
+    ];
+
     return (
         <>
             <div className="modal-backdrop fade show"></div>
+
             <div className="modal show d-block">
                 <div className="modal-dialog modal-md">
                     <div className="modal-content">
+
                         <div className="modal-header bg-light">
                             <h5 className="modal-title">
                                 Create Violation Alert
                             </h5>
-
                             <button
                                 type="button"
                                 className="btn-close"
@@ -73,118 +95,125 @@ const ViolationAlertModal = ({
                         <div className="modal-body">
                             <div className="pg d-flex justify-content-center am-wrap">
                                 <div className="text-start am-card">
+
+                                    {/* Row 1 — Slot No. & Vehicle No. */}
                                     <div className="row g-3 mb-3">
+
+                                        {/* Slot No. */}
                                         <div className="col-6">
                                             <div className="d-flex">
                                                 <label className="sv-lb">
-                                                    Slot no. <span className="text-danger">*</span>
+                                                    Slot No. <span className="text-danger">*</span>
                                                 </label>
-                                                {errors.blocks && (
-                                                    <span className="text-danger mx-2 ">
-                                                        {errors.blocks}
-                                                    </span>
+                                                {errors.slot && (
+                                                    <span className="text-danger mx-2">{errors.slot}</span>
                                                 )}
                                             </div>
                                             <Select
+                                                options={allSlots}
+                                                value={slot}
+                                                onChange={(selectedOption) => setSlot(selectedOption)}
+                                                placeholder="Select Slot"
+                                                isClearable
                                                 styles={{
                                                     control: (baseStyles) => ({
                                                         ...baseStyles,
-                                                        borderColor: errors.blocks
-                                                            ? "red"
-                                                            : baseStyles.borderColor,
+                                                        borderColor: errors.slot ? "red" : baseStyles.borderColor,
                                                         boxShadow: "none",
-                                                        "&:hover": {
-                                                            borderColor: errors.blocks
-                                                                ? "red"
-                                                                : baseStyles.borderColor,
-                                                        },
                                                     }),
                                                 }}
-                                                options={allBlocks}
-                                                value={blocks}
-                                                onChange={handleBlockChange}
                                             />
                                         </div>
 
+                                        {/* Vehicle No. */}
                                         <div className="col-6">
                                             <div className="d-flex">
                                                 <label className="sv-lb">
                                                     Vehicle No. <span className="text-danger">*</span>
                                                 </label>
-                                                {errors.flat && (
-                                                    <span className="text-danger mx-2 ">
-                                                        {errors.flat}
-                                                    </span>
+                                                {errors.vehicleNo && (
+                                                    <span className="text-danger mx-2">{errors.vehicleNo}</span>
                                                 )}
                                             </div>
-
-                                            <Select
-                                                styles={{
-                                                    control: (baseStyles) => ({
-                                                        ...baseStyles,
-                                                        borderColor: errors.flat
-                                                            ? "red"
-                                                            : baseStyles.borderColor,
-                                                        boxShadow: "none",
-                                                        "&:hover": {
-                                                            borderColor: errors.flat
-                                                                ? "red"
-                                                                : baseStyles.borderColor,
-                                                        },
-                                                    }),
-                                                }}
-                                                options={allFlats}
-                                                value={flat}
-                                                onChange={(selectedOption) => setFlat(selectedOption)}
+                                            <input
+                                                type="text"
+                                                className={`sv-in ${errors.vehicleNo ? "error-input" : ""}`}
+                                                placeholder="Enter Vehicle Number"
+                                                value={vehicleNo}
+                                                onChange={(e) => setVehicleNo(e.target.value.toUpperCase())}
                                             />
                                         </div>
-
                                     </div>
+
+                                    {/* Row 2 — Violation Type & Vehicle Type */}
                                     <div className="row g-3 mb-3">
+
+                                        {/* ✅ Violation Type — sends violation_type to API */}
                                         <div className="col-6">
                                             <div className="d-flex">
                                                 <label className="sv-lb">
-                                                    Vehicle Type. <span className="text-danger">*</span>
+                                                    Violation Type <span className="text-danger">*</span>
                                                 </label>
-                                                {errors.flat && (
-                                                    <span className="text-danger mx-2 ">
-                                                        {errors.flat}
-                                                    </span>
+                                                {errors.violationType && (
+                                                    <span className="text-danger mx-2">{errors.violationType}</span>
                                                 )}
                                             </div>
-
                                             <Select
+                                                options={violationTypeOptions}
+                                                value={violationType}
+                                                onChange={(selectedOption) => setViolationType(selectedOption)}
+                                                placeholder="Select Type"
+                                                isClearable
                                                 styles={{
                                                     control: (baseStyles) => ({
                                                         ...baseStyles,
-                                                        borderColor: errors.flat
-                                                            ? "red"
-                                                            : baseStyles.borderColor,
+                                                        borderColor: errors.violationType ? "red" : baseStyles.borderColor,
                                                         boxShadow: "none",
-                                                        "&:hover": {
-                                                            borderColor: errors.flat
-                                                                ? "red"
-                                                                : baseStyles.borderColor,
-                                                        },
                                                     }),
                                                 }}
-                                                options={allFlats}
-                                                value={flat}
-                                                onChange={(selectedOption) => setFlat(selectedOption)}
                                             />
                                         </div>
-                                           <div className="col-6">
+
+                                        {/* ✅ Vehicle Type — separate field */}
+                                        <div className="col-6">
+                                            <div className="d-flex">
+                                                <label className="sv-lb">
+                                                    Vehicle Type <span className="text-danger">*</span>
+                                                </label>
+                                                {errors.vehicleType && (
+                                                    <span className="text-danger mx-2">{errors.vehicleType}</span>
+                                                )}
+                                            </div>
+                                            <Select
+                                                options={vehicleTypeOptions}
+                                                value={vehicleType}
+                                                onChange={(selectedOption) => setVehicleType(selectedOption)}
+                                                placeholder="Select Type"
+                                                isClearable
+                                                styles={{
+                                                    control: (baseStyles) => ({
+                                                        ...baseStyles,
+                                                        borderColor: errors.vehicleType ? "red" : baseStyles.borderColor,
+                                                        boxShadow: "none",
+                                                    }),
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Row 3 — Penalty Amount */}
+                                    <div className="row g-3 mb-3">
+                                        <div className="col-12">
                                             <div className="d-flex">
                                                 <label className="sv-lb">
                                                     Penalty Amount <span className="text-danger">*</span>
                                                 </label>
                                                 {errors.firstName && (
-                                                    <span className="text-danger mx-2 ">
-                                                        {errors.firstName}
-                                                    </span>
+                                                    <span className="text-danger mx-2">{errors.firstName}</span>
                                                 )}
                                             </div>
                                             <input
+                                                type="number"
                                                 className={`sv-in ${errors.firstName ? "error-input" : ""}`}
                                                 placeholder="Enter penalty amount"
                                                 value={firstName}
@@ -192,23 +221,24 @@ const ViolationAlertModal = ({
                                             />
                                         </div>
                                     </div>
+
+                                    {/* Row 4 — Description */}
                                     <div className="row g-3 mb-3">
                                         <div className="col-12">
                                             <div className="d-flex">
                                                 <label className="sv-lb">
-                                                    Description (Optional){" "}
-
+                                                    Description (Optional)
                                                 </label>
-                                                {errors.rentAgreement && (
-                                                    <span className="text-danger mx-2">
-                                                        {errors.rentAgreement}
-                                                    </span>
-                                                )}
                                             </div>
-                                            <textarea className="form-control" rows={3} placeholder="" />
+                                            <textarea
+                                                className="form-control"
+                                                rows={3}
+                                                placeholder="Enter description"
+                                                value={lastName}
+                                                onChange={(e) => setLastName(e.target.value)}
+                                            />
                                         </div>
                                     </div>
-
 
                                 </div>
                             </div>
@@ -217,17 +247,22 @@ const ViolationAlertModal = ({
                         <div className="modal-footer bg-light">
                             <button
                                 type="button"
-                                className="btn btn-ac btn-ad grey-btn" onClick={() => {
+                                className="btn btn-ac btn-ad grey-btn"
+                                onClick={() => {
                                     setShowViolationAlert(false);
                                     resetForm();
                                 }}
                             >
                                 Cancel
                             </button>
-                            <button className="btn-ac px-4" onClick={handleSubmit}>
+                            <button
+                                className="btn-ac px-4"
+                                onClick={handleSubmit}
+                            >
                                 Submit
                             </button>
                         </div>
+
                     </div>
                 </div>
             </div>

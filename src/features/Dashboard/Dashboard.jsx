@@ -38,6 +38,7 @@ import ParkingDashboard from "../Parking/ParkingDashboard";
 import ParkingList from "../Parking/ParkingList";
 import "../../styles/dashboard.css";
 import ViolationAlertsList from "../Parking/ViolationAlertsList";
+import ViolationDetails  from "../Parking/ViolationDetails";
 import VisitorParkingList from "../Parking/VisitorParkingList";
 import VisitorRegister from "../Register/VisitorRegister/VisitorRegister";
 import GetVisitorDetails from "../Register/VisitorRegister/GetVisitorDetails";
@@ -117,6 +118,7 @@ const TITLES = {
   parkingDashboard: ["Operations", "Parking"],
   visitorParking: ["Operations", "Parking", "Visitor Parking"],
   violationAlerts: ["Operations", "Parking", "Violation Alerts"],
+  violationDetails: ["Operations", "Parking", "Violation Details"],
   parkingRules: ["Operations", "Parking", "Parking Rules"],
   viewParkingDetails: ["Operations", "Parking", "Violation Details"],
   visitorDetails: ["Operations", "Parking", "Visitor Details"],
@@ -143,7 +145,7 @@ export default function App() {
   const [flatId, setFlatId] = useState(null)
   const [selectedNoticeData, setSelectedNoticeData] = useState()
   const [pollId, setPollId] = useState(null)
-  const [staffId, setStaffId] = useState(null)
+  const [staffId, setStaffId] = useState(null) 
   const [violationId, setViolationId] = useState(null)
   const [visitorId, setVisitorId] = useState(null);
 
@@ -184,7 +186,8 @@ export default function App() {
     parkingList: <ParkingList setActive={setActive} />,
     parkingDashboard: <ParkingDashboard setActive={setActive} setViolationId={setViolationId} setVisitorParkingId={setVisitorParkingId} />,
     visitorParking: <VisitorParkingList setActive={setActive} setVisitorParkingId={setVisitorParkingId} /* setViolationId={setViolationId} */ />,
-    violationAlerts: <ViolationAlertsList setActive={setActive} /* setViolationId={setViolationId} */ />,
+    violationAlerts: <ViolationAlertsList setActive={setActive}  setViolationId={setViolationId}  />,
+    violationDetails: <ViolationDetails setActive={setActive} violationId={violationId} />,
     parkingRules: <ParkingRules setActive={setActive} />,
     viewParkingDetails: <ViewParkingDetails setActive={setActive} violationId={violationId} setVisitorParkingId={setVisitorParkingId} />,
     visitorDetails: <VisitorDetails setActive={setActive} visitorParkingId={visitorParkingId} />,
