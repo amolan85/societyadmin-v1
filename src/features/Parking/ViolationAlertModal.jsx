@@ -82,8 +82,11 @@ const ViolationAlertModal = ({
                     <div className="modal-content">
 
                         <div className="modal-header bg-light">
+                             
                             <h5 className="modal-title">
-                                Create Violation Alert
+                                {mode === "edit"
+                                    ? "Edit Violation Alert"
+                                    : "Create Violation Alert"}
                             </h5>
                             <button
                                 type="button"
@@ -256,10 +259,12 @@ const ViolationAlertModal = ({
                                 Cancel
                             </button>
                             <button
-                                className="btn-ac px-4"
-                                onClick={handleSubmit}
-                            >
-                                Submit
+                                    className="btn-ac px-4"
+                                    onClick={handleSubmit}
+                                >
+                                    {mode === "edit"
+                                ? "Update"
+                                : "Submit"}
                             </button>
                         </div>
 

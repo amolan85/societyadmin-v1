@@ -3,6 +3,7 @@ import "../../styles/AddMember.css";
 import { Badge, Pagination } from "../../components/Common/ReusableFunction";
 import { GetSessionData } from "../../utils/SessionManagement";
 import ViolationAlertModal from "./ViolationAlertModal";
+import ViewParkingDetails from "./ViewParkingDetails";
 import {
     AddMemberApi,
     getMembersApi,
@@ -25,10 +26,16 @@ import { getAllBlocksApi, getAllFlatsApi } from "../../services/UnitRegisterApi"
 import { CgExport, CgImport } from "react-icons/cg";
 import { parkingDashboardApi, ListParkingSlotsApi } from "../../services/ParkingApi";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
-import { violationAlertsApi, deleteViolationAlertsApi, createViolationAlertApi,getViolationAlertByIdApi } from "../../services/ViolationAlertsApi";
+import {
+    violationAlertsApi,
+    deleteViolationAlertsApi,
+    createViolationAlertApi,
+    getViolationAlertByIdApi,
+    updateViolationAlertApi,
+} from "../../services/ViolationAlertsApi";
 import ExportModal from "../../components/Common/ExportModal";
 
-const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
+const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId }) => {
     const [societyId, setSocietyId] = useState("");
     const [userId, setUserId] = useState("");
     const [errors, setErrors] = useState({});
@@ -36,6 +43,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
     const [limit, setLimit] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
     const [mode, setMode] = useState("add");
+    const [selectedViolation, setSelectedViolation] = useState(null);
     const [activeTab, setActiveTab] = useState("excel");
     const [exportModal, setExportModal] = useState(false);
     const [errorText, setErrorText] = useState("");
@@ -55,14 +63,37 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
     const [violationType, setViolationType] = useState(null);   // violation_type sent to API
     const [vehicleType, setVehicleType] = useState(null);       // vehicle_type (2_wheeler / 4_wheeler)
     const [firstName, setFirstName] = useState("");             // penalty_amount
-    const [lastName, setLastName] = useState("");  
-    const [violationId, setViolationId] = useState(null);             // description
+    const [lastName, setLastName] = useState("");               // description
+    const [status, setStatus] = useState(null);                 // status (edit only)
+
+    // ── Currently editing violation id ────────────────────────────────────────
+    const [editingViolationId, setEditingViolationId] = useState(null);
 
     const violationStatus = [
         { id: "All",       value: "" },
         { id: "Open",      value: "open" },
         { id: "Resolved",  value: "resolved" },
         { id: "Dismissed", value: "dismissed" },
+    ];
+
+    const violationTypeOptions = [
+        { value: "unauthorized_parking", label: "Unauthorized Parking" },
+        { value: "visitor_overstay",     label: "Visitor Overstay" },
+        { value: "wrong_slot",           label: "Wrong Slot" },
+        { value: "double_parking",       label: "Double Parking" },
+        { value: "no_sticker",           label: "No Sticker" },
+        { value: "other",                label: "Other" },
+    ];
+
+    const vehicleTypeOptions = [
+        { value: "2_wheeler", label: "2 Wheeler" },
+        { value: "4_wheeler", label: "4 Wheeler" },
+    ];
+
+    const statusOptions = [
+        { value: "open",      label: "Open" },
+        { value: "resolved",  label: "Resolved" },
+        { value: "dismissed", label: "Dismissed" },
     ];
 
     useEffect(() => {
@@ -117,8 +148,39 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
         getAllVisitorAlerts(societyId, value);
     };
 
-    // ✅ Matches ParkingDashboard: positional args + correct field mapping
-    const handleViolationSubmit = async () => {
+    // ✅ Resets only violation form fields — does not touch unrelated member state
+    const resetForm = () => {
+        setSlot(null);
+        setVehicleNo("");
+        setViolationType(null);
+        setVehicleType(null);
+        setFirstName("");
+        setLastName("");
+        setStatus(null);
+        setEditingViolationId(null);
+        setErrors({});
+        setErrorText("");
+    };
+
+    const handleEditViolation = (violation) => {
+
+        setSelectedViolation(violation);
+
+        setFormData({
+            violation_type: violation.violation_type || "",
+            slot_id: violation.slot_id || "",
+            vehicle_number: violation.vehicle_number || "",
+            vehicle_type:violation.vehicle_type ||"",
+            description: violation.description || "",
+            penalty_amount: violation.penalty_amount || "",
+            photo_url: violation.photo_url || "",
+        });
+
+        setMode("edit");
+        setShowViolationAlert(true);
+    };
+    // ✅ Create flow — unchanged
+    const handleCreateSubmit = async () => {
         const newErrors = {};
         if (!slot)              newErrors.slot          = "Required";
         if (!vehicleNo.trim())  newErrors.vehicleNo     = "Required";
@@ -153,16 +215,103 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
         }
     };
 
-    // ✅ Resets only violation form fields — does not touch unrelated member state
-    const resetForm = () => {
-        setSlot(null);
-        setVehicleNo("");
-        setViolationType(null);
-        setVehicleType(null);
-        setFirstName("");
-        setLastName("");
-        setErrors({});
-        setErrorText("");
+    // ✅ Edit flow — calls updateViolationAlertApi
+    const handleEditSubmit = async () => {
+        const newErrors = {};
+        if (!slot)              newErrors.slot          = "Required";
+        if (!vehicleNo.trim())  newErrors.vehicleNo     = "Required";
+        if (!violationType)     newErrors.violationType = "Required";
+        if (!vehicleType)       newErrors.vehicleType   = "Required";
+        if (!firstName.trim())  newErrors.firstName     = "Required";
+        if (!status)            newErrors.status        = "Required";
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+
+        try {
+            await updateViolationAlertApi(
+                societyId,                // society_id
+                editingViolationId,       // violation_id
+                slot?.value,               // slot_id
+                vehicleNo,                  // vehicle_number
+                violationType?.value,       // violation_type
+                lastName,                   // description
+                null,                       // photo_url (kept unchanged)
+                firstName,                  // penalty_amount
+                vehicleType?.value,          // vehicle_type
+                status?.value                // status
+            );
+
+            toast.success("Violation Alert Updated Successfully");
+            setShowViolationAlert(false);
+            resetForm();
+            getAllVisitorAlerts(societyId, page);
+        } catch (error) {
+            console.error(error);
+            toast.error(error?.message || "Failed to update violation");
+        }
+    };
+
+    // ✅ Dispatches to create/edit based on mode
+    const handleViolationSubmit = async () => {
+        if (mode === "edit") {
+            await handleEditSubmit();
+        } else {
+            await handleCreateSubmit();
+        }
+    };
+
+    // ✅ Opens modal in edit mode and prefills with the selected violation's data
+    const handleEditClick = async (item) => {
+        try {
+            resetForm();
+            setMode("edit");
+            setEditingViolationId(item.id);
+
+            // Try to get the freshest data via the get-by-id API
+            let data = item;
+            try {
+                const response = await getViolationAlertByIdApi(societyId, item.id);
+                data = response?.violation || response || item;
+            } catch (err) {
+                console.warn("Could not fetch latest violation details, using row data:", err);
+            }
+
+            // Prefill slot
+            const matchedSlot = allSlots.find(
+                (s) => s.value === data.slot_id || s.label === data.slot_number
+            );
+            setSlot(matchedSlot || (data.slot_number ? { value: data.slot_id, label: data.slot_number } : null));
+
+            setVehicleNo(data.vehicle_number || "");
+
+            const matchedViolationType = violationTypeOptions.find(
+                (v) => v.value === data.violation_type
+            );
+            setViolationType(matchedViolationType || null);
+
+            const matchedVehicleType = vehicleTypeOptions.find(
+                (v) => v.value === data.vehicle_type
+            );
+            setVehicleType(matchedVehicleType || null);
+
+            setFirstName(
+                data.penalty_amount !== undefined && data.penalty_amount !== null
+                    ? String(data.penalty_amount)
+                    : ""
+            );
+            setLastName(data.description || "");
+
+            const matchedStatus = statusOptions.find((s) => s.value === data.status);
+            setStatus(matchedStatus || null);
+
+            setShowViolationAlert(true);
+        } catch (error) {
+            console.error("Error preparing edit form:", error);
+            toast.error("Failed to load violation for editing");
+        }
     };
 
     const handleDelete = async (violationId) => {
@@ -243,6 +392,11 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
 
     const total = Math.ceil(totalCount / limit);
 
+    const handleViewDetails = (item) => {
+        setViolationId(item.id);
+        setActive("viewParkingDetails");
+    };
+
     return (
         <>
             <div className="pg cp-wrap">
@@ -255,17 +409,23 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                     <div className="d-flex">
                         <button
                             className="btn btn-sm btn-ac ms-2 btn-primary"
-                            onClick={() => { resetForm(); setMode("add"); setShowViolationAlert(true); }}
-                        >
+                            onClick={() => {
+                                resetForm();
+                                    setSelectedViolation(null);
+                                    setMode("add");
+                                    setShowViolationAlert(true);
+                                }}
+                            >
                             + Create Violation Alert
                         </button>
-                        <button
-                            className="btn btn-sm btn-ac ms-2 btn-primary"
-                            onClick={() => setActive("parkingDashboard")}
+
+                    <button
+                        className="btn btn-sm btn-ac ms-2 btn-primary"
+                        onClick={() => setActive("parkingDashboard")}
                         >
-                            Back
-                        </button>
-                    </div>
+                        Back
+                    </button>
+                </div>
                 </div>
 
                 {/* Stats */}
@@ -346,71 +506,75 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                             </thead>
                             <tbody>
                                 {filteredData.map((item, index) => (
-                                    <tr key={index}>
-                                        <td className="text-start">
-                                            <div className="fw-bold">{item.violation_type}</div>
-                                        </td>
-                                        <td className="text-start">
-                                            <div className="fw-bold">{item.slot_number}</div>
-                                        </td>
-                                        <td className="text-start">
-                                            <div className="fw-bold">{item.vehicle_number}</div>
-                                        </td>
-                                        <td className="text-start">
-                                            <div className="fw-bold">{item.penalty_amount}</div>
-                                        </td>
-                                        <td className="text-start">
-                                            <Badge
-                                                label={item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : ""}
+                                    <tr
+                                        key={index}
+                                        onClick={() => handleViewDetails(item)}
+                                        style={{ cursor: "pointer" }}
+                                >
+                                    <td className="text-start">
+                                        <div className="fw-bold">{item.violation_type}</div>
+                                    </td>
+                                    <td className="text-start">
+                                        <div className="fw-bold">{item.slot_number}</div>
+                                    </td>
+                                    <td className="text-start">
+                                        <div className="fw-bold">{item.vehicle_number}</div>
+                                    </td>
+                                    <td className="text-start">
+                                        <div className="fw-bold">{item.penalty_amount}</div>
+                                    </td>
+                                    <td className="text-start">
+                                        <Badge
+                                            label={item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : ""}
                                                 c={
-                                                    item.status === "open"      ? "green"
-                                                    : item.status === "resolved"  ? "yellow"
-                                                    : item.status === "dismissed" ? "red"
-                                                    : "gray"
+                                                item.status === "open"      ? "green"
+                                                : item.status === "resolved"  ? "yellow"
+                                                : item.status === "dismissed" ? "red"
+                                                : "gray"
                                                 }
                                             />
-                                        </td>
-                                        <td className="text-start">
-                                            <div className="member-action-dropdown dropdown">
-                                                <button
-                                                    className="member-action-btn"
-                                                    type="button"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-expanded="false"
-                                                >
-                                                    ⋮
-                                                </button>
-                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                                onClick={() => {
-                                                            setViolationId(item.id);
-                                                            setActive("violationDetails");
-                                                        }}
-                                                    >
-                                                        View Details
-                                                        </button>
-                                                    </li>
-                                                    <li>
-                                                        <button className="dropdown-item member-action-item">
-                                                            Edit Violation Alert
-                                                        </button>
-                                                    </li>
-                                                    <li><hr className="dropdown-divider" /></li>
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item member-action-delete"
-                                                            onClick={() => handleDelete(item.id)}
-                                                        >
-                                                            Delete Violation Alert
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                    </td>
+                                    <td className="text-start" onClick={(e) => e.stopPropagation()}>
+                                        <div className="member-action-dropdown dropdown">
+                                            <button
+                                                className="member-action-btn"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                aria-expanded="false"
+                                            >
+                                                ⋮
+                </button>
+                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                    <li>
+                        <button
+                            className="dropdown-item member-action-item"
+                            onClick={() => handleViewDetails(item)}
+                        >
+                            View Details
+                        </button>
+                    </li>
+                    <li>
+                        <button
+                            className="dropdown-item member-action-item"
+                            onClick={() => handleEditClick(item)}
+                        >
+                            Edit Violation Alert
+                        </button>
+                    </li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                        <button
+                            className="dropdown-item member-action-item member-action-delete"
+                            onClick={() => handleDelete(item.id)}
+                        >
+                            Delete Violation Alert
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </td>
+    </tr>
+))}
                             </tbody>
                         </table>
                     </div>
@@ -418,7 +582,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                 </div>
             </div>
 
-            {/* ✅ All modal props mirror ParkingDashboard exactly */}
+            {/* ✅ Modal — supports both add and edit modes */}
             <ViolationAlertModal
                 showViolationAlert={showViolationAlert}
                 setShowViolationAlert={setShowViolationAlert}
@@ -431,12 +595,12 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId }) => {
                 setViolationType={setViolationType}
                 vehicleType={vehicleType}
                 setVehicleType={setVehicleType}
-                setActive={setActive}
-                setViolationId={setViolationId}
                 firstName={firstName}
                 setFirstName={setFirstName}
                 lastName={lastName}
                 setLastName={setLastName}
+                status={status}
+                setStatus={setStatus}
                 errors={errors}
                 handleSubmit={handleViolationSubmit}
                 resetForm={resetForm}

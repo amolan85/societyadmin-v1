@@ -167,3 +167,77 @@ export const getViolationAlertByIdApi = async (
             throw errors;
         });
 };
+
+
+// api function for update violation alert (full edit)
+export const updateViolationAlertApi = async (
+    societyId,
+    violationId,
+    slotId,
+    vehicleNumber,
+    violationType,
+    description,
+    photoUrl,
+    penaltyAmount,
+    vehicleType,
+    status
+) => {
+    const url = UrlData + "parking_violation/UpdateViolationAlert";
+
+    const data = {
+        society_id: societyId,
+        violation_id: violationId,
+        slot_id: slotId,
+        vehicle_number: vehicleNumber,
+        violation_type: violationType,
+        description: description,
+        photo_url: photoUrl,
+        penalty_amount: penaltyAmount,
+        vehicle_type: vehicleType,
+        status: status,
+    };
+
+    return await apiClient({
+        method: "post",
+        url: url,
+        data: data,
+        timeout: 30000,
+    })
+        .then((response) => {
+            return response.data.data;
+        })
+        .catch((error) => {
+            console.log(error);
+            const errors = ErrorHandler(error);
+            console.log(errors, "Errors update violation alert");
+            throw errors;
+        });
+};
+
+
+// api function for delete violation alert (full edit)
+export const deleteViolationAlertApi = async (
+    violationId 
+) => {
+    const url = UrlData + "parking_violation/DeleteViolationAlert";
+
+    const data = {
+        violation_id: violationId 
+    };
+
+    return await apiClient({
+        method: "post",
+        url: url,
+        data: data,
+        timeout: 30000,
+    })
+        .then((response) => {
+            return response.data.data;
+        })
+        .catch((error) => {
+            console.log(error);
+            const errors = ErrorHandler(error);
+            console.log(errors, "Errors delete violation alert");
+            throw errors;
+        });
+};
