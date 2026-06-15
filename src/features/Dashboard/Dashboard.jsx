@@ -38,7 +38,6 @@ import ParkingDashboard from "../Parking/ParkingDashboard";
 import ParkingList from "../Parking/ParkingList";
 import "../../styles/dashboard.css";
 import ViolationAlertsList from "../Parking/ViolationAlertsList";
-import ViolationDetails  from "../Parking/ViolationDetails";
 import VisitorParkingList from "../Parking/VisitorParkingList";
 import VisitorRegister from "../Register/VisitorRegister/VisitorRegister";
 import GetVisitorDetails from "../Register/VisitorRegister/GetVisitorDetails";
@@ -78,6 +77,7 @@ const NAV = [
       { id: "flattransfer", icon: "🏠", lbl: "Flat Transfer" },
       { id: "registers", icon: "📔", lbl: "Registers" },
       { id: "rules", icon: "⚖️", lbl: "Rules & By-laws" },
+      { id: "visitorRegister", icon: "🚶", lbl: "Visitors" },
     ]
   },
   {
@@ -117,8 +117,8 @@ const TITLES = {
   parkingList: ["Operations", "Parking"],
   parkingDashboard: ["Operations", "Parking"],
   visitorParking: ["Operations", "Parking", "Visitor Parking"],
+  visitorDetailsPage: ["Administration", "Visitor Register", "Visitor Details"],
   violationAlerts: ["Operations", "Parking", "Violation Alerts"],
-  violationDetails: ["Operations", "Parking", "Violation Details"],
   parkingRules: ["Operations", "Parking", "Parking Rules"],
   viewParkingDetails: ["Operations", "Parking", "Violation Details"],
   visitorDetails: ["Operations", "Parking", "Visitor Details"],
@@ -148,6 +148,7 @@ export default function App() {
   const [staffId, setStaffId] = useState(null) 
   const [violationId, setViolationId] = useState(null)
   const [visitorId, setVisitorId] = useState(null);
+  const [selectedSlotId, setSelectedSlotId] = useState(null);
 
   useLayoutEffect(() => {
     if (!document.getElementById("bs-css")) {
@@ -187,7 +188,6 @@ export default function App() {
     parkingDashboard: <ParkingDashboard setActive={setActive} setViolationId={setViolationId} setVisitorParkingId={setVisitorParkingId} />,
     visitorParking: <VisitorParkingList setActive={setActive} setVisitorParkingId={setVisitorParkingId} /* setViolationId={setViolationId} */ />,
     violationAlerts: <ViolationAlertsList setActive={setActive}  setViolationId={setViolationId}  />,
-    violationDetails: <ViolationDetails setActive={setActive} violationId={violationId} />,
     parkingRules: <ParkingRules setActive={setActive} />,
     viewParkingDetails: <ViewParkingDetails setActive={setActive} violationId={violationId} setVisitorParkingId={setVisitorParkingId} />,
     visitorDetails: <VisitorDetails setActive={setActive} visitorParkingId={visitorParkingId} />,
@@ -198,8 +198,8 @@ export default function App() {
     noticeboard: <NoticeBoard setActive={setActive} setSelectedNoticeData={setSelectedNoticeData} />,
     createNoticeBoard: <CreateNoticeBoard setActive={setActive} selectedNoticeData={selectedNoticeData} />,
     unitRegister: <UnitRegister setActive={setActive} setFlatId={setFlatId} />,
-    parkingRegister: <ParkingRegister setActive={setActive} />,
-    parkingDetails: <ParkingDetails setActive={setActive} />,
+    parkingRegister: <ParkingRegister setActive={setActive} setSelectedSlotId={setSelectedSlotId} />,
+    parkingDetails: <ParkingDetails setActive={setActive} slotId={selectedSlotId} />,
     parkingHistory: <ParkingHistory setActive={setActive} />,
     visitorRegister: <VisitorRegister setActive={setActive} setVisitorId={setVisitorId} />,
     visitorDetailsPage: <GetVisitorDetails setActive={setActive} visitorId={visitorId} />,
