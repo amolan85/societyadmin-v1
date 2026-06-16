@@ -559,6 +559,13 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                 show={show}
                 setShow={setShow}
                 mode="edit"
+                allBlocks={[]}
+                allFlats={[]}
+                selectedBlock=""
+                setSelectedBlock={() => { }}
+                selectedFlat=""
+                setSelectedFlat={() => { }}
+                onBlockChange={() => { }}
                 errors={errors}
                 setErrors={setErrors}
                 errorText={errorText}

@@ -39,6 +39,11 @@ const ParkingRegister = ({ setActive, setSelectedSlotId }) => {  // ← added se
     const [parkingType, setParkingType] = useState("");
     const [vehicleSuitability, setVehicleSuitability] = useState("");
     const [allocationStatus, setAllocationStatus] = useState("");
+    const [filterSlotStatus, setFilterSlotStatus] = useState("");
+    const [filterParkingType, setFilterParkingType] = useState("");
+    const [filterVehicleType, setFilterVehicleType] = useState("");
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
     const [stats, setStats] = useState({ total: 0, allocated: 0, available: 0, reserved: 0 });
 
     const parkingTypeList = [
@@ -50,54 +55,48 @@ const ParkingRegister = ({ setActive, setSelectedSlotId }) => {  // ← added se
 
     useEffect(() => { SessionData(); }, []);
     useEffect(() => {
-        if (societyId) {
-            loadSlots(societyId, page);
-        }
-    }, [page, societyId]);
+        if (!societyId) return;
+        loadSlots({
+            sId: societyId,
+            currentPage: page,
+            searchText: search,
+            slotStatus: filterSlotStatus,
+            parkingType: filterParkingType,
+            vehicleType: filterVehicleType
+        });
+    }, [page, filterSlotStatus, filterParkingType, filterVehicleType]);
     const SessionData = async () => {
         try {
             const data = await GetSessionData();
             const firstFlat = data.data.flats[0];
             setSocietyId(firstFlat.society_id);
-            //  loadSlots(firstFlat.society_id);
+            loadSlots({ sId: firstFlat.society_id, currentPage: 1, searchText: "", slotStatus: "", parkingType: "", vehicleType: "" });
         } catch (e) { console.log(e); }
     };
 
-    const loadSlots = async (sId, currentPage = page) => {
+    const loadSlots = async ({ sId, currentPage, searchText, slotStatus, parkingType, vehicleType }) => {
         try {
             setLoading(true);
-
             const data = await ListParkingSlotsApi(
                 sId,
                 currentPage,
-                limit
+                limit,
+                searchText,
+                slotStatus,
+                parkingType,
+                vehicleType
             );
-
             setSlotsList(data.slots || []);
             setTotalCount(data.total || 0);
             setTotalPages(data.total_pages || 1);
-
-            const allocated = data.slots.filter(
-                s => s.slot_status === "allocated"
-            ).length;
-
-            const available = data.slots.filter(
-                s => s.slot_status === "available"
-            ).length;
-
-            const reserved = data.slots.filter(
-                s => s.slot_status === "reserved"
-            ).length;
-
             setStats({
                 total: data.total || 0,
-                allocated,
-                available,
-                reserved
+                allocated: data.slots?.filter(s => s.slot_status === "allocated").length || 0,
+                available: data.slots?.filter(s => s.slot_status === "available").length || 0,
+                reserved: data.slots?.filter(s => s.slot_status === "reserved").length || 0,
             });
-
+            // stats same as before
         } catch (e) {
-            console.log(e);
             toast.error("Failed to load parking slots");
         } finally {
             setLoading(false);
@@ -196,7 +195,7 @@ const ParkingRegister = ({ setActive, setSelectedSlotId }) => {  // ← added se
                     ))}
                 </div>
 
-                <div className="d-flex justify-content-between align-items-center mb-4 text-start">
+                {/* <div className="d-flex justify-content-between align-items-center mb-4 text-start">
                     <div className="col-12 col-md-4 col-lg-3 position-relative">
                         <span style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)", color: "#aaa" }}>
                             <FiSearch size={16} />
@@ -215,8 +214,66 @@ const ParkingRegister = ({ setActive, setSelectedSlotId }) => {  // ← added se
                         <button className="btn-ol ms-2" onClick={() => setExportModal(true)}><BiExport /> Export</button>
                         <button className='btn btn-sm btn-ac ms-2 btn-primary' onClick={() => { resetForm(); setShow(true); }}>+ Add Slot</button>
                     </div>
-                </div>
+                </div> */}
+                <div className="visitor-toolbar mb-4">
+                    <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <button className='btn btn-sm btn-ac btn-primary'
+                            onClick={() => { resetForm(); setShow(true); }}>
+                            + Add Slot
+                        </button>
+                        <div className="d-flex gap-2">
+                            <input
+                                type="text"
+                                className="form-control visitor-search"
+                                placeholder="Search by slot no, vehicle or owner..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                            <button className="btn btn-primary"
+                                onClick={() => {
+                                    setPage(1);
+                                    loadSlots({
+                                        sId: societyId,
+                                        currentPage: 1,
+                                        searchText: search,
+                                        slotStatus: filterSlotStatus,
+                                        parkingType: filterParkingType,
+                                        vehicleType: filterVehicleType
+                                    });
+                                }}>
+                                <FiSearch />
+                            </button>
+                        </div>
+                    </div>
 
+                    <div className="row g-2">
+                        <div className="col-md-4">
+                            <select className="form-select" value={filterSlotStatus}
+                                onChange={(e) => { setFilterSlotStatus(e.target.value); setPage(1); }}>
+                                <option value="">All Status</option>
+                                <option value="available">Available</option>
+                                <option value="allocated">Allocated</option>
+                                <option value="reserved">Reserved</option>
+                            </select>
+                        </div>
+                        <div className="col-md-4">
+                            <input
+                                type="date"
+                                className="form-control"
+                                value={dateFrom}
+                                onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <input
+                                type="date"
+                                className="form-control"
+                                value={dateTo}
+                                onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+                            />
+                        </div>
+                    </div>
+                </div>
                 <div className="sv-card p-0 overflow-hidden">
                     <div className="sa-table-wrap">
                         <table className="sv-tbl">
