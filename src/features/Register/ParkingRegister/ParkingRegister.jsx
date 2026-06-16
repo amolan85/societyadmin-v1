@@ -49,31 +49,55 @@ const ParkingRegister = ({ setActive, setSelectedSlotId }) => {  // ← added se
     ];
 
     useEffect(() => { SessionData(); }, []);
-
+    useEffect(() => {
+        if (societyId) {
+            loadSlots(societyId, page);
+        }
+    }, [page, societyId]);
     const SessionData = async () => {
         try {
             const data = await GetSessionData();
             const firstFlat = data.data.flats[0];
             setSocietyId(firstFlat.society_id);
-            loadSlots(firstFlat.society_id);
+            //  loadSlots(firstFlat.society_id);
         } catch (e) { console.log(e); }
     };
 
-    const loadSlots = async (sId) => {
+    const loadSlots = async (sId, currentPage = page) => {
         try {
             setLoading(true);
-            const data = await ListParkingSlotsApi(sId);
-            const slots = data?.slots || [];
-            setSlotsList(slots);
-            setTotalCount(data?.total || 0);
-            setTotalPages(data?.total_pages || 1);
 
-            const allocated = slots.filter(s => s.slot_status === "allocated").length;
-            const available = slots.filter(s => s.slot_status === "available").length;
-            const reserved = slots.filter(s => s.slot_status === "reserved").length;
+            const data = await ListParkingSlotsApi(
+                sId,
+                currentPage,
+                limit
+            );
 
-            setStats({ total: data?.total || 0, allocated, available, reserved });
+            setSlotsList(data.slots || []);
+            setTotalCount(data.total || 0);
+            setTotalPages(data.total_pages || 1);
+
+            const allocated = data.slots.filter(
+                s => s.slot_status === "allocated"
+            ).length;
+
+            const available = data.slots.filter(
+                s => s.slot_status === "available"
+            ).length;
+
+            const reserved = data.slots.filter(
+                s => s.slot_status === "reserved"
+            ).length;
+
+            setStats({
+                total: data.total || 0,
+                allocated,
+                available,
+                reserved
+            });
+
         } catch (e) {
+            console.log(e);
             toast.error("Failed to load parking slots");
         } finally {
             setLoading(false);

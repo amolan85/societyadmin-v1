@@ -48,25 +48,30 @@ export const parkingDashboardApi = async (societyId) => {
 //     .catch(error => { throw ErrorHandler(error); });
 // };
 
-export const ListParkingSlotsApi = async (societyId) => {
+export const ListParkingSlotsApi = async (societyId, page, limit) => {
     const url = UrlData + 'parking_slot/ListParkingSlots';
+
     return await apiClient({
-        method: 'post', url,
+        method: 'post',
+        url,
         data: {
             society_id: societyId,
-            page: 1, limit: 100,
+            page: page,
+            limit: limit,
             search: "",
-            slot_status: "",  // ← all slots
-            parking_type: "", vehicle_type: "",
-            block: "", floor: "", zone: "",
+            slot_status: "",
+            parking_type: "",
+            vehicle_type: "",
+            block: "",
+            floor: "",
+            zone: "",
             is_ev_ready: false
         },
         timeout: 30000
     })
-    .then(res => res.data.data)
-    .catch(error => { throw ErrorHandler(error); });
+        .then(res => res.data.data)
+        .catch(error => { throw ErrorHandler(error); });
 };
-
 export const CreateParkingSlotApi = async (societyId, slotNumber, block, floor, zone, parkingType, vehicleType, slotStatus, length, width, isEvReady, accessLevel) => {
     const url = UrlData + 'parking_slot/CreateParkingSlot';
     return await apiClient({
@@ -87,8 +92,8 @@ export const CreateParkingSlotApi = async (societyId, slotNumber, block, floor, 
         },
         timeout: 30000
     })
-    .then(res => res.data.data)
-    .catch(error => { throw ErrorHandler(error); });
+        .then(res => res.data.data)
+        .catch(error => { throw ErrorHandler(error); });
 };
 
 export const UpdateParkingSlotApi = async (slotId, zone, floor, isEvReady, slotStatus, updatedBy) => {
@@ -105,8 +110,8 @@ export const UpdateParkingSlotApi = async (slotId, zone, floor, isEvReady, slotS
         },
         timeout: 30000
     })
-    .then(res => res.data.data)
-    .catch(error => { throw ErrorHandler(error); });
+        .then(res => res.data.data)
+        .catch(error => { throw ErrorHandler(error); });
 };
 export const GetParkingSlotApi = async (slotId) => {
     const url = UrlData + 'parking_slot/GetParkingSlot';
@@ -115,8 +120,8 @@ export const GetParkingSlotApi = async (slotId) => {
         data: { slot_id: slotId },
         timeout: 30000
     })
-    .then(res => res.data)
-    .catch(error => { throw ErrorHandler(error); });
+        .then(res => res.data)
+        .catch(error => { throw ErrorHandler(error); });
 };
 export const DeallocateParkingSlotApi = async (allocationId) => {
     const url = UrlData + 'parking_slot/DeallocateParkingSlot';
@@ -135,4 +140,22 @@ export const DeallocateParkingSlotApi = async (allocationId) => {
             const errors = ErrorHandler(error);
             throw errors;
         });
+};
+export const AllocateParkingSlotApi = async (societyId, slotId, flatId, userId, allocatedBy, remarks) => {
+    const url = UrlData + 'parking_slot/AllocateParkingSlot';
+    return await apiClient({
+        method: 'post',
+        url,
+        data: {
+            society_id: societyId,
+            slot_id: slotId,
+            flat_id: flatId,
+            user_id: userId,
+            allocated_by: allocatedBy,
+            remarks: remarks || ""
+        },
+        timeout: 30000
+    })
+        .then(res => res.data.data)
+        .catch(error => { throw ErrorHandler(error); });
 };

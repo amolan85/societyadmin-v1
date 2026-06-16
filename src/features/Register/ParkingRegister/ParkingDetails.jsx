@@ -4,7 +4,7 @@ import { FiAlertTriangle, FiDownload, FiEdit, FiExternalLink, FiPrinter, FiSlash
 import { CgFileDocument } from 'react-icons/cg';
 import { BiHistory, BiLocationPlus } from 'react-icons/bi';
 import "../../../styles/ParkingRegister.css";
-import { GetParkingSlotApi, DeallocateParkingSlotApi, UpdateParkingSlotApi } from '../../../services/ParkingApi';
+import { GetParkingSlotApi, DeallocateParkingSlotApi, UpdateParkingSlotApi, AllocateParkingSlotApi } from '../../../services/ParkingApi';
 import { toast } from "react-toastify";
 import { useLoader } from "../../../context/LoaderContext";
 import ParkingSlotModal from './ParkingSlotModal';
@@ -24,6 +24,11 @@ const ParkingDetails = ({ setActive, slotId }) => {
     const [profileUrl, setProfileUrl] = useState("")
     const [deallocationReason, setDeallocationReason] = useState("");
     const [showDeallocate, setShowDeallocate] = useState(false);
+    const [allocateShow, setAllocateShow] = useState(false);
+    const [allocateFlatId, setAllocateFlatId] = useState("");
+    const [allocateUserId, setAllocateUserId] = useState("");
+    const [allocateRemarks, setAllocateRemarks] = useState("");
+    const slotStatus = slotData?.slot_status?.toLowerCase();
     useEffect(() => {
         if (slotId) loadSlotDetails();
     }, [slotId]);
@@ -46,6 +51,26 @@ const ParkingDetails = ({ setActive, slotId }) => {
         if (!val) return "-";
         const d = new Date(val);
         return isNaN(d) ? val : d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    };
+    const handleAllocate = async () => {
+        try {
+            await AllocateParkingSlotApi(
+                slotData?.society_id,
+                slotId,
+                allocateFlatId,
+                slotData?.user_id, // user_id from GetParkingSlotApi
+                slotData?.user_id, // allocated_by
+                allocateRemarks
+            );
+            toast.success("Parking slot allocated successfully");
+            setAllocateShow(false);
+            setAllocateFlatId("");
+            setAllocateUserId("");
+            setAllocateRemarks("");
+            await loadSlotDetails();
+        } catch (error) {
+            toast.error(error?.message || "Failed to allocate parking slot");
+        }
     };
     const handleDeallocate = async () => {
         try {
@@ -119,9 +144,26 @@ const ParkingDetails = ({ setActive, slotId }) => {
                             }}>
                                 <FiEdit className="me-1" size={16} />Edit Details
                             </button>
-                            <button className="btn btn-sm deallocate-btn" onClick={() => setDeallocateShow(true)}>
+                            {/* <button className="btn btn-sm deallocate-btn" onClick={() => setDeallocateShow(true)}>
                                 <FiSlash className="me-1" /><strong>Deallocate</strong>
-                            </button>
+                            </button> */}
+                            {["allocated", "reserved"].includes(slotStatus) ? (
+                                <button
+                                    className="btn btn-sm deallocate-btn"
+                                    onClick={() => setDeallocateShow(true)}
+                                >
+                                    <FiSlash className="me-1" />
+                                    <strong>Deallocate</strong>
+                                </button>
+                            ) : (
+                                <button
+                                    className="btn btn-sm btn-success"
+                                    onClick={() => setAllocateShow(true)}
+                                >
+                                    <i className="bi bi-check-circle me-1"></i>
+                                    <strong>Allocate</strong>
+                                </button>
+                            )}
                             <button className="btn btn-sm btn-ac btn-primary" onClick={() => setActive("parkingRegister")}>Back</button>
                         </div>
                     </div>
@@ -218,57 +260,81 @@ const ParkingDetails = ({ setActive, slotId }) => {
                     <div className="col-lg-4">
 
                         {/* Current Allocation */}
-                        <div className="card shadow-sm border-0 p-3" >
-                            <h6 className="fw-bold mb-3">Current Allocation</h6>
+                        <div className="card border-0 shadow-sm">
+                            <div className="card-header bg-white fw-semibold">
+                                Current Allocation
+                            </div>
 
-                            {allocation ? (
-                                <>
-                                    {/* Profile row */}
-                                    <div className="border rounded p-2 d-flex align-items-center mb-3 bg-light gap-3">
-                                        {/* ← profile avatar with initials fallback */}
-                                        <img
-                                            src={profileUrl || "../src/assets/profile.png"}
-                                            className="rounded-circle border"
-                                            width="45"
-                                            height="45"
-                                            alt="profile"
-                                            style={{ objectFit: "cover", flexShrink: 0 }}
-                                        />
-                                        <div>
-                                            <div className="fw-semibold">{allocation.resident_name || "-"}</div>
-                                            <small className="text-muted">
-                                                Unit {allocation.flat_block}-{allocation.flat_number}
-                                            </small>
+                            <div className="card-body">
+                                {allocation ? (
+                                    <>
+                                        <div className="d-flex align-items-center gap-3 mb-3">
+                                            <div
+                                                style={{
+                                                    width: 50,
+                                                    height: 50,
+                                                    borderRadius: "50%",
+                                                    background: "#e0e7ff",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    fontWeight: 700,
+                                                    color: "#4f46e5"
+                                                }}
+                                            >
+                                                {allocation?.resident_name
+                                                    ?.split(" ")
+                                                    .map(x => x[0])
+                                                    .join("")
+                                                    .slice(0, 2)
+                                                    .toUpperCase()}
+                                            </div>
+
+                                            <div>
+                                                <div className="fw-bold">
+                                                    {allocation.resident_name}
+                                                </div>
+                                                <small className="text-muted">
+                                                    Unit {allocation.flat_block}-{allocation.flat_number}
+                                                </small>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div className="mb-3">
-                                        <small className="text-uppercase text-muted fw-semibold d-block mb-1">Allocated Since</small>
-                                        <div className="fw-semibold">{fmtDate(allocation.allocated_at)}</div>
-                                    </div>
+                                        <div className="row g-3">
+                                            <div className="col-12">
+                                                <small className="text-muted d-block">
+                                                    CONTACT
+                                                </small>
+                                                <div className="fw-semibold">
+                                                    {allocation.resident_mobile || "-"}
+                                                </div>
+                                            </div>
 
-                                    <div className="mb-3">
-                                        <small className="text-uppercase text-muted fw-semibold d-block mb-1">Contact</small>
-                                        <div className="fw-semibold">{allocation.resident_mobile || "-"}</div>
-                                    </div>
+                                            <div className="col-12">
+                                                <small className="text-muted d-block">
+                                                    ALLOCATED SINCE
+                                                </small>
+                                                <div className="fw-semibold">
+                                                    {fmtDate(allocation.allocated_at)}
+                                                </div>
+                                            </div>
 
-                                    {/* <div className="mb-3">
-                                        <small className="text-uppercase text-muted fw-semibold d-block mb-1">Status</small>
-                                        <div className="fw-semibold text-capitalize">{allocation.status || "-"}</div>
-                                    </div>
-
-                                    {allocation.remarks && (
-                                        <div className="mb-3">
-                                            <small className="text-uppercase text-muted fw-semibold d-block mb-1">Remarks</small>
-                                            <div className="fw-semibold">{allocation.remarks}</div>
+                                            <div className="col-12">
+                                                <small className="text-muted d-block">
+                                                    STATUS
+                                                </small>
+                                                <span className="badge bg-primary-subtle text-primary">
+                                                    Allocated
+                                                </span>
+                                            </div>
                                         </div>
-                                    )} */}
-
-                                    <a href="#!" className="text-decoration-none fw-semibold">View Member Profile →</a>
-                                </>
-                            ) : (
-                                <div className="text-muted text-center py-3">No active allocation</div>
-                            )}
+                                    </>
+                                ) : (
+                                    <div className="text-center text-muted py-4">
+                                        No active allocation
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* Recent History */}
@@ -366,6 +432,62 @@ const ParkingDetails = ({ setActive, slotId }) => {
                                 <div className="modal-footer">
                                     <button className="btn btn-sm btn-light px-4 border" onClick={() => setDeallocateShow(false)}>Cancel</button>
                                     <button className="btn btn-sm btn-danger px-4" onClick={handleDeallocate}><FiSlash /> Confirm Deallocation</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {allocateShow && (
+                <>
+                    <div className="modal-backdrop fade show" onClick={() => setAllocateShow(false)}></div>
+                    <div className="modal fade show d-block" tabIndex="-1">
+                        <div className="modal-dialog modal-dialog-centered">
+                            <div className="modal-content border-0" style={{ borderRadius: "16px" }}>
+                                <div className="modal-header">
+                                    <h5 className="mb-0 fw-bold">Allocate Slot {slotData?.slot_number}</h5>
+                                    <button className="btn-close" onClick={() => setAllocateShow(false)}></button>
+                                </div>
+                                <div className="modal-body">
+                                    <div className="mb-3">
+                                        <label className="fw-semibold mb-1 d-block">Flat ID</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Enter Flat ID"
+                                            value={allocateFlatId}
+                                            onChange={(e) => setAllocateFlatId(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="fw-semibold mb-1 d-block">User ID</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Enter User ID"
+                                            value={allocateUserId}
+                                            onChange={(e) => setAllocateUserId(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="fw-semibold mb-1 d-block">
+                                            Remarks <span className="text-muted fw-normal">(Optional)</span>
+                                        </label>
+                                        <textarea
+                                            className="form-control"
+                                            rows={3}
+                                            placeholder="E.g., Permanent slot for flat owner"
+                                            value={allocateRemarks}
+                                            onChange={(e) => setAllocateRemarks(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="modal-footer">
+                                    <button className="btn btn-sm btn-light border px-4" onClick={() => setAllocateShow(false)}>Cancel</button>
+                                    <button className="btn btn-sm btn-success px-4" onClick={handleAllocate}>
+                                        <i className="bi bi-check-circle me-1"></i> Confirm Allocation
+                                    </button>
                                 </div>
                             </div>
                         </div>
