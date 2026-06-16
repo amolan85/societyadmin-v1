@@ -30,28 +30,7 @@ export const violationAlertsApi = async (societyId, page, limit, search) => {
         throw errors;
     });
 }
-
-//get violation alerts by id
-export const getViolationAlertsByIdApi = async (societyId, violationId) => {
-    const url = UrlData + 'parking_violation/GetViolationAlert';
-    const data = {
-        society_id: societyId,
-        violation_id: violationId,
-    }
-    return await apiClient({
-        method: 'post',
-        url: url,
-        data: data,
-        timeout: 30000,
-    }).then((response) => {
-        return response.data.data;
-    }).catch((error) => {
-        console.log(error);
-        const errors = ErrorHandler(error);
-        console.log(errors, "Errors get violation alerts by id");
-        throw errors;
-    });
-}
+ 
 
 //api function for resolve violation
 export const resolveViolationApi = async (societyId, violationId, status, resolved_by, resolution_remarks) => {
@@ -61,7 +40,7 @@ export const resolveViolationApi = async (societyId, violationId, status, resolv
         violation_id: violationId,
         status: status,
         resolved_by: resolved_by,
-        resolution_remarks: resolution_remarks
+        resolution_remarks: resolution_remarks,
     }
     return await apiClient({
         method: 'post',
@@ -180,7 +159,10 @@ export const updateViolationAlertApi = async (
     photoUrl,
     penaltyAmount,
     vehicleType,
-    status
+    status,
+    resolutionremarks,
+    resolvedat,
+    resolvedby
 ) => {
     const url = UrlData + "parking_violation/UpdateViolationAlert";
 
@@ -195,6 +177,9 @@ export const updateViolationAlertApi = async (
         penalty_amount: penaltyAmount,
         vehicle_type: vehicleType,
         status: status,
+        resolution_remarks: resolutionremarks,
+        resolved_at: resolvedat,
+        resolved_by: resolvedby,
     };
 
     return await apiClient({

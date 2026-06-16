@@ -8,7 +8,7 @@ import ResolveViolationModal from './ResolveViolationModal';
 import WarningNotificationModal from './WarningNotificationModal';
 import ViewDocumentModal from './ViewDocumentModal';
 import { GetSessionData } from '../../utils/SessionManagement';
-import { getViolationAlertsByIdApi } from '../../services/ViolationAlertsApi';
+import { getViolationAlertByIdApi } from '../../services/ViolationAlertsApi';
 import { Badge } from '../../components/Common/ReusableFunction';
 
 const ViewParkingDetails = ({ setActive, violationId }) => {
@@ -68,7 +68,7 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
     const getViolationDetailsById = async () => {
         try {
             setLoading(true);
-            const data = await getViolationAlertsByIdApi(societyId, violationId);
+            const data = await getViolationAlertByIdApi(societyId, violationId);
             console.log(data, "Violation Details by id");
             // Handle different possible response shapes
             const details = data?.violation || data?.data || data || {};
