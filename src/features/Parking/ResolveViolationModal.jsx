@@ -164,7 +164,7 @@ const ResolveViolationModal = ({
                                         </div>
                                     </div>
 
-                                    <div className="row g-3 mb-3">
+                                    {/* <div className="row g-3 mb-3">
                                         <div className="col-12">
                                             <div className="d-flex">
                                                 <label className="sv-lb">
@@ -184,7 +184,7 @@ const ResolveViolationModal = ({
                                                 onChange={(e) => setFirstName(e.target.value)}
                                             />
                                         </div>
-                                    </div>
+                                    </div> */}
                                     <div className="form-check">
                                         <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" />
                                         <label className="form-check-label" htmlFor="flexCheckDefault">

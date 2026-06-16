@@ -145,7 +145,7 @@ export default function App() {
   const [flatId, setFlatId] = useState(null)
   const [selectedNoticeData, setSelectedNoticeData] = useState()
   const [pollId, setPollId] = useState(null)
-  const [staffId, setStaffId] = useState(null)
+  const [staffId, setStaffId] = useState(null) 
   const [violationId, setViolationId] = useState(null)
   const [visitorId, setVisitorId] = useState(null);
   const [selectedSlotId, setSelectedSlotId] = useState(null);
@@ -187,7 +187,7 @@ export default function App() {
     parkingList: <ParkingList setActive={setActive} />,
     parkingDashboard: <ParkingDashboard setActive={setActive} setViolationId={setViolationId} setVisitorParkingId={setVisitorParkingId} />,
     visitorParking: <VisitorParkingList setActive={setActive} setVisitorParkingId={setVisitorParkingId} /* setViolationId={setViolationId} */ />,
-    violationAlerts: <ViolationAlertsList setActive={setActive} /* setViolationId={setViolationId} */ />,
+    violationAlerts: <ViolationAlertsList setActive={setActive}  setViolationId={setViolationId}  />,
     parkingRules: <ParkingRules setActive={setActive} />,
     viewParkingDetails: <ViewParkingDetails setActive={setActive} violationId={violationId} setVisitorParkingId={setVisitorParkingId} />,
     visitorDetails: <VisitorDetails setActive={setActive} visitorParkingId={visitorParkingId} />,

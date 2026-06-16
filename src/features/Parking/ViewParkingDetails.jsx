@@ -10,6 +10,7 @@ import ViewDocumentModal from './ViewDocumentModal';
 import { GetSessionData } from '../../utils/SessionManagement';
 import { getViolationAlertsByIdApi } from '../../services/ViolationAlertsApi';
 import { Badge } from '../../components/Common/ReusableFunction';
+
 const ViewParkingDetails = ({ setActive, violationId }) => {
 
     const [deallocateShow, setDeallocateShow] = useState(false);
@@ -18,7 +19,8 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
     const [notificationShow, setNotificationShow] = useState(false)
     const [resolutionMethodField, setResolutionMethodField] = useState("")
     const [societyId, setSocietyId] = useState("")
-    const [violationDetails, setViolationDetails] = useState("")
+    const [violationDetails, setViolationDetails] = useState({})
+    const [loading, setLoading] = useState(true)
 
     const resolutionMethod = [
         {
@@ -29,7 +31,6 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
             value: "wrong_slot",
             label: "Fine Paid / Settled",
         },
-
         {
             value: "double_parking",
             label: "Warning Acknowledged",
@@ -43,6 +44,7 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
             label: "Mark as Error/ Dismissed",
         },
     ]
+
     useEffect(() => {
         SessionData();
     }, []);
@@ -52,7 +54,6 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
             const data = await GetSessionData();
             const flats = data.data.flats[0];
             setSocietyId(flats.society_id);
-
         } catch (error) {
             console.log(error);
         }
@@ -65,12 +66,44 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
     }, [violationId, societyId]);
 
     const getViolationDetailsById = async () => {
-        const data = await getViolationAlertsByIdApi(societyId, violationId);
-        console.log(data, "Violation Details by id");
-        setViolationDetails(data);
+        try {
+            setLoading(true);
+            const data = await getViolationAlertsByIdApi(societyId, violationId);
+            console.log(data, "Violation Details by id");
+            // Handle different possible response shapes
+            const details = data?.violation || data?.data || data || {};
+            setViolationDetails(details);
+        } catch (error) {
+            console.log(error, "Error fetching violation details");
+            setViolationDetails({});
+        } finally {
+            setLoading(false);
+        }
     }
+
     const handleWarningNotification = () => {
         setNotificationShow(true)
+    };
+
+    const formatDateTime = (dateString) => {
+        if (!dateString) return "-";
+        try {
+            return new Date(dateString).toLocaleString();
+        } catch {
+            return "-";
+        }
+    };
+
+    const getViolationTypeLabel = (value) => {
+        const map = {
+            unauthorized_parking: "Unauthorized Parking",
+            visitor_overstay: "Visitor Overstay",
+            wrong_slot: "Wrong Slot",
+            double_parking: "Double Parking",
+            no_sticker: "No Sticker",
+            other: "Other",
+        };
+        return map[value] || value || "-";
     };
 
     return (
@@ -84,34 +117,26 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
 
                             <div>
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
-                                    <h5 className="mb-0 fw-bold">{violationDetails.violation_type}</h5>
-                                    {/* <span className="badge bg-danger text-white">
-                                        Active Violation
-                                    </span> */}
-                                    <Badge label={violationDetails.status === "open" ? "Active" : ""} c={violationDetails.status === "open" ? "green" : violationDetails.status === "resolved" ? "blue" : violationDetails.status === "dismissed" ? "red" : "gray"} />
+                                    <h5 className="mb-0 fw-bold">
+                                        {getViolationTypeLabel(violationDetails.violation_type)}
+                                    </h5>
+                                    <Badge
+                                        label={violationDetails.status === "open" ? "Active" : violationDetails.status === "resolved" ? "Resolved" : violationDetails.status === "dismissed" ? "Dismissed" : ""}
+                                        c={violationDetails.status === "open" ? "green" : violationDetails.status === "resolved" ? "blue" : violationDetails.status === "dismissed" ? "red" : "gray"}
+                                    />
                                 </div>
 
                                 <div className="text-muted text-start small mt-2">
                                     <div className="mb-1">
-                                        {/* <i className="bi bi-envelope me-1"></i> */}
-                                        {/* <BiLocationPlus className="me-1" /> */}
-                                        Reported 12 minutes ago at Slot P-102
+                                        Reported at Slot {violationDetails.slot_number || "-"}
                                     </div>
-
-                                    {/* <div>
-                                        <i className="bi bi-telephone me-1"></i>
-                                        {phone}
-                                        <span className="mx-2">|</span>
-                                        Standard Covered
-                                    </div> */}
                                 </div>
                             </div>
                         </div>
 
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
-                            <button className="btn btn-sm btn-ad print-btn" /*onClick={() => setActive("parkingRegister")}*/><FiPrinter /> Print Ticket</button>
+                            <button className="btn btn-sm btn-ad print-btn"><FiPrinter /> Print Ticket</button>
                             <button className="btn btn-danger btn-sm" onClick={() => setShow(true)}><FiCheckCircle /> Resolve Violation</button>
-
                             <button className="btn btn-sm btn-ac btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
                         </div>
                     </div>
@@ -132,12 +157,12 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">LOCATION / SLOT</small>
-                                        <div className="fw-semibold">-</div>
+                                        <div className="fw-semibold">{violationDetails.slot_number || "-"}</div>
                                     </div>
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">RIGHTFUL OWNER</small>
-                                        <div className="fw-semibold">-</div>
+                                        <div className="fw-semibold">{violationDetails.owner_name || "-"}</div>
                                         <div className="fw-semibold text-primary" onClick={() => setShowDocument(true)} style={{ cursor: "pointer" }}>
                                             View Document
                                         </div>
@@ -145,24 +170,21 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">DETECTED VEHICLE</small>
-                                        <div className="fw-semibold">{violationDetails.vehicle_number || ""}</div>
-                                        <div className="fw-semibold text-danger" /* onClick={() => setShowDocument(true)} */ style={{ cursor: "pointer" }}>
-                                            Unregistered vehicle
+                                        <div className="fw-semibold">{violationDetails.vehicle_number || "-"}</div>
+                                        <div className="fw-semibold text-danger" style={{ cursor: "pointer" }}>
+                                            {violationDetails.vehicle_type === "registered" ? "Registered vehicle" : "Unregistered vehicle"}
                                         </div>
                                     </div>
 
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">TIME OF INCIDENT</small>
-                                        <div className="fw-semibold">-</div>
-                                        <small className="text-muted d-block">Duration: 12m so far</small>
+                                        <div className="fw-semibold">{formatDateTime(violationDetails.created_at)}</div>
+                                        <small className="text-muted d-block">
+                                            {violationDetails.description || ""}
+                                        </small>
                                     </div>
 
-
-
-
                                 </div>
-
-
 
                             </div>
                         </div>
@@ -179,9 +201,8 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
 
                                     <div className="col-md-6">
                                         <div className="card shadow-sm">
-
                                             <img
-                                                src="https://picsum.photos/600/350"
+                                                src={violationDetails.photo_url || "https://picsum.photos/600/350"}
                                                 alt=""
                                                 className="card-img-top"
                                                 style={{
@@ -189,16 +210,11 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
                                                     objectFit: "cover"
                                                 }}
                                             />
-
-
-
                                         </div>
                                     </div>
 
-                                    {/* Image Card */}
                                     <div className="col-md-6">
                                         <div className="card shadow-sm">
-
                                             <img
                                                 src="https://picsum.photos/601/350"
                                                 alt=""
@@ -208,9 +224,6 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
                                                     objectFit: "cover"
                                                 }}
                                             />
-
-
-
                                         </div>
                                     </div>
                                 </div>
@@ -227,47 +240,6 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
                             </div>
 
                             <div className="card-body">
-
-                                {/* <div className="card shadow-sm border-0 p-3" style={{ maxWidth: "320px", borderRadius: "10px" }}> */}
-
-
-                                {/* {[
-                                        [
-                                            <FiMessageSquare className="text-primary" />,
-                                            "Send Warning Notification",
-                                            "",
-                                            handleWarningNotification,
-                                        ],
-                                        [
-                                            <FaSwimmingPool className="text-success" />,
-                                            "Issue Violation Fine",
-                                            "",
-
-                                        ],
-                                        [
-                                            <FaBalanceScale style={{ color: "orange" }} />,
-                                            "Request Towing Service",
-                                            "",
-
-                                        ],
-                                    ].map(([ic, lb, sub, onClick]) => (
-                                        <button
-                                            key={lb}
-                                            className="qa mb-2"
-                                            onClick={onClick}
-                                            type="button"
-                                        >
-                                            <div className="qa-ico pl-qa-ico rounded-circle">
-                                                {ic}
-                                            </div>
-
-                                            <div>
-                                                <div className="pl-qa-title">{lb}</div>
-                                                {sub && <div className="pl-qa-sub">{sub}</div>}
-                                            </div>
-                                        </button>
-                                    ))}
-                                 */}
 
                                 {[
                                     [
@@ -318,38 +290,6 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
                             <div className="card-header bg-white fw-bold">
                                 Activity Log
                             </div>
-                            {/* <div className="card shadow-sm border mt-3">
-                            <div className="card-header bg-light fw-bold py-3">
-                                Activity Log
-                            </div>
-
-                            <div className="card-body">
-                                <div className="visitor-timeline">
-
-                                    <div className="visitor-timeline-item active">
-                                        <h6 className="mb-1">Check In Approved</h6>
-                                        <small className="text-muted">
-                                            10:45 AM • Guard Gate 1
-                                        </small>
-                                    </div>
-
-                                    <div className="visitor-timeline-item">
-                                        <h6 className="mb-1">Host Approval Received</h6>
-                                        <small className="text-muted">
-                                            10:42 AM • App Notification
-                                        </small>
-                                    </div>
-
-                                    <div className="visitor-timeline-item">
-                                        <h6 className="mb-1">Entry Request Created</h6>
-                                        <small className="text-muted">
-                                            10:40 AM • Gate System
-                                        </small>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div> */}
                             <div className="card-body">
                                 <div className="unauth-timeline">
 
@@ -359,24 +299,27 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
                                             System detected vehicle in reserved slot.
                                         </small><br />
                                         <small className="text-muted">
-                                            10:42 AM
+                                            {formatDateTime(violationDetails.created_at)}
                                         </small>
                                     </div>
 
                                     <div className="unauth-timeline-item">
                                         <h6 className="mb-1">Alert Sent to Admin</h6>
                                         <small className="text-muted">
-                                            Push notification sent to 3 active admins.
+                                            Push notification sent to active admins.
                                         </small><br />
                                         <small className="text-muted">
-                                            10:43 AM
                                         </small>
                                     </div>
 
                                     <div className="unauth-timeline-item">
-                                        <h6 className="mb-1">Pending Action</h6>
+                                        <h6 className="mb-1">
+                                            {violationDetails.status === "resolved" ? "Resolved"
+                                                : violationDetails.status === "dismissed" ? "Dismissed"
+                                                : "Pending Action"}
+                                        </h6>
                                         <small className="text-muted">
-                                            Awaiting resolution...
+                                            {violationDetails.status === "open" ? "Awaiting resolution..." : violationDetails.status || ""}
                                         </small><br />
                                         <small className="text-muted">
                                         </small>
@@ -392,7 +335,8 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
             <ResolveViolationModal
                 show={show}
                 setShow={setShow}
-
+                violationId={violationId}
+                societyId={societyId}
                 resolutionMethod={resolutionMethod}
                 resolutionMethodField={resolutionMethodField}
                 setResolutionMethodField={setResolutionMethodField}

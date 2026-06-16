@@ -55,16 +55,25 @@ export const ListParkingSlotsApi = async (societyId, page, limit) => {
         method: 'post',
         url,
         data: {
-            society_id: societyId,
-            page: page,
-            limit: limit,
+ 
+            society_id: societyId,   // ✅ societyId is now a plain string
+            page: 1,
+            limit: 100,
             search: "",
-            slot_status: "",
+            slot_status: "",          // ✅ empty = all slots (available + occupied)
             parking_type: "",
             vehicle_type: "",
             block: "",
             floor: "",
             zone: "",
+            society_id: societyId,
+            page: page,
+            limit: limit,
+            search: "",
+            slot_status: "",  // ← all slots
+            parking_type: "", vehicle_type: "",
+            block: "", floor: "", zone: "",
+ 
             is_ev_ready: false
         },
         timeout: 30000
@@ -72,6 +81,8 @@ export const ListParkingSlotsApi = async (societyId, page, limit) => {
         .then(res => res.data.data)
         .catch(error => { throw ErrorHandler(error); });
 };
+
+ 
 export const CreateParkingSlotApi = async (societyId, slotNumber, block, floor, zone, parkingType, vehicleType, slotStatus, length, width, isEvReady, accessLevel) => {
     const url = UrlData + 'parking_slot/CreateParkingSlot';
     return await apiClient({
@@ -141,21 +152,4 @@ export const DeallocateParkingSlotApi = async (allocationId) => {
             throw errors;
         });
 };
-export const AllocateParkingSlotApi = async (societyId, slotId, flatId, userId, allocatedBy, remarks) => {
-    const url = UrlData + 'parking_slot/AllocateParkingSlot';
-    return await apiClient({
-        method: 'post',
-        url,
-        data: {
-            society_id: societyId,
-            slot_id: slotId,
-            flat_id: flatId,
-            user_id: userId,
-            allocated_by: allocatedBy,
-            remarks: remarks || ""
-        },
-        timeout: 30000
-    })
-        .then(res => res.data.data)
-        .catch(error => { throw ErrorHandler(error); });
-};
+ 
