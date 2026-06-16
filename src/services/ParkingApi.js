@@ -161,3 +161,18 @@ export const AllocateParkingSlotApi = async (societyId, slotId, flatId, userId, 
         .then(res => res.data.data)
         .catch(error => { throw ErrorHandler(error); });
 };
+export const GetParkingSlotHistoryApi = async (slotId, page, limit) => {
+    const url = UrlData + 'parking_dashboard/GetParkingSlotHistory';
+    return await apiClient({
+        method: 'post',
+        url,
+        data: {
+            slot_id: slotId,
+            page: page,
+            limit: limit
+        },
+        timeout: 30000
+    })
+        .then(res => res.data.data)
+        .catch(error => { throw ErrorHandler(error); });
+};

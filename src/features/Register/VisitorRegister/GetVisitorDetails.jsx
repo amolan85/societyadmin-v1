@@ -74,8 +74,20 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
     const loadParkingSlots = async () => {
         try {
             setSlotsLoading(true);
-            const data = await ListParkingSlotsApi(societyId);
-            setParkingSlots(data?.slots || data?.parking_slots || []);
+
+            const res = await ListParkingSlotsApi(societyId);
+
+            const slots =
+                res?.data?.slots ||
+                res?.slots ||
+                res?.parking_slots ||
+                [];
+
+            const availableSlots = slots.filter(
+                slot => slot.slot_status?.toLowerCase() === "available"
+            );
+
+            setParkingSlots(availableSlots);
         } catch (e) {
             toast.error("Failed to load parking slots");
         } finally {

@@ -1,17 +1,50 @@
-import  { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import "../../../styles/AddMember.css"
+import "../../../styles/Parking.css"
 import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
 import { GetSessionData } from '../../../utils/SessionManagement';
-import { FiCalendar, FiFilter, FiSearch } from 'react-icons/fi';
+import { FiCalendar, FiFilter, FiSearch, FiCheckCircle, FiXCircle, FiRefreshCw, FiEdit, } from 'react-icons/fi';
+import { FaCar } from "react-icons/fa";
+import { GetParkingSlotHistoryApi } from '../../../services/ParkingApi';
 import { BiImport } from 'react-icons/bi';
 
 
-const ParkingHistory = ({ setActive }) => {
-    const [societyId, setSocietyId] = useState("")
+const ParkingHistory = ({ setActive, slotId }) => {
+    const [societyId, setSocietyId] = useState("");
     const [page, setPage] = useState(1);
-    const [exportModal, setExportModal] = useState(false)
+    const [limit] = useState(20);
+    const [totalPages, setTotalPages] = useState(1);
+    const [historyData, setHistoryData] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState("");
+    const [exportModal, setExportModal] = useState(false);
 
+    useEffect(() => { SessionData(); }, []);
+    useEffect(() => {
+        if (slotId) loadHistory();
+    }, [slotId, page]);
+
+    const SessionData = async () => {
+        const data = await GetSessionData();
+        const flats = data.data.flats[0];
+        setSocietyId(flats.society_id);
+    };
+
+    const loadHistory = async () => {
+        try {
+            setLoading(true);
+            const res = await GetParkingSlotHistoryApi(slotId, page, limit);
+            console.log("History response:", res);
+            setHistoryData(res?.history || []);
+            setTotalPages(res?.total_pages || 1);
+        } catch (e) {
+            console.error("Failed to load history", e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePageChange = (value) => { setPage(value); };
     const parkingHistoryData = [
         {
             "id": 1,
@@ -51,20 +84,6 @@ const ParkingHistory = ({ setActive }) => {
         }
     ]
 
-
-
-    useEffect(() => {
-        SessionData()
-
-    }, [])
-
-    const SessionData = async () => {
-        const data = await GetSessionData()
-        console.log(data.data)
-        const flats = data.data.flats[0]
-        setSocietyId(flats.society_id)
-
-    }
 
     // const total = Math.ceil(totalCount / limit);
     const total = 1;
@@ -133,7 +152,7 @@ const ParkingHistory = ({ setActive }) => {
                             Filter Type
                         </button>
                         <button className="btn-ol ms-2" onClick={() => setExportModal(true)}><BiImport /> Export</button>
-                     <button className="btn btn-primary btn-sm ms-2" onClick={() => setActive("parkingDetails")}>Back</button>
+                        <button className="btn btn-primary btn-sm ms-2" onClick={() => setActive("parkingDetails")}>Back</button>
                     </div>
 
                 </div>
@@ -171,101 +190,132 @@ const ParkingHistory = ({ setActive }) => {
                             </thead>
 
                             <tbody>
-                                {parkingHistoryData.map((s, i) => (
-                                    <tr className="text-start" key={i}>
-
-                                        {/* ACTIVITY */}
-                                        <td>
-                                            <div className="d-flex align-items-start gap-3">
-
-                                                <div
-                                                    className={`ph-icon 
-                                ${s.status === "Completed" ? "ph-green" : ""}
-                                ${s.status === "Approved" ? "ph-pink" : ""}
-                                ${s.status === "Resolved" ? "ph-blue" : ""}
-                            `}
-                                                >
-                                                    {s.activity === "Sticker Renewed" && "⭐"}
-                                                    {s.activity === "Vehicle Updated" && "🚗"}
-                                                    {s.activity === "Wrong Parking" && "⚠️"}
-                                                    {s.activity === "Allocation Created" && "✔️"}
-                                                </div>
-
-                                                <div>
-                                                    <div className="fw-semibold text-dark">
-                                                        {s.activity}
-                                                    </div>
-
-                                                    <small className="text-muted">
-                                                        ID : {s.activityId}
-                                                    </small>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        {/* DATE & TIME */}
-                                        <td>
-                                            <div className="fw-semibold text-dark">
-                                                {s.dateTime.split(" ")[0]}{" "}
-                                                {s.dateTime.split(" ")[1]}{" "}
-                                                {s.dateTime.split(" ")[2]}
-                                            </div>
-
-                                            <small className="text-muted">
-                                                {s.dateTime.split(" ").slice(3).join(" ")}
-                                            </small>
-                                        </td>
-
-                                        {/* DESCRIPTION */}
-                                        <td className="text-muted" style={{ maxWidth: "260px" }}>
-                                            {s.description}
-                                        </td>
-
-                                        {/* PERFORMED BY */}
-                                        <td>
-                                            <div className="d-flex align-items-center gap-2">
-
-                                                <img
-                                                    src={`https://i.pravatar.cc/40?img=${i + 12}`}
-                                                    alt=""
-                                                    width={34}
-                                                    height={34}
-                                                    className="rounded-circle"
-                                                />
-
-                                                <span className="fw-semibold text-dark">
-                                                    {s.performedBy}
-                                                </span>
-                                            </div>
-                                        </td>
-
-                                        {/* STATUS */}
-                                        <td>
-                                            <Badge
-                                                label={s.status}
-                                                c={
-                                                    s.status === "Completed"
-                                                        ? "green"
-                                                        : s.status === "Approved"
-                                                            ? "pink"
-                                                            : s.status === "Resolved"
-                                                                ? "blue"
-                                                                : "grey"
-                                                }
-                                            />
+                                {historyData.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" className="text-center py-4 text-muted">
+                                            No history available
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    historyData.map((s, i) => (
+                                        <tr className="text-start" key={i}>
+                                            {/* ACTIVITY */}
+                                            <td>
+                                                <div className="d-flex align-items-start gap-3">
+                                                    <div
+                                                        className="ph-icon"
+                                                        style={{
+                                                            background:
+                                                                s.action === "allocated"
+                                                                    ? "#dcfce7"
+                                                                    : s.action === "deallocated"
+                                                                        ? "#fee2e2"
+                                                                        : s.action === "status_changed"
+                                                                            ? "#dbeafe"
+                                                                            : s.action === "updated"
+                                                                                ? "#fef3c7"
+                                                                                : s.action === "visitor_allocated"
+                                                                                    ? "#ede9fe"
+                                                                                    : "#f3f4f6",
+
+                                                            color:
+                                                                s.action === "allocated"
+                                                                    ? "#16a34a"
+                                                                    : s.action === "deallocated"
+                                                                        ? "#dc2626"
+                                                                        : s.action === "status_changed"
+                                                                            ? "#2563eb"
+                                                                            : s.action === "updated"
+                                                                                ? "#d97706"
+                                                                                : s.action === "visitor_allocated"
+                                                                                    ? "#7c3aed"
+                                                                                    : "#6b7280"
+                                                        }}
+                                                    >
+                                                        {s.action === "allocated" && <FiCheckCircle size={18} />}
+                                                        {s.action === "deallocated" && <FiXCircle size={18} />}
+                                                        {s.action === "status_changed" && <FiRefreshCw size={18} />}
+                                                        {s.action === "updated" && <FiEdit size={18} />}
+                                                        {s.action === "visitor_allocated" && <FaCar size={18} />}
+                                                    </div>
+                                                    <div>
+                                                        <div className="fw-semibold text-dark text-capitalize">
+                                                            {s.action?.replace(/_/g, " ")}
+                                                        </div>
+                                                        <small className="text-muted">ID: {s.id}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            {/* DATE & TIME */}
+                                            <td>
+                                                <div className="fw-semibold text-dark">
+                                                    {s.created_at
+                                                        ? new Date(s.created_at).toLocaleDateString("en-IN", {
+                                                            day: "2-digit", month: "short", year: "numeric"
+                                                        })
+                                                        : "—"}
+                                                </div>
+                                                <small className="text-muted">
+                                                    {s.created_at
+                                                        ? new Date(s.created_at).toLocaleTimeString("en-IN", {
+                                                            hour: "2-digit", minute: "2-digit", hour12: true
+                                                        })
+                                                        : ""}
+                                                </small>
+                                            </td>
+
+                                            {/* DESCRIPTION */}
+                                            <td className="text-muted" style={{ maxWidth: "260px" }}>
+                                                {s.remarks || "—"}
+                                            </td>
+
+                                            {/* PERFORMED BY */}
+                                            <td>
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <img
+                                                        src={`https://i.pravatar.cc/40?img=${s.user_id || i + 1}`}
+                                                        alt=""
+                                                        width={34}
+                                                        height={34}
+                                                        className="rounded-circle"
+                                                    />
+                                                    <span className="fw-semibold text-dark">
+                                                        {s.performed_by || `User #${s.user_id}` || "—"}
+                                                    </span>
+                                                </div>
+                                            </td>
+
+                                            {/* STATUS */}
+                                            <td>
+                                                <Badge
+                                                    label={s.action?.replace(/_/g, " ")}
+                                                    c={
+                                                        s.action === "allocated" ? "green"
+                                                            : s.action === "deallocated" ? "red"
+                                                                : s.action === "status_changed" ? "blue"
+                                                                    : "grey"
+                                                    }
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
 
-                    {/* Pagination */}
-                    <Pagination
-                        page={page}
-                        total={total}
-                        // onChange={handlePageChange}
-                    />
+                    {/* Footer + Pagination */}
+                    <div className="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+                        <small className="text-muted">
+                            Showing {historyData.length > 0 ? `1-${historyData.length}` : "0"} of {historyData.length} activities
+                        </small>
+                        <Pagination
+                            page={page}
+                            total={totalPages}
+                            onChange={handlePageChange}
+                        />
+                    </div>
                 </div>
             </div>
 

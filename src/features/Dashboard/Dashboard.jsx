@@ -200,7 +200,7 @@ export default function App() {
     unitRegister: <UnitRegister setActive={setActive} setFlatId={setFlatId} />,
     parkingRegister: <ParkingRegister setActive={setActive} setSelectedSlotId={setSelectedSlotId} />,
     parkingDetails: <ParkingDetails setActive={setActive} slotId={selectedSlotId} />,
-    parkingHistory: <ParkingHistory setActive={setActive} />,
+    parkingHistory: <ParkingHistory setActive={setActive} slotId={selectedSlotId} />,
     visitorRegister: <VisitorRegister setActive={setActive} setVisitorId={setVisitorId} />,
     visitorDetailsPage: <GetVisitorDetails setActive={setActive} visitorId={visitorId} />,
   };
