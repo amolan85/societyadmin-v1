@@ -10,6 +10,13 @@
 //   All form field value + setter pairs (see prop list below)
 
 const Visitormodal = ({
+    allBlocks = [],
+    allFlats = [],
+    selectedBlock = "",
+    setSelectedBlock,
+    selectedFlat = "",
+    setSelectedFlat,
+    onBlockChange,
     show,
     setShow,
 
@@ -160,42 +167,53 @@ const Visitormodal = ({
                                         </div>
                                     </div>
 
-                                    {/* ── Flat + Vehicle ── */}
+                                    {/* ── Block + Flat ── */}
                                     <div className="row g-3 mb-3">
+                                        <div className="col-6">
+                                            <div className="d-flex">
+                                                <label className="sv-lb">Block <span className="text-danger">*</span></label>
+                                                {errors.block && <span className="text-danger mx-2">{errors.block}</span>}
+                                            </div>
+                                            {isEdit ? (
+                                                <input className="sv-in" value={selectedBlock} disabled
+                                                    style={{ background: "#f8fafc", color: "#64748b" }} />
+                                            ) : (
+                                                <select className={`form-select ${errors.block ? "error-input" : ""}`}
+                                                    value={selectedBlock} onChange={onBlockChange}>
+                                                    <option value="">Select Block</option>
+                                                    {allBlocks.map((item, index) => (
+                                                        <option key={index} value={item.block}>{item.block}</option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
                                         <div className="col-6">
                                             <div className="d-flex">
                                                 <label className="sv-lb">Flat / Unit <span className="text-danger">*</span></label>
                                                 {errors.flatId && <span className="text-danger mx-2">{errors.flatId}</span>}
                                             </div>
                                             {isEdit ? (
-                                                // In edit mode flat cannot be changed — show as read-only
-                                                <input
-                                                    className="sv-in"
-                                                    value={flatId}
-                                                    disabled
-                                                    style={{ background: "#f8fafc", color: "#64748b" }}
-                                                />
+                                                <input className="sv-in" value={flatId} disabled
+                                                    style={{ background: "#f8fafc", color: "#64748b" }} />
                                             ) : (
-                                                <select
-                                                    className={`form-select ${errors.flatId ? "error-input" : ""}`}
-                                                    value={flatId}
-                                                    onChange={e => setFlatId(e.target.value)}
-                                                >
+                                                <select className={`form-select ${errors.flatId ? "error-input" : ""}`}
+                                                    value={selectedFlat}
+                                                    onChange={e => { setSelectedFlat(e.target.value); setFlatId(e.target.value); }}>
                                                     <option value="">Select Flat</option>
-                                                    {flatsList.map(f => (
+                                                    {allFlats.map(f => (
                                                         <option key={f.flat_id} value={f.flat_id}>{f.flat_number}</option>
                                                     ))}
                                                 </select>
                                             )}
                                         </div>
-                                        <div className="col-6">
+                                    </div>
+
+                                    {/* ── Vehicle ── */}
+                                    <div className="row g-3 mb-3">
+                                        <div className="col-12">
                                             <label className="sv-lb">Vehicle Number (Optional)</label>
-                                            <input
-                                                className="sv-in"
-                                                placeholder="Eg. MH12AB1234"
-                                                value={vehicleNumber}
-                                                onChange={e => setVehicleNumber(e.target.value)}
-                                            />
+                                            <input className="sv-in" placeholder="Eg. MH12AB1234"
+                                                value={vehicleNumber} onChange={e => setVehicleNumber(e.target.value)} />
                                         </div>
                                     </div>
 

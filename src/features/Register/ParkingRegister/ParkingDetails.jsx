@@ -5,9 +5,11 @@ import { CgFileDocument } from 'react-icons/cg';
 import { BiHistory, BiLocationPlus } from 'react-icons/bi';
 import "../../../styles/ParkingRegister.css";
 import { GetParkingSlotApi, DeallocateParkingSlotApi, UpdateParkingSlotApi, AllocateParkingSlotApi } from '../../../services/ParkingApi';
+import { getAllBlocksApi, getAllFlatsApi } from '../../../services/UnitRegisterApi';
 import { toast } from "react-toastify";
 import { useLoader } from "../../../context/LoaderContext";
 import ParkingSlotModal from './ParkingSlotModal';
+import { GetSessionData } from "../../../utils/SessionManagement";
 
 const ParkingDetails = ({ setActive, slotId }) => {
 
@@ -20,6 +22,7 @@ const ParkingDetails = ({ setActive, slotId }) => {
     const [editZone, setEditZone] = useState("");
     const [editStatus, setEditStatus] = useState("");
     const [editEvReady, setEditEvReady] = useState(false);
+    const [sessionUserId, setSessionUserId] = useState(null);
     //const [loading, setLoading] = useState(true);
     const [profileUrl, setProfileUrl] = useState("")
     const [deallocationReason, setDeallocationReason] = useState("");
@@ -29,9 +32,43 @@ const ParkingDetails = ({ setActive, slotId }) => {
     const [allocateUserId, setAllocateUserId] = useState("");
     const [allocateRemarks, setAllocateRemarks] = useState("");
     const slotStatus = slotData?.slot_status?.toLowerCase();
+    const [allBlocks, setAllBlocks] = useState([]);
+    const [allFlats, setAllFlats] = useState([]);
+    const [selectedBlock, setSelectedBlock] = useState("");
+    const [selectedFlat, setSelectedFlat] = useState("");
     useEffect(() => {
         if (slotId) loadSlotDetails();
     }, [slotId]);
+
+    const SessionData = async () => {
+        const data = await GetSessionData();
+        setSessionUserId(data?.data?.user_id);
+
+        const blockRes = await getAllBlocksApi(data?.data?.society_id);
+        console.log("Blocks response:", blockRes);
+        setAllBlocks(blockRes?.blocks || []);
+    };
+    const loadBlocks = async () => {
+        const data = await GetSessionData();
+        setSessionUserId(data?.data?.user_id);
+
+        const blockRes = await getAllBlocksApi(data?.data?.society_id);
+        setAllBlocks(blockRes?.blocks || []);
+    };
+    const handleBlockChange = async (e) => {
+        const block = e.target.value;
+        setSelectedBlock(block);
+        setSelectedFlat("");
+        setAllFlats([]);
+
+        if (block) {
+            const res = await getAllFlatsApi(slotData?.society_id, block);
+            setAllFlats(res?.flats || []);
+        }
+    };
+    // const filteredFlats = allFlats.filter(
+    //     x => x.block === selectedBlock
+    // );
 
     const loadSlotDetails = async () => {
         try {
@@ -53,21 +90,32 @@ const ParkingDetails = ({ setActive, slotId }) => {
         return isNaN(d) ? val : d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
     };
     const handleAllocate = async () => {
+
+        const selectedFlatData = allFlats.find(x => x.flat_id == selectedFlat);
+        if (!selectedFlatData) {
+            toast.error("Please select a flat");
+            return;
+        }
+
         try {
             await AllocateParkingSlotApi(
                 slotData?.society_id,
                 slotId,
-                allocateFlatId,
-                slotData?.user_id, // user_id from GetParkingSlotApi
-                slotData?.user_id, // allocated_by
+                selectedFlatData.flat_id,
+                sessionUserId,   // hidden user id
+                sessionUserId,
                 allocateRemarks
             );
+
             toast.success("Parking slot allocated successfully");
+
             setAllocateShow(false);
-            setAllocateFlatId("");
-            setAllocateUserId("");
+            setSelectedBlock("");
+            setSelectedFlat("");
             setAllocateRemarks("");
+
             await loadSlotDetails();
+
         } catch (error) {
             toast.error(error?.message || "Failed to allocate parking slot");
         }
@@ -158,7 +206,10 @@ const ParkingDetails = ({ setActive, slotId }) => {
                             ) : (
                                 <button
                                     className="btn btn-sm btn-success"
-                                    onClick={() => setAllocateShow(true)}
+                                    onClick={async () => {
+                                        await loadBlocks();
+                                        setAllocateShow(true);
+                                    }}
                                 >
                                     <i className="bi bi-check-circle me-1"></i>
                                     <strong>Allocate</strong>
@@ -451,27 +502,45 @@ const ParkingDetails = ({ setActive, slotId }) => {
                                 </div>
                                 <div className="modal-body">
                                     <div className="mb-3">
-                                        <label className="fw-semibold mb-1 d-block">Flat ID</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Enter Flat ID"
-                                            value={allocateFlatId}
-                                            onChange={(e) => setAllocateFlatId(e.target.value)}
-                                        />
+                                        <label className="fw-semibold mb-1 d-block text-start">
+                                            Block
+                                        </label>
+
+                                        <select
+                                            className="form-select"
+                                            value={selectedBlock}
+                                            onChange={handleBlockChange}
+                                        >
+                                            <option value="">Select Block</option>
+
+                                            {allBlocks.map((item, index) => (
+                                                <option key={index} value={item.block}>
+                                                    {item.block}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div className="mb-3">
-                                        <label className="fw-semibold mb-1 d-block">User ID</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Enter User ID"
-                                            value={allocateUserId}
-                                            onChange={(e) => setAllocateUserId(e.target.value)}
-                                        />
+                                        <label className="fw-semibold mb-1 d-block text-start">
+                                            Flat
+                                        </label>
+
+                                        <select
+                                            className="form-select"
+                                            value={selectedFlat}
+                                            onChange={(e) => setSelectedFlat(e.target.value)}
+                                        >
+                                            <option value="">Select Flat</option>
+
+                                            {allFlats.map((flat) => (
+                                                <option key={flat.flat_id} value={flat.flat_id}>
+                                                    {flat.flat_number}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div className="mb-3">
-                                        <label className="fw-semibold mb-1 d-block">
+                                        <label className="fw-semibold mb-1 d-block text-start">
                                             Remarks <span className="text-muted fw-normal">(Optional)</span>
                                         </label>
                                         <textarea

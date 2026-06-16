@@ -48,32 +48,22 @@ export const parkingDashboardApi = async (societyId) => {
 //     .catch(error => { throw ErrorHandler(error); });
 // };
 
-export const ListParkingSlotsApi = async (societyId, page, limit) => {
+export const ListParkingSlotsApi = async (societyId, page, limit, search = "", slotStatus = "", parkingType = "", vehicleType = "") => {
     const url = UrlData + 'parking_slot/ListParkingSlots';
-
     return await apiClient({
         method: 'post',
         url,
         data: {
-
-            society_id: societyId,   // ✅ societyId is now a plain string
-            page: 1,
-            limit: 100,
-            search: "",
-            slot_status: "",          // ✅ empty = all slots (available + occupied)
-            parking_type: "",
-            vehicle_type: "",
-            block: "",
-            floor: "",
-            zone: "",
             society_id: societyId,
             page: page,
             limit: limit,
-            search: "",
-            slot_status: "",  // ← all slots
-            parking_type: "", vehicle_type: "",
-            block: "", floor: "", zone: "",
-
+            search: search,
+            slot_status: slotStatus,
+            parking_type: parkingType,
+            vehicle_type: vehicleType,
+            block: "",
+            floor: "",
+            zone: "",
             is_ev_ready: false
         },
         timeout: 30000

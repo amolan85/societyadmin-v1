@@ -1,4 +1,4 @@
-import { useState, useEffect,useRef  } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { GetSessionData } from "../../../utils/SessionManagement";
 import "../../../styles/AddMember.css"
 import "../../../styles/ParkingRegister.css"
@@ -12,6 +12,7 @@ import {
     GetVisitorApi, DeleteVisitorApi, VisitorCheckoutApi,
     UpdateVisitorApprovalApi, UpdateVisitorApi
 } from '../../../services/VisitorApi';
+import { getAllBlocksApi, getAllFlatsApi } from '../../../services/UnitRegisterApi';
 import VisitorModal from "./VisitorModal";
 
 const VisitorRegister = ({ setActive, setVisitorId }) => {
@@ -23,11 +24,15 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [search, setSearch] = useState("");
     const [societyId, setSocietyId] = useState("");
     const [visitorsList, setVisitorsList] = useState([]);
-    const [flatsList, setFlatsList] = useState([]);
+    //const [flatsList, setFlatsList] = useState([]);
     const [isEdit, setIsEdit] = useState(false);
     const [editVisitorId, setEditVisitorId] = useState(null);
     const [userId, setUserId] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [visitorAllBlocks, setVisitorAllBlocks] = useState([]);
+    const [visitorAllFlats, setVisitorAllFlats] = useState([]);
+    const [visitorSelectedBlock, setVisitorSelectedBlock] = useState("");
+    const [visitorSelectedFlat, setVisitorSelectedFlat] = useState("");
     // Stats
     const [stats, setStats] = useState({ total: 0, today: 0, pending: 0, checkedOut: 0 });
 
@@ -75,7 +80,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         const allFlats = data.data.flats;
         const firstFlat = allFlats[0];
         setSocietyId(firstFlat.society_id);
-        setFlatsList(allFlats);
+        // setFlatsList(allFlats);
         // Pass directly, don't rely on state
         getVisitors({
             sid: firstFlat.society_id,
@@ -197,6 +202,28 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const handlePageChange = (value) => {
         setPage(value);
     };
+    const handleVisitorBlockChange = async (e) => {
+        const block = e.target.value;
+        setVisitorSelectedBlock(block);
+        setVisitorSelectedFlat("");
+        setVisitorAllFlats([]);
+        if (block) {
+            const res = await getAllFlatsApi(societyId, block);
+            setVisitorAllFlats(res?.flats || []);
+        }
+    };
+
+    const handleAddVisitor = async () => {
+        resetForm();
+        setVisitorSelectedBlock("");
+        setVisitorSelectedFlat("");
+        setVisitorAllFlats([]);
+        const data = await GetSessionData();
+        const sId = data.data.flats[0].society_id;
+        const blockRes = await getAllBlocksApi(societyId);
+        setVisitorAllBlocks(blockRes?.blocks || []);
+        setShow(true);
+    };
     const resetForm = () => {
         setVisitorName(""); setMobile(""); setEmail(""); setGender("");
         setComingFrom(""); setVehicleNumber(""); setPurpose("");
@@ -267,7 +294,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 fromDate: dateFrom,
                 toDate: dateTo
             });
-            getVisitors(societyId, 1);
+            // getVisitors(societyId, 1);
         } catch (error) {
             toast.error(error?.message || "Something went wrong");
             setErrorText(error?.message || "Error occurred");
@@ -381,7 +408,8 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
 
                         <button
                             className="btn btn-sm btn-ac ms-2 btn-primary"
-                            onClick={() => { resetForm(); setShow(true); }}
+                            // onClick={() => { resetForm(); setShow(true); }}
+                            onClick={handleAddVisitor}
                         >
                             + Add Visitor
                         </button>
@@ -622,7 +650,14 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 setMobile={setMobile}
                 flatId={flatId}
                 setFlatId={setFlatId}
-                flatsList={flatsList}
+                // flatsList={flatsList}
+                allBlocks={visitorAllBlocks}
+                allFlats={visitorAllFlats}
+                selectedBlock={visitorSelectedBlock}
+                setSelectedBlock={setVisitorSelectedBlock}
+                selectedFlat={visitorSelectedFlat}
+                setSelectedFlat={setVisitorSelectedFlat}
+                onBlockChange={handleVisitorBlockChange}
                 vehicleNumber={vehicleNumber}
                 setVehicleNumber={setVehicleNumber}
                 email={email}
