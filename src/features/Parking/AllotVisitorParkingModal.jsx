@@ -4,7 +4,9 @@ import Select from "react-select";
 const AllotVisitorParkingModal = ({
     show,
     setShow,
-
+    societyId,
+    userId,
+    onSuccess,
     allBlocks = [],
     allFlats = [],
     addMemberType = [],
@@ -43,6 +45,8 @@ const AllotVisitorParkingModal = ({
 
     // policeNoc = null,
     setPoliceNoc = () => { },
+    remarks = "",
+    setRemarks = () => { },
 
     errors = {},
     errorText = "",
@@ -120,7 +124,6 @@ const AllotVisitorParkingModal = ({
                                                     </span>
                                                 )}
                                             </div>
-
                                             <Select
                                                 styles={{
                                                     control: (baseStyles) => ({
@@ -136,14 +139,12 @@ const AllotVisitorParkingModal = ({
                                                         },
                                                     }),
                                                 }}
-                                                placeholder="Select Slot no.."
-                                                options={[
-                                                    { value: "2_wheeler", label: "2 Wheeler" },
-                                                    { value: "4_wheeler", label: "4 Wheeler" },
-                                                ]}
-                                                value={memType}
-                                                onChange={(selectedOption) => setMemType(selectedOption)}
+                                                placeholder="Select Vehicle Type.."
+                                                options={allFlats}
+                                                value={flat}
+                                                onChange={(selectedOption) => setFlat(selectedOption)}
                                             />
+
                                         </div>
                                     </div>
 
@@ -179,7 +180,6 @@ const AllotVisitorParkingModal = ({
                                                     </span>
                                                 )}
                                             </div>
-
                                             <Select
                                                 styles={{
                                                     control: (baseStyles) => ({
@@ -195,11 +195,15 @@ const AllotVisitorParkingModal = ({
                                                         },
                                                     }),
                                                 }}
-                                                placeholder="Select Vehicle Type.."
-                                                options={allFlats}
-                                                value={flat}
-                                                onChange={(selectedOption) => setFlat(selectedOption)}
+                                                placeholder="Select Slot no.."
+                                                options={[
+                                                    { value: "2_wheeler", label: "2 Wheeler" },
+                                                    { value: "4_wheeler", label: "4 Wheeler" },
+                                                ]}
+                                                value={memType}
+                                                onChange={(selectedOption) => setMemType(selectedOption)}
                                             />
+
                                         </div>
                                     </div>
 

@@ -34,7 +34,7 @@ import { BiCar } from "react-icons/bi";
 import { parkingDashboardApi, ListParkingSlotsApi } from "../../services/ParkingApi";
 import { violationAlertsApi, createViolationAlertApi } from "../../services/ViolationAlertsApi";
 import AllocateSlotModal from "./AllocateSlotModal";
-import { visitorParkingApi, getVisitorParkingByIdApi } from "../../services/VisitorParkingApi";
+import { visitorParkingApi, getVisitorParkingByIdApi ,AllotVisitorParkingApi} from "../../services/VisitorParkingApi";
 import ViolationAlertModal from "./ViolationAlertModal";
 
 const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) => {
@@ -45,7 +45,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
-
+    const [remarks, setRemarks] = useState("");
     const [allMembers, setAllMembers] = useState([]);
     const [allMembersWithoutPagination, setAllMembersWithoutPagination] = useState([]);
     const [activeTab, setActiveTab] = useState("excel");
@@ -69,7 +69,6 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [vehicleNumber, setVehicleNumber] = useState("");
     const [selectedVehicleType, setSelectedVehicleType] = useState(null);
-    const [remarks, setRemarks] = useState("");
     const [allVisitors, setAllVisitors] = useState([]);
     const vehicleTypeOptions = [
         {
@@ -143,29 +142,55 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
     //         console.error("Error fetching visitors:", error);
     //     }
     // };
+    const handleVisitorParkingSubmit = async () => {
+        try {
+            const payload = {
+                society_id: Number(societyId),
+                visitor_entry_id: selectedVisitor?.value,
+                slot_id: selectedSlot?.value,
+                allotted_by: Number(userId),
+                vehicle_number: vehicleNumber,
+                vehicle_type: selectedVehicleType?.value,
+                remarks: remarks || "",
+            };
+
+            console.log("Payload:", payload);
+
+            await AllotVisitorParkingApi(payload);
+
+            toast.success("Visitor parking allotted successfully");
+
+            setShowVisitorParkingModal(false);
+            visitorParking(societyId);
+            resetForm();
+        } catch (error) {
+            console.error(error);
+            toast.error(error?.message || "Failed to allot parking");
+        }
+    };
     const getVisitors = async (societyId) => {
-    console.log("Fetching visitors for society:", societyId);
+        console.log("Fetching visitors for society:", societyId);
 
-    try {
-        const data = await ListVisitorsApi({
-            societyId: societyId,
-            currentPage: 1,
-            currentSearch: "",
-            currentStatus: "",
-            currentFromDate: null,
-            currentToDate: null,
-        });
+        try {
+            const data = await ListVisitorsApi({
+                societyId: societyId,
+                currentPage: 1,
+                currentSearch: "",
+                currentStatus: "",
+                currentFromDate: null,
+                currentToDate: null,
+            });
 
-        const visitorOptions = (data?.visitors || []).map((item) => ({
-            value: item.id,
-            label: item.visitor_name || item.name,
-        }));
+            const visitorOptions = (data?.visitors || []).map((item) => ({
+                value: item.id,
+                label: item.visitor_name || item.name,
+            }));
 
-        setAllVisitors(visitorOptions);
-    } catch (error) {
-        console.error("Error fetching visitors:", error);
-    }
-};
+            setAllVisitors(visitorOptions);
+        } catch (error) {
+            console.error("Error fetching visitors:", error);
+        }
+    };
     const getVehicleIcon = (vehicleType) => {
         const icons = {
             "2_wheeler": <TbMotorbike size={18} color="#6b7280" />,
@@ -173,31 +198,31 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
         };
         return icons[vehicleType] ?? <TbCar size={18} color="#6b7280" />;
     };
-    const handleVisitorParkingSubmit = async () => {
-        try {
-            const payload = {
-                society_id: societyId,
-                visitor_entry_id: selectedVisitor?.value,
-                slot_id: selectedSlot?.value,
-                allotted_by: userId,
-                vehicle_number: vehicleNumber,
-                vehicle_type: selectedVehicleType?.value,
-                remarks: remarks,
-            };
+    // const handleVisitorParkingSubmit = async () => {
+    //     try {
+    //         const payload = {
+    //             society_id: societyId,
+    //             visitor_entry_id: selectedVisitor?.value,
+    //             slot_id: selectedSlot?.value,
+    //             allotted_by: userId,
+    //             vehicle_number: vehicleNumber,
+    //             vehicle_type: selectedVehicleType?.value,
+    //             remarks: remarks,
+    //         };
 
-            await AllotVisitorParkingApi(payload);
+    //         await AllotVisitorParkingApi(payload);
 
-            toast.success("Visitor parking allotted successfully");
+    //         toast.success("Visitor parking allotted successfully");
 
-            setShowVisitorParkingModal(false);
+    //         setShowVisitorParkingModal(false);
 
-            visitorParking(societyId);
+    //         visitorParking(societyId);
 
-            resetForm();
-        } catch (error) {
-            toast.error(error?.message || "Failed to allot parking");
-        }
-    };
+    //         resetForm();
+    //     } catch (error) {
+    //         toast.error(error?.message || "Failed to allot parking");
+    //     }
+    // };
 
     const handleVisitorClick = async (visitorParkingId) => {
         try {

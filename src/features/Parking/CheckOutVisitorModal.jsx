@@ -5,18 +5,53 @@ import "../../styles/Parking.css";
 const CheckOutVisitorModal = ({
     checkoutShow,
     setCheckoutShow,
+    visitorData,
+    onConfirm,
     errors = {},
     errorText = "",
     handleSubmit = () => { },
     mode,
 }) => {
     if (!checkoutShow) return null;
+    const formatEntryTime = (dateStr) => {
+        if (!dateStr) return "-";
+
+        const normalized = dateStr.includes("T")
+            ? dateStr
+            : dateStr.replace(" ", "T");
+
+        const date = new Date(normalized);
+
+        if (isNaN(date)) return "-";
+
+        return date.toLocaleString("en-US", {
+            month: "short",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    };
+
+    const getTimeElapsed = (allottedAt) => {
+        if (!allottedAt) return "-";
+
+        const start = new Date(allottedAt);
+        const now = new Date();
+
+        const diffMs = now - start;
+
+        const hrs = Math.floor(diffMs / (1000 * 60 * 60));
+        const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+        return `${hrs}h ${mins}m`;
+    };
 
     return (
         <>
             <div className="modal-backdrop fade show"></div>
 
-            <div className="modal fade show d-block" id="covCheckoutModal" tabindex="-1" aria-labelledby="covCheckoutModalLabel" aria-modal="true" role="dialog">
+            <div className="modal fade show d-block" id="covCheckoutModal" tabIndex="-1" aria-labelledby="covCheckoutModalLabel" aria-modal="true" role="dialog">
                 <div className="modal-dialog modal-dialog-centered cov-modal-dialog">
                     <div className="modal-content cov-modal-content">
 
@@ -34,19 +69,19 @@ const CheckOutVisitorModal = ({
                                 <tbody>
                                     <tr >
                                         <td className="text-start">Vehicle Number</td>
-                                        <td>KA-05-MH-2023</td>
+                                        <td>{visitorData?.vehicle_number || "-"}</td>
                                     </tr>
                                     <tr>
                                         <td className="text-start">Visitor Name</td>
-                                        <td>Rahul Kumar</td>
+                                        <td>{visitorData?.visitor_name || "-"}</td>
                                     </tr>
                                     <tr>
                                         <td className="text-start">Entry Time</td>
-                                        <td>10:45 AM (Today)</td>
+                                        <td>{formatEntryTime(visitorData?.allotted_at)}</td>
                                     </tr>
                                     <tr>
                                         <td className="text-start">Duration</td>
-                                        <td>2h 45m</td>
+                                       <td>{getTimeElapsed(visitorData?.allotted_at)}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -67,9 +102,15 @@ const CheckOutVisitorModal = ({
 
                         <div className="modal-footer  cov-modal-footer bg-light">
                             <button type="button" className="btn btn-sm cov-btn-cancel" data-bs-dismiss="modal" onClick={() => setCheckoutShow(false)}>Cancel</button>
-                            <button type="button" className="btn btn-sm cov-btn-checkout">
-                                {/* <i className="bi bi-box-arrow-right"></i>  */}
-                                  <FiLogOut />Confirm Check Out
+                            <button
+                                type="button"
+                                className="btn btn-sm cov-btn-checkout"
+                                onClick={() => {
+                                    onConfirm();
+                                    setCheckoutShow(false);
+                                }}
+                            >
+                                <FiLogOut /> Confirm Check Out
                             </button>
                         </div>
 

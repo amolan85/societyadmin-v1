@@ -255,7 +255,16 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
             <div className="pg cp-wrap">
 
                 {/* ── Profile Header Card (like Member Details) ── */}
-                <div className="sv-card p-4 mb-3">
+                <div className="sv-card p-4 mb-3" style={{
+                    background:
+                        visitor?.visitor_type === "delivery"
+                            ? "#fff7ed"   // light orange
+                            : "#eff6ff",  // light blue
+                    border: `1px solid ${visitor?.visitor_type === "delivery"
+                            ? "#fdba74"
+                            : "#93c5fd"
+                        }`
+                }}>
                     <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
 
                         {/* Left: Avatar + Name + Info */}
@@ -396,7 +405,7 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
 
                         {/* ID Verification — Guest only */}
                         {visitor.visitor_type === "guest" && (
-                            <div className="sv-card p-4 mb-3">
+                            <div className="sv-card p-4 mb-3" >
                                 <h6 className="fw-bold mb-3 text-start">ID Verification</h6>
                                 <div className="row g-3 text-start">
                                     <div className="col-6">

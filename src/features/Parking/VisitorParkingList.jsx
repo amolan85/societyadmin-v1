@@ -10,9 +10,10 @@ import {
     UpdateMemberApi,
     deleteMembersApi,
 } from "../../services/AddMemberApi";
+
 import { toast } from "react-toastify";
 import { FiFilter, FiSearch } from "react-icons/fi";
-
+import { ListVisitorsApi } from "../../services/VisitorApi";
 import {
     getAllBlocksApi,
     getAllFlatsApi,
@@ -22,10 +23,11 @@ import { CgExport, CgImport } from "react-icons/cg";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import { TbCar, TbMotorbike } from "react-icons/tb";
 
-import { visitorParkingApi, deleteVisitorParkingApi, getVisitorParkingByIdApi } from "../../services/VisitorParkingApi";
+import { visitorParkingApi, deleteVisitorParkingApi, getVisitorParkingByIdApi, AllotVisitorParkingApi } from "../../services/VisitorParkingApi";
 import ExportModal from "../../components/Common/ExportModal";
 import AllotVisitorParkingModal from "./AllotVisitorParkingModal";
 import CreateVisitorParkingModal from "./CreateVisitorParkingModal";
+import { ListParkingSlotsApi } from "../../services/ParkingApi";
 
 
 const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParkingId }) => {
@@ -74,11 +76,16 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
     const [visitorName, setVisitorName] = useState("");
     const [visitorMobile, setVisitorMobile] = useState("");
     const [visitorEmail, setVisitorEmail] = useState("");
-    const [vehicleNumber, setVehicleNumber] = useState("");
     const [visitorGender, setVisitorGender] = useState("");
     const [vehicleType, setVehicleType] = useState("");
     const [purpose, setPurpose] = useState("");
-
+    const [allVisitors, setAllVisitors] = useState([]);
+    const [selectedVisitor, setSelectedVisitor] = useState(null);
+    const [selectedSlot, setSelectedSlot] = useState(null);
+    const [selectedVehicleType, setSelectedVehicleType] = useState(null);
+    const [remarks, setRemarks] = useState("");
+    const [vehicleNumber, setVehicleNumber] = useState("");
+    const [allSlots, setAllSlots] = useState([]);
     const getVehicleIcon = (vehicleType) => {
         const icons = {
             "2_wheeler": { icon: <TbMotorbike size={18} />, color: "#f97316" },
@@ -95,6 +102,66 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
         } catch (error) {
             console.error("Error fetching visitor detail:", error);
             toast.error("Failed to fetch visitor details");
+        }
+    };
+    const getParkingSlots = async (societyId) => {
+        try {
+            const data = await ListParkingSlotsApi(societyId);
+
+            const slotOptions = (data?.slots || []).map((item) => ({
+                value: item.id,
+                label: item.slot_number,
+            }));
+
+            setAllSlots(slotOptions);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+    const getVisitors = async (societyId) => {
+        try {
+            const data = await ListVisitorsApi({
+                societyId,
+                currentPage: 1,
+                currentSearch: "",
+                currentStatus: "",
+                currentFromDate: null,
+                currentToDate: null,
+            });
+
+            const visitorOptions = (data?.visitors || []).map((item) => ({
+                value: item.id,
+                label: item.visitor_name || item.name,
+            }));
+
+            setAllVisitors(visitorOptions);
+        } catch (error) {
+            console.error("Error fetching visitors:", error);
+        }
+    };
+    const handleVisitorParkingSubmit = async () => {
+        try {
+            const payload = {
+                society_id: Number(societyId),
+                visitor_entry_id: selectedVisitor?.value,
+                slot_id: selectedSlot?.value,
+                allotted_by: Number(userId),
+                vehicle_number: vehicleNumber,
+                vehicle_type: selectedVehicleType?.value,
+                remarks: remarks || "",
+            };
+
+            await AllotVisitorParkingApi(payload);
+
+            toast.success("Visitor parking allotted successfully");
+
+            setShow(false);
+
+            visitorParking(societyId, page);
+
+            resetForm();
+        } catch (error) {
+            toast.error(error?.message || "Failed to allot parking");
         }
     };
     const vehicleTypeOptions = [
@@ -144,6 +211,8 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
         setUserId(flats.user_id);
         visitorParking(flats.society_id, 1);
         getAllBlocks(flats.society_id);
+        getVisitors(flats.society_id);
+        getParkingSlots(flats.society_id);
 
     };
 
@@ -786,7 +855,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
                                                             //     getMembersById(s.user_id, s.flat_id)
                                                             // }
                                                             // onClick={() => setActive("rentalsApplication")}
-                                                             onClick={() => handleViewDetails(item.id)}
+                                                            onClick={() => handleViewDetails(item.id)}
                                                         >
                                                             View Details
                                                         </button>
@@ -832,7 +901,32 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
 
             <AllotVisitorParkingModal
                 show={show}
-                setShow={setShow} />
+                setShow={setShow}
+
+                allBlocks={allVisitors}
+                allFlats={allSlots}
+
+                blocks={selectedVisitor}
+                setBlocks={setSelectedVisitor}
+
+                flat={selectedSlot}
+                setFlat={setSelectedSlot}
+
+                firstName={vehicleNumber}
+                setFirstName={setVehicleNumber}
+
+                memType={selectedVehicleType}
+                setMemType={setSelectedVehicleType}
+
+                remarks={remarks}
+                setRemarks={setRemarks}
+
+                errors={errors}
+                resetForm={resetForm}
+
+                handleSubmit={handleVisitorParkingSubmit}
+                mode="add"
+            />
 
             <CreateVisitorParkingModal
                 createvisitorparkingshow={createvisitorparkingshow}
