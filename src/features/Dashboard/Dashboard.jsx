@@ -191,7 +191,7 @@ export default function App() {
     violationAlerts: <ViolationAlertsList setActive={setActive} setViolationId={setViolationId} />,
     parkingRules: <ParkingRules setActive={setActive} />,
     viewParkingDetails: <ViewParkingDetails setActive={setActive} violationId={violationId} setVisitorParkingId={setVisitorParkingId} />,
-    visitorDetails: <VisitorDetails setActive={setActive} visitorParkingId={visitorParkingId}societyId={societyId} />,
+    visitorDetails: <VisitorDetails setActive={setActive} visitorParkingId={visitorParkingId}  societyId={selectedSocietyId} />,
     rentals: <RentalAndTenants setActive={setActive} setTenantId={setTenantId} />,
     rentalsApplication: <TenantsReviewApplication setActive={setActive} tenantId={tenantId} />,
     staff: <StaffAttendance setActive={setActive} setStaffId={setStaffId} />,

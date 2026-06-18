@@ -5,7 +5,7 @@ import {
     DeleteVisitorApi, UpdateVisitorApi, AllotVisitorParkingApi
 } from '../../../services/VisitorApi';
 import { ListParkingSlotsApi } from '../../../services/ParkingApi';
-// import { getVisitorParkingByIdApi } from '../../../services/VisitorParkingApi';
+import { getVisitorParkingByIdApi } from '../../../services/VisitorParkingApi';
 import { Badge } from '../../../components/Common/ReusableFunction';
 import { toast } from "react-toastify";
 import { FiPhone, FiMail, FiMapPin } from 'react-icons/fi';
@@ -33,7 +33,7 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
     const [vehicleType, setVehicleType] = useState("4_wheeler");
     const [parkingRemarks, setParkingRemarks] = useState("");
     const [parkingErrors, setParkingErrors] = useState({});
-    // const [parkingDetails, setParkingDetails] = useState(null);
+    const [parkingDetails, setParkingDetails] = useState(null);
     // Form fields
     const [visitorType, setVisitorType] = useState("guest");
     const [visitorName, setVisitorName] = useState("");
@@ -64,6 +64,13 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
     //         fetchParkingDetails(visitor.visitor_parking_id);
     //     }
     // }, [visitor]);
+    useEffect(() => {
+        console.log("Visitor Changed:", visitor);
+        console.log("Society Changed:", societyId);
+        if (visitor?.visitor_parking_id && societyId) {
+            fetchParkingDetails(visitor.visitor_parking_id);
+        }
+    }, [visitor, societyId]);
     const SessionData = async () => {
         const data = await GetSessionData();
         const firstFlat = data.data.flats[0];
@@ -124,9 +131,10 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
         try {
             setLoading(true);
             const res = await GetVisitorApi(visitorId, sId);
-            console.log("Allot Parking Response", res);
+            console.log("Visitor API Response:", res);
             const v = res.data || res;
-            console.log("Visitor data:", v); // ← check if visitor_parking_id exists
+            console.log("Visitor data:", v);
+            console.log("visitor_parking_id:", v?.visitor_parking_id); // ← check if visitor_parking_id exists
             setVisitor(v);
         } catch (e) {
             toast.error("Could not load visitor details");
@@ -143,17 +151,20 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
             fetchVisitor(societyId);
         } catch (e) { toast.error(e?.message || "Checkout failed"); }
     };
-    // const fetchParkingDetails = async (visitorParkingId) => {
-    //     try {
-    //         const res = await getVisitorParkingByIdApi(visitorParkingId);
-    //         setParkingDetails(res?.data || res);
-    //          console.log("Parking Response:", res);
-    //     } catch (err) {
-    //         console.error(err);
-    //            console.error("Parking Error:", err);
-    //         // toast.error("Failed to load parking details");
-    //     }
-    // };
+    const fetchParkingDetails = async (visitorParkingId) => {
+        try {
+            console.log("societyId:", societyId);
+            console.log("visitorParkingId:", visitorParkingId);
+            const res = await getVisitorParkingByIdApi(societyId, visitorParkingId);
+            console.log("Parking API Response:", res);
+            setParkingDetails(res?.data || res);
+            console.log("Parking Response:", res);
+        } catch (err) {
+            console.error(err);
+            console.error("Parking Error:", err);
+            // toast.error("Failed to load parking details");
+        }
+    };
     const handleApproval = async (status) => {
         try {
             await UpdateVisitorApprovalApi(visitor.id, societyId, status, rejectionReason, userId);
@@ -198,7 +209,13 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
 
     const fmt = (dt, type) => {
         if (!dt) return "—";
-        const date = new Date(dt + (dt.includes("Z") || dt.includes("+") ? "" : "Z")); // ← UTC treat karo
+        // Replace space with T to make valid ISO, then treat as UTC
+        const normalized = dt.includes("T") ? dt : dt.replace(" ", "T");
+        const withZ = normalized.includes("Z") || normalized.includes("+")
+            ? normalized
+            : normalized + "Z";
+        const date = new Date(withZ);
+        if (isNaN(date)) return "—";
         return type === "time"
             ? date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })
             : date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
@@ -418,7 +435,7 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                                 </div>
                             </div>
                         )}
-                        {/* {parkingDetails && (
+                        {parkingDetails && (
                             <div className="sv-card p-4 mb-3">
                                 <h6 className="fw-bold mb-3 text-start">Parking Details</h6>
                                 <div className="row g-3 text-start">
@@ -441,7 +458,7 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                                     ))}
                                 </div>
                             </div>
-                        )} */}
+                        )}
                         {/* Rejection Reason */}
                         {visitor.approval_status === "rejected" && visitor.rejection_reason && (
                             <div className="sv-card p-4 mb-3" style={{ borderLeft: "4px solid #ef4444" }}>

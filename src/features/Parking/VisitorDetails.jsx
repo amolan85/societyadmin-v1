@@ -12,6 +12,7 @@ import ExtendTimeModal from './ExtendTimeModal';
 import { BsFillChatSquareFill, BsHouseDoor, BsInfoCircle } from 'react-icons/bs';
 import { FiLogOut } from 'react-icons/fi';
 import { getVisitorParkingByIdApi } from "../../services/VisitorParkingApi";
+import { GetSessionData } from "../../utils/SessionManagement";
 const VisitorDetails = ({ setActive, visitorParkingId, societyId/* memberId, setFlatId */ }) => {
 
     const [deallocateShow, setDeallocateShow] = useState(false);
@@ -23,10 +24,28 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId/* memberId, set
     const [extendDuration, setExtendDuration] = useState("")
     const [visitorData, setVisitorData] = useState(null);
     const [loading, setLoading] = useState(true);
+
     useEffect(() => {
-        if (societyId && visitorParkingId) {
-            fetchVisitorDetails();
-        }
+        const init = async () => {
+            try {
+                let sId = societyId;
+                if (!sId) {
+                    const session = await GetSessionData();
+                    sId = session.data.flats[0].society_id;
+                }
+                if (sId && visitorParkingId) {
+                    setLoading(true);
+                    const data = await getVisitorParkingByIdApi(sId, visitorParkingId);
+                    console.log("Visitor Data:", data);
+                    setVisitorData(data);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        init();
     }, [societyId, visitorParkingId]);
     const extendDurationType = [
         { id: "1 Hour", value: "1Hour" },
