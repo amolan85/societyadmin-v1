@@ -12,7 +12,7 @@ import ExtendTimeModal from './ExtendTimeModal';
 import { BsFillChatSquareFill, BsHouseDoor, BsInfoCircle } from 'react-icons/bs';
 import { FiLogOut } from 'react-icons/fi';
 import { getVisitorParkingByIdApi } from "../../services/VisitorParkingApi";
-const VisitorDetails = ({ setActive, visitorParkingId /* memberId, setFlatId */ }) => {
+const VisitorDetails = ({ setActive, visitorParkingId, societyId/* memberId, setFlatId */ }) => {
 
     const [deallocateShow, setDeallocateShow] = useState(false);
     const [showDocument, setShowDocument] = useState(false);
@@ -24,10 +24,10 @@ const VisitorDetails = ({ setActive, visitorParkingId /* memberId, setFlatId */ 
     const [visitorData, setVisitorData] = useState(null);
     const [loading, setLoading] = useState(true);
     useEffect(() => {
-        if (visitorParkingId) {
+        if (societyId && visitorParkingId) {
             fetchVisitorDetails();
         }
-    }, [visitorParkingId]);
+    }, [societyId, visitorParkingId]);
     const extendDurationType = [
         { id: "1 Hour", value: "1Hour" },
         { id: "2 Hours", value: "2Hours" },
@@ -36,7 +36,7 @@ const VisitorDetails = ({ setActive, visitorParkingId /* memberId, setFlatId */ 
     const fetchVisitorDetails = async () => {
         try {
             setLoading(true);
-            const data = await getVisitorParkingByIdApi(visitorParkingId);
+            const data = await getVisitorParkingByIdApi(societyId, visitorParkingId);
             console.log("Visitor Data:", data);
             setVisitorData(data);
         } catch (error) {
@@ -272,7 +272,7 @@ const VisitorDetails = ({ setActive, visitorParkingId /* memberId, setFlatId */ 
 
                                 <div className="mt-3">
                                     <small className="text-muted">
-                                       Driver License / ID
+                                        Driver License / ID
                                     </small>
                                     {/* ✅ vehicle_number */}
                                     <div className="fw-semibold">

@@ -11,7 +11,7 @@ import { useLoader } from "../../../context/LoaderContext";
 import ParkingSlotModal from './ParkingSlotModal';
 import { GetSessionData } from "../../../utils/SessionManagement";
 
-const ParkingDetails = ({ setActive, slotId }) => {
+const ParkingDetails = ({ setActive, slotId, societyId }) => {
 
     const { setLoading } = useLoader();
     const [deallocateShow, setDeallocateShow] = useState(false);
@@ -36,9 +36,12 @@ const ParkingDetails = ({ setActive, slotId }) => {
     const [allFlats, setAllFlats] = useState([]);
     const [selectedBlock, setSelectedBlock] = useState("");
     const [selectedFlat, setSelectedFlat] = useState("");
+    //const [societyId, setSocietyId] = useState(null);
     useEffect(() => {
-        if (slotId) loadSlotDetails();
-    }, [slotId]);
+        if (slotId && societyId) {
+            loadSlotDetails();
+        }
+    }, [slotId, societyId]);
 
     const SessionData = async () => {
         const data = await GetSessionData();
@@ -73,7 +76,7 @@ const ParkingDetails = ({ setActive, slotId }) => {
     const loadSlotDetails = async () => {
         try {
             setLoading(true);
-            const res = await GetParkingSlotApi(slotId);
+            const res = await GetParkingSlotApi(slotId, societyId);
             setSlotData(res?.data || null);
         } catch (e) {
             console.error("Failed to load slot details", e);

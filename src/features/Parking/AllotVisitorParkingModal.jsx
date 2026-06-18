@@ -104,7 +104,7 @@ const AllotVisitorParkingModal = ({
                                                 placeholder="Select Visitor.."
                                                 options={allBlocks}
                                                 value={blocks}
-                                                onChange={handleBlockChange}
+                                                onChange={(selectedOption) => setBlocks(selectedOption)}
                                             />
                                         </div>
 
@@ -137,9 +137,12 @@ const AllotVisitorParkingModal = ({
                                                     }),
                                                 }}
                                                 placeholder="Select Slot no.."
-                                                options={allFlats}
-                                                value={flat}
-                                                onChange={(selectedOption) => setFlat(selectedOption)}
+                                                options={[
+                                                    { value: "2_wheeler", label: "2 Wheeler" },
+                                                    { value: "4_wheeler", label: "4 Wheeler" },
+                                                ]}
+                                                value={memType}
+                                                onChange={(selectedOption) => setMemType(selectedOption)}
                                             />
                                         </div>
                                     </div>
@@ -213,7 +216,12 @@ const AllotVisitorParkingModal = ({
                                                     </span>
                                                 )}
                                             </div>
-                                            <textarea className="form-control" rows={3} placeholder="" />
+                                            <textarea
+                                                className="form-control"
+                                                rows={3}
+                                                value={remarks}
+                                                onChange={(e) => setRemarks(e.target.value)}
+                                            />
                                         </div>
                                     </div>
                                 </div>

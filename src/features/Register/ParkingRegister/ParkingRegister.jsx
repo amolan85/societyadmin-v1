@@ -11,7 +11,7 @@ import { FiFilter, FiSearch } from 'react-icons/fi';
 import ParkingSlotModal from './ParkingSlotModal';
 
 
-const ParkingRegister = ({ setActive, setSelectedSlotId }) => {  // ← added setSelectedSlotId prop
+const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId }) => {  // ← added setSelectedSlotId and setSelectedSocietyId props
 
     const [errors, setErrors] = useState({});
     const [show, setShow] = useState(false);
@@ -134,7 +134,8 @@ const ParkingRegister = ({ setActive, setSelectedSlotId }) => {  // ← added se
     // ← NEW: navigate to details and pass slot id
     const handleViewSlot = (slot) => {
         if (typeof setSelectedSlotId === "function") {
-            setSelectedSlotId(slot.id || slot._id);
+            setSelectedSlotId(slot.id || slot._id,);
+             setSelectedSocietyId(societyId);
         }
         setActive("parkingDetails");
     };

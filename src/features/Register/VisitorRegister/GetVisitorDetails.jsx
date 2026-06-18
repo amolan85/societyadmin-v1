@@ -316,13 +316,13 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                                     ✓ Checkout
                                 </button>
                             )}
-                            <button
+                            {/* <button
                                 className="btn btn-sm btn-primary"
                                 onClick={() => { setParkingModal(true); loadParkingSlots(); }}
                                 style={{ borderRadius: 8 }}
                             >
                                 + Allot Parking
-                            </button>
+                            </button> */}
                             <button
                                 className="btn btn-sm btn-primary"
                                 disabled={

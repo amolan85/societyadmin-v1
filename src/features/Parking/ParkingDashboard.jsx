@@ -3,6 +3,8 @@ import "../../styles/AddMember.css";
 import "../../styles/Parking.css";
 import { Badge, Pagination } from "../../components/Common/ReusableFunction";
 import { GetSessionData } from "../../utils/SessionManagement";
+import AllotVisitorParkingModal from "./AllotVisitorParkingModal";
+import { ListVisitorsApi } from "../../services/VisitorApi";
 import { TbCircleMinus, TbParking, TbMapPinOff, TbFileOff, TbAlertCircle, TbClockX, TbAlertTriangle, TbMotorbike, TbCar, TbTruck } from "react-icons/tb";
 
 import {
@@ -61,6 +63,24 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
     const [allViolationAlerts, setAllViolationAlerts] = useState([]);
     const [showAllocateSlot, setShowAllocateSlot] = useState(false);
 
+    //visitor Parking
+    const [showVisitorParkingModal, setShowVisitorParkingModal] = useState(false);
+    const [selectedVisitor, setSelectedVisitor] = useState(null);
+    const [selectedSlot, setSelectedSlot] = useState(null);
+    const [vehicleNumber, setVehicleNumber] = useState("");
+    const [selectedVehicleType, setSelectedVehicleType] = useState(null);
+    const [remarks, setRemarks] = useState("");
+    const [allVisitors, setAllVisitors] = useState([]);
+    const vehicleTypeOptions = [
+        {
+            value: "2_wheeler",
+            label: "2 Wheeler",
+        },
+        {
+            value: "4_wheeler",
+            label: "4 Wheeler",
+        },
+    ];
     // ViolationAlertModal state
     const [showViolationAlert, setShowViolationAlert] = useState(false);
     const [allBlocks, setAllBlocks] = useState([]);
@@ -98,7 +118,54 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
         };
         return icons[violationType] ?? icons.other;
     };
+    // const getVisitors = async (societyId) => {
+    //     console.log("Fetching visitors for society:", societyId);
+    //     try {
+    //         const data = await ListVisitorsApi(
+    //             societyId,
+    //             1,
+    //             100,
+    //             "",
+    //             "",
+    //             "",
+    //             "",
+    //             "",
+    //             ""
+    //         );
 
+    //         const visitorOptions = (data?.visitors || []).map((item) => ({
+    //             value: item.id,
+    //             label: item.visitor_name || item.name,
+    //         }));
+
+    //         setAllVisitors(visitorOptions);
+    //     } catch (error) {
+    //         console.error("Error fetching visitors:", error);
+    //     }
+    // };
+    const getVisitors = async (societyId) => {
+    console.log("Fetching visitors for society:", societyId);
+
+    try {
+        const data = await ListVisitorsApi({
+            societyId: societyId,
+            currentPage: 1,
+            currentSearch: "",
+            currentStatus: "",
+            currentFromDate: null,
+            currentToDate: null,
+        });
+
+        const visitorOptions = (data?.visitors || []).map((item) => ({
+            value: item.id,
+            label: item.visitor_name || item.name,
+        }));
+
+        setAllVisitors(visitorOptions);
+    } catch (error) {
+        console.error("Error fetching visitors:", error);
+    }
+};
     const getVehicleIcon = (vehicleType) => {
         const icons = {
             "2_wheeler": <TbMotorbike size={18} color="#6b7280" />,
@@ -106,10 +173,35 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
         };
         return icons[vehicleType] ?? <TbCar size={18} color="#6b7280" />;
     };
+    const handleVisitorParkingSubmit = async () => {
+        try {
+            const payload = {
+                society_id: societyId,
+                visitor_entry_id: selectedVisitor?.value,
+                slot_id: selectedSlot?.value,
+                allotted_by: userId,
+                vehicle_number: vehicleNumber,
+                vehicle_type: selectedVehicleType?.value,
+                remarks: remarks,
+            };
+
+            await AllotVisitorParkingApi(payload);
+
+            toast.success("Visitor parking allotted successfully");
+
+            setShowVisitorParkingModal(false);
+
+            visitorParking(societyId);
+
+            resetForm();
+        } catch (error) {
+            toast.error(error?.message || "Failed to allot parking");
+        }
+    };
 
     const handleVisitorClick = async (visitorParkingId) => {
         try {
-            const data = await getVisitorParkingByIdApi(visitorParkingId);
+            const data = await getVisitorParkingByIdApi(societyId, visitorParkingId);
             console.log("Visitor Detail:", data);
             setVisitorParkingId(visitorParkingId);
             setActive("visitorDetails");
@@ -200,14 +292,18 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
 
     const SessionData = async () => {
         const data = await GetSessionData();
+        console.log("Session Data:", data);
+        console.log("Flats:", data?.data?.flats);
         console.log(data.data);
         const flats = data.data.flats[0];
+        console.log("society_id:", flats?.society_id);
         setSocietyId(flats.society_id);
         setUserId(flats.user_id);
         parkingDashboard(flats.society_id);
         visitorParking(flats.society_id);
         violationAlerts(flats.society_id);
         getParkingSlots(flats.society_id);
+        getVisitors(flats.society_id);
     };
 
     const parkingDashboard = async (societyId) => {
@@ -441,14 +537,14 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
                                             borderRadius: "8px",
                                             background:
                                                 l === "Total Slots" ? "#e8f1ff"
-                                                : l === "Occupancy Rate" ? "#fff1e7"
-                                                : l === "Visitor Slots Active" ? "#f5e8ff"
-                                                : "#ffe9e9",
+                                                    : l === "Occupancy Rate" ? "#fff1e7"
+                                                        : l === "Visitor Slots Active" ? "#f5e8ff"
+                                                            : "#ffe9e9",
                                             color:
                                                 l === "Total Slots" ? "#3b82f6"
-                                                : l === "Occupancy Rate" ? "#fb923c"
-                                                : l === "Visitor Slots Active" ? "#d946ef"
-                                                : "#ef4444",
+                                                    : l === "Occupancy Rate" ? "#fb923c"
+                                                        : l === "Visitor Slots Active" ? "#d946ef"
+                                                            : "#ef4444",
                                             display: "flex",
                                             alignItems: "center",
                                             justifyContent: "center",
@@ -475,8 +571,8 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
                                             marginTop: "14px",
                                             color:
                                                 l === "Occupancy Rate" ? "#22c55e"
-                                                : l === "Active Violations" ? "#ef4444"
-                                                : "#999"
+                                                    : l === "Active Violations" ? "#ef4444"
+                                                        : "#999"
                                         }}
                                     >
                                         {l === "Occupancy Rate" && <FiTrendingUp size={12} />}
@@ -514,6 +610,12 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
                                                 cursor: "pointer",
                                                 color: "#555",
                                                 boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                                            }}
+                                            onClick={() => {
+                                                if (Icon === FiPlus) {
+                                                    resetForm();
+                                                    setShowVisitorParkingModal(true);
+                                                }
                                             }}
                                         >
                                             <Icon size={15} />
@@ -658,9 +760,9 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
                                                 label={item.kycStatus}
                                                 c={
                                                     item.kycStatus === "Verified" ? "green"
-                                                    : item.kycStatus === "Pending Verification" ? "yellow"
-                                                    : item.kycStatus === "Pending KYC" ? "yellow"
-                                                    : "gray"
+                                                        : item.kycStatus === "Pending Verification" ? "yellow"
+                                                            : item.kycStatus === "Pending KYC" ? "yellow"
+                                                                : "gray"
                                                 }
                                             />
                                         </td>
@@ -752,6 +854,34 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
                 handleSubmit={handleViolationSubmit}
                 resetForm={resetForm}
                 mode={mode}
+            />
+            <AllotVisitorParkingModal
+                show={showVisitorParkingModal}
+                setShow={setShowVisitorParkingModal}
+
+                allBlocks={allVisitors} // Visitor dropdown data
+                allFlats={allSlots}     // Slot dropdown data
+
+                blocks={selectedVisitor}
+                setBlocks={setSelectedVisitor}
+
+                flat={selectedSlot}
+                setFlat={setSelectedSlot}
+
+                firstName={vehicleNumber}
+                setFirstName={setVehicleNumber}
+
+                memType={selectedVehicleType}
+                setMemType={setSelectedVehicleType}
+
+                remarks={remarks}
+                setRemarks={setRemarks}
+
+                errors={errors}
+                resetForm={resetForm}
+
+                handleSubmit={handleVisitorParkingSubmit}
+                mode="add"
             />
         </>
     );

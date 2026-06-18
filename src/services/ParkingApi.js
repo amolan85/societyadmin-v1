@@ -114,11 +114,11 @@ export const UpdateParkingSlotApi = async (slotId, zone, floor, isEvReady, slotS
         .then(res => res.data.data)
         .catch(error => { throw ErrorHandler(error); });
 };
-export const GetParkingSlotApi = async (slotId) => {
+export const GetParkingSlotApi = async (slotId,societyId) => {
     const url = UrlData + 'parking_slot/GetParkingSlot';
     return await apiClient({
         method: 'post', url,
-        data: { slot_id: slotId },
+        data: { slot_id: slotId, society_id: societyId },
         timeout: 30000
     })
         .then(res => res.data)
