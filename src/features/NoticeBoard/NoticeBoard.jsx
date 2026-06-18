@@ -167,7 +167,7 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
         if (!confirmed) return;
 
         try {
-            const data = await deleteNoticeApi(noticeId);
+            const data = await deleteNoticeApi(noticeId,societyId);
             console.log(data);
             toast.success("Notice deleted successfully!");
             getNoticeBoard(societyId);

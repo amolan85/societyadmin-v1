@@ -146,10 +146,11 @@ export const UpdateBroadcastApi = async (
     }
 };
 
-export const deleteBroadcastApi = async (broadcastId) => {
+export const deleteBroadcastApi = async (broadcastId,societyId) => {
     const url = UrlData + 'broadcast/DeleteBroadcast';
     const data = {
         broadcast_id: broadcastId,
+        society_id: societyId,
 
     }
     return await apiClient({

@@ -667,7 +667,7 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
 
     const confirmDeleteBroadcast = async () => {
         try {
-            await deleteBroadcastApi(selectedBroadcastId);
+            await deleteBroadcastApi(selectedBroadcastId,societyId);
 
             toast.success("Broadcast deleted successfully");
 

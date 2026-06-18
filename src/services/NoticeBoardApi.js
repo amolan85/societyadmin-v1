@@ -94,10 +94,11 @@ export const updateNoticeApi = async (noticeId, title, description, noticeType, 
     });
 }
 
-export const deleteNoticeApi = async (noticeId) => {
+export const deleteNoticeApi = async (noticeId,societyId) => {
     const url = UrlData + 'notice/DeleteNotice';
     const data = {
         notice_id: noticeId,
+        society_id:societyId,
 
     }
     return await apiClient({
