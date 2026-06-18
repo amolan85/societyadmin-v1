@@ -221,7 +221,7 @@ export default function App() {
     const data = await GetSessionData()
     console.log(data.data)
     const flats = data.data.flats[0]
-    setSocietyName(flats.society_name)
+    //setSocietyName(flats.society_name)
     setFirstName(data.data.first_name)
     setLastName(data.data.last_name)
     setProfileUrl(data.data.profile_url)

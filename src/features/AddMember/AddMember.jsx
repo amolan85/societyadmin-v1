@@ -315,71 +315,82 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     }
   };
 
-  const GetMemberDetailsById = async (memberId) => {
-    try {
-      const data = await getMembersByIdApi(societyId, memberId);
-      setMId(memberId);
-      setFirstName(data.first_name);
-      setLastName(data.last_name);
-      setEmailId(data.email);
-      setMobileNo(data.mobile);
+ const GetMemberDetailsById = async (memberId) => {
+  try {
+    const data = await getMembersByIdApi(societyId, memberId);
+
+    setMId(memberId);
+
+    setFirstName(data.first_name || "");
+    setLastName(data.last_name || "");
+    setEmailId(data.email || "");
+    setMobileNo(data.mobile || "");
+
+    const flatDetails = data.flats?.[0];
+
+    if (flatDetails) {
       setBlocks({
-        value: data.block,
-        label: data.block,
+        value: flatDetails.block,
+        label: flatDetails.block,
       });
+
       setFlat({
-        value: data.flat_number,
-        label: data.flat_number,
+        value: flatDetails.flat_id,
+        label: flatDetails.flat_number,
       });
-      setFamilyType(data.occupancy_type);
+
+      setFamilyType(flatDetails.occupancy_type);
+
       setMemType(
-        data.occupancy_type === "owner_relative"
+        flatDetails.occupancy_type === "owner_relative"
           ? "familyMember"
-          : data.occupancy_type === "tenant_relative"
-            ? "familyMember"
-            : data.occupancy_type,
+          : flatDetails.occupancy_type === "tenant_relative"
+          ? "familyMember"
+          : flatDetails.occupancy_type
       );
-      setMoveInDate(data.start_date);
-      setMoveOutDate(data.end_date);
-      data.documents?.forEach((doc) => {
-        switch (doc.document_type) {
-          case "id_proof":
-            setIdProof(doc.url);
-            break;
 
-          case "family_photo":
-            setFamilyPhoto(doc.url);
-            break;
-
-          case "agreement":
-            setAgreement(doc.url);
-            break;
-
-          case "ownership":
-            setOwnershipDocuments(doc.url);
-            break;
-
-          case "maintenance_receipt":
-            setMaintenanceReceipt(doc.url);
-            break;
-
-          case "rent_agreement":
-            setRentAgreement(doc.url);
-            break;
-
-          case "police_noc":
-            setPoliceNoc(doc.url);
-            break;
-
-          default:
-            break;
-        }
-      });
-    } catch (error) {
-      console.log(error);
+      setMoveInDate(flatDetails.start_date || "");
+      setMoveOutDate(flatDetails.end_date || "");
     }
-  };
 
+    data.flats?.[0]?.documents?.forEach((doc) => {
+      switch (doc.document_type) {
+        case "id_proof":
+          setIdProof(doc.url);
+          break;
+
+        case "family_photo":
+          setFamilyPhoto(doc.url);
+          break;
+
+        case "agreement":
+          setAgreement(doc.url);
+          break;
+
+        case "ownership":
+          setOwnershipDocuments(doc.url);
+          break;
+
+        case "maintenance_receipt":
+          setMaintenanceReceipt(doc.url);
+          break;
+
+        case "rent_agreement":
+          setRentAgreement(doc.url);
+          break;
+
+        case "police_noc":
+          setPoliceNoc(doc.url);
+          break;
+
+        default:
+          break;
+      }
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
   // const handleDelete = async (memberId) => {
   //   try {
   //     const data = await deleteMembersApi(memberId);
@@ -416,8 +427,8 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     setLastName("");
     setEmailId("");
     setMobileNo("");
-    // setBlocks(null);
-    // setFlat("");
+    setBlocks("");
+    setFlat("");
     setMoveInDate("");
     setMoveOutDate("");
     setFamilyType("");
