@@ -79,7 +79,7 @@ const AllotVisitorParkingModal = ({
                             <div className="pg d-flex justify-content-center am-wrap">
                                 <div className="text-start am-card">
                                     <div className="row g-3 mb-3">
-                                        <div className="col-6">
+                                        {/* <div className="col-6">
                                             <div className="d-flex">
                                                 <label className="sv-lb">
                                                     Visitor <span className="text-danger">*</span>
@@ -110,9 +110,9 @@ const AllotVisitorParkingModal = ({
                                                 value={blocks}
                                                 onChange={(selectedOption) => setBlocks(selectedOption)}
                                             />
-                                        </div>
+                                        </div> */}
 
-                                        <div className="col-6">
+                                        <div className="col-12">
                                             <div className="d-flex">
                                                 <label className="sv-lb">
                                                     Slot no.{" "}
@@ -149,7 +149,7 @@ const AllotVisitorParkingModal = ({
                                     </div>
 
                                     <div className="row g-3 mb-3 mt-1">
-                                        <div className="col-6">
+                                        <div className="col-12">
                                             <div className="d-flex">
                                                 <label className="sv-lb">
                                                     Vehicle no. <span className="text-danger">*</span>
@@ -168,7 +168,7 @@ const AllotVisitorParkingModal = ({
                                             />
                                         </div>
 
-                                        <div className="col-6">
+                                        <div className="col-12">
                                             <div className="d-flex">
                                                 <label className="sv-lb">
                                                     Vehicle Type{" "}

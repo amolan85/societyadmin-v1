@@ -135,7 +135,7 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
     const handleViewSlot = (slot) => {
         if (typeof setSelectedSlotId === "function") {
             setSelectedSlotId(slot.id || slot._id,);
-             setSelectedSocietyId(societyId);
+            setSelectedSocietyId(societyId);
         }
         setActive("parkingDetails");
     };
@@ -159,7 +159,7 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
                 return;
             }
             if (isEdit) {
-                await UpdateParkingSlotApi(editSlotId, zone, floor, isEvReady, allocationStatus, societyId);
+                await UpdateParkingSlotApi(societyId, editSlotId, zone, floor, isEvReady, allocationStatus);
                 toast.success("Parking slot updated successfully");
             } else {
                 await CreateParkingSlotApi(societyId, slotNo, block, floor, zone, parkingType, vehicleSuitability, allocationStatus, length, width, isEvReady, accessLevel);
@@ -167,7 +167,14 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
             }
             setShow(false);
             resetForm();
-            loadSlots(societyId);
+            await loadSlots({
+                sId: societyId,
+                currentPage: page,
+                searchText: search,
+                slotStatus: filterSlotStatus,
+                parkingType: filterParkingType,
+                vehicleType: filterVehicleType
+            });
         } catch (error) {
             toast.error(error?.message || `Failed to ${isEdit ? "update" : "add"} slot`);
             setErrorText(error?.message || "Error occurred");

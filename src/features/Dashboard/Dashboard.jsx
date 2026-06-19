@@ -151,6 +151,7 @@ export default function App() {
   const [selectedSlotId, setSelectedSlotId] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedSocietyId, setSelectedSocietyId] = useState(null);
+  const [selectedSlotData, setSelectedSlotData] = useState(null);
   useLayoutEffect(() => {
     if (!document.getElementById("bs-css")) {
       const l = document.createElement("link");
@@ -191,7 +192,7 @@ export default function App() {
     violationAlerts: <ViolationAlertsList setActive={setActive} setViolationId={setViolationId} />,
     parkingRules: <ParkingRules setActive={setActive} />,
     viewParkingDetails: <ViewParkingDetails setActive={setActive} violationId={violationId} setVisitorParkingId={setVisitorParkingId} />,
-    visitorDetails: <VisitorDetails setActive={setActive} visitorParkingId={visitorParkingId}  societyId={selectedSocietyId} />,
+    visitorDetails: <VisitorDetails setActive={setActive} visitorParkingId={visitorParkingId} societyId={selectedSocietyId} />,
     rentals: <RentalAndTenants setActive={setActive} setTenantId={setTenantId} />,
     rentalsApplication: <TenantsReviewApplication setActive={setActive} tenantId={tenantId} />,
     staff: <StaffAttendance setActive={setActive} setStaffId={setStaffId} />,
@@ -199,16 +200,22 @@ export default function App() {
     noticeboard: <NoticeBoard setActive={setActive} setSelectedNoticeData={setSelectedNoticeData} />,
     createNoticeBoard: <CreateNoticeBoard setActive={setActive} selectedNoticeData={selectedNoticeData} />,
     unitRegister: <UnitRegister setActive={setActive} setFlatId={setFlatId} />,
-    parkingRegister: <ParkingRegister setActive={setActive} setSelectedSlotId={setSelectedSlotId} setSelectedSocietyId={setSelectedSocietyId}/>,
-    parkingDetails: <ParkingDetails setActive={setActive} slotId={selectedSlotId} societyId={selectedSocietyId}/>,
-    parkingHistory: <ParkingHistory setActive={setActive} slotId={selectedSlotId} />,
+    parkingRegister: <ParkingRegister setActive={setActive} setSelectedSlotId={setSelectedSlotId} setSelectedSocietyId={setSelectedSocietyId} />,
+    parkingDetails: <ParkingDetails setActive={setActive} slotId={selectedSlotId} societyId={selectedSocietyId} setSelectedSlotData={setSelectedSlotData} />,
+    parkingHistory: <ParkingHistory setActive={setActive} slotId={selectedSlotId} slotData={selectedSlotData} />,
     visitorRegister: <VisitorRegister setActive={setActive} setVisitorId={setVisitorId} />,
     visitorDetailsPage: <GetVisitorDetails setActive={setActive} visitorId={visitorId} />,
   };
 
 
   // const [sec, pg] = TITLES[active] || ["", "", "", ""];
-  const breadcrumbs = TITLES[active] || [];
+  const breadcrumbs = (() => {
+    const base = TITLES[active] || [];
+    if (active === "parkingHistory" && selectedSlotData?.slot_number) {
+      return [...base.slice(0, -1), `${selectedSlotData.slot_number} >> Parking History`];
+    }
+    return base;
+  })();
   const pg = breadcrumbs[breadcrumbs.length - 1] || "";
 
   // Load session data on component mount for get session data

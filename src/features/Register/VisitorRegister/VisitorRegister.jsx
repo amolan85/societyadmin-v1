@@ -13,8 +13,10 @@ import {
     UpdateVisitorApprovalApi, UpdateVisitorApi
 } from '../../../services/VisitorApi';
 import { getAllBlocksApi, getAllFlatsApi } from '../../../services/UnitRegisterApi';
+import AllotVisitorParkingModal from '../../Parking/AllotVisitorParkingModal';
 import VisitorModal from "./VisitorModal";
-
+import { ListParkingSlotsApi } from "../../../services/ParkingApi";
+import { AllotVisitorParkingApi } from '../../../services/VisitorParkingApi';
 const VisitorRegister = ({ setActive, setVisitorId }) => {
 
     // Pagination & list
@@ -47,7 +49,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     // Misc
     const [errors, setErrors] = useState({});
     const [errorText, setErrorText] = useState("");
-    const [selectedVisitor, setSelectedVisitor] = useState(null);
+    //const [selectedVisitor, setSelectedVisitor] = useState(null);
     const [rejectionReason, setRejectionReason] = useState("");
 
     // Visitor type toggle
@@ -67,6 +69,14 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [approvalStatus, setApprovalStatus] = useState("");
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
+    //allot parking
+    const [showAllotParking, setShowAllotParking] = useState(false);
+    const [allVisitors, setAllVisitors] = useState([]);
+    const [allSlots, setAllSlots] = useState([]);
+    const [selectedVisitor, setSelectedVisitor] = useState(null);
+    const [selectedSlot, setSelectedSlot] = useState(null);
+    const [selectedVehicleType, setSelectedVehicleType] = useState(null);
+    const [remarks, setRemarks] = useState("");
     // Delivery fields
     const [parcelDescription, setParcelDescription] = useState("");
     const [parcelCompany, setParcelCompany] = useState("");
@@ -318,7 +328,66 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             getVisitors(societyId, page);
         } catch (e) { toast.error(e?.message || "Checkout failed"); }
     };
+    const getParkingSlots = async () => {
+        try {
+            const data = await ListParkingSlotsApi(
+                societyId,
+                1,
+                100,
+                "",
+                "available",
+                "visitor",
+                ""
+            );
 
+            const slots = (data?.slots || []).map(item => ({
+                value: item.id,
+                label: item.slot_number
+            }));
+
+            setAllSlots(slots);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    const handleOpenAllotParking = async (visitor) => {
+
+        await getParkingSlots();
+
+        setSelectedVisitor({
+            value: visitor.id,
+            label: visitor.visitor_name
+        });
+
+        setShowAllotParking(true);
+    };
+    const handleVisitorParkingSubmit = async () => {
+        try {
+
+            const payload = {
+                society_id: Number(societyId),
+                visitor_entry_id: selectedVisitor?.value,
+                slot_id: selectedSlot?.value,
+                allotted_by: Number(userId),
+                vehicle_number: vehicleNumber,
+                vehicle_type: selectedVehicleType?.value,
+                remarks: remarks || ""
+            };
+
+            await AllotVisitorParkingApi(payload);
+
+            toast.success("Parking allotted successfully");
+
+            setShowAllotParking(false);
+
+            setSelectedSlot(null);
+            setSelectedVehicleType(null);
+            setRemarks("");
+
+        } catch (error) {
+            toast.error(error?.message || "Failed to allot parking");
+        }
+    };
     const handleApproval = async (status) => {
         try {
             await UpdateVisitorApprovalApi(selectedVisitor.id, societyId, status, rejectionReason, userId);
@@ -534,16 +603,16 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                         </td>
                                         <td>
                                             <Badge
-                                                label={
-                                                    v.entry_status === "checked_in" ? "Inside"
+                                                label={v.check_out_time ? "Checked Out"
+                                                    : v.entry_status === "checked_in" ? "Inside"
                                                         : v.entry_status === "checked_out" ? "Checked Out"
                                                             : v.approval_status === "pending" ? "Pending"
                                                                 : v.approval_status === "rejected" ? "Rejected"
                                                                     : v.approval_status === "approved" ? "Approved"
                                                                         : "—"
                                                 }
-                                                c={
-                                                    v.entry_status === "checked_in" ? "green"
+                                                c={v.check_out_time ? "grey"
+                                                    : v.entry_status === "checked_in" ? "green"
                                                         : v.entry_status === "checked_out" ? "grey"
                                                             : v.approval_status === "pending" ? "yellow"
                                                                 : v.approval_status === "rejected" ? "red"
@@ -556,6 +625,8 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                             <div className="member-action-dropdown dropdown">
                                                 <button className="member-action-btn" type="button" data-bs-toggle="dropdown">⋮</button>
                                                 <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+
+                                                    {/* View Details - hamesha enabled */}
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
@@ -567,23 +638,14 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                             View Details
                                                         </button>
                                                     </li>
+
+                                                    {/* Edit - sirf pending mein enabled */}
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            disabled={
-                                                                v.approval_status === "approved" ||
-                                                                v.approval_status === "rejected" ||
-                                                                v.entry_status === "checked_out"
-                                                            }
+                                                            disabled={v.approval_status !== "pending"}
                                                             onClick={() => {
-                                                                if (
-                                                                    v.approval_status === "approved" ||
-                                                                    v.approval_status === "rejected" ||
-                                                                    v.entry_status === "checked_out"
-                                                                ) {
-                                                                    return;
-                                                                }
-
+                                                                if (v.approval_status !== "pending") return;
                                                                 resetForm();
                                                                 setIsEdit(true);
                                                                 setEditVisitorId(v.id);
@@ -594,34 +656,60 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                             Edit Visitor
                                                         </button>
                                                     </li>
-                                                    {v.approval_status === "pending" && (
-                                                        <li>
-                                                            <button
-                                                                className="dropdown-item member-action-item"
-                                                                onClick={() => { setSelectedVisitor(v); setApprovalModal(true); }}
-                                                            >
-                                                                Approve / Reject
-                                                            </button>
-                                                        </li>
-                                                    )}
-                                                    {v.entry_status === "checked_in" && (
-                                                        <li>
-                                                            <button
-                                                                className="dropdown-item member-action-item"
-                                                                onClick={() => handleCheckout(v.id)}
-                                                            >
-                                                                Checkout
-                                                            </button>
-                                                        </li>
-                                                    )}
-                                                    {/* <li>
+
+                                                    {/* Approve/Reject - sirf pending mein enabled */}
+                                                    <li>
                                                         <button
-                                                            className="dropdown-item member-action-item member-action-delete"
-                                                            onClick={() => handleDelete(v.id)}
+                                                            className="dropdown-item member-action-item"
+                                                            disabled={v.approval_status !== "pending"}
+                                                            onClick={() => {
+                                                                if (v.approval_status !== "pending") return;
+                                                                setSelectedVisitor(v);
+                                                                setApprovalModal(true);
+                                                            }}
                                                         >
-                                                            Delete Visitor
+                                                            Approve / Reject
                                                         </button>
-                                                    </li> */}
+                                                    </li>
+
+                                                    {/* Checkout - sirf checked_in mein enabled */}
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            disabled={v.entry_status !== "checked_in" || !!v.check_out_time}
+                                                            onClick={() => {
+                                                                if (v.entry_status !== "checked_in" || !!v.check_out_time) return;
+                                                                handleCheckout(v.id);
+                                                            }}
+                                                        >
+                                                            Checkout
+                                                        </button>
+                                                    </li>
+
+                                                    {/* Allot Parking - checkout nahi hua to enabled */}
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            disabled={
+                                                                v.approval_status === "pending" ||
+                                                                v.approval_status === "rejected" ||
+                                                                !!v.check_out_time ||
+                                                                v.entry_status === "checked_out"
+                                                            }
+                                                            onClick={() => {
+                                                                if (
+                                                                    v.approval_status === "pending" ||
+                                                                    v.approval_status === "rejected" ||
+                                                                    !!v.check_out_time ||
+                                                                    v.entry_status === "checked_out"
+                                                                ) return;
+                                                                handleOpenAllotParking(v);
+                                                            }}
+                                                        >
+                                                            Allot Parking
+                                                        </button>
+                                                    </li>
+
                                                 </ul>
                                             </div>
                                         </td>
@@ -681,7 +769,30 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 handleSubmit={handleSubmit}
                 onClose={resetForm}
             />
+            <AllotVisitorParkingModal
+                show={showAllotParking}
+                setShow={setShowAllotParking}
 
+                allFlats={allSlots}
+
+                blocks={selectedVisitor}
+                setBlocks={setSelectedVisitor}
+
+                flat={selectedSlot}
+                setFlat={setSelectedSlot}
+
+                firstName={vehicleNumber}
+                setFirstName={setVehicleNumber}
+
+                memType={selectedVehicleType}
+                setMemType={setSelectedVehicleType}
+
+                remarks={remarks}
+                setRemarks={setRemarks}
+
+                handleSubmit={handleVisitorParkingSubmit}
+                mode="add"
+            />
             {/* ── Approve / Reject Modal ── */}
             {approvalModal && selectedVisitor && (
                 <>

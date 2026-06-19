@@ -2,48 +2,85 @@ import { useState, useEffect } from 'react'
 import "../../../styles/AddMember.css"
 import "../../../styles/Parking.css"
 import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
-import { GetSessionData } from '../../../utils/SessionManagement';
 import { FiCalendar, FiFilter, FiSearch, FiCheckCircle, FiXCircle, FiRefreshCw, FiEdit, } from 'react-icons/fi';
 import { FaCar } from "react-icons/fa";
-import { GetParkingSlotHistoryApi } from '../../../services/ParkingApi';
 import { BiImport } from 'react-icons/bi';
 
 
-const ParkingHistory = ({ setActive, slotId }) => {
+const ParkingHistory = ({ setActive, slotId, slotData }) => {
     const [societyId, setSocietyId] = useState("");
     const [page, setPage] = useState(1);
     const [limit] = useState(20);
     const [totalPages, setTotalPages] = useState(1);
-    const [historyData, setHistoryData] = useState([]);
+    const [profileUrl, setProfileUrl] = useState("");
+    const [filteredData, setFilteredData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState("");
     const [exportModal, setExportModal] = useState(false);
-
-    useEffect(() => { SessionData(); }, []);
+    const [statusFilter, setStatusFilter] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    //const historyData = slotData?.history || [];
+    // useEffect(() => { SessionData(); }, []);
     useEffect(() => {
-        if (slotId) loadHistory();
-    }, [slotId, page]);
+        setFilteredData(slotData?.history || []);
+    }, [slotData]);
 
-    const SessionData = async () => {
-        const data = await GetSessionData();
-        const flats = data.data.flats[0];
-        setSocietyId(flats.society_id);
-    };
+    useEffect(() => {
+        handleSearch();
+    }, [statusFilter, startDate, endDate]);
+    // const SessionData = async () => {
+    //     const data = await GetSessionData();
+    //     const flats = data.data.flats[0];
+    //     setSocietyId(flats.society_id);
+    // };
 
-    const loadHistory = async () => {
-        try {
-            setLoading(true);
-            const res = await GetParkingSlotHistoryApi(slotId, page, limit);
-            console.log("History response:", res);
-            setHistoryData(res?.history || []);
-            setTotalPages(res?.total_pages || 1);
-        } catch (e) {
-            console.error("Failed to load history", e);
-        } finally {
-            setLoading(false);
+    // const loadHistory = async () => {
+    //     try {
+    //         setLoading(true);
+    //         const res = await GetParkingSlotHistoryApi(slotId, page, limit);
+    //         console.log("History response:", res);
+    //         setHistoryData(res?.history || []);
+    //         setTotalPages(res?.total_pages || 1);
+    //     } catch (e) {
+    //         console.error("Failed to load history", e);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+    const handleSearch = () => {
+        let data = slotData?.history || [];
+
+        // Search filter
+        if (search.trim()) {
+            const lower = search.toLowerCase();
+            data = data.filter(s =>
+                s.action?.toLowerCase().includes(lower) ||
+                s.remarks?.toLowerCase().includes(lower) ||
+                s.user_name?.toLowerCase().includes(lower) ||
+                s.allocated_by_name?.toLowerCase().includes(lower)
+            );
         }
+
+        // Status filter
+        if (statusFilter) {
+            data = data.filter(s => s.action === statusFilter);
+        }
+
+        // Date range filter
+        if (startDate) {
+            data = data.filter(s => new Date(s.created_at) >= new Date(startDate));
+        }
+        if (endDate) {
+            data = data.filter(s => new Date(s.created_at) <= new Date(endDate + "T23:59:59"));
+        }
+
+        setFilteredData(data);
     };
 
+    const handleSearchKeyDown = (e) => {
+        if (e.key === "Enter") handleSearch();
+    };
     const handlePageChange = (value) => { setPage(value); };
     const parkingHistoryData = [
         {
@@ -110,16 +147,11 @@ const ParkingHistory = ({ setActive, slotId }) => {
             }
             <div className="pg cp-wrap">
 
-                <div className="d-flex justify-content-between align-items-center mb-4 text-start">
+                {/* <div className="d-flex justify-content-between align-items-center mb-4 text-start">
                     <div className="col-12 col-md-4 col-lg-3 position-relative">
                         <span
-                            style={{
-                                position: "absolute",
-                                left: "15px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                color: "#aaa"
-                            }}
+                            style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)", color: "#aaa", cursor: "pointer" }}
+                            onClick={handleSearch}   // ← add karo
                         >
                             <FiSearch size={16} />
                         </span>
@@ -129,7 +161,16 @@ const ParkingHistory = ({ setActive, slotId }) => {
                             className="form-control rounded-pill"
                             placeholder="Search by slot no, vehicle or owner..."
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setSearch(value);
+
+                                // Jab search clear ho to full data wapas show karo
+                                if (!value.trim()) {
+                                    setFilteredData(slotData?.history || []);
+                                }
+                            }}
+                            onKeyDown={handleSearchKeyDown}   // ← add karo
                             style={{ paddingLeft: "35px" }}
                         />
                     </div>
@@ -155,8 +196,76 @@ const ParkingHistory = ({ setActive, slotId }) => {
                         <button className="btn btn-primary btn-sm ms-2" onClick={() => setActive("parkingDetails")}>Back</button>
                     </div>
 
+                </div> */}
+                <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+                    {/* Left — Back button */}
+                    <button className="btn btn-primary btn-sm" onClick={() => setActive("parkingDetails")}>
+                        Back
+                    </button>
+
+                    {/* Right — Search + Export */}
+                    <div className="d-flex gap-2">
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            className="form-control form-control-sm"
+                            value={search}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setSearch(value);
+                                if (!value.trim()) {
+                                    // Search clear hone par baki filters apply rehne chahiye
+                                    let data = slotData?.history || [];
+                                    if (statusFilter) data = data.filter(s => s.action === statusFilter);
+                                    if (startDate) data = data.filter(s => new Date(s.created_at) >= new Date(startDate));
+                                    if (endDate) data = data.filter(s => new Date(s.created_at) <= new Date(endDate + "T23:59:59"));
+                                    setFilteredData(data);
+                                }
+                            }}
+                            onKeyDown={handleSearchKeyDown}
+                            style={{ width: 200 }}
+                        />
+                        <button className="btn btn-primary btn-sm" onClick={handleSearch}>
+                            <FiSearch size={14} />
+                        </button>
+                    </div>
+
                 </div>
 
+                {/* Filters row */}
+                <div className="row mb-3 g-2">
+                    <div className="col-md-4">
+                        <select
+                            className="form-select form-select-sm"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="">All Status</option>
+                            <option value="allocated">Allocated</option>
+                            <option value="deallocated">Deallocated</option>
+                            <option value="status_changed">Status Changed</option>
+                            <option value="updated">Updated</option>
+                            <option value="visitor_allocated">Visitor Allocated</option>
+                        </select>
+                    </div>
+                    <div className="col-md-4">
+                        <input
+                            type="date"
+                            className="form-control form-control-sm"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                        />
+                    </div>
+                    <div className="col-md-4">
+                        <input
+                            type="date"
+                            className="form-control form-control-sm"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                        />
+                    </div>
+                </div>
                 <div className="sv-card p-0 overflow-hidden">
                     <div className="sa-table-wrap">
                         {/* <table className="sv-tbl">
@@ -190,14 +299,14 @@ const ParkingHistory = ({ setActive, slotId }) => {
                             </thead>
 
                             <tbody>
-                                {historyData.length === 0 ? (
+                                {filteredData.length === 0 ? (
                                     <tr>
                                         <td colSpan="5" className="text-center py-4 text-muted">
                                             No history available
                                         </td>
                                     </tr>
                                 ) : (
-                                    historyData.map((s, i) => (
+                                    filteredData.map((s, i) => (
                                         <tr className="text-start" key={i}>
                                             {/* ACTIVITY */}
                                             <td>
@@ -242,7 +351,7 @@ const ParkingHistory = ({ setActive, slotId }) => {
                                                         <div className="fw-semibold text-dark text-capitalize">
                                                             {s.action?.replace(/_/g, " ")}
                                                         </div>
-                                                        <small className="text-muted">ID: {s.id}</small>
+                                                        <small className="text-muted">ID: {s.allocated_by_name}</small>
                                                     </div>
                                                 </div>
                                             </td>
@@ -274,14 +383,14 @@ const ParkingHistory = ({ setActive, slotId }) => {
                                             <td>
                                                 <div className="d-flex align-items-center gap-2">
                                                     <img
-                                                        src={`https://i.pravatar.cc/40?img=${s.user_id || i + 1}`}
-                                                        alt=""
-                                                        width={34}
-                                                        height={34}
-                                                        className="rounded-circle"
+                                                        src={profileUrl || "../src/assets/profile.png"}
+                                                        className="rounded-circle border"
+                                                        width="40"
+                                                        height="40"
+                                                        alt="profile"
                                                     />
                                                     <span className="fw-semibold text-dark">
-                                                        {s.performed_by || `User #${s.user_id}` || "—"}
+                                                        {s.performed_by || `${s.user_name}` || "—"}
                                                     </span>
                                                 </div>
                                             </td>
@@ -308,7 +417,7 @@ const ParkingHistory = ({ setActive, slotId }) => {
                     {/* Footer + Pagination */}
                     <div className="d-flex justify-content-between align-items-center px-3 py-2 border-top">
                         <small className="text-muted">
-                            Showing {historyData.length > 0 ? `1-${historyData.length}` : "0"} of {historyData.length} activities
+                            Showing {filteredData.length > 0 ? `1-${filteredData.length}` : "0"} of {filteredData.length} activities
                         </small>
                         <Pagination
                             page={page}

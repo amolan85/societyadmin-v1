@@ -154,6 +154,7 @@ export const GetMonthlyVisitorSummaryApi = async (societyId) => {
 
 export const UpdateVisitorApi = async (
     visitorId,
+    societyId,
     visitorName,
     mobile,
     purpose,
@@ -164,6 +165,7 @@ export const UpdateVisitorApi = async (
 
         const body = {
             visitor_id: visitorId,
+            society_id: societyId,
             visitor_name: visitorName,
             mobile: mobile,
             purpose: purpose,

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { FaCar } from 'react-icons/fa';
-import { FiAlertTriangle, FiDownload, FiEdit, FiExternalLink, FiPrinter, FiSlash } from "react-icons/fi";
+import { FiAlertTriangle, FiDownload, FiEdit, FiExternalLink, FiPrinter, FiSlash, FiArrowRight } from "react-icons/fi";
 import { CgFileDocument } from 'react-icons/cg';
 import { BiHistory, BiLocationPlus } from 'react-icons/bi';
 import "../../../styles/ParkingRegister.css";
@@ -11,7 +11,7 @@ import { useLoader } from "../../../context/LoaderContext";
 import ParkingSlotModal from './ParkingSlotModal';
 import { GetSessionData } from "../../../utils/SessionManagement";
 
-const ParkingDetails = ({ setActive, slotId, societyId }) => {
+const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData }) => {
 
     const { setLoading } = useLoader();
     const [deallocateShow, setDeallocateShow] = useState(false);
@@ -136,7 +136,7 @@ const ParkingDetails = ({ setActive, slotId, societyId }) => {
     };
     const handleEdit = async () => {
         try {
-            await UpdateParkingSlotApi(slotId, editZone, editFloor, editEvReady, editStatus, "");
+            await UpdateParkingSlotApi(societyId,slotId, editZone, editFloor, editEvReady, editStatus, "");
             toast.success("Slot updated successfully");
             setEditShow(false);
             await loadSlotDetails();
@@ -183,7 +183,10 @@ const ParkingDetails = ({ setActive, slotId, societyId }) => {
                         </div>
 
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
-                            <button className="btn btn-sm btn-ad grey-btn" onClick={() => setActive("parkingHistory")}>
+                            <button className="btn btn-sm btn-ad grey-btn" onClick={() => {
+                                setSelectedSlotData(slotData);
+                                setActive("parkingHistory");
+                            }}>
                                 <BiHistory className="me-1" size={16} />History
                             </button>
                             <button className="btn btn-sm btn-ad grey-btn" onClick={() => {
@@ -308,6 +311,48 @@ const ParkingDetails = ({ setActive, slotId, societyId }) => {
                                 </div>
                             </div>
                         </div>
+                        {/* Vehicle Details */}
+                        <div className="card border-0 shadow-sm mt-3">
+                            {/* <div className="card-header bg-white fw-semibold">Recent History</div>
+                            <div className="list-group list-group-flush">
+                                {slotData?.history?.length > 0 ? (
+                                    slotData.history.slice(0, 5).map((h, i) => (
+                                        <div key={i} className="list-group-item d-flex align-items-start gap-3">
+                                            <div
+                                                className={`rounded-circle d-flex align-items-center justify-content-center ${h.action.includes("deallocated") || h.action.includes("released")
+                                                    ? "bg-danger-subtle text-danger"
+                                                    : "bg-success-subtle text-success"
+                                                    }`}
+                                                style={{ width: "40px", height: "40px", flexShrink: 0 }}
+                                            >
+                                                <i className={`bi ${h.action.includes("deallocated") || h.action.includes("released")
+                                                    ? "bi-x-lg"
+                                                    : "bi-check-lg"
+                                                    }`}></i>
+                                            </div>
+                                            <div>
+                                                <div className="fw-semibold text-capitalize"
+                                                    onClick={() => setActive("parkingHistory")}
+                                                    style={{ cursor: "pointer" }}>
+                                                    {fmt(h.action)}
+                                                </div>
+                                                {h.user_name && (
+                                                    <small className="text-primary fw-semibold">by {h.user_name}</small>
+                                                )}
+                                                <div>
+                                                    <small className="text-muted">{fmtDate(h.created_at)}</small>
+                                                </div>
+                                                {h.remarks && (
+                                                    <div className="text-muted" style={{ fontSize: 12 }}>{h.remarks}</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="list-group-item text-muted text-center py-3">No history available</div>
+                                )}
+                            </div> */}
+                        </div>
                     </div>
 
                     {/* ── Right Column ── */}
@@ -315,73 +360,85 @@ const ParkingDetails = ({ setActive, slotId, societyId }) => {
 
                         {/* Current Allocation */}
                         <div className="card border-0 shadow-sm">
-                            <div className="card-header bg-white fw-semibold">
-                                Current Allocation
-                            </div>
+                            <div className="card-body p-4">
+                                <h6 className="fw-semibold mb-2">Current Allocation</h6>
 
-                            <div className="card-body">
                                 {allocation ? (
                                     <>
-                                        <div className="d-flex align-items-center gap-3 mb-3">
+                                        {/* Highlighted identity strip */}
+                                        <div
+                                            className="d-flex align-items-center gap-3 mb-4"
+                                            style={{ background: "#f6f7f9", border: "1px solid #dee2e6", borderRadius: 10, padding: "10px 12px" }}
+                                        >
                                             <div
                                                 style={{
-                                                    width: 50,
-                                                    height: 50,
-                                                    borderRadius: "50%",
-                                                    background: "#e0e7ff",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    fontWeight: 700,
-                                                    color: "#4f46e5"
+                                                    width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
+                                                    background: allocation.allocation_type === "visitor" ? "#fef3c7" : "#e0e7ff",
+                                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                                    fontWeight: 600, fontSize: 14,
+                                                    color: allocation.allocation_type === "visitor" ? "#d97706" : "#4f46e5"
                                                 }}
                                             >
-                                                {allocation?.resident_name
-                                                    ?.split(" ")
-                                                    .map(x => x[0])
-                                                    .join("")
-                                                    .slice(0, 2)
-                                                    .toUpperCase()}
+                                                {(allocation.allocation_type === "visitor" ? allocation.visitor_name : allocation.resident_name)
+                                                    ?.split(" ").map(x => x[0]).join("").slice(0, 2).toUpperCase()}
                                             </div>
-
                                             <div>
-                                                <div className="fw-bold">
-                                                    {allocation.resident_name}
+                                                <div className="fw-semibold" style={{ fontSize: 14 }}>
+                                                    {allocation.allocation_type === "visitor" ? allocation.visitor_name : allocation.resident_name}
                                                 </div>
-                                                <small className="text-muted">
-                                                    Unit {allocation.flat_block}-{allocation.flat_number}
-                                                </small>
+                                                <div className="text-muted" style={{ fontSize: 12 }}>
+                                                    {allocation.allocation_type === "visitor"
+                                                        ? `Visiting ${allocation.visited_flat_block}-${allocation.visited_flat_number} · ${fmt(allocation.visitor_type)}`
+                                                        : `Unit ${allocation.flat_block}-${allocation.flat_number} · Owner`}
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="row g-3">
-                                            <div className="col-12">
-                                                <small className="text-muted d-block">
-                                                    CONTACT
-                                                </small>
-                                                <div className="fw-semibold">
-                                                    {allocation.resident_mobile || "-"}
+                                        {allocation.allocation_type === "visitor" ? (
+                                            /* ── VISITOR FIELDS ── */
+                                            <>
+                                                <div className="mb-3">
+                                                    <small className="text-muted d-block mb-1" style={{ fontSize: 11, letterSpacing: 0.4 }}>ALLOTTED SINCE</small>
+                                                    <div className="fw-semibold" style={{ fontSize: 14 }}>{fmtDate(allocation.allotted_at)}</div>
                                                 </div>
-                                            </div>
-
-                                            <div className="col-12">
-                                                <small className="text-muted d-block">
-                                                    ALLOCATED SINCE
-                                                </small>
-                                                <div className="fw-semibold">
-                                                    {fmtDate(allocation.allocated_at)}
+                                                <div className="mb-3">
+                                                    <small className="text-muted d-block mb-1" style={{ fontSize: 11, letterSpacing: 0.4 }}>CONTACT</small>
+                                                    <div className="fw-semibold" style={{ fontSize: 14 }}>{allocation.visitor_mobile || "-"}</div>
                                                 </div>
-                                            </div>
-
-                                            <div className="col-12">
-                                                <small className="text-muted d-block">
-                                                    STATUS
-                                                </small>
-                                                <span className="badge bg-primary-subtle text-primary">
-                                                    Allocated
-                                                </span>
-                                            </div>
-                                        </div>
+                                                <div className="mb-3">
+                                                    <small className="text-muted d-block mb-1" style={{ fontSize: 11, letterSpacing: 0.4 }}>VEHICLE NUMBER</small>
+                                                    <div className="fw-semibold" style={{ fontSize: 14 }}>{allocation.parked_vehicle_number || "-"}</div>
+                                                </div>
+                                                <div className="pt-2" style={{ borderTop: "1px solid #eef0f2" }}>
+                                                    <a href="#" className="fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
+                                                        style={{ fontSize: 13, color: "#1197d2" }}>
+                                                        View Member Profile <FiArrowRight size={14} />
+                                                    </a>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            /* ── RESIDENT FIELDS ── */
+                                            <>
+                                                <div className="mb-3">
+                                                    <small className="text-muted d-block mb-1" style={{ fontSize: 11, letterSpacing: 0.4 }}>ALLOCATED SINCE</small>
+                                                    <div className="fw-semibold" style={{ fontSize: 14 }}>{fmtDate(allocation.allocated_at)}</div>
+                                                </div>
+                                                <div className="mb-3">
+                                                    <small className="text-muted d-block mb-1" style={{ fontSize: 11, letterSpacing: 0.4 }}>CONTACT</small>
+                                                    <div className="fw-semibold" style={{ fontSize: 14 }}>{allocation.resident_mobile || "-"}</div>
+                                                </div>
+                                                <div className="mb-3">
+                                                    <small className="text-muted d-block mb-1" style={{ fontSize: 11, letterSpacing: 0.4 }}>EMAIL</small>
+                                                    <div className="fw-semibold" style={{ fontSize: 14 }}>{allocation.resident_email || "-"}</div>
+                                                </div>
+                                                <div className="pt-2" style={{ borderTop: "1px solid #eef0f2" }}>
+                                                    <a href="#" className="fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
+                                                        style={{ fontSize: 13, color: "#1197d2" }}>
+                                                        View Member Profile <FiArrowRight size={14} />
+                                                    </a>
+                                                </div>
+                                            </>
+                                        )}
                                     </>
                                 ) : (
                                     <div className="text-center text-muted py-4">
@@ -399,17 +456,32 @@ const ParkingDetails = ({ setActive, slotId, societyId }) => {
                                     slotData.history.slice(0, 5).map((h, i) => (
                                         <div key={i} className="list-group-item d-flex align-items-start gap-3">
                                             <div
-                                                className="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center"
+                                                className={`rounded-circle d-flex align-items-center justify-content-center ${h.action.includes("deallocated") || h.action.includes("released")
+                                                    ? "bg-danger-subtle text-danger"
+                                                    : "bg-success-subtle text-success"
+                                                    }`}
                                                 style={{ width: "40px", height: "40px", flexShrink: 0 }}
                                             >
-                                                <i className="bi bi-check-lg"></i>
+                                                <i className={`bi ${h.action.includes("deallocated") || h.action.includes("released")
+                                                    ? "bi-x-lg"
+                                                    : "bi-check-lg"
+                                                    }`}></i>
                                             </div>
                                             <div>
-                                                <div className="fw-semibold text-capitalize" onClick={() => setActive("parkingHistory")} style={{ cursor: "pointer" }}>
+                                                <div className="fw-semibold text-capitalize"
+                                                    onClick={() => setActive("parkingHistory")}
+                                                    style={{ cursor: "pointer" }}>
                                                     {fmt(h.action)}
                                                 </div>
-                                                <small className="text-muted">{fmtDate(h.created_at)}</small>
-                                                {h.remarks && <div className="text-muted" style={{ fontSize: 12 }}>{h.remarks}</div>}
+                                                {h.user_name && (
+                                                    <small className="text-primary fw-semibold">by {h.user_name}</small>
+                                                )}
+                                                <div>
+                                                    <small className="text-muted">{fmtDate(h.created_at)}</small>
+                                                </div>
+                                                {h.remarks && (
+                                                    <div className="text-muted" style={{ fontSize: 12 }}>{h.remarks}</div>
+                                                )}
                                             </div>
                                         </div>
                                     ))

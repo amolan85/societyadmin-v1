@@ -10,6 +10,7 @@ import { Badge } from '../../../components/Common/ReusableFunction';
 import { toast } from "react-toastify";
 import { FiPhone, FiMail, FiMapPin } from 'react-icons/fi';
 import VisitorModal from "./VisitorModal";
+import AllotVisitorParkingModal from '../../Parking/AllotVisitorParkingModal';
 
 const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
 
@@ -24,16 +25,21 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
     const [errors, setErrors] = useState({});
     const [errorText, setErrorText] = useState("");
     const [flatId, setFlatId] = useState("");
-
     //allot parking
+    const [showAllotParking, setShowAllotParking] = useState(false);
+    const [allSlots, setAllSlots] = useState([]);
+    const [selectedSlot, setSelectedSlot] = useState(null);
+    const [selectedVehicleType, setSelectedVehicleType] = useState(null);
+    const [remarks, setRemarks] = useState("");
+    const [parkingDetails, setParkingDetails] = useState(null);
+    const [parkingModal, setParkingModal] = useState(false);
     const [parkingSlots, setParkingSlots] = useState([]);
     const [slotsLoading, setSlotsLoading] = useState(false);
-    const [parkingModal, setParkingModal] = useState(false);
+
     const [slotId, setSlotId] = useState("");
     const [vehicleType, setVehicleType] = useState("4_wheeler");
     const [parkingRemarks, setParkingRemarks] = useState("");
     const [parkingErrors, setParkingErrors] = useState({});
-    const [parkingDetails, setParkingDetails] = useState(null);
     // Form fields
     const [visitorType, setVisitorType] = useState("guest");
     const [visitorName, setVisitorName] = useState("");
@@ -101,32 +107,64 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
             setSlotsLoading(false);
         }
     };
-    const handleAllotParking = async () => {
-        let errs = {};
-        if (!slotId) errs.slotId = "required";
-        if (!vehicleType) errs.vehicleType = "required";
-        if (Object.keys(errs).length > 0) { setParkingErrors(errs); return; }
 
+    //allot parking 
+    const getParkingSlots = async () => {
         try {
-            const res = await AllotVisitorParkingApi(
-                societyId, visitor.id, slotId, userId,
-                vehicleNumber, vehicleType, parkingRemarks
+            const data = await ListParkingSlotsApi(
+                societyId,
+                1,
+                100,
+                "",
+                "available",
+                "visitor",
+                ""
             );
-            toast.success("Parking allotted successfully");
 
-            // ✅ res.data.id se directly fetch karo
-            // const parkingId = res?.data?.id;
-            // if (parkingId) {
-            //     await fetchParkingDetails(parkingId);
-            // }
+            const slots = (data?.slots || []).map(item => ({
+                value: item.id,
+                label: item.slot_number
+            }));
 
-            setParkingModal(false);
-            fetchVisitor(societyId);
-
-        } catch (e) {
-            toast.error(e?.message || "Failed to allot parking");
+            setAllSlots(slots);
+        } catch (error) {
+            console.log(error);
         }
     };
+    const handleOpenAllotParking = async () => {
+        await getParkingSlots();
+        setShowAllotParking(true);
+    };
+    const handleVisitorParkingSubmit = async () => {
+        try {
+            const payload = {
+                society_id: Number(societyId),
+                visitor_entry_id: visitor?.id,
+                slot_id: selectedSlot?.value,
+                allotted_by: Number(userId),
+                vehicle_number: vehicleNumber,
+                vehicle_type: selectedVehicleType?.value,
+                remarks: remarks || ""
+            };
+
+            await AllotVisitorParkingApi(payload);
+
+            toast.success("Parking allotted successfully");
+            setSelectedVisitor(null);
+            await fetchVisitor(societyId);
+
+            setShowAllotParking(false);
+
+            setSelectedSlot(null);
+            setSelectedVehicleType(null);
+            setSelectedVisitor(null);
+            setRemarks("");
+
+        } catch (error) {
+            toast.error(error?.message || "Failed to allot parking");
+        }
+    };
+
     const fetchVisitor = async (sId) => {
         try {
             setLoading(true);
@@ -195,7 +233,7 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
         }
         if (Object.keys(errs).length > 0) { setErrors(errs); return; }
         try {
-            await UpdateVisitorApi(visitor.id, visitorName, mobile, purpose, vehicleNumber);
+            await UpdateVisitorApi(visitor.id, societyId, visitorName, mobile, purpose, vehicleNumber);
             toast.success("Visitor updated successfully");
             setShow(false);
             setErrors({});
@@ -261,8 +299,8 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                             ? "#fff7ed"   // light orange
                             : "#eff6ff",  // light blue
                     border: `1px solid ${visitor?.visitor_type === "delivery"
-                            ? "#fdba74"
-                            : "#93c5fd"
+                        ? "#fdba74"
+                        : "#93c5fd"
                         }`
                 }}>
                     <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
@@ -342,13 +380,13 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                                     ✓ Checkout
                                 </button>
                             )}
-                            {/* <button
+                            <button
                                 className="btn btn-sm btn-primary"
-                                onClick={() => { setParkingModal(true); loadParkingSlots(); }}
+                                onClick={handleOpenAllotParking}
                                 style={{ borderRadius: 8 }}
                             >
                                 + Allot Parking
-                            </button> */}
+                            </button>
                             <button
                                 className="btn btn-sm btn-primary"
                                 disabled={
@@ -638,7 +676,32 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                 setParcelDescription={setParcelDescription}
                 handleSubmit={handleUpdate}
             />
+            <AllotVisitorParkingModal
+                show={showAllotParking}
+                setShow={setShowAllotParking}
 
+                allFlats={allSlots}
+
+                blocks={null}
+                setBlocks={() => { }}
+                hideVisitor={true}
+
+
+                flat={selectedSlot}
+                setFlat={setSelectedSlot}
+
+                firstName={vehicleNumber}
+                setFirstName={setVehicleNumber}
+
+                memType={selectedVehicleType}
+                setMemType={setSelectedVehicleType}
+
+                remarks={remarks}
+                setRemarks={setRemarks}
+
+                handleSubmit={handleVisitorParkingSubmit}
+                mode="add"
+            />
             {/* ── Checkout Confirmation Modal ── */}
             {checkoutModal && (
                 <>

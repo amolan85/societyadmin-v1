@@ -34,7 +34,7 @@ import { BiCar } from "react-icons/bi";
 import { parkingDashboardApi, ListParkingSlotsApi } from "../../services/ParkingApi";
 import { violationAlertsApi, createViolationAlertApi } from "../../services/ViolationAlertsApi";
 import AllocateSlotModal from "./AllocateSlotModal";
-import { visitorParkingApi, getVisitorParkingByIdApi ,AllotVisitorParkingApi} from "../../services/VisitorParkingApi";
+import { visitorParkingApi, getVisitorParkingByIdApi, AllotVisitorParkingApi } from "../../services/VisitorParkingApi";
 import ViolationAlertModal from "./ViolationAlertModal";
 
 const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) => {
@@ -327,7 +327,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
         parkingDashboard(flats.society_id);
         visitorParking(flats.society_id);
         violationAlerts(flats.society_id);
-        getParkingSlots(flats.society_id);
+        //getParkingSlots(flats.society_id);
         getVisitors(flats.society_id);
     };
 
@@ -361,20 +361,19 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
         }
     };
 
-    const getParkingSlots = async (societyId) => {
-        try {
-            console.log("Fetching slots for society:", societyId);
-            const data = await ListParkingSlotsApi(societyId);
-            const slotOptions = (data?.slots || []).map((item) => ({
-                value: item.id,
-                label: item.slot_number,
-            }));
-            setAllSlots(slotOptions);
-        } catch (error) {
-            console.error("Error fetching slots:", error);
-        }
-    };
-
+    // const getParkingSlots = async (societyId) => {
+    //     try {
+    //         console.log("Fetching slots for society:", societyId);
+    //         const data = await ListParkingSlotsApi(societyId);
+    //         const slotOptions = (data?.slots || []).map((item) => ({
+    //             value: item.id,
+    //             label: item.slot_number,
+    //         }));
+    //         setAllSlots(slotOptions);
+    //     } catch (error) {
+    //         console.error("Error fetching slots:", error);
+    //     }
+    // };
     const getViolationDetails = (violationId) => {
         setActive("viewParkingDetails");
         setViolationId(violationId);

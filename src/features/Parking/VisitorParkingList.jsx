@@ -58,7 +58,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
     const [limit, setLimit] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
     const [mode, setMode] = useState("add");
-
+    const [selectedVisitorId, setSelectedVisitorId] = useState(null);
     const [allMembers, setAllMembers] = useState([]);
     const [allMembersWithoutPagination, setAllMembersWithoutPagination] = useState([]);
     const [blocks, setBlocks] = useState("");
@@ -106,7 +106,15 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
     };
     const getParkingSlots = async (societyId) => {
         try {
-            const data = await ListParkingSlotsApi(societyId);
+            const data = await ListParkingSlotsApi(
+                societyId,      // societyId
+                1,              // page
+                100,            // limit
+                "",             // search
+                "available",    // slot_status
+                "visitor",      // parking_type
+                ""              // vehicle_type
+            );
 
             const slotOptions = (data?.slots || []).map((item) => ({
                 value: item.id,
@@ -143,7 +151,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
         try {
             const payload = {
                 society_id: Number(societyId),
-                visitor_entry_id: selectedVisitor?.value,
+                visitor_entry_id: selectedVisitorId,
                 slot_id: selectedSlot?.value,
                 allotted_by: Number(userId),
                 vehicle_number: vehicleNumber,
@@ -617,7 +625,14 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
     // const totalFamilyMember = allMembers.filter(
     //     (item) => item.occupancy_type?.toLowerCase() === "familyMember",
     // ).length;
+    const handleOpenAllotModal = async (item) => {
+        console.log(item);
+        setSelectedVisitorId(item.visitor_entry_id || item.visitor_id || item.id);
 
+        await getParkingSlots(societyId);
+
+        setShow(true);
+    };
     const filteredData = allocationStatusTab === ""
         ? allVisitorParking
         : allVisitorParking.filter((item) => item.status === allocationStatusTab);
@@ -659,8 +674,8 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
 
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
                             createvisitorparkingsetShow(true)}>+ Create Visitor</button>
-                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
-                            setShow(true)}>+ Allot Parking</button>
+                        {/* <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
+                            setShow(true)}>+ Allot Parking</button> */}
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
                     </div>
 
@@ -872,7 +887,14 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
                                                             Edit Parking
                                                         </button>
                                                     </li>
-
+                                                    {/* <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() => handleOpenAllotModal(item)}
+                                                        >
+                                                            Allot Parking
+                                                        </button>
+                                                    </li> */}
                                                     <li>
                                                         <hr className="dropdown-divider" />
                                                     </li>
@@ -903,7 +925,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
                 show={show}
                 setShow={setShow}
 
-                allBlocks={allVisitors}
+                // allBlocks={allVisitors}
                 allFlats={allSlots}
 
                 blocks={selectedVisitor}
