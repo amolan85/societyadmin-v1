@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import {
     CreateGuestVisitorApi, CreateDeliveryApi, ListVisitorsApi,
     GetVisitorApi, DeleteVisitorApi, VisitorCheckoutApi,
-    UpdateVisitorApprovalApi, UpdateVisitorApi
+    ApproveVisitorApi, RejectVisitorApi, UpdateVisitorApi
 } from '../../../services/VisitorApi';
 import { getAllBlocksApi, getAllFlatsApi } from '../../../services/UnitRegisterApi';
 import AllotVisitorParkingModal from '../../Parking/AllotVisitorParkingModal';
@@ -26,6 +26,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [search, setSearch] = useState("");
     const [societyId, setSocietyId] = useState("");
     const [visitorsList, setVisitorsList] = useState([]);
+    const skipNextEffect = useRef(false);
     //const [flatsList, setFlatsList] = useState([]);
     const [isEdit, setIsEdit] = useState(false);
     const [editVisitorId, setEditVisitorId] = useState(null);
@@ -272,6 +273,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             if (isEdit) {
                 await UpdateVisitorApi(
                     editVisitorId,
+                    societyId,
                     visitorName,
                     mobile,
                     purpose,
@@ -296,13 +298,18 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
 
             setShow(false);
             resetForm();
+            setSearch("");
+            setApprovalStatus("");
+            setDateFrom("");
+            setDateTo("");
+            skipNextEffect.current = true;
             getVisitors({
                 sid: societyId,
                 pg: 1,
-                searchText: search,
-                status: approvalStatus,
-                fromDate: dateFrom,
-                toDate: dateTo
+                searchText: "",
+                status: "",
+                fromDate: "",
+                toDate: ""
             });
             // getVisitors(societyId, 1);
         } catch (error) {
@@ -316,7 +323,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         try {
             await DeleteVisitorApi(visitorId, societyId);
             toast.success("Visitor deleted successfully");
-            getVisitors(societyId, page);
+            getVisitors({ sid: societyId, pg: page, searchText: search, status: approvalStatus, fromDate: dateFrom, toDate: dateTo });
         } catch (e) { toast.error(e?.message || "Delete failed"); }
     };
 
@@ -325,7 +332,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         try {
             await VisitorCheckoutApi(visitorId, societyId);
             toast.success("Visitor checked out");
-            getVisitors(societyId, page);
+            getVisitors({ sid: societyId, pg: page, searchText: search, status: approvalStatus, fromDate: dateFrom, toDate: dateTo });
         } catch (e) { toast.error(e?.message || "Checkout failed"); }
     };
     const getParkingSlots = async () => {
@@ -390,12 +397,16 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     };
     const handleApproval = async (status) => {
         try {
-            await UpdateVisitorApprovalApi(selectedVisitor.id, societyId, status, rejectionReason, userId);
+            if (status === "approved") {
+                await ApproveVisitorApi(selectedVisitor.id, societyId, userId);
+            } else {
+                await RejectVisitorApi(selectedVisitor.id, societyId, userId, rejectionReason);
+            }
             toast.success(`Visitor ${status === "approved" ? "approved" : "rejected"} successfully`);
             setApprovalModal(false);
             setSelectedVisitor(null);
             setRejectionReason("");
-            getVisitors(societyId, page);
+            getVisitors({ sid: societyId, pg: page, searchText: search, status: approvalStatus, fromDate: dateFrom, toDate: dateTo });
         } catch (e) { toast.error(e?.message || "Action failed"); }
     };
 
@@ -676,9 +687,9 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            disabled={v.entry_status !== "checked_in" || !!v.check_out_time}
+                                                            disabled={!(v.entry_status === "checked_in" || v.entry_status === "inside")}
                                                             onClick={() => {
-                                                                if (v.entry_status !== "checked_in" || !!v.check_out_time) return;
+                                                                if (!(v.entry_status === "checked_in" || v.entry_status === "inside")) return;
                                                                 handleCheckout(v.id);
                                                             }}
                                                         >
@@ -709,7 +720,20 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                             Allot Parking
                                                         </button>
                                                     </li>
-
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item text-danger"
+                                                            disabled
+                                                            style={{
+                                                                color: "#6c757d",
+                                                                cursor: "not-allowed",
+                                                                opacity: 0.6
+                                                            }}
+                                                            onClick={() => handleDelete(v.id)}
+                                                        >
+                                                            Delete Visitor
+                                                        </button>
+                                                    </li>
                                                 </ul>
                                             </div>
                                         </td>

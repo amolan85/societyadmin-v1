@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { GetSessionData } from "../../../utils/SessionManagement";
 import {
-    GetVisitorApi, VisitorCheckoutApi, UpdateVisitorApprovalApi,
-    DeleteVisitorApi, UpdateVisitorApi, AllotVisitorParkingApi
+    GetVisitorApi, VisitorCheckoutApi, ApproveVisitorApi, RejectVisitorApi,
+    DeleteVisitorApi, UpdateVisitorApi
 } from '../../../services/VisitorApi';
 import { ListParkingSlotsApi } from '../../../services/ParkingApi';
-import { getVisitorParkingByIdApi } from '../../../services/VisitorParkingApi';
+import { getVisitorParkingByIdApi, AllotVisitorParkingApi } from '../../../services/VisitorParkingApi';
 import { Badge } from '../../../components/Common/ReusableFunction';
 import { toast } from "react-toastify";
 import { FiPhone, FiMail, FiMapPin } from 'react-icons/fi';
@@ -32,9 +32,7 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
     const [selectedVehicleType, setSelectedVehicleType] = useState(null);
     const [remarks, setRemarks] = useState("");
     const [parkingDetails, setParkingDetails] = useState(null);
-    const [parkingModal, setParkingModal] = useState(false);
-    const [parkingSlots, setParkingSlots] = useState([]);
-    const [slotsLoading, setSlotsLoading] = useState(false);
+    const [selectedVisitor, setSelectedVisitor] = useState(null);
 
     const [slotId, setSlotId] = useState("");
     const [vehicleType, setVehicleType] = useState("4_wheeler");
@@ -147,18 +145,19 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                 remarks: remarks || ""
             };
 
+            console.log("API Payload:", payload);
+
             await AllotVisitorParkingApi(payload);
 
             toast.success("Parking allotted successfully");
-            setSelectedVisitor(null);
-            await fetchVisitor(societyId);
 
             setShowAllotParking(false);
-
             setSelectedSlot(null);
             setSelectedVehicleType(null);
-            setSelectedVisitor(null);
             setRemarks("");
+
+            // Refresh visitor details
+            fetchVisitor(societyId);
 
         } catch (error) {
             toast.error(error?.message || "Failed to allot parking");
@@ -205,11 +204,16 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
     };
     const handleApproval = async (status) => {
         try {
-            await UpdateVisitorApprovalApi(visitor.id, societyId, status, rejectionReason, userId);
+            if (status === "approved") {
+                await ApproveVisitorApi(selectedVisitor.id, societyId, userId);
+            } else {
+                await RejectVisitorApi(selectedVisitor.id, societyId, userId, rejectionReason);
+            }
             toast.success(`Visitor ${status === "approved" ? "approved" : "rejected"} successfully`);
             setApprovalModal(false);
+            setSelectedVisitor(null);
             setRejectionReason("");
-            fetchVisitor(societyId);
+            getVisitors({ sid: societyId, pg: page, searchText: search, status: approvalStatus, fromDate: dateFrom, toDate: dateTo });
         } catch (e) { toast.error(e?.message || "Action failed"); }
     };
 
@@ -682,10 +686,8 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
 
                 allFlats={allSlots}
 
-                blocks={null}
-                setBlocks={() => { }}
-                hideVisitor={true}
-
+                blocks={selectedVisitor}
+                setBlocks={setSelectedVisitor}
 
                 flat={selectedSlot}
                 setFlat={setSelectedSlot}
@@ -803,87 +805,7 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                     </div>
                 </>
             )}
-            {/* ── Allot Parking Modal ── */}
-            {parkingModal && (
-                <>
-                    <div className="modal-backdrop fade show"></div>
-                    <div className="modal show d-block">
-                        <div className="modal-dialog modal-sm">
-                            <div className="modal-content">
-                                <div className="modal-header bg-light">
-                                    <h1 className="modal-title fs-5">Allot Parking</h1>
-                                    <button type="button" className="btn-close"
-                                        onClick={() => { setParkingModal(false); setParkingErrors({}); }} />
-                                </div>
-                                <div className="modal-body text-start">
 
-                                    <label className="sv-lb">Slot <span className="text-danger">*</span></label>
-                                    <select
-                                        className={`sv-in mt-1 mb-3 ${parkingErrors.slotId ? "is-invalid" : ""}`}
-                                        value={slotId}
-                                        onChange={e => { setSlotId(e.target.value); setParkingErrors(p => ({ ...p, slotId: "" })); }}
-                                    >
-                                        {slotsLoading ? (
-                                            <option value="">Loading slots...</option>
-                                        ) : (
-                                            <>
-                                                <option value="">Select a slot</option>
-                                                {parkingSlots.map(slot => (
-                                                    <option key={slot.id} value={slot.id}>
-                                                        {slot.slot_number} — {slot.parking_type || ""} {slot.vehicle_type ? `(${slot.vehicle_type})` : ""}
-                                                    </option>
-                                                ))}
-                                            </>
-                                        )}
-                                    </select>
-
-                                    <label className="sv-lb">Vehicle Type <span className="text-danger">*</span></label>
-                                    <select
-                                        className={`sv-in mt-1 mb-3 ${parkingErrors.vehicleType ? "is-invalid" : ""}`}
-                                        value={vehicleType}
-                                        onChange={e => setVehicleType(e.target.value)}
-                                    >
-                                        <option value="4_wheeler">4 Wheeler</option>
-                                        <option value="2_wheeler">2 Wheeler</option>
-                                    </select>
-
-                                    <label className="sv-lb">Vehicle Number</label>
-                                    <input
-                                        className="sv-in mt-1 mb-3"
-                                        placeholder="Vehicle number"
-                                        value={vehicleNumber}
-                                        onChange={e => setVehicleNumber(e.target.value)}
-                                    />
-
-                                    <label className="sv-lb">Remarks</label>
-                                    <input
-                                        className="sv-in mt-1"
-                                        placeholder="e.g. Visitor parked near Gate B"
-                                        value={parkingRemarks}
-                                        onChange={e => setParkingRemarks(e.target.value)}
-                                    />
-                                </div>
-                                <div className="modal-footer bg-light">
-                                    <div className="d-flex gap-2 justify-content-end">
-                                        <button
-                                            className="btn btn-sm btn-outline-secondary"
-                                            onClick={() => { setParkingModal(false); setParkingErrors({}); }}
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            className="btn btn-sm btn-primary fw-semibold"
-                                            onClick={handleAllotParking}
-                                        >
-                                            Allot Parking
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
         </>
     );
 };

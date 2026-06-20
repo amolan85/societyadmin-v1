@@ -89,6 +89,7 @@ export const releaseVisitorParkingApi = async (societyId, visitorParkingId) => {
 }
 
 export const AllotVisitorParkingApi = async (payload) => {
+    console.log("Payload =>", payload);
     const url = UrlData + 'visitor_parking/AllotVisitorParking';
 
     return await apiClient({
@@ -104,6 +105,27 @@ export const AllotVisitorParkingApi = async (payload) => {
             console.log(error);
             const errors = ErrorHandler(error);
             console.log(errors, "Errors allot visitor parking");
+            throw errors;
+        });
+};
+
+export const UpdateVisitorParkingApi = async (payload) => {
+    console.log("Update Payload =>", payload);
+    const url = UrlData + 'visitor_parking/UpdateVisitorParking';
+
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: payload,
+        timeout: 30000,
+    })
+        .then((response) => {
+            return response.data.data;
+        })
+        .catch((error) => {
+            console.log(error);
+            const errors = ErrorHandler(error);
+            console.log(errors, "Errors update visitor parking");
             throw errors;
         });
 };

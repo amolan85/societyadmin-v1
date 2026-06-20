@@ -65,7 +65,7 @@ const AllotVisitorParkingModal = ({
                     <div className="modal-content">
                         <div className="modal-header bg-light">
                             <h5 className="modal-title">
-                                {mode === "edit" ? "Edit Tenant" : "Allot Visitor Parking"}
+                                {mode === "edit" ? "Edit Visitor Parking" : "Allot Visitor Parking"}
                             </h5>
 
                             <button
@@ -143,6 +143,7 @@ const AllotVisitorParkingModal = ({
                                                 options={allFlats}
                                                 value={flat}
                                                 onChange={(selectedOption) => setFlat(selectedOption)}
+                                                isDisabled={mode === "edit"}
                                             />
 
                                         </div>
@@ -243,7 +244,7 @@ const AllotVisitorParkingModal = ({
                                 Cancel
                             </button>
                             <button className="btn-ac px-4" onClick={handleSubmit}>
-                                Submit
+                                {mode === "edit" ? "Update" : "Submit"}
                             </button>
                         </div>
                     </div>

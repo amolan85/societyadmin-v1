@@ -125,9 +125,12 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData }) =
     };
     const handleDeallocate = async () => {
         try {
-            await DeallocateParkingSlotApi(allocation.id);
+            await DeallocateParkingSlotApi(
+                slotData?.society_id,
+                allocation?.allocation_id  // ← allocation_id
+            );
             toast.success("Parking slot deallocated successfully");
-            setDeallocateShow(false);        // ✅ was: setShowDeallocateModal(false)
+            setDeallocateShow(false);
             setDeallocationReason("");
             await loadSlotDetails();
         } catch (error) {
@@ -136,7 +139,7 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData }) =
     };
     const handleEdit = async () => {
         try {
-            await UpdateParkingSlotApi(societyId,slotId, editZone, editFloor, editEvReady, editStatus, "");
+            await UpdateParkingSlotApi(societyId, slotId, editZone, editFloor, editEvReady, editStatus, "");
             toast.success("Slot updated successfully");
             setEditShow(false);
             await loadSlotDetails();
@@ -196,11 +199,13 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData }) =
                                 setEditEvReady(slotData?.is_ev_ready || false);
                                 setEditShow(true);
                             }}>
-                                <FiEdit className="me-1" size={16} />Edit Details
+                                <FiEdit className="me-1" size={16} />Edit Slot Details
                             </button>
                             {/* <button className="btn btn-sm deallocate-btn" onClick={() => setDeallocateShow(true)}>
                                 <FiSlash className="me-1" /><strong>Deallocate</strong>
                             </button> */}
+
+                            {/* Allocate slot
                             {["allocated", "reserved"].includes(slotStatus) ? (
                                 <button
                                     className="btn btn-sm deallocate-btn"
@@ -220,7 +225,7 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData }) =
                                     <i className="bi bi-check-circle me-1"></i>
                                     <strong>Allocate</strong>
                                 </button>
-                            )}
+                            )} */}
                             <button className="btn btn-sm btn-ac btn-primary" onClick={() => setActive("parkingRegister")}>Back</button>
                         </div>
                     </div>
@@ -238,7 +243,7 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData }) =
                                 <div className="row g-4">
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">SLOT ID</small>
-                                        <div className="fw-semibold">{slotData?.id || "-"}</div>
+                                        <div className="fw-semibold">{slotData?.slot_number || "-"}</div>
                                     </div>
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">LOCATION</small>
@@ -264,7 +269,7 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData }) =
                                         </div>
                                     </div>
                                     <div className="col-md-6">
-                                        <small className="text-muted d-block">EV READY</small>
+                                        <small className="text-muted d-block">MONTHLY FREE</small>
                                         <div className="fw-semibold">{slotData?.is_ev_ready ? "Yes" : "No"}</div>
                                     </div>
                                     <div className="col-md-6">

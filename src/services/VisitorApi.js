@@ -128,16 +128,32 @@ export const VisitorCheckoutApi = async (visitorId, societyId) => {
         .catch(error => { throw ErrorHandler(error); });
 }
 
-export const UpdateVisitorApprovalApi = async (visitorId, societyId, approvalStatus, rejectionReason, approvedBy) => {
+// export const UpdateVisitorApprovalApi = async (visitorId, societyId, approvalStatus, rejectionReason, approvedBy) => {
+//     const url = UrlData + 'visitor/UpdateVisitorApproval';
+//     return await apiClient({
+//         method: 'post', url,
+//         data: {
+//             visitor_id: visitorId,
+//             society_id: societyId,
+//             approval_status: approvalStatus,
+//             approved_by: approvedBy,
+//             rejection_reason: approvalStatus === "rejected" ? (rejectionReason || null) : null
+//         },
+//         timeout: 30000
+//     })
+//         .then(res => res.data)
+//         .catch(error => { throw ErrorHandler(error); });
+// }
+// Approve ke liye
+export const ApproveVisitorApi = async (visitorId, societyId, approvedBy) => {
     const url = UrlData + 'visitor/UpdateVisitorApproval';
     return await apiClient({
         method: 'post', url,
         data: {
             visitor_id: visitorId,
             society_id: societyId,
-            approval_status: approvalStatus,
-            approved_by: approvedBy,
-            rejection_reason: approvalStatus === "rejected" ? (rejectionReason || null) : null
+            approval_status: "approved",
+            approved_by: approvedBy
         },
         timeout: 30000
     })
@@ -145,6 +161,23 @@ export const UpdateVisitorApprovalApi = async (visitorId, societyId, approvalSta
         .catch(error => { throw ErrorHandler(error); });
 }
 
+// Reject ke liye
+export const RejectVisitorApi = async (visitorId, societyId, approvedBy, rejectionReason) => {
+    const url = UrlData + 'visitor/UpdateVisitorApproval';
+    return await apiClient({
+        method: 'post', url,
+        data: {
+            visitor_id: visitorId,
+            society_id: societyId,
+            approval_status: "rejected",
+            approved_by: approvedBy,
+            rejection_reason: rejectionReason || null
+        },
+        timeout: 30000
+    })
+        .then(res => res.data)
+        .catch(error => { throw ErrorHandler(error); });
+}
 export const GetMonthlyVisitorSummaryApi = async (societyId) => {
     const url = UrlData + 'visitor/GetMonthlyVisitorSummary';
     return await apiClient({ method: 'post', url, data: { society_id: societyId }, timeout: 30000 })
@@ -201,6 +234,6 @@ export const AllotVisitorParkingApi = async (societyId, visitorEntryId, slotId, 
         },
         timeout: 30000
     })
-    .then(res => res.data)
-    .catch(error => { throw ErrorHandler(error); });
+        .then(res => res.data)
+        .catch(error => { throw ErrorHandler(error); });
 };

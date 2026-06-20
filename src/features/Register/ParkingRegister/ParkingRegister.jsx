@@ -5,7 +5,7 @@ import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
 import { toast } from "react-toastify";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import { GetSessionData } from "../../../utils/SessionManagement";
-import { ListParkingSlotsApi, CreateParkingSlotApi, UpdateParkingSlotApi } from '../../../services/ParkingApi';
+import { ListParkingSlotsApi, CreateParkingSlotApi, UpdateParkingSlotApi, DeleteParkingSlotApi } from '../../../services/ParkingApi';
 import { BiExport } from 'react-icons/bi';
 import { FiFilter, FiSearch } from 'react-icons/fi';
 import ParkingSlotModal from './ParkingSlotModal';
@@ -102,7 +102,23 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
             setLoading(false);
         }
     };
-
+    const handleDelete = async (slotId) => {
+        if (!window.confirm("Are you sure you want to delete this slot?")) return;
+        try {
+            await DeleteParkingSlotApi(societyId, slotId);
+            toast.success("Parking slot deleted successfully");
+            await loadSlots({
+                sId: societyId,
+                currentPage: page,
+                searchText: search,
+                slotStatus: filterSlotStatus,
+                parkingType: filterParkingType,
+                vehicleType: filterVehicleType
+            });
+        } catch (e) {
+            toast.error(e?.message || "Delete failed");
+        }
+    };
     const handlePageChange = (value) => { setPage(value); };
 
     const resetForm = () => {
@@ -330,7 +346,10 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
                                                         </li>
                                                         <li><hr className="dropdown-divider" /></li>
                                                         <li>
-                                                            <button className="dropdown-item member-action-item member-action-delete">
+                                                            <button
+                                                                className="dropdown-item member-action-item member-action-delete"
+                                                                onClick={() => handleDelete(s.id)}
+                                                            >
                                                                 Delete Slot
                                                             </button>
                                                         </li>

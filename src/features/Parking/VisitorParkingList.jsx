@@ -2,15 +2,6 @@ import { useState, useEffect } from "react";
 import "../../styles/AddMember.css";
 import { Badge, Pagination } from "../../components/Common/ReusableFunction";
 import { GetSessionData } from "../../utils/SessionManagement";
-import {
-    AddMemberApi,
-    getMembersApi,
-    getAllMembersWithoutPaginationApi,
-    getMembersByIdApi,
-    UpdateMemberApi,
-    deleteMembersApi,
-} from "../../services/AddMemberApi";
-
 import { toast } from "react-toastify";
 import { FiFilter, FiSearch } from "react-icons/fi";
 import { ListVisitorsApi } from "../../services/VisitorApi";
@@ -23,7 +14,7 @@ import { CgExport, CgImport } from "react-icons/cg";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import { TbCar, TbMotorbike } from "react-icons/tb";
 
-import { visitorParkingApi, deleteVisitorParkingApi, getVisitorParkingByIdApi, AllotVisitorParkingApi } from "../../services/VisitorParkingApi";
+import { visitorParkingApi, deleteVisitorParkingApi, getVisitorParkingByIdApi, AllotVisitorParkingApi, UpdateVisitorParkingApi } from "../../services/VisitorParkingApi";
 import ExportModal from "../../components/Common/ExportModal";
 import AllotVisitorParkingModal from "./AllotVisitorParkingModal";
 import CreateVisitorParkingModal from "./CreateVisitorParkingModal";
@@ -52,6 +43,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
     const [societyId, setSocietyId] = useState("");
     const [userId, setUserId] = useState("");
     const [errors, setErrors] = useState({});
+    const [selectedVisitorParkingId, setSelectedVisitorParkingId] = useState(null);
     const [show, setShow] = useState(false);
     const [createvisitorparkingshow, createvisitorparkingsetShow] = useState(false);
     const [page, setPage] = useState(1);
@@ -95,7 +87,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
     };
     const handleViewDetails = async (visitorParkingId) => {
         try {
-            const data = await getVisitorParkingByIdApi(visitorParkingId);
+            const data = await getVisitorParkingByIdApi(societyId, visitorParkingId);
             console.log("Visitor Detail:", data);
             setVisitorParkingId(visitorParkingId);   // parent me ID save
             setActive("visitorDetails");              // detail page pe navigate
@@ -104,6 +96,41 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
             toast.error("Failed to fetch visitor details");
         }
     };
+    const handleEditParking = async (item) => {
+        setSelectedSlot({
+            value: item.slot_id || item.id,
+            label: item.slot_number
+        });
+        setVehicleNumber(item.vehicle_number || "");
+        setSelectedVehicleType(
+            item.vehicle_type === "2_wheeler"
+                ? { value: "2_wheeler", label: "2 Wheeler" }
+                : { value: "4_wheeler", label: "4 Wheeler" }
+        );
+        setRemarks(item.remarks || "");
+        setSelectedVisitorId(item.visitor_entry_id || item.id);
+        setSelectedVisitorParkingId(item.id); // ← visitor_parking_id ke liye
+        setMode("edit");
+
+        await getParkingSlots(societyId);
+        setShow(true);
+    };
+    // const handleEditParking = async (item) => {
+    //     // Existing data prefill karo
+    //     setSelectedSlot({ value: item.slot_id, label: item.slot_number });
+    //     setVehicleNumber(item.vehicle_number || "");
+    //     setSelectedVehicleType(
+    //         item.vehicle_type === "2_wheeler"
+    //             ? { value: "2_wheeler", label: "2 Wheeler" }
+    //             : { value: "4_wheeler", label: "4 Wheeler" }
+    //     );
+    //     setRemarks(item.remarks || "");
+    //     setSelectedVisitorId(item.visitor_entry_id || item.id);
+    //     setMode("edit");
+
+    //     await getParkingSlots(societyId);
+    //     setShow(true);
+    // };
     const getParkingSlots = async (societyId) => {
         try {
             const data = await ListParkingSlotsApi(
@@ -170,6 +197,27 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
             resetForm();
         } catch (error) {
             toast.error(error?.message || "Failed to allot parking");
+        }
+    };
+    const handleEditParkingSubmit = async () => {
+        try {
+            const payload = {
+                society_id: Number(societyId),
+                visitor_parking_id: selectedVisitorParkingId,
+                slot_id: selectedSlot?.value,
+                vehicle_number: vehicleNumber,
+                vehicle_type: selectedVehicleType?.value,
+                remarks: remarks || "",
+            };
+
+            await UpdateVisitorParkingApi(payload);
+            toast.success("Visitor parking updated successfully");
+            setShow(false);
+            setMode("add");
+            visitorParking(societyId, page);
+            resetForm();
+        } catch (error) {
+            toast.error(error?.message || "Failed to update parking");
         }
     };
     const vehicleTypeOptions = [
@@ -878,11 +926,9 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                        // onClick={() => {
-                                                        //     setMode("edit");
-                                                        //     setShow(true);
-                                                        //     GetMemberDetailsById(s.user_id);
-                                                        // }}
+                                                            onClick={() => item.status === "active" && handleEditParking(item)}
+                                                            disabled={item.status !== "active"}
+                                                            style={item.status !== "active" ? { opacity: 0.5, cursor: "not-allowed" } : {}}
                                                         >
                                                             Edit Parking
                                                         </button>
@@ -946,8 +992,8 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
                 errors={errors}
                 resetForm={resetForm}
 
-                handleSubmit={handleVisitorParkingSubmit}
-                mode="add"
+                handleSubmit={mode === "edit" ? handleEditParkingSubmit : handleVisitorParkingSubmit}
+                mode={mode}
             />
 
             <CreateVisitorParkingModal

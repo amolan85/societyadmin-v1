@@ -17,7 +17,7 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
     const [visitorData, setVisitorData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [resolvedParkingId, setResolvedParkingId] = useState(null);
-
+    const [profileUrl, setProfileUrl] = useState("");
     const extendDurationType = [
         { id: "1 Hour", value: "1Hour" },
         { id: "2 Hours", value: "2Hours" },
@@ -89,13 +89,19 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
 
     const getTimeRemaining = (allottedAt) => {
         if (!allottedAt) return "-";
-        const normalized = allottedAt.includes("T") ? allottedAt : allottedAt.replace(" ", "T") + "Z";
+        const normalized = allottedAt.includes("T")
+            ? allottedAt
+            : allottedAt.replace(" ", "T");
         const allotted = new Date(normalized);
         const now = new Date();
         const diffMs = now - allotted;
         if (diffMs < 0) return "Not started";
-        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+        if (diffDays > 0) return `${diffDays}d ${diffHours}h ${diffMins}m elapsed`;
         return `${diffHours}h ${diffMins}m elapsed`;
     };
 
@@ -112,7 +118,7 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
                                     <h5 className="mb-0 fw-bold">{visitorData?.vehicle_number}</h5>
                                     <span className={`badge ${visitorData?.status === "active" ? "bg-success" : "bg-secondary"} text-white`}>
-                                        {visitorData?.status === "active" ? "Active Session" : "Released"}
+                                        {visitorData?.parking_status === "active" ? "Active Session" : "Released"}
                                     </span>
                                 </div>
                                 <div className="text-muted text-start small mt-2">
@@ -129,9 +135,9 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
                             <button
                                 className="btn btn-sm btn-ac btn-primary"
                                 onClick={() => setCheckOutShow(true)}
-                                disabled={visitorData?.status !== "active"}
+                                disabled={visitorData?.parking_status !== "active"}
                             >
-                                <FiLogOut /> Check Out
+                                <FiLogOut /> Relased Parking
                             </button>
                             <button className="btn btn-sm btn-ac btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
                         </div>
@@ -151,7 +157,7 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
                                     <div className="col-md-6">
                                         <small className="text-uppercase text-secondary fw-semibold">Assigned Slot</small>
                                         <div className="fw-semibold mt-1">
-                                            {visitorData?.slot_number} ({visitorData?.floor})
+                                            {visitorData?.slot?.slot_number} ({visitorData?.slot?.slot_floor})
                                         </div>
                                     </div>
 
@@ -169,16 +175,17 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
                                     <div className="col-md-6">
                                         <small className="text-uppercase text-secondary fw-semibold">Entry Time</small>
                                         <div className="fw-semibold mt-1">
-                                            {formatEntryTime(visitorData?.allotted_at)}
+                                            {formatEntryTime(visitorData?.visitor_info?.check_in_time)}
                                         </div>
                                     </div>
 
                                     <div className="col-md-6">
                                         <small className="text-uppercase text-secondary fw-semibold">Time Elapsed</small>
                                         <div className="fw-semibold text-success mt-1">
-                                            {visitorData?.released_at
-                                                ? formatEntryTime(visitorData?.released_at)
-                                                : getTimeRemaining(visitorData?.allotted_at)}
+                                            {visitorData?.parking_status === "released"
+                                                ? formatEntryTime(visitorData?.released_at)   // checkout ho gaya
+                                                : getTimeRemaining(visitorData?.allotted_at)   // abhi active hai
+                                            }
                                         </div>
                                     </div>
 
@@ -208,9 +215,9 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
                                         <BsHouseDoor className="house-icon" />
                                     </div>
                                     <div>
-                                        <div className="fw-semibold">{visitorData?.zone}</div>
+                                        <div className="fw-semibold">{visitorData?.flat?.flat_number}</div>
                                         <small className="text-muted">
-                                            Block {visitorData?.block} • {visitorData?.floor}
+                                            Block {visitorData?.flat?.flat_block} • {visitorData?.flat?.flat_floor} Floor
                                         </small>
                                     </div>
                                 </div>
@@ -244,22 +251,33 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
                             <div className="card-header bg-white fw-bold">Visitor Profile</div>
                             <div className="card-body">
                                 <div className="d-flex align-items-center">
-                                    <div
-                                        className="rounded-circle bg-warning-subtle text-warning fw-bold d-flex align-items-center justify-content-center me-3"
-                                        style={{ width: 45, height: 45 }}
-                                    >
-                                        {visitorData?.visitor_name
-                                            ? visitorData.visitor_name.split(" ").map(n => n[0]).join("").toUpperCase()
-                                            : "?"}
-                                    </div>
-                                    <div>
-                                        <div className="fw-semibold">{visitorData?.visitor_name || "-"}</div>
-                                        <small className="text-muted">+91 {visitorData?.visitor_mobile || "-"}</small>
+                                    <div className="d-flex align-items-center">
+                                        {visitorData?.visitor_info?.visitor_photo_url ? (
+                                            <img
+                                                src={visitorData.visitor_info.visitor_photo_url}
+                                                className="rounded-circle border"
+                                                width="50"
+                                                height="50"
+                                                alt="profile"
+                                            />
+                                        ) : (
+                                            <img
+                                                src="../src/assets/profile.png"
+                                                className="rounded-circle border"
+                                                width="50"
+                                                height="50"
+                                                alt="profile"
+                                            />
+                                        )}
+                                        <div className="ms-3">
+                                            <div className="fw-semibold">{visitorData?.visitor_info?.visitor_name || "-"}</div>
+                                            <small className="text-muted">+91 {visitorData?.visitor_info?.visitor_mobile || "-"}</small>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="mt-3">
                                     <small className="text-muted">Driver License / ID</small>
-                                    <div className="fw-semibold">{visitorData?.vehicle_number || "-"}</div>
+                                    <div className="fw-semibold">{visitorData?.visitor_info?.entry_vehicle_number || "-"}</div>
                                 </div>
                             </div>
                         </div>
@@ -270,25 +288,38 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
                             <div className="card-body">
                                 <div className="visitor-timeline">
 
+                                    {/* Entry Registered */}
                                     <div className="visitor-timeline-item active">
-                                        <h6 className="mb-1">Check In Approved</h6>
+                                        <h6 className="mb-1">Entry Registered</h6>
                                         <small className="text-muted">
-                                            {formatEntryTime(visitorData?.allotted_at)} • {visitorData?.zone}
+                                            {formatEntryTime(visitorData?.visitor_info?.check_in_time)}
                                         </small>
                                     </div>
 
+                                    {/* Host Approval */}
+                                    {visitorData?.visitor_info?.approval_time && (
+                                        <div className="visitor-timeline-item">
+                                            <h6 className="mb-1">Host Approval Received</h6>
+                                            <small className="text-muted">
+                                                {formatEntryTime(visitorData?.visitor_info?.approval_time)} • {visitorData?.visitor_info?.approved_by_name}
+                                            </small>
+                                        </div>
+                                    )}
+
+                                    {/* Parking Allotted */}
                                     <div className="visitor-timeline-item">
-                                        <h6 className="mb-1">Host Approval Received</h6>
+                                        <h6 className="mb-1">Parking Allotted</h6>
                                         <small className="text-muted">
-                                            {visitorData?.slot_number} • Block {visitorData?.block}
+                                            {formatEntryTime(visitorData?.allotted_at)} • Slot {visitorData?.slot?.slot_number} • By {visitorData?.allotted_by_name}
                                         </small>
                                     </div>
 
-                                    {visitorData?.released_at && (
+                                    {/* Checked Out */}
+                                    {visitorData?.visitor_info?.check_out_time && (
                                         <div className="visitor-timeline-item">
                                             <h6 className="mb-1">Checked Out</h6>
                                             <small className="text-muted">
-                                                {formatEntryTime(visitorData?.released_at)}
+                                                {formatEntryTime(visitorData?.visitor_info?.check_out_time)}
                                             </small>
                                         </div>
                                     )}

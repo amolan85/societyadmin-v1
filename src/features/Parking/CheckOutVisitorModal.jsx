@@ -73,11 +73,11 @@ const CheckOutVisitorModal = ({
                                     </tr>
                                     <tr>
                                         <td className="text-start">Visitor Name</td>
-                                        <td>{visitorData?.visitor_name || "-"}</td>
+                                        <td>{visitorData?.visitor_info?.visitor_name || "-"}</td>
                                     </tr>
                                     <tr>
                                         <td className="text-start">Entry Time</td>
-                                        <td>{formatEntryTime(visitorData?.allotted_at)}</td>
+                                        <td>{formatEntryTime(visitorData?.visitor_info?.check_in_time)}</td>
                                     </tr>
                                     <tr>
                                         <td className="text-start">Duration</td>
