@@ -24,6 +24,9 @@ const Complaints = ({ setActive }) => {
   const [tab, setTab] = useState("")
   const [societyId, setSocietyId] = useState("")
   const [page, setPage] = useState(1);
+  const [filterStatus, setFilterStatus] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [allComplaints, setAllComplaints] = useState([])
   const [showModal, setShowModal] = useState(false);
   const [selectedData, setSelectedData] = useState(null);
@@ -330,14 +333,54 @@ const Complaints = ({ setActive }) => {
   };
 
 
-  const filteredData = tab === ""
-    ? allComplaints
-    : allComplaints.filter((item) => item.status === tab);
+  const filteredData = allComplaints.filter((item) => {
+
+  // Tab filter
+  const matchesTab =
+    tab === "" || item.status === tab;
+
+  // Dropdown status filter
+  const matchesStatus =
+    filterStatus === "" ||
+    item.status?.toLowerCase() === filterStatus.toLowerCase();
+
+  // Date filter
+  const complaintDate = item.created_at
+    ? new Date(item.created_at)
+    : null;
+
+  const matchesStartDate =
+    !startDate ||
+    (complaintDate &&
+      complaintDate >= new Date(startDate));
+
+  const matchesEndDate =
+    !endDate ||
+    (complaintDate &&
+      complaintDate <= new Date(endDate + "T23:59:59"));
+
+  return (
+    matchesTab &&
+    matchesStatus &&
+    matchesStartDate &&
+    matchesEndDate
+  );
+});
 
   //pagination 
-  const per = 5, total = Math.ceil(filteredData.length / per);
-  const rows = filteredData.slice((page - 1) * per, page * per);
+  const per = 5;
+  const total = Math.ceil(filteredData.length / per);
 
+  const rows = filteredData.slice(
+    (page - 1) * per,
+    page * per
+  );
+
+  // Single handler for both tabs and dropdown — sets filterStatus and triggers useEffect
+    const handleStatusChange = (value) => {
+        setFilterStatus(value);
+        setPage(1);
+    };
   return (
     <>
       <div className="pg cp-wrap">
@@ -364,6 +407,8 @@ const Complaints = ({ setActive }) => {
 
         </div>
 
+        
+
         {/* Stats */}
         <div className="row g-3 mb-4">
           {[
@@ -380,6 +425,49 @@ const Complaints = ({ setActive }) => {
             </div>
           ))}
         </div>
+
+             {/* Filter row: Status dropdown + Date From + Date To */}
+                    <div className="row g-2">
+
+                        <div className="col-md-4">
+                            <select
+                                className="form-select"
+                                value={filterStatus}
+                                onChange={(e) => handleStatusChange(e.target.value)}
+                            >
+                                <option value="">All Status</option>
+                                <option value="open">Open</option>
+                                <option value="resolved">Resolved</option>
+                                <option value="in_progress">In Progress</option>Closed
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
+
+                        <div className="col-md-4">
+                            <input
+                                type="date"
+                                  className="form-control"
+                                  value={startDate}
+                                  onChange={(e) => {
+                                setStartDate(e.target.value);
+                                setPage(1);
+                              }}
+                            />
+                          </div>
+
+                        <div className="col-md-4">
+                            <input
+                                type="date"
+                                className="form-control"
+                                value={endDate}
+                                onChange={(e) => {
+                              setEndDate(e.target.value);
+                              setPage(1);
+                            }}
+                          />
+                        </div>
+
+                    </div>
 
         <div className='row'>
           <div className='col-lg-7'>
@@ -412,7 +500,7 @@ const Complaints = ({ setActive }) => {
                 </thead>
 
                 <tbody>
-                  {filteredData.map(c => (
+                  {rows.map(c => (
                     <tr key={c.complaint_id} className="text-start">
                       <td className="tx-accent cp-id">{c.complaint_id}</td>
                       <td className="cp-title-cell">{c.title}</td>
@@ -471,7 +559,7 @@ const Complaints = ({ setActive }) => {
 
         {
           (tab === "" || tab === "open" || tab === "in_progress") &&
-          filteredData.map((data, index) => {
+          rows.map((data,index) => {
             return (
               <div className="card border-0 shadow-sm rounded-4 p-3 mt-2" key={data.complaint_id}>
 
