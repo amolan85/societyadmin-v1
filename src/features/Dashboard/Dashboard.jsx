@@ -90,6 +90,38 @@ const NAV = [
   },
 ];
 
+const PARENT_MAP = {
+  // Registers ke child pages
+  registerHistory: "registers",
+  unitRegister: "registers",
+  parkingRegister: "registers",
+  parkingDetails: "registers",
+  parkingHistory: "registers",
+  viewUnit: "registers",
+
+  // Visitors ke child pages  
+  visitorDetailsPage: "visitorRegister",
+
+  // Communication
+  createbroadcast: "broadcasting",
+  createNoticeBoard: "noticeboard",
+  createPoll: "polls",
+
+  // Member Masters
+  memberDetails: "addmember",
+
+  // Operations
+  createComplaints: "complaints",
+  createStaff: "staff",
+  rentalsApplication: "rentals",
+  parkingList: "parkingDashboard",
+  visitorParking: "parkingDashboard",
+  violationAlerts: "parkingDashboard",
+  parkingRules: "parkingDashboard",
+  viewParkingDetails: "parkingDashboard",
+  visitorDetails: "parkingDashboard",
+};
+
 const TITLES = {
   overview: ["Dashboards", "Overview"],
   broadcasting: ["Communication", "Broadcasting"],
@@ -258,7 +290,7 @@ export default function App() {
               <div className="text-start" key={section}>
                 <div className="nav-section text-start">{section}</div>
                 {items.map(item => (
-                  <button key={item.id} className={`nav-item ${active === item.id ? "active" : ""}`} onClick={() => setActive(item.id)}>
+                  <button key={item.id} className={`nav-item ${active === item.id || PARENT_MAP[active] === item.id ? "active" : ""}`} onClick={() => setActive(item.id)}>
                     <span className="ni">{item.icon}</span>
                     <span className="nl">{item.lbl}</span>
                   </button>
