@@ -3,14 +3,17 @@ import ErrorHandler from "../utils/ErrorHandler";
 import UrlData from "../utils/Url";
 
 //api function for get staff attendance
-export const getStaffAttendanceApi = async (societyId, page, limit, date, search) => {
+export const getStaffAttendanceApi = async (societyId, page, limit, date, search, status, dateFrom, dateTo) => {
     const url = UrlData + 'staff/GetAllStaffAttendance';
     const data = {
         society_id: societyId,
         page: page,
         per_page: limit,
         date: date,
-        search: search
+        search: search || null,
+        status: status || null,
+        date_from: dateFrom || null,
+        date_to: dateTo || null,
     }
     return await apiClient({
         method: 'post',
@@ -53,7 +56,7 @@ export const createStaffApi = async (societyId, firstName, lastName, emailId, mo
     });
 }
 
-//create staff api
+//update staff api
 export const UpdateStaffApi = async (staffId, firstName, lastName, emailId, mobileNo, role, salary, joiningDate) => {
     const url = UrlData + 'staff/UpdateStaff';
     const data = {
@@ -110,7 +113,6 @@ export const getStaffByIdApi = async (staffId) => {
     const url = UrlData + 'staff/GetStaffById';
     const data = {
         staff_id: staffId,
-
     }
     return await apiClient({
         method: 'post',
@@ -130,7 +132,6 @@ export const deleteStaffApi = async (staffId) => {
     const url = UrlData + 'staff/DeleteStaff';
     const data = {
         staff_id: staffId,
-
     }
     return await apiClient({
         method: 'post',

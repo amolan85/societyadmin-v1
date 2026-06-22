@@ -3,17 +3,17 @@ import ErrorHandler from "../utils/ErrorHandler";
 import UrlData from "../utils/Url";
 
 //api function for get violation alerts
-export const violationAlertsApi = async (societyId, page, limit, search) => {
+export const violationAlertsApi = async (societyId, page, limit, search, status, dateFrom, dateTo) => {
     const url = UrlData + 'parking_violation/ListViolationAlerts';
     const data = {
         society_id: societyId,
         page: page,
         limit: limit,
-         status: null,
+        status: status || null,
         violation_type: null,
-        search: search,
-        date_from: null,
-        date_to: null,
+        search: search || null,
+        date_from: dateFrom || null,
+        date_to: dateTo || null,
         slot_id: null,
     }
     return await apiClient({

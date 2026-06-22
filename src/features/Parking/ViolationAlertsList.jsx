@@ -49,27 +49,32 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
     const [errorText, setErrorText] = useState("");
     const [search, setSearch] = useState("");
     const [selectedRange, setSelectedRange] = useState("all");
-    const [violationStatusTab, setViolationStatusTab] = useState("");
     const [allViolationAlerts, setAllViolationAlerts] = useState([]);
     const [allExportViolationAlerts, setAllExportViolationAlerts] = useState([]);
+
+    // ── Single source of truth for status filter ──────────────────────────────
+    // Used by both the tabs AND the dropdown — both set this same state
+    const [filterStatus, setFilterStatus] = useState("");
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
 
     // ── Parking slots ──────────────────────────────────────────────────────────
     const [allSlots, setAllSlots] = useState([]);
 
-    // ── ViolationAlertModal form state (mirrors ParkingDashboard) ─────────────
+    // ── ViolationAlertModal form state ────────────────────────────────────────
     const [showViolationAlert, setShowViolationAlert] = useState(false);
     const [slot, setSlot] = useState(null);
     const [vehicleNo, setVehicleNo] = useState("");
-    const [violationType, setViolationType] = useState(null);   // violation_type sent to API
-    const [vehicleType, setVehicleType] = useState(null);       // vehicle_type (2_wheeler / 4_wheeler)
-    const [firstName, setFirstName] = useState("");             // penalty_amount
-    const [lastName, setLastName] = useState("");               // description
-    const [status, setStatus] = useState(null);                 // status (edit only)
+    const [violationType, setViolationType] = useState(null);
+    const [vehicleType, setVehicleType] = useState(null);
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [status, setStatus] = useState(null);
 
     // ── Currently editing violation id ────────────────────────────────────────
     const [editingViolationId, setEditingViolationId] = useState(null);
 
-    const violationStatus = [
+    const violationStatusTabs = [
         { id: "All",       value: "" },
         { id: "Open",      value: "open" },
         { id: "Resolved",  value: "resolved" },
@@ -100,18 +105,33 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
         SessionData();
     }, []);
 
+    // Re-fetch whenever filters change — but only after societyId is ready
+    useEffect(() => {
+        if (!societyId) return;
+        getAllVisitorAlerts(societyId, 1, search, filterStatus, dateFrom, dateTo);
+    }, [filterStatus, dateFrom, dateTo, societyId]);
+
     const SessionData = async () => {
         const data = await GetSessionData();
         const flats = data.data.flats[0];
         setSocietyId(flats.society_id);
         setUserId(flats.user_id);
-        getAllVisitorAlerts(flats.society_id);
+        getAllVisitorAlerts(flats.society_id, 1, "", "", "", "");
         getParkingSlots(flats.society_id);
     };
 
-    const getAllVisitorAlerts = async (sid, pg) => {
+    const getAllVisitorAlerts = async (sid, pg, searchText, statusFilter, fromDate, toDate) => {
         try {
-            const data = await violationAlertsApi(sid, pg, limit);
+            const data = await violationAlertsApi(
+                sid,
+                pg || 1,
+                limit,
+                searchText,
+                statusFilter,
+                fromDate,
+                toDate
+            );
+            console.log("API response:", data); // ← add this
             setAllViolationAlerts(data.violations || []);
             setPage(data.page);
             setLimit(data.limit);
@@ -145,10 +165,29 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
 
     const handlePageChange = (value) => {
         setPage(value);
-        getAllVisitorAlerts(societyId, value);
+        getAllVisitorAlerts(societyId, value, search, filterStatus, dateFrom, dateTo);
     };
 
-    // ✅ Resets only violation form fields — does not touch unrelated member state
+    const handleSearchClick = () => {
+        setPage(1);
+        getAllVisitorAlerts(societyId, 1, search, filterStatus, dateFrom, dateTo);
+    };
+
+    const handleSearchChange = (e) => {
+        const value = e.target.value;
+        setSearch(value);
+        if (!value.trim()) {
+            setPage(1);
+            getAllVisitorAlerts(societyId, 1, "", filterStatus, dateFrom, dateTo);
+        }
+    };
+
+    // Single handler for both tabs and dropdown — sets filterStatus and triggers useEffect
+    const handleStatusChange = (value) => {
+        setFilterStatus(value);
+        setPage(1);
+    };
+
     const resetForm = () => {
         setSlot(null);
         setVehicleNo("");
@@ -162,24 +201,6 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
         setErrorText("");
     };
 
-    const handleEditViolation = (violation) => {
-
-        setSelectedViolation(violation);
-
-        setFormData({
-            violation_type: violation.violation_type || "",
-            slot_id: violation.slot_id || "",
-            vehicle_number: violation.vehicle_number || "",
-            vehicle_type:violation.vehicle_type ||"",
-            description: violation.description || "",
-            penalty_amount: violation.penalty_amount || "",
-            photo_url: violation.photo_url || "",
-        });
-
-        setMode("edit");
-        setShowViolationAlert(true);
-    };
-    // ✅ Create flow — unchanged
     const handleCreateSubmit = async () => {
         const newErrors = {};
         if (!slot)              newErrors.slot          = "Required";
@@ -195,27 +216,26 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
 
         try {
             await createViolationAlertApi(
-                societyId,              // society_id
-                userId,                 // reported_by
-                slot?.value,            // slot_id
-                vehicleNo,              // vehicle_number
-                violationType?.value,   // violation_type
-                lastName,               // description
-                null,                   // photo_url
-                firstName               // penalty_amount
+                societyId,
+                userId,
+                slot?.value,
+                vehicleNo,
+                violationType?.value,
+                lastName,
+                null,
+                firstName
             );
 
             toast.success("Violation Alert Added Successfully");
             setShowViolationAlert(false);
             resetForm();
-            getAllVisitorAlerts(societyId, page);
+            getAllVisitorAlerts(societyId, page, search, filterStatus, dateFrom, dateTo);
         } catch (error) {
             console.error(error);
             toast.error(error?.message || "Failed to add violation");
         }
     };
 
-    // ✅ Edit flow — calls updateViolationAlertApi
     const handleEditSubmit = async () => {
         const newErrors = {};
         if (!slot)              newErrors.slot          = "Required";
@@ -232,29 +252,28 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
 
         try {
             await updateViolationAlertApi(
-                societyId,                // society_id
-                editingViolationId,       // violation_id
-                slot?.value,               // slot_id
-                vehicleNo,                  // vehicle_number
-                violationType?.value,       // violation_type
-                lastName,                   // description
-                null,                       // photo_url (kept unchanged)
-                firstName,                  // penalty_amount
-                vehicleType?.value,          // vehicle_type
-                status?.value                // status
+                societyId,
+                editingViolationId,
+                slot?.value,
+                vehicleNo,
+                violationType?.value,
+                lastName,
+                null,
+                firstName,
+                vehicleType?.value,
+                status?.value
             );
 
             toast.success("Violation Alert Updated Successfully");
             setShowViolationAlert(false);
             resetForm();
-            getAllVisitorAlerts(societyId, page);
+            getAllVisitorAlerts(societyId, page, search, filterStatus, dateFrom, dateTo);
         } catch (error) {
             console.error(error);
             toast.error(error?.message || "Failed to update violation");
         }
     };
 
-    // ✅ Dispatches to create/edit based on mode
     const handleViolationSubmit = async () => {
         if (mode === "edit") {
             await handleEditSubmit();
@@ -263,14 +282,12 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
         }
     };
 
-    // ✅ Opens modal in edit mode and prefills with the selected violation's data
     const handleEditClick = async (item) => {
         try {
             resetForm();
             setMode("edit");
             setEditingViolationId(item.id);
 
-            // Try to get the freshest data via the get-by-id API
             let data = item;
             try {
                 const response = await getViolationAlertByIdApi(societyId, item.id);
@@ -279,7 +296,6 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                 console.warn("Could not fetch latest violation details, using row data:", err);
             }
 
-            // Prefill slot
             const matchedSlot = allSlots.find(
                 (s) => s.value === data.slot_id || s.label === data.slot_number
             );
@@ -320,7 +336,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
         try {
             await deleteViolationAlertsApi(societyId, violationId);
             toast.success("Violation alert deleted successfully");
-            getAllVisitorAlerts(societyId, page);
+            getAllVisitorAlerts(societyId, page, search, filterStatus, dateFrom, dateTo);
         } catch (error) {
             console.error("Delete Error:", error);
             toast.error(error);
@@ -362,35 +378,13 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
         else if (activeTab === "pdf")  { downloadPDF();   setExportModal(false); }
     };
 
-    const handleSearch = async (e) => {
-        const value = e.target.value;
-        setSearch(value);
-        try {
-            if (!value.trim()) {
-                setPage(1);
-                const data = await violationAlertsApi(societyId, page, limit);
-                setAllViolationAlerts(data.violations || []);
-                return;
-            }
-            if (value.length < 3) return;
-            const data = await violationAlertsApi(societyId, page, limit, value);
-            setAllViolationAlerts(data.violations || []);
-        } catch (error) {
-            console.error("Search error:", error);
-        }
-    };
-
-    const filteredData =
-        violationStatusTab === ""
-            ? allViolationAlerts
-            : allViolationAlerts.filter((item) => item.status === violationStatusTab);
-
-    const totalAlerts    = allViolationAlerts.length;
+    // Derived counts from current page data
+    const totalAlerts    = totalCount;
     const totalOpen      = allViolationAlerts.filter((i) => i.status?.toLowerCase() === "open").length;
     const totalResolved  = allViolationAlerts.filter((i) => i.status?.toLowerCase() === "resolved").length;
     const totalDismissed = allViolationAlerts.filter((i) => i.status?.toLowerCase() === "dismissed").length;
 
-    const total = Math.ceil(totalCount / limit);
+    const totalPages = Math.ceil(totalCount / limit);
 
     const handleViewDetails = (item) => {
         setViolationId(item.id);
@@ -411,21 +405,20 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                             className="btn btn-sm btn-ac ms-2 btn-primary"
                             onClick={() => {
                                 resetForm();
-                                    setSelectedViolation(null);
-                                    setMode("add");
-                                    setShowViolationAlert(true);
-                                }}
-                            >
+                                setSelectedViolation(null);
+                                setMode("add");
+                                setShowViolationAlert(true);
+                            }}
+                        >
                             + Create Violation Alert
                         </button>
-
-                    <button
-                        className="btn btn-sm btn-ac ms-2 btn-primary"
-                        onClick={() => setActive("parkingDashboard")}
+                        <button
+                            className="btn btn-sm btn-ac ms-2 btn-primary"
+                            onClick={() => setActive("parkingDashboard")}
                         >
-                        Back
-                    </button>
-                </div>
+                            Back
+                        </button>
+                    </div>
                 </div>
 
                 {/* Stats */}
@@ -445,15 +438,15 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                     ))}
                 </div>
 
-                {/* Status Tabs */}
+                {/* Status Tabs — now use handleStatusChange (server-side) */}
                 <div className="row">
                     <div className="col-lg-8">
                         <div className="NoticeBoardTabs mt-3 bg-white">
-                            {violationStatus.map((t) => (
+                            {violationStatusTabs.map((t) => (
                                 <button
                                     key={t.id}
-                                    onClick={() => { setViolationStatusTab(t.value); setPage(1); }}
-                                    className={`NoticeBoardTabs-btn ${violationStatusTab === t.value ? "active" : ""}`}
+                                    onClick={() => handleStatusChange(t.value)}
+                                    className={`NoticeBoardTabs-btn ${filterStatus === t.value ? "active" : ""}`}
                                 >
                                     {t.id}
                                 </button>
@@ -462,31 +455,70 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                     </div>
                 </div>
 
-                {/* Search & Filter bar */}
-                <div className="d-flex justify-content-between align-items-center mb-4 text-start mt-3">
-                    <div className="col-12 col-md-4 col-lg-3 position-relative">
-                        <span style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)", color: "#aaa" }}>
-                            <FiSearch size={16} />
-                        </span>
-                        <input
-                            type="text"
-                            className="form-control rounded-pill"
-                            placeholder="Search by vehicle no..."
-                            value={search}
-                            onChange={handleSearch}
-                            style={{ paddingLeft: "35px" }}
-                        />
-                    </div>
-                    <div className="d-flex">
-                        <button className="btn-ol ms-2" data-bs-toggle="dropdown">
-                            <FiFilter size={14} /> Filter
-                        </button>
+                {/* Toolbar */}
+                <div className="visitor-toolbar mb-4 mt-3">
+
+                    <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <div className="d-flex gap-2">
+                            <input
+                                type="text"
+                                className="form-control visitor-search"
+                                placeholder="Search by vehicle no..."
+                                value={search}
+                                onChange={handleSearchChange}
+                            />
+                            <button className="btn btn-primary" onClick={handleSearchClick}>
+                                <FiSearch />
+                            </button>
+                        </div>
                         <button
                             className="btn-ol ms-2"
                             onClick={() => { getAllExportViolationAlerts(societyId); setExportModal(true); }}
                         >
                             <CgImport /> Export
                         </button>
+                    </div>
+
+                    {/* Filter row: Status dropdown + Date From + Date To */}
+                    <div className="row g-2">
+
+                        <div className="col-md-4">
+                            <select
+                                className="form-select"
+                                value={filterStatus}
+                                onChange={(e) => handleStatusChange(e.target.value)}
+                            >
+                                <option value="">All Status</option>
+                                <option value="open">Open</option>
+                                <option value="resolved">Resolved</option>
+                                <option value="dismissed">Dismissed</option>
+                            </select>
+                        </div>
+
+                        <div className="col-md-4">
+                            <input
+                                type="date"
+                                className="form-control"
+                                value={dateFrom}
+                                onChange={(e) => {
+                                    setDateFrom(e.target.value);
+                                    setPage(1);
+                                }}
+                            />
+                        </div>
+
+                        <div className="col-md-4">
+                            <input
+                                type="date"
+                                className="form-control"
+                                value={dateTo}
+                                onChange={(e) => {
+                                    setDateTo(e.target.value);
+                                    setPage(1);
+                                }}
+                            />
+                        </div>
+
                     </div>
                 </div>
 
@@ -505,84 +537,84 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredData.map((item, index) => (
+                                {allViolationAlerts.map((item, index) => (
                                     <tr
                                         key={index}
                                         onClick={() => handleViewDetails(item)}
                                         style={{ cursor: "pointer" }}
-                                >
-                                    <td className="text-start">
-                                        <div className="fw-bold">{item.violation_type}</div>
-                                    </td>
-                                    <td className="text-start">
-                                        <div className="fw-bold">{item.slot_number}</div>
-                                    </td>
-                                    <td className="text-start">
-                                        <div className="fw-bold">{item.vehicle_number}</div>
-                                    </td>
-                                    <td className="text-start">
-                                        <div className="fw-bold">{item.penalty_amount}</div>
-                                    </td>
-                                    <td className="text-start">
-                                        <Badge
-                                            label={item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : ""}
+                                    >
+                                        <td className="text-start">
+                                            <div className="fw-bold">{item.violation_type}</div>
+                                        </td>
+                                        <td className="text-start">
+                                            <div className="fw-bold">{item.slot_number}</div>
+                                        </td>
+                                        <td className="text-start">
+                                            <div className="fw-bold">{item.vehicle_number}</div>
+                                        </td>
+                                        <td className="text-start">
+                                            <div className="fw-bold">{item.penalty_amount}</div>
+                                        </td>
+                                        <td className="text-start">
+                                            <Badge
+                                                label={item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : ""}
                                                 c={
-                                                item.status === "open"      ? "green"
-                                                : item.status === "resolved"  ? "yellow"
-                                                : item.status === "dismissed" ? "red"
-                                                : "gray"
+                                                    item.status === "open"      ? "green"
+                                                    : item.status === "resolved"  ? "yellow"
+                                                    : item.status === "dismissed" ? "red"
+                                                    : "gray"
                                                 }
                                             />
-                                    </td>
-                                    <td className="text-start" onClick={(e) => e.stopPropagation()}>
-                                        <div className="member-action-dropdown dropdown">
-                                            <button
-                                                className="member-action-btn"
-                                                type="button"
-                                                data-bs-toggle="dropdown"
-                                                aria-expanded="false"
-                                            >
-                                                ⋮
-                </button>
-                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
-                    <li>
-                        <button
-                            className="dropdown-item member-action-item"
-                            onClick={() => handleViewDetails(item)}
-                        >
-                            View Details
-                        </button>
-                    </li>
-                    <li>
-                        <button
-                            className="dropdown-item member-action-item"
-                            onClick={() => handleEditClick(item)}
-                        >
-                            Edit Violation Alert
-                        </button>
-                    </li>
-                    <li><hr className="dropdown-divider" /></li>
-                    <li>
-                        <button
-                            className="dropdown-item member-action-item member-action-delete"
-                            onClick={() => handleDelete(item.id)}
-                        >
-                            Delete Violation Alert
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </td>
-    </tr>
-))}
+                                        </td>
+                                        <td className="text-start" onClick={(e) => e.stopPropagation()}>
+                                            <div className="member-action-dropdown dropdown">
+                                                <button
+                                                    className="member-action-btn"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                >
+                                                    ⋮
+                                                </button>
+                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() => handleViewDetails(item)}
+                                                        >
+                                                            View Details
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() => handleEditClick(item)}
+                                                        >
+                                                            Edit Violation Alert
+                                                        </button>
+                                                    </li>
+                                                    <li><hr className="dropdown-divider" /></li>
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item member-action-delete"
+                                                            onClick={() => handleDelete(item.id)}
+                                                        >
+                                                            Delete Violation Alert
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
-                    <Pagination page={page} total={total} onChange={handlePageChange} />
+                    <Pagination page={page} total={totalPages} onChange={handlePageChange} />
                 </div>
             </div>
 
-            {/* ✅ Modal — supports both add and edit modes */}
+            {/* Modal */}
             <ViolationAlertModal
                 showViolationAlert={showViolationAlert}
                 setShowViolationAlert={setShowViolationAlert}

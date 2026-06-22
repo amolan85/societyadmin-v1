@@ -37,75 +37,78 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
     const [exportModal, setExportModal] = useState(false)
     const [activeTab, setActiveTab] = useState("excel");
     const [selectedRange, setSelectedRange] = useState("all");
+
+    // ── Filter state ───────────────────────────────────────────────────────────
+    const [filterStatus, setFilterStatus] = useState("");
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
+
     const total = Math.ceil(totalCount / limit);
 
     const recordType = [
         { id: "Check In", value: "checkIn" },
         { id: "Check Out", value: "checkOut" },
-
     ];
+
     const filterData = {
         date: "14 Sept, 2025",
-
-        status: [
-            "On Duty",
-            "Late Entry",
-            "Shift Completed",
-            "Absent",
-        ],
-
-        departments: [
-            "Security Guard",
-            "Technicians",
-            "Technicians",
-        ],
-
-        shiftTypes: [
-            "Morning Shift",
-            "Evening Shift",
-            "Night Shift",
-        ],
-
-        checkInMethods: [
-            "Biometric",
-            "Mobile App",
-            "Manual Entry",
-        ],
+        status: ["On Duty", "Late Entry", "Shift Completed", "Absent"],
+        departments: ["Security Guard", "Technicians", "Technicians"],
+        shiftTypes: ["Morning Shift", "Evening Shift", "Night Shift"],
+        checkInMethods: ["Biometric", "Mobile App", "Manual Entry"],
     };
+
     useEffect(() => {
         SessionData()
     }, [])
 
+    // Re-fetch when filters change — only after societyId is ready
+    useEffect(() => {
+        if (!societyId) return;
+        getStaff(societyId, 1, limit, date, search, filterStatus, dateFrom, dateTo);
+    }, [filterStatus, dateFrom, dateTo]);
+
     const SessionData = async () => {
         const data = await GetSessionData()
-        console.log(data.data)
         const flats = data.data.flats[0]
         setSocietyId(flats.society_id)
-        getStaff(flats.society_id)
-
-    }
-    //function for get staff
-    const getStaff = async (societyId) => {
-        const data = await getStaffAttendanceApi(societyId, page, limit, date)
-        console.log(data)
-        setAllStaff(data.list)
-        setAllStaffData(
-            data.list.map((item) => ({
-                value: item.staff_id,
-                label: item.first_name + " " + item.last_name,
-                attendance_id: item.attendance_id,
-            }))
-        );
-        setTotalStaff(data.count)
-        setPresent(data.summary.present)
-        setAbsent(data.summary.absent)
-        setLimit(data.pagination.per_page)
-        setTotalCount(data.pagination.total_records)
+        getStaff(flats.society_id, 1, limit, date, "", "", "", "")
     }
 
-    const getAllExportStaff = async (societyId) => {
-        const data = await getStaffAttendanceApi(societyId, "", "", date)
-        console.log(data)
+    const getStaff = async (sid, pg, lmt, dt, searchText, status, fromDate, toDate) => {
+        try {
+            const data = await getStaffAttendanceApi(
+                sid,
+                pg || page,
+                lmt || limit,
+                dt || date,
+                searchText,
+                status || null,
+                fromDate || null,
+                toDate || null
+            )
+            console.log("Staff API response:", data)  // ← add this
+            console.log("Summary:", data.summary)      // ← add this
+            setAllStaff(data.list)
+            setAllStaffData(
+                data.list.map((item) => ({
+                    value: item.staff_id,
+                    label: item.first_name + " " + item.last_name,
+                    attendance_id: item.attendance_id,
+                }))
+            );
+            setTotalStaff(data.count)
+            setPresent(data.summary.present)
+            setAbsent(data.summary.absent)
+            setLimit(data.pagination.per_page)
+            setTotalCount(data.pagination.total_records)
+        } catch (error) {
+            console.error("Error fetching staff:", error)
+        }
+    }
+
+    const getAllExportStaff = async (sid) => {
+        const data = await getStaffAttendanceApi(sid, "", "", date)
         setAllExportStaff(data.list)
     }
 
@@ -114,155 +117,77 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
         setStaffId(staffId)
     }
 
-
     const deleteStaff = async (staffId) => {
         const confirmed = window.confirm("Are you sure you want to delete this staff?");
-
         if (!confirmed) return;
-
         try {
             const data = await deleteStaffApi(staffId);
-            console.log(data);
             toast.success("Staff deleted successfully!");
-            getStaff(societyId);
+            getStaff(societyId, page, limit, date, search, filterStatus, dateFrom, dateTo);
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
     };
-    // const deleteStaff = (staffId) => {
-    //     const backdrop = document.createElement("div");
-    //     backdrop.id = "delete-backdrop";
-    //     backdrop.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9998;pointer-events:all;";
-    //     document.body.appendChild(backdrop);
-    //     toast(
-    //         ({ closeToast }) => (
-    //             <div className="delete-popup">
-    //                 <div className="delete-popup-icon">
-    //                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-    //                         <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#dc2626" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    //                         <path d="M10 11v5M14 11v5" stroke="#dc2626" strokeWidth="1.8" strokeLinecap="round" />
-    //                     </svg>
-    //                 </div>
 
-    //                 {/* <h3>Delete Staff Member</h3> */}
-
-    //                 <p>
-    //                     Are you sure you want to delete this staff?
-    //                     <br />
-    //                     This action cannot be undone.
-    //                 </p>
-
-    //                 <div className="delete-popup-divider"></div>
-
-    //                 <div className="delete-popup-actions">
-    //                     <button className="delete-popup-cancel" onClick={() => {
-    //                         document.getElementById("delete-backdrop")?.remove();
-    //                         closeToast();
-    //                     }}>
-    //                         Cancel
-    //                     </button>
-
-    //                     <button
-    //                         className="delete-popup-delete"
-    //                         onClick={async () => {
-    //                             try {
-    //                                 await deleteStaffApi(staffId);
-    //                                 document.getElementById("delete-backdrop")?.remove();
-    //                                 closeToast();
-    //                                 toast.success("Staff deleted successfully!");
-    //                                 getStaff(societyId);
-    //                             } catch (error) {
-    //                                 document.getElementById("delete-backdrop")?.remove();
-    //                                 closeToast();
-    //                                 toast.error("Failed to delete staff!");
-    //                             }
-    //                         }}
-    //                     >
-    //                         Delete
-    //                     </button>
-    //                 </div>
-    //             </div>
-    //         ),
-    //         {
-    //             position: "top-center",
-    //             autoClose: false,
-    //             hideProgressBar: true,
-    //             closeButton: false,
-    //             overlayClassName: "Toastify__overlay",
-    //         }
-    //     );
-    // };
     const validateForm = () => {
         let errors = {};
-
-        if (!selectedStaff) {
-            errors.selectedStaff = "required";
-        }
-
-        if (!recordTypeTab) {
-            errors.recordTypeTab = "required";
-        }
-
-        if (!attendanceDate) {
-            errors.attendanceDate = "required";
-        }
-
-        if (!attendanceTime) {
-            errors.attendanceTime = "required";
-        }
-
+        if (!selectedStaff)   errors.selectedStaff  = "required";
+        if (!recordTypeTab)   errors.recordTypeTab   = "required";
+        if (!attendanceDate)  errors.attendanceDate  = "required";
+        if (!attendanceTime)  errors.attendanceTime  = "required";
         return errors;
     };
 
     const markAttendance = async () => {
         try {
             const validationErrors = validateForm();
-
             if (Object.keys(validationErrors).length > 0) {
                 setErrors(validationErrors);
                 return;
             }
-
-            const data = await markAttendanceStaffApi(selectedStaff.value, selectedStaff?.attendance_id, societyId, attendanceDate, attendanceTime, attendanceStatus, recordTypeTab)
-            console.log(data)
+            const data = await markAttendanceStaffApi(
+                selectedStaff.value, selectedStaff?.attendance_id,
+                societyId, attendanceDate, attendanceTime, attendanceStatus, recordTypeTab
+            )
             toast.success("Attendance mark successfully!")
-            getStaff(societyId)
+            getStaff(societyId, page, limit, date, search, filterStatus, dateFrom, dateTo);
             setShow(false)
-            resetForm("")
+            resetForm()
         } catch (error) {
-            console.log(error)
+            console.error(error)
         }
     }
 
-    // const per = 5, total = Math.ceil(allStaff.length / per);
-    // const rows = allStaff.slice((page - 1) * per, page * per);
-
     const dateHandleChange = async (e) => {
-        setDate(e.target.value)
-        const data = await getStaffAttendanceApi(societyId, page, limit, e.target.value)
-        setAllStaff(data.list)
+        const val = e.target.value;
+        setDate(val);
+        getStaff(societyId, 1, limit, val, search, filterStatus, dateFrom, dateTo);
     }
 
     const handlePageChange = (value) => {
         setPage(value);
-        getStaff(societyId, value, limit);
+        getStaff(societyId, value, limit, date, search, filterStatus, dateFrom, dateTo);
     };
 
-    const handleSearch = async (e) => {
+    // Search fires on button click
+    const handleSearchClick = () => {
+        setPage(1);
+        getStaff(societyId, 1, limit, date, search, filterStatus, dateFrom, dateTo);
+    };
+
+    const handleSearchChange = async (e) => {
         const value = e.target.value;
         setSearch(value);
+        if (!value.trim()) {
+            setPage(1);
+            getStaff(societyId, 1, limit, date, "", filterStatus, dateFrom, dateTo);
+        }
+    };
 
-        if (value && value.length < 4) return;
-
-        const data = await getStaffAttendanceApi(
-            societyId,
-            page,
-            limit,
-            date,
-            value
-        );
-
-        setAllStaff(data?.list || []);
+    // Single handler — used by both status dropdown change
+    const handleStatusChange = (value) => {
+        setFilterStatus(value);
+        setPage(1);
     };
 
     const exportData =
@@ -272,37 +197,19 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                 ? allStaff
                 : "";
 
-
     const downloadExcel = async () => {
-        exportFile({
-            data: exportData,
-            fileName: "Staff",
-            sheetName: "Staff",
-            type: "xlsx",
-        });
+        exportFile({ data: exportData, fileName: "Staff", sheetName: "Staff", type: "xlsx" });
     };
 
     const downloadCSV = async () => {
-        exportFile({
-            data: exportData,
-            fileName: "Staff",
-            sheetName: "Staff",
-            type: "csv",
-        });
+        exportFile({ data: exportData, fileName: "Staff", sheetName: "Staff", type: "csv" });
     };
 
     const downloadPDF = () => {
         exportToPDF({
             title: "Staff Report",
             fileName: "Staff",
-            columns: [
-                "Name",
-                "Role",
-                "Shift",
-                "Status",
-                "Time In",
-                "Time Out",
-            ],
+            columns: ["Name", "Role", "Shift", "Status", "Time In", "Time Out"],
             data: exportData.map((item) => [
                 item.first_name + " " + item.last_name,
                 item.role,
@@ -310,24 +217,15 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                 item.status,
                 item.check_in,
                 item.check_out
-
             ]),
         });
     };
 
     const handleExport = () => {
-        if (activeTab === "excel") {
-            downloadExcel();
-            setExportModal(false);
-        } else if (activeTab === "csv") {
-            downloadCSV();
-            setExportModal(false);
-        } else if (activeTab === "pdf") {
-            downloadPDF();
-            setExportModal(false);
-        }
+        if (activeTab === "excel")    { downloadExcel(); setExportModal(false); }
+        else if (activeTab === "csv") { downloadCSV();   setExportModal(false); }
+        else if (activeTab === "pdf") { downloadPDF();   setExportModal(false); }
     };
-
 
     const resetForm = () => {
         setSelectedStaff(null)
@@ -336,17 +234,13 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
         setAttendanceTime("")
     }
 
-
     return (
-
         <div className="pg sa-wrap">
 
             {/* Header */}
             <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                 <h4 className="sa-title">Staff Attendance & Tracking</h4>
-
                 <div className="d-flex gap-2">
-
                     <input
                         type="date"
                         className="sv-in sa-date"
@@ -355,86 +249,104 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                     />
                     <button
                         className="btn-ol"
-                        onClick={() => {
-                            getAllExportStaff(societyId);
-                            setExportModal(true);
-                        }}
+                        onClick={() => { getAllExportStaff(societyId); setExportModal(true); }}
                     >
                         <CgExport /> Export
                     </button>
-                    <button className="btn btn-sm btn-ac  btn-primary" onClick={() => setActive("createStaff")}>Create</button>
-                    <button className="btn btn-sm btn-ac  btn-primary" onClick={() => { setShow(true); resetForm() }}>Manual Entry</button>
+                    <button className="btn btn-sm btn-ac btn-primary" onClick={() => setActive("createStaff")}>Create</button>
+                    <button className="btn btn-sm btn-ac btn-primary" onClick={() => { setShow(true); resetForm(); }}>Manual Entry</button>
                 </div>
             </div>
 
             {/* Stats */}
             <div className="row g-3 mb-4">
                 {[
-                    [present, "Present", "tile-grn"],
-                    [absent, "Absent", "tile-red"],
-                    ["-", "Late", "tile-org"],
+                    [present,    "Present",    "tile-grn"],
+                    [absent,     "Absent",     "tile-red"],
+                    ["-",        "Late",       "tile-org"],
                     [totalStaff, "Total Staff", "tile-blu"]
                 ].map(([v, l, cls]) => (
-                    // <div className="col-6 col-md-3" key={l}>
-                    //     <div className={`tile ${cls}`}>
-                    //         <div className="tile-val">{v}</div>
-                    //         <div className="tile-lbl">{l}</div>
-                    //     </div>
-                    // </div>
                     <div className="col-6 col-md-3" key={l}>
                         <div className={`tile bg-white ${cls}`}>
-                            <div className=" text-start fw-bold">{l}</div>
+                            <div className="text-start fw-bold">{l}</div>
                             <div className="tile-val text-start mt-1">{v}</div>
                         </div>
                     </div>
                 ))}
             </div>
 
-            <div className="d-flex justify-content-between align-items-center mb-4 text-start">
-                {/* <div>
-                        <h4 className="cp-title">Members</h4>
-                        <p className="cp-sub">
-                            Manage and track all society members
-                        </p>
-                    </div> */}
-                <div className="col-12 col-md-4 col-lg-3 position-relative">
-                    <span
-                        style={{
-                            position: "absolute",
-                            left: "15px",
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            color: "#aaa",
-                        }}
-                    >
-                        <FiSearch size={16} />
-                    </span>
+            {/* ── Toolbar ── */}
+            <div className="visitor-toolbar mb-4">
 
-                    <input
-                        type="text"
-                        className="form-control rounded-pill"
-                        placeholder="Search by name, role"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        onChange={handleSearch}
-                        style={{ paddingLeft: "35px" }}
-                    />
-                </div>
-                <div className="d-flex">
+                <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div className="d-flex gap-2">
+                        <input
+                            type="text"
+                            className="form-control visitor-search"
+                            placeholder="Search by name, role..."
+                            value={search}
+                            onChange={handleSearchChange}
+                        />
+                        <button className="btn btn-primary" onClick={handleSearchClick}>
+                            <FiSearch />
+                        </button>
+                    </div>
+
                     <button
                         className="btn-ol ms-2"
-                        data-bs-toggle="dropdown" onClick={() => setShowFilterAttendance(true)}
+                        onClick={() => setShowFilterAttendance(true)}
                     >
-                        <FiFilter size={14} />
-                        Filter
+                        <FiFilter size={14} /> Filter
                     </button>
+                </div>
+
+                {/* Filter row: Status + Date From + Date To */}
+                <div className="row g-2">
+
+                    <div className="col-md-4">
+                        <select
+                            className="form-select"
+                            value={filterStatus}
+                            onChange={(e) => handleStatusChange(e.target.value)}
+                        >
+                            <option value="">All Status</option>
+                            <option value="present">Present</option>
+                            <option value="absent">Absent</option>
+                            <option value="late">Late</option>
+                        </select>
+                    </div>
+
+                    <div className="col-md-4">
+                        <input
+                            type="date"
+                            className="form-control"
+                            placeholder="From date"
+                            value={dateFrom}
+                            onChange={(e) => {
+                                setDateFrom(e.target.value);
+                                setPage(1);
+                            }}
+                        />
+                    </div>
+
+                    <div className="col-md-4">
+                        <input
+                            type="date"
+                            className="form-control"
+                            placeholder="To date"
+                            value={dateTo}
+                            onChange={(e) => {
+                                setDateTo(e.target.value);
+                                setPage(1);
+                            }}
+                        />
+                    </div>
 
                 </div>
             </div>
 
             {/* Table */}
             <div className="sv-card p-0 overflow-hidden">
-
                 <div className="sa-table-wrap">
                     <table className="sv-tbl">
                         <thead>
@@ -446,32 +358,22 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                         <tbody>
                             {allStaff.map((s, i) => (
                                 <tr className="text-start" key={i}>
-
                                     <td className="sa-name">{s.first_name + " " + s.last_name}</td>
-
                                     <td className="sa-muted">{s.role}</td>
-
+                                    <td></td>
                                     <td>
-                                        {/* <Badge label={s.shift} c="gray" /> */}
+                                        <Badge
+                                            label={s.status}
+                                            c={
+                                                s.status === "present" ? "green"
+                                                : s.status === "absent"  ? "red"
+                                                : s.status === "late"    ? "tile-org"
+                                                : "gray"
+                                            }
+                                        />
                                     </td>
-
-                                    <td>
-                                        <Badge label={s.status} c={
-                                            s.status === "present"
-                                                ? "green"
-                                                : s.status === "absent"
-                                                    ? "red"
-                                                    : s.status === "late"
-                                                        ? "tile-org"
-                                                        : "gray"
-                                        } />
-                                    </td>
-                                    <td className={s.st === "Absent" ? "sa-muted" : "sa-time"}>
-                                        {s.check_in}
-                                    </td>
-                                    <td className={s.st === "Absent" ? "sa-muted" : "sa-time"}>
-                                        {s.check_out}
-                                    </td>
+                                    <td className={s.st === "Absent" ? "sa-muted" : "sa-time"}>{s.check_in}</td>
+                                    <td className={s.st === "Absent" ? "sa-muted" : "sa-time"}>{s.check_out}</td>
                                     <td>
                                         <div className="member-action-dropdown dropdown">
                                             <button
@@ -482,27 +384,16 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                                             >
                                                 ⋮
                                             </button>
-
                                             <ul className="dropdown-menu member-action-menu dropdown-menu-end">
-
                                                 <li>
                                                     <button
                                                         className="dropdown-item member-action-item"
-                                                        onClick={() => {
-                                                            // setMode("edit");
-                                                            // setShow(true);
-                                                            // GetMemberDetailsById(s.user_id);
-                                                            GetStaffById(s.staff_id)
-                                                        }}
+                                                        onClick={() => GetStaffById(s.staff_id)}
                                                     >
                                                         Edit Staff
                                                     </button>
                                                 </li>
-
-                                                <li>
-                                                    <hr className="dropdown-divider" />
-                                                </li>
-
+                                                <li><hr className="dropdown-divider" /></li>
                                                 <li>
                                                     <button
                                                         className="dropdown-item member-action-item member-action-delete"
@@ -517,46 +408,31 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                                 </tr>
                             ))}
                         </tbody>
-
                     </table>
                 </div>
-
-                {/* Pagination */}
-                <Pagination
-                    page={page}
-                    total={total}
-                    onChange={handlePageChange}
-                />
-
+                <Pagination page={page} total={total} onChange={handlePageChange} />
             </div>
 
             <ManualEntryModal
                 show={show}
                 setShow={setShow}
-
                 allStaffData={allStaffData}
                 selectedStaff={selectedStaff}
                 setSelectedStaff={setSelectedStaff}
                 recordType={recordType}
                 recordTypeTab={recordTypeTab}
                 setRecordTypeTab={setRecordTypeTab}
-
                 attendanceStatus={attendanceStatus}
                 setAttendanceStatus={setAttendanceStatus}
-
                 attendanceDate={attendanceDate}
                 setAttendanceDate={setAttendanceDate}
-
                 attendanceTime={attendanceTime}
                 setAttendanceTime={setAttendanceTime}
-
                 reason={reason}
                 setReason={setReason}
-
                 errors={errors}
                 resetForm={resetForm}
                 handleSubmit={markAttendance}
-
             />
 
             <FilterAttendanceModal
@@ -576,7 +452,6 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                 totalRecords={allExportStaff.length}
                 currentRecords={allStaff.length}
             />
-
         </div>
     );
 }
