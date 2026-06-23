@@ -422,7 +422,6 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
     const handleViolationSubmit = async () => {
         // Basic validation
         const newErrors = {};
-        if (!slot) newErrors.slot = "Required";
         if (!vehicleNo.trim()) newErrors.vehicleNo = "Required";
         if (!violationType) newErrors.violationType = "Required";
         if (!vehicleType) newErrors.vehicleType = "Required";
