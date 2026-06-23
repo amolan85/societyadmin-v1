@@ -13,6 +13,7 @@ const Register = ({ setActive }) => {
     { icon: <FiBox color='blue' />, title: "Asset Register", val: "$1.2M", sub: "Total Asset Value", meta: "85 Items Tracked", mc: "", bg: "#c3cefe" },
     { icon: <FiSmile color='red' />, title: "Complaint Register", val: "12", sub: "Open issues", meta: "3 High Priority", mc: "tx-danger", bg: "#fee2e2" },
     { icon: <FiUsers   color='teal' />, title: "Visitor Register", val: "1,245", sub: "Total visitors", meta: "↑ 12 this week", mc: "tx-success", bg: "#dbeafe", tab: "visitorRegister" },
+    {icon: <FaCar color="teal" />,title: "Vehicle Register",val: "856",sub: "Total vehicles",meta: "↑ 8 this week",  mc: "tx-success",bg: "#dbeafe",tab: "vehicleRegister"}
   ];
   return (
 

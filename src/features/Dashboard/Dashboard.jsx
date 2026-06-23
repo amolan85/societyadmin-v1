@@ -41,6 +41,8 @@ import ViolationAlertsList from "../Parking/ViolationAlertsList";
 import VisitorParkingList from "../Parking/VisitorParkingList";
 import VisitorRegister from "../Register/VisitorRegister/VisitorRegister";
 import GetVisitorDetails from "../Register/VisitorRegister/GetVisitorDetails";
+import ListVehicleRegister from "../Register/VehicleRegister/ListVehicleRegister";
+import GetVehicleDetails from "../Register/VehicleRegister/GetVehicleDetails";
 
 
 /* ══ OVERVIEW ══════════════════════════════════ */
@@ -78,6 +80,7 @@ const NAV = [
       { id: "registers", icon: "📔", lbl: "Registers" },
       { id: "rules", icon: "⚖️", lbl: "Rules & By-laws" },
       { id: "visitorRegister", icon: "🚶", lbl: "Visitors" },
+       { id: "vehicleRegister", icon: "🚗", lbl: "Vehicles" },
     ]
   },
   {
@@ -120,6 +123,10 @@ const PARENT_MAP = {
   parkingRules: "parkingDashboard",
   viewParkingDetails: "parkingDashboard",
   visitorDetails: "parkingDashboard",
+
+  //vehicle pages
+  vehicleRegister: "registers",
+  vehicleDetailsPage: "registers",
 };
 
 const TITLES = {
@@ -158,6 +165,8 @@ const TITLES = {
   rentalsApplication: ["Operations", "Rentals & Tenants", "Review Application"],
   staff: ["Operations", "Staff Attendance"],
   createStaff: ["Operations", "Create Staff Attendance"],
+  vehicleRegister: ["Administration", "Registers", "Vehicle Register"],
+  vehicleDetailsPage: ["Administration", "Registers", "Vehicle Register", "Vehicle Details"],
 };
 
 /* ══ ROOT APP ══════════════════════════════════ */
@@ -184,6 +193,7 @@ export default function App() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedSocietyId, setSelectedSocietyId] = useState(null);
   const [selectedSlotData, setSelectedSlotData] = useState(null);
+  const [vehicleId, setVehicleId] = useState(null);
   useLayoutEffect(() => {
     if (!document.getElementById("bs-css")) {
       const l = document.createElement("link");
@@ -237,7 +247,9 @@ export default function App() {
     parkingHistory: <ParkingHistory setActive={setActive} slotId={selectedSlotId} slotData={selectedSlotData} />,
     visitorRegister: <VisitorRegister setActive={setActive} setVisitorId={setVisitorId} />,
     visitorDetailsPage: <GetVisitorDetails setActive={setActive} visitorId={visitorId} />,
-  };
+    vehicleRegister: <ListVehicleRegister setActive={setActive}setVehicleId={setVehicleId}/>,
+    vehicleDetailsPage: <GetVehicleDetails setActive={setActive} vehicleId={vehicleId}/>
+ };
 
 
   // const [sec, pg] = TITLES[active] || ["", "", "", ""];
