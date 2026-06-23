@@ -66,6 +66,9 @@ const Visitormodal = ({
     parcelDeliveryType,
     setParcelDeliveryType,
 
+    photo,
+    setPhoto,
+
     parcelDescription,
     setParcelDescription,
 
@@ -304,6 +307,17 @@ const Visitormodal = ({
                                                         onChange={e => setIdNumber(e.target.value)}
                                                         disabled={isEdit}
                                                         style={isEdit ? { background: "#f8fafc", color: "#64748b" } : {}}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="row g-3 mb-3">
+                                                <div className="col-12">
+                                                    <label className="sv-lb">Photo</label>
+                                                    <input
+                                                        type="file"
+                                                        className="form-control"
+                                                        accept="image/*"
+                                                        onChange={(e) => setPhoto(e.target.files[0])}
                                                     />
                                                 </div>
                                             </div>

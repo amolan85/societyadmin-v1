@@ -277,7 +277,7 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
                                 </div>
                                 <div className="mt-3">
                                     <small className="text-muted">Driver License / ID</small>
-                                    <div className="fw-semibold">{visitorData?.visitor_info?.entry_vehicle_number || "-"}</div>
+                                    <div className="fw-semibold">{visitorData?.visitor_info?.id_number || "-"}</div>
                                 </div>
                             </div>
                         </div>

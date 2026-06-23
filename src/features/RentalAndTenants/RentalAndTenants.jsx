@@ -60,6 +60,11 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
     const [blocks, setBlocks] = useState("");
     const [allBlocks, setAllBlocks] = useState([]);
 
+    //count data
+    const [pendingCount, setPendingCount] = useState(0);
+    const [expiringCount, setExpiringCount] = useState(0);
+    const [kycPendingCount, setKycPendingCount] = useState(0);
+
     const [exportModal, setExportModal] = useState(false);
     const [errorText, setErrorText] = useState("");
     const [search, setSearch] = useState("");
@@ -111,10 +116,9 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
 
     const mangementType = [
         { id: "All Rentals", value: "", count: 0, color: "" },
-        { id: "Pending Registration", value: "Pending", count: 12, color: "yellow" },
-        { id: "Expiring Soon", value: "expiry", count: 5, color: "red" },
-        { id: "KYC Pending", value: 0, count: 8, color: "blue" },
-
+        { id: "Pending Registration", value: "Pending", count: pendingCount, color: "yellow" },
+        { id: "Expiring Soon", value: "expiry", count: expiringCount, color: "red" },
+        { id: "KYC Pending", value: 0, count: kycPendingCount, color: "blue" },
     ];
 
     useEffect(() => {
@@ -139,6 +143,17 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
             setPage(data.page);
             setLimit(data.per_page);
             setTotalCount(data.total_count);
+
+            // Sirf pehli page par counts set karo
+            if (page === 1) {
+                setPendingCount(data.pending_count ?? data.tenants.filter(t => t.status === "Pending").length);
+                setExpiringCount(data.expiring_count ?? data.tenants.filter(t => {
+                    if (!t.end_date) return false;
+                    const diff = Math.ceil((new Date(t.end_date) - new Date()) / (1000 * 60 * 60 * 24));
+                    return diff >= 0 && diff <= 30;
+                }).length);
+                setKycPendingCount(data.kyc_pending_count ?? data.tenants.filter(t => t.documents === 0).length);
+            }
         } catch (error) {
             console.error("Error fetching members:", error);
         }

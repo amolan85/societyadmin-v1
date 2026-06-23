@@ -43,6 +43,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [show, setShow] = useState(false);
     const [exportModal, setExportModal] = useState(false);
     const [approvalModal, setApprovalModal] = useState(false);
+    const [photo, setPhoto] = useState(null);
 
     // Export
     const [activeTab, setActiveTab] = useState("excel");
@@ -365,7 +366,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             value: visitor.id,
             label: visitor.visitor_name
         });
-
+        setVehicleNumber(visitor.vehicle_number || "");
         setShowAllotParking(true);
     };
     const handleVisitorParkingSubmit = async () => {
@@ -573,7 +574,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
 
                 </div>
                 {/* Table */}
-                <div className="sv-card p-0 overflow-hidden">
+                <div className="sv-card p-0">
                     <div className="sa-table-wrap">
                         <table className="sv-tbl">
                             <thead>
@@ -762,6 +763,8 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 setMobile={setMobile}
                 flatId={flatId}
                 setFlatId={setFlatId}
+                photo={photo}
+                setPhoto={setPhoto}
                 // flatsList={flatsList}
                 allBlocks={visitorAllBlocks}
                 allFlats={visitorAllFlats}
