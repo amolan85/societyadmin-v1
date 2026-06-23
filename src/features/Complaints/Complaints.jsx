@@ -497,12 +497,12 @@ const filteredData = allComplaints.filter((item) => {
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               />
-              <button
+              {/* <button
                 className="btn btn-primary"
                 onClick={() => setPage(1)}
               >
                 <FiSearch />
-              </button>
+              </button> */}
             </div>
           </div>
           <div className="col-md-3">

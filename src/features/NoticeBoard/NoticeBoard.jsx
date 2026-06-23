@@ -357,9 +357,9 @@ const handleExport = () => {
                                     setPage(1);
                                 }}
                             />
-                                <button className="btn btn-primary ms-2">
+                                {/* <button className="btn btn-primary ms-2">
                                 <FiSearch />
-                                </button>
+                                </button> */}
                             </div>
                         </div>
 

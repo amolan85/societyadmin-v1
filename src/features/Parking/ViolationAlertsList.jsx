@@ -410,17 +410,22 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                       <div className="col-md-3">
                                   <div className="d-flex gap-2">
                                     <input
-                                      type="text"
-                                      className="form-control"
-                                      placeholder="Search by title, unit..."
-                                      value={search}
-                                      onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                                    />
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Search Vehicle No..."
+                                        value={search}
+                                        onChange={handleSearchChange}
+                                        onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                        handleSearchClick();
+                                        }
+                                    }}
+                                />
                                     <button
-                                      className="btn btn-primary"
-                                      onClick={() => setPage(1)}
-                                    >
-                                      <FiSearch />
+                                        className="btn btn-primary"
+                                        onClick={handleSearchClick}
+                                        >
+                                        <FiSearch />
                                     </button>
                                   </div>
                                 </div>
