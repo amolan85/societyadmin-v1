@@ -124,9 +124,9 @@ const PARENT_MAP = {
   viewParkingDetails: "parkingDashboard",
   visitorDetails: "parkingDashboard",
 
-  //vehicle pages
-  vehicleRegister: "registers",
-  vehicleDetailsPage: "registers",
+  // ↓ yeh do lines change karo
+  vehicleDetailsPage: "vehicleRegister",  // "registers" → "vehicleRegister"
+  // vehicleRegister line hatao — ye khud nav item hai, child nahi
 };
 
 const TITLES = {

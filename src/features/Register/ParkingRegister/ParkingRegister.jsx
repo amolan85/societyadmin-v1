@@ -307,7 +307,7 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
 
                             <div className="position-relative">
                                 <button
-                                    className={`btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 ${showMoreFilters ? "active" : ""}`}
+                                    className={`btn btn-sm btn-ac btn-primary ${showMoreFilters ? "active" : ""}`}
                                     onClick={() => {
                                         // dropdown open hone par current values se sync karo
                                         setTempParkingType(filterParkingType);
@@ -316,11 +316,6 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
                                     }}
                                 >
                                     <FiFilter size={14} /> More Filters
-                                    {activeFilterCount > 0 && (
-                                        <span className="badge bg-primary rounded-pill" style={{ fontSize: "10px" }}>
-                                            {activeFilterCount}
-                                        </span>
-                                    )}
                                 </button>
 
                                 {showMoreFilters && (
@@ -335,7 +330,7 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
                                         }}>
 
                                         {/* Parking Type — temp state use karo */}
-                                        <p className="text-muted fw-semibold mb-1" style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                                        <p className="text-muted fw-semibold mb-1 text-start" style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                                             Parking Type
                                         </p>
                                         <div className="d-flex gap-2 flex-wrap mb-3">
@@ -350,7 +345,7 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
                                         </div>
 
                                         {/* Vehicle Type — temp state use karo */}
-                                        <p className="text-muted fw-semibold mb-1" style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                                        <p className="text-muted fw-semibold mb-1 text-start" style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                                             Vehicle Type
                                         </p>
                                         <div className="d-flex gap-2 flex-wrap mb-3">

@@ -228,7 +228,7 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
                             >
                                 <FiLogOut /> Relased Parking
                             </button>
-                            <button className="btn btn-sm btn-ac btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
+                            <button className="btn btn-sm btn-ac btn-primary" onClick={() => setActive("visitorParking")}>Back</button>
                         </div>
                     </div>
                 </div>

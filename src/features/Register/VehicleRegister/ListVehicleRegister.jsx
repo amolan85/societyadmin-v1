@@ -49,6 +49,11 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
     const [errors, setErrors] = useState({});
     const [errorText, setErrorText] = useState("");
 
+    //for filters
+    const [filterBlock, setFilterBlock] = useState("");
+    const [filterFloor, setFilterFloor] = useState("");
+    const [filterFlatStatus, setFilterFlatStatus] = useState("");
+
     // Stats
     const [stats, setStats] = useState({ total: 0, twoWheeler: 0, fourWheeler: 0, other: 0 });
 
@@ -59,6 +64,13 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
         getVehicles({ sid: societyId, pg: page, searchText: search, vType: vehicleTypeFilter });
     }, [page, vehicleTypeFilter]);
 
+
+    const filteredVehicles = vehiclesList.filter(v => {
+        if (filterBlock && v.block?.toLowerCase() !== filterBlock.toLowerCase()) return false;
+        if (filterFloor && String(v.floor) !== String(filterFloor)) return false;
+        if (filterFlatStatus && v.flat_status?.toLowerCase() !== filterFlatStatus.toLowerCase()) return false;
+        return true;
+    });
     const SessionData = async () => {
         try {
             const data = await GetSessionData();
@@ -268,7 +280,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                     </div>
 
                     <div className="row g-2">
-                        <div className="col-md-4">
+                        <div className="col-md-3">
                             <select
                                 className="form-select"
                                 value={vehicleTypeFilter}
@@ -279,6 +291,38 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                                 <option value="4_wheeler">4 Wheeler</option>
                                 <option value="other">Other</option>
                             </select>
+                        </div>
+                        <div className="col-md-3">
+                            <select
+                                className="form-select"
+                                value={filterBlock}
+                                onChange={e => setFilterBlock(e.target.value)}
+                            >
+                                <option value="">All Blocks</option>
+                                <option value="A">Block A</option>
+                                <option value="B">Block B</option>
+                                <option value="C">Block C</option>
+                            </select>
+                        </div>
+                        <div className="col-md-3">
+                            <select
+                                className="form-select"
+                                value={filterFlatStatus}
+                                onChange={e => setFilterFlatStatus(e.target.value)}
+                            >
+                                <option value="">All Flat Status</option>
+                                <option value="Occupied">Occupied</option>
+                                <option value="Vacant">Vacant</option>
+                            </select>
+                        </div>
+                        <div className="col-md-3">
+                            <input
+                                type="number"
+                                className="form-control"
+                                placeholder="Filter by floor..."
+                                value={filterFloor}
+                                onChange={e => setFilterFloor(e.target.value)}
+                            />
                         </div>
                     </div>
                 </div>
@@ -297,9 +341,9 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                             <tbody>
                                 {loading ? (
                                     <tr><td colSpan={7} className="text-center py-4 text-muted">Loading...</td></tr>
-                                ) : vehiclesList.length === 0 ? (
+                                ) : filteredVehicles.length === 0 ? (
                                     <tr><td colSpan={7} className="text-center py-4 text-muted">No vehicles found</td></tr>
-                                ) : vehiclesList.map((v, i) => (
+                                ) : filteredVehicles.map((v, i) => (
                                     <tr className="text-start" key={i}>
                                         <td>
                                             <div className="fw-semibold">{v.vehicle_number}</div>
