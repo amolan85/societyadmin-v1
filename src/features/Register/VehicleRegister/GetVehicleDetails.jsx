@@ -44,28 +44,40 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
 
     const SessionData = async () => {
         const data = await GetSessionData();
-        const firstFlat = data.data.flats[0];
-        setSocietyId(firstFlat.society_id);
-        setUserId(data.data.user_id);
-        fetchVehicle();
+
+        const firstFlat = data.data.flats?.[0];
+
+        if (firstFlat) {
+            const sid = firstFlat.society_id;
+
+            setSocietyId(sid);
+            setUserId(data.data.user_id);
+
+            fetchVehicle(sid);
+        }
     };
 
-    const fetchVehicle = async () => {
+    const fetchVehicle = async (sid) => {
         try {
             setLoading(true);
-            const res = await GetVehicleByIdApi(vehicleId);
+
+            const res = await GetVehicleByIdApi(
+                vehicleId,
+                sid
+            );
+
             setVehicle(res?.data || res);
         } catch (e) {
             toast.error("Could not load vehicle details");
         } finally {
             setLoading(false);
         }
-    };
+    }
 
     const handleDelete = async () => {
         if (!window.confirm("Are you sure you want to delete this vehicle?")) return;
         try {
-            await DeleteVehicleApi(vehicle.id);
+            await DeleteVehicleApi(vehicle.id, societyId);
             toast.success("Vehicle deleted");
             onBack && onBack();
         } catch (e) {
@@ -75,16 +87,35 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
 
     const handleUpdate = async () => {
         let errs = {};
+
         if (!vehicleNumber) errs.vehicleNumber = "required";
         if (!vehicleType) errs.vehicleType = "required";
-        if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+
+        if (Object.keys(errs).length > 0) {
+            setErrors(errs);
+            return;
+        }
+
         try {
-            await UpdateVehicleApi(vehicle.id, vehicleNumber, vehicleType, vehicleModel, color, stickerId, rcDocument);
+            await UpdateVehicleApi(
+                vehicle.vehicle_id,
+                societyId,
+                vehicleNumber,
+                vehicleType,
+                vehicleModel,
+                color,
+                stickerId,
+                rcDocument
+            );
+
             toast.success("Vehicle updated successfully");
+
             setShow(false);
             setErrors({});
             setErrorText("");
-            fetchVehicle();
+
+            fetchVehicle(societyId);
+
         } catch (e) {
             toast.error(e?.message || "Update failed");
             setErrorText(e?.message || "Update failed");
@@ -321,6 +352,8 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
                 setShow={setShow}
                 mode="edit"
                 errors={errors}
+                societyId={societyId}
+                vehicleId={vehicle?.id}
                 setErrors={setErrors}
                 errorText={errorText}
                 vehicleNumber={vehicleNumber}

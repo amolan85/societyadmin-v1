@@ -720,8 +720,8 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
                     </div>
                     <div className='d-flex'>
 
-                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
-                            createvisitorparkingsetShow(true)}>+ Create Visitor</button>
+                        {/* <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
+                            createvisitorparkingsetShow(true)}>+ Create Visitor</button> */}
                         {/* <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
                             setShow(true)}>+ Allot Parking</button> */}
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>

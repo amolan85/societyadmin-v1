@@ -51,11 +51,16 @@ export const ListVehiclesApi = async ({
 };
 
 // Get Vehicle By ID
-export const GetVehicleByIdApi = async (vehicleId) => {
+export const GetVehicleByIdApi = async (vehicleId, societyId) => {
     const url = UrlData + 'vehicle/GetVehicleById';
+
     return await apiClient({
-        method: 'post', url,
-        data: { vehicle_id: vehicleId },
+        method: 'post',
+        url,
+        data: {
+            vehicle_id: vehicleId,
+            society_id: societyId
+        },
         timeout: 30000
     })
         .then(res => res.data.data)
@@ -64,31 +69,51 @@ export const GetVehicleByIdApi = async (vehicleId) => {
 
 // Update Vehicle
 export const UpdateVehicleApi = async (
-    vehicleId, vehicleNumber, vehicleType,
-    vehicleModel, color, stickerId, rcDocument
+    vehicleId,
+    societyId,
+    vehicleNumber,
+    vehicleType,
+    vehicleModel,
+    color,
+    stickerId,
+    rcDocument
 ) => {
     const url = UrlData + 'vehicle/UpdateVehicle';
 
     const formData = new FormData();
     formData.append("vehicle_id", vehicleId);
+    formData.append("society_id", societyId);
     formData.append("vehicle_number", vehicleNumber);
     formData.append("vehicle_type", vehicleType);
     formData.append("vehicle_model", vehicleModel || "");
     formData.append("color", color || "");
     formData.append("sticker_id", stickerId || "");
-    if (rcDocument) formData.append("rc_document", rcDocument);
 
-    return await apiClient({ method: 'post', url, data: formData, timeout: 30000 })
+    if (rcDocument) {
+        formData.append("rc_document", rcDocument);
+    }
+
+    return await apiClient({
+        method: 'post',
+        url,
+        data: formData,
+        timeout: 30000
+    })
         .then(res => res.data.data)
         .catch(error => { throw ErrorHandler(error); });
 };
 
 // Delete Vehicle
-export const DeleteVehicleApi = async (vehicleId) => {
+export const DeleteVehicleApi = async (vehicleId, societyId) => {
     const url = UrlData + 'vehicle/DeleteVehicle';
+
     return await apiClient({
-        method: 'post', url,
-        data: { vehicle_id: vehicleId },
+        method: 'post',
+        url,
+        data: {
+            vehicle_id: vehicleId,
+            society_id: societyId
+        },
         timeout: 30000
     })
         .then(res => res.data)

@@ -397,7 +397,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
     };
 
     const handleParkingList = async () => {
-        setActive("parkingList");
+        setActive("parkingRegister");
     };
 
     const resetForm = () => {
@@ -524,9 +524,9 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
                         <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingRules")}>
                             Parking Rules
                         </button>
-                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setShowAllocateSlot(true)}>
+                        {/* <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setShowAllocateSlot(true)}>
                             + Allocate Slot
-                        </button>
+                        </button> */}
                     </div>
                 </div>
 
@@ -743,7 +743,9 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
                         </div>
                     </div>
                 </div>
+                <div className="row g-3">
 
+                </div>
                 {/* Tenant Table */}
                 <div className="sv-card p-0 overflow-hidden mt-4">
                     <div className="sa-table-wrap">

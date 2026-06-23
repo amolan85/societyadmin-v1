@@ -8,6 +8,9 @@ import { FiLogOut } from 'react-icons/fi';
 import { getVisitorParkingByIdApi, releaseVisitorParkingApi } from "../../services/VisitorParkingApi";
 import { GetSessionData } from "../../utils/SessionManagement";
 import { toast } from "react-toastify";
+import ViolationAlertModal from './ViolationAlertModal';
+import { ListParkingSlotsApi } from '../../services/ParkingApi';
+import { createViolationAlertApi } from '../../services/ViolationAlertsApi';
 
 const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
 
@@ -18,6 +21,17 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
     const [loading, setLoading] = useState(true);
     const [resolvedParkingId, setResolvedParkingId] = useState(null);
     const [profileUrl, setProfileUrl] = useState("");
+
+    //report Violation
+    const [showViolationAlert, setShowViolationAlert] = useState(false);
+    const [allSlots, setAllSlots] = useState([]);
+    const [violationSlot, setViolationSlot] = useState(null);
+    const [violationVehicleNo, setViolationVehicleNo] = useState("");
+    const [violationType, setViolationType] = useState(null);
+    const [violationVehicleType, setViolationVehicleType] = useState(null);
+    const [penaltyAmount, setPenaltyAmount] = useState("");
+    const [description, setDescription] = useState("");
+    const [violationErrors, setViolationErrors] = useState({});
     const extendDurationType = [
         { id: "1 Hour", value: "1Hour" },
         { id: "2 Hours", value: "2Hours" },
@@ -48,6 +62,81 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
         init();
     }, [societyId, visitorParkingId]);
 
+    //for Open Violation
+ const handleOpenViolation = async () => {
+    try {
+        const session = await GetSessionData();
+        const sId = societyId || session?.data?.flats?.[0]?.society_id;
+        const res = await ListParkingSlotsApi(sId, 1, 100, "", "", "", "");
+        const slots = (res?.slots || []).map(s => ({
+            value: s.id,
+            label: s.slot_number
+        }));
+        setAllSlots(slots);
+
+        // Pre-fill vehicle number
+        setViolationVehicleNo(visitorData?.vehicle_number || "");
+
+        // Pre-fill slot
+        if (visitorData?.slot) {
+            setViolationSlot({
+                value: visitorData.slot.id,
+                label: visitorData.slot.slot_number
+            });
+        }
+
+        // ✅ Pre-fill vehicle type
+        if (visitorData?.vehicle_type) {
+            setViolationVehicleType({
+                value: visitorData.vehicle_type,
+                label: visitorData.vehicle_type === "2_wheeler" ? "2 Wheeler" : "4 Wheeler"
+            });
+        }
+
+        setShowViolationAlert(true);
+    } catch (e) {
+        toast.error("Failed to load slots");
+    }
+};
+
+    const resetViolationForm = () => {
+        setViolationSlot(null);
+        setViolationVehicleNo("");
+        setViolationType(null);
+        setViolationVehicleType(null);
+        setPenaltyAmount("");
+        setDescription("");
+        setViolationErrors({});
+    };
+    //submit Violation
+    const handleViolationSubmit = async () => {
+        let errs = {};
+        if (!violationSlot) errs.slot = "required";
+        if (!violationVehicleNo) errs.vehicleNo = "required";
+        if (!violationType) errs.violationType = "required";
+        if (!violationVehicleType) errs.vehicleType = "required";
+        if (!penaltyAmount) errs.firstName = "required";
+        if (Object.keys(errs).length > 0) { setViolationErrors(errs); return; }
+
+        try {
+            const session = await GetSessionData();
+            const sId = societyId || session?.data?.flats?.[0]?.society_id;
+            await createViolationAlertApi({
+                society_id: sId,
+                slot_id: violationSlot?.value,
+                vehicle_number: violationVehicleNo,
+                violation_type: violationType?.value,
+                vehicle_type: violationVehicleType?.value,
+                penalty_amount: Number(penaltyAmount),
+                description: description || ""
+            });
+            toast.success("Violation reported successfully");
+            setShowViolationAlert(false);
+            resetViolationForm();
+        } catch (e) {
+            toast.error(e?.message || "Failed to report violation");
+        }
+    };
     const handleCheckout = async () => {
         try {
             let sId = societyId;
@@ -130,7 +219,7 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
                         </div>
 
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
-                            <button className="btn btn-sm btn-ad print-btn"><FiAlertTriangle /> Report Violation</button>
+                            <button className="btn btn-sm btn-ad print-btn" onClick={handleOpenViolation}><FiAlertTriangle /> Report Violation</button>
                             <button className="btn btn-sm btn-ad grey-btn" onClick={() => setShowExtendTime(true)}><FiCheckCircle /> Extend Time</button>
                             <button
                                 className="btn btn-sm btn-ac btn-primary"
@@ -231,7 +320,7 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
                                         />
                                         <div>
                                             <div className="fw-semibold">-</div>
-                                            <small className="text-muted">Primary Owner</small>
+                                            <small className="text-muted">Primary Owner {visitorData?.owner_info?.owner_name}</small>
                                         </div>
                                     </div>
                                     <div>
@@ -277,7 +366,9 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
                                 </div>
                                 <div className="mt-3">
                                     <small className="text-muted">Driver License / ID</small>
-                                    <div className="fw-semibold">{visitorData?.visitor_info?.id_number || "-"}</div>
+                                    <div className="fw-semibold">
+                                        {visitorData?.visitor_info?.visitor_id_type || "-"} : {visitorData?.visitor_info?.visitor_id_number || "-"}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -338,7 +429,27 @@ const VisitorDetails = ({ setActive, visitorParkingId, societyId }) => {
                 visitorData={visitorData}
                 onConfirm={handleCheckout}
             />
-
+            <ViolationAlertModal
+                showViolationAlert={showViolationAlert}
+                setShowViolationAlert={setShowViolationAlert}
+                allSlots={allSlots}
+                slot={violationSlot}
+                setSlot={setViolationSlot}
+                vehicleNo={violationVehicleNo}
+                setVehicleNo={setViolationVehicleNo}
+                violationType={violationType}
+                setViolationType={setViolationType}
+                vehicleType={violationVehicleType}
+                setVehicleType={setViolationVehicleType}
+                firstName={penaltyAmount}
+                setFirstName={setPenaltyAmount}
+                lastName={description}
+                setLastName={setDescription}
+                errors={violationErrors}
+                resetForm={resetViolationForm}
+                handleSubmit={handleViolationSubmit}
+                mode="add"
+            />
             <ExtendTimeModal
                 showExtendTime={showExtendTime}
                 setShowExtendTime={setShowExtendTime}

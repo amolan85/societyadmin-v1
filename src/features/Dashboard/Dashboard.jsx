@@ -80,7 +80,6 @@ const NAV = [
       { id: "registers", icon: "📔", lbl: "Registers" },
       { id: "rules", icon: "⚖️", lbl: "Rules & By-laws" },
       { id: "visitorRegister", icon: "🚶", lbl: "Visitors" },
-       { id: "vehicleRegister", icon: "🚗", lbl: "Vehicles" },
     ]
   },
   {
@@ -89,6 +88,7 @@ const NAV = [
       { id: "parkingDashboard", icon: "🚗", lbl: "Parking" },
       { id: "rentals", icon: "🏢", lbl: "Rentals & Tenants" },
       { id: "staff", icon: "👥", lbl: "Staff Attendance" },
+      { id: "vehicleRegister", icon: "🚘", lbl: "Vehicles" },
     ]
   },
 ];
@@ -247,9 +247,9 @@ export default function App() {
     parkingHistory: <ParkingHistory setActive={setActive} slotId={selectedSlotId} slotData={selectedSlotData} />,
     visitorRegister: <VisitorRegister setActive={setActive} setVisitorId={setVisitorId} />,
     visitorDetailsPage: <GetVisitorDetails setActive={setActive} visitorId={visitorId} />,
-    vehicleRegister: <ListVehicleRegister setActive={setActive}setVehicleId={setVehicleId}/>,
-    vehicleDetailsPage: <GetVehicleDetails setActive={setActive} vehicleId={vehicleId}/>
- };
+    vehicleRegister: <ListVehicleRegister setActive={setActive} setVehicleId={setVehicleId} />,
+    vehicleDetailsPage: <GetVehicleDetails setActive={setActive} vehicleId={vehicleId} />
+  };
 
 
   // const [sec, pg] = TITLES[active] || ["", "", "", ""];

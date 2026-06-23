@@ -60,34 +60,57 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
     }, [page, vehicleTypeFilter]);
 
     const SessionData = async () => {
-        const data = await GetSessionData();
-        const firstFlat = data.data.flats[0];
-        setSocietyId(firstFlat.society_id);
-        setUserId(data.data.user_id);
-        getVehicles({ sid: firstFlat.society_id, pg: 1, searchText: "", vType: "" });
+        try {
+            const data = await GetSessionData();
+
+            setUserId(data.data.user_id);
+
+            const firstFlat = data.data.flats?.[0];
+
+            if (firstFlat) {
+                const sid = firstFlat.society_id;
+
+                setSocietyId(sid);
+
+                getVehicles({
+                    sid,
+                    pg: 1,
+                    searchText: "",
+                    vType: ""
+                });
+            }
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     const getVehicles = async ({ sid, pg, searchText, vType }) => {
         try {
             setLoading(true);
-            const data = await ListVehiclesApi({
+
+            const response = await ListVehiclesApi({
                 societyId: sid,
                 currentPage: pg,
                 search: searchText,
                 vehicleType: vType,
             });
-            const list = data.vehicles || data.data || [];
+            console.log("Vehicle API Response:", response);
+            const list = response?.vehicles || [];
+            const pagination = response?.pagination || {};
+
             setVehiclesList(list);
-            setTotalCount(data.total || 0);
-            setTotalPages(data.total_pages || 1);
-            setPage(data.page || pg);
-            // compute stats
+
+            setTotalCount(pagination.total || 0);
+            setTotalPages(pagination.total_pages || 1);
+            setPage(pagination.page || pg);
+
             setStats({
-                total: data.total || 0,
+                total: pagination.total || 0,
                 twoWheeler: list.filter(v => v.vehicle_type === "2_wheeler").length,
                 fourWheeler: list.filter(v => v.vehicle_type === "4_wheeler").length,
                 other: list.filter(v => v.vehicle_type === "other").length,
             });
+
         } catch (e) {
             toast.error("Failed to load vehicles");
         } finally {
@@ -125,7 +148,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
     const handleEditOpen = async (vehicleId) => {
         try {
             resetForm();
-            const data = await GetVehicleByIdApi(vehicleId);
+            const data = await GetVehicleByIdApi(vehicleId, societyId);
             setVehicleNumber(data.vehicle_number || "");
             setVehicleType(data.vehicle_type || "");
             setVehicleModel(data.vehicle_model || "");
@@ -156,7 +179,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
         if (Object.keys(errs).length > 0) { setErrors(errs); return; }
         try {
             if (isEdit) {
-                await UpdateVehicleApi(editVehicleId, vehicleNumber, vehicleType, vehicleModel, color, stickerId, rcDocument);
+                await UpdateVehicleApi(editVehicleId, societyId, vehicleNumber, vehicleType, vehicleModel, color, stickerId, rcDocument);
                 toast.success("Vehicle updated successfully!");
             } else {
                 await CreateVehicleApi(societyId, userId, selectedFlat, vehicleNumber, vehicleType, vehicleModel, color, stickerId, rcDocument);
@@ -174,7 +197,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
     const handleDelete = async (vehicleId) => {
         if (!window.confirm("Are you sure you want to delete this vehicle?")) return;
         try {
-            await DeleteVehicleApi(vehicleId);
+            await DeleteVehicleApi(vehicleId, societyId);
             toast.success("Vehicle deleted successfully");
             getVehicles({ sid: societyId, pg: page, searchText: search, vType: vehicleTypeFilter });
         } catch (e) {
@@ -281,7 +304,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                                         <td>
                                             <div className="fw-semibold">{v.vehicle_number}</div>
                                         </td>
-                                        <td>{v.flat_id || "—"}</td>
+                                        <td>{v.flat_number || "—"}</td>
                                         <td>
                                             <Badge
                                                 label={vehicleTypeLabel(v.vehicle_type)}
@@ -299,7 +322,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                                                         <button
                                                             className="dropdown-item member-action-item"
                                                             onClick={() => {
-                                                                setVehicleId(v.id);
+                                                                setVehicleId(v.vehicle_id);
                                                                 setActive("vehicleDetailsPage");
                                                             }}
                                                         >
@@ -309,7 +332,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
-                                                            onClick={() => handleEditOpen(v.id)}
+                                                            onClick={() => handleEditOpen(v.vehicle_id)}
                                                         >
                                                             Edit Vehicle
                                                         </button>
@@ -317,7 +340,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item text-danger"
-                                                            onClick={() => handleDelete(v.id)}
+                                                            onClick={() => handleDelete(v.vehicle_id)}
                                                         >
                                                             Delete Vehicle
                                                         </button>

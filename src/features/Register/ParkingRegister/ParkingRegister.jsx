@@ -44,6 +44,11 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
     const [filterVehicleType, setFilterVehicleType] = useState("");
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
+    const [showMoreFilters, setShowMoreFilters] = useState(false);
+    const [filterEvReady, setFilterEvReady] = useState(false);
+    // Local temporary state for dropdown
+    const [tempParkingType, setTempParkingType] = useState("");
+    const [tempVehicleType, setTempVehicleType] = useState("");
     const [stats, setStats] = useState({ total: 0, allocated: 0, available: 0, reserved: 0 });
 
     const parkingTypeList = [
@@ -102,6 +107,9 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
             setLoading(false);
         }
     };
+    // count active filters for badge
+    const activeFilterCount = [filterParkingType, filterVehicleType].filter(Boolean).length;
+
     const handleDelete = async (slotId) => {
         if (!window.confirm("Are you sure you want to delete this slot?")) return;
         try {
@@ -211,7 +219,15 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
                         [stats.reserved, "Reserved Slots", "tile-purple"]
                     ].map(([v, l, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
-                            <div className={`tile bg-white ${cls}`}>
+                            <div
+                                className={`tile bg-white ${cls}`}
+                                style={{ cursor: "pointer" }}
+                                onClick={() => {
+                                    if (l === "Total Slots") {
+                                        setActive("parkingRegister");
+                                    }
+                                }}
+                            >
                                 <div className="text-start text-muted">{l}</div>
                                 <div className="tile-val text-start mt-1">{v}</div>
                             </div>
@@ -219,27 +235,8 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
                     ))}
                 </div>
 
-                {/* <div className="d-flex justify-content-between align-items-center mb-4 text-start">
-                    <div className="col-12 col-md-4 col-lg-3 position-relative">
-                        <span style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)", color: "#aaa" }}>
-                            <FiSearch size={16} />
-                        </span>
-                        <input
-                            type="text"
-                            className="form-control rounded-pill"
-                            placeholder="Search by slot no, vehicle or owner..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            style={{ paddingLeft: "35px" }}
-                        />
-                    </div>
-                    <div className='d-flex'>
-                        <button className="btn-ol ms-2" data-bs-toggle="dropdown"><FiFilter size={14} /> Filter</button>
-                        <button className="btn-ol ms-2" onClick={() => setExportModal(true)}><BiExport /> Export</button>
-                        <button className='btn btn-sm btn-ac ms-2 btn-primary' onClick={() => { resetForm(); setShow(true); }}>+ Add Slot</button>
-                    </div>
-                </div> */}
-                <div className="visitor-toolbar mb-4">
+
+                {/* <div className="visitor-toolbar mb-4">
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                         <button className='btn btn-sm btn-ac btn-primary'
                             onClick={() => { resetForm(); setShow(true); }}>
@@ -295,6 +292,143 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
                                 value={dateTo}
                                 onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
                             />
+                        </div>
+                    </div>
+                </div> */}
+                <div className="visitor-toolbar mb-4">
+                    <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+                        {/* LEFT: Add Slot + More Filters */}
+                        <div className="d-flex align-items-center gap-2">
+                            <button className='btn btn-sm btn-ac btn-primary'
+                                onClick={() => { resetForm(); setShow(true); }}>
+                                + Add Slot
+                            </button>
+
+                            <div className="position-relative">
+                                <button
+                                    className={`btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 ${showMoreFilters ? "active" : ""}`}
+                                    onClick={() => {
+                                        // dropdown open hone par current values se sync karo
+                                        setTempParkingType(filterParkingType);
+                                        setTempVehicleType(filterVehicleType);
+                                        setShowMoreFilters(v => !v);
+                                    }}
+                                >
+                                    <FiFilter size={14} /> More Filters
+                                    {activeFilterCount > 0 && (
+                                        <span className="badge bg-primary rounded-pill" style={{ fontSize: "10px" }}>
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
+                                </button>
+
+                                {showMoreFilters && (
+                                    <div className="shadow border rounded-3 bg-white p-3 position-absolute start-0 mt-1"
+                                        style={{
+                                            width: "280px",
+                                            zIndex: 200,
+                                            top: "100%",      // ← button ke neeche hi khulega
+                                            marginTop: "4px",
+                                            maxHeight: "400px",
+                                            overflowY: "auto"
+                                        }}>
+
+                                        {/* Parking Type — temp state use karo */}
+                                        <p className="text-muted fw-semibold mb-1" style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                                            Parking Type
+                                        </p>
+                                        <div className="d-flex gap-2 flex-wrap mb-3">
+                                            {[["", "All"], ["resident", "Resident"], ["visitor", "Visitor"]].map(([val, label]) => (
+                                                <button key={val}
+                                                    className={`btn btn-sm rounded-pill ${tempParkingType === val ? "btn-primary" : "btn-outline-secondary"}`}
+                                                    style={{ fontSize: "12px" }}
+                                                    onClick={() => setTempParkingType(val)}>   {/* ← sirf temp update */}
+                                                    {label}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        {/* Vehicle Type — temp state use karo */}
+                                        <p className="text-muted fw-semibold mb-1" style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                                            Vehicle Type
+                                        </p>
+                                        <div className="d-flex gap-2 flex-wrap mb-3">
+                                            {[["", "All"], ["4_wheeler", "4 Wheeler"], ["2_wheeler", "2 Wheeler"]].map(([val, label]) => (
+                                                <button key={val}
+                                                    className={`btn btn-sm rounded-pill ${tempVehicleType === val ? "btn-primary" : "btn-outline-secondary"}`}
+                                                    style={{ fontSize: "12px" }}
+                                                    onClick={() => setTempVehicleType(val)}>   {/* ← sirf temp update */}
+                                                    {label}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        <div className="d-flex justify-content-between pt-1">
+                                            <button className="btn btn-sm btn-outline-secondary"
+                                                onClick={() => {
+                                                    setTempParkingType("");
+                                                    setTempVehicleType("");
+                                                }}>
+                                                Clear all
+                                            </button>
+                                            <button className="btn btn-sm btn-primary"
+                                                onClick={() => {
+                                                    // Apply hone par actual filter state update karo
+                                                    setFilterParkingType(tempParkingType);
+                                                    setFilterVehicleType(tempVehicleType);
+                                                    setPage(1);
+                                                    setShowMoreFilters(false);
+                                                }}>
+                                                Apply Filters
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* RIGHT: Search — as it is */}
+                        <div className="d-flex gap-2">
+                            <input
+                                type="text"
+                                className="form-control visitor-search"
+                                placeholder="Search by slot no, vehicle or owner..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                            <button className="btn btn-primary"
+                                onClick={() => {
+                                    setPage(1);
+                                    loadSlots({
+                                        sId: societyId, currentPage: 1, searchText: search,
+                                        slotStatus: filterSlotStatus, parkingType: filterParkingType,
+                                        vehicleType: filterVehicleType
+                                    });
+                                }}>
+                                <FiSearch />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* BOTTOM ROW: All Status + Dates — as it is */}
+                    <div className="row g-2">
+                        <div className="col-md-4">
+                            <select className="form-select" value={filterSlotStatus}
+                                onChange={(e) => { setFilterSlotStatus(e.target.value); setPage(1); }}>
+                                <option value="">All Status</option>
+                                <option value="available">Available</option>
+                                <option value="allocated">Allocated</option>
+                                <option value="reserved">Reserved</option>
+                            </select>
+                        </div>
+                        <div className="col-md-4">
+                            <input type="date" className="form-control" value={dateFrom}
+                                onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} />
+                        </div>
+                        <div className="col-md-4">
+                            <input type="date" className="form-control" value={dateTo}
+                                onChange={(e) => { setDateTo(e.target.value); setPage(1); }} />
                         </div>
                     </div>
                 </div>
