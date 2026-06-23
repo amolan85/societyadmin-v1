@@ -4,6 +4,9 @@ import "../../styles/NoticeBoard.css"
 import { deleteNoticeApi, getNoticeBoardApi } from '../../services/NoticeBoardApi';
 import { GetSessionData } from '../../utils/SessionManagement';
 import { toast } from "react-toastify";
+import { CgExport } from "react-icons/cg";
+import ExportModal from "../../components/Common/ExportModal";
+import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import {
     FiVolume2,
     FiTool,
@@ -12,7 +15,8 @@ import {
     FiBriefcase,
     FiUsers,
     FiEdit,
-    FiTrash2
+    FiTrash2,
+    FiSearch 
 } from "react-icons/fi";
 
 const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
@@ -22,6 +26,14 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
     const [name, setName] = useState("")
     const [allNoticeBoard, setAllNoticeBoard] = useState([])
     const [page, setPage] = useState(1);
+    const [filterStatus, setFilterStatus] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [search, setSearch] = useState("");
+    const [show, setShow] = useState(false);
+    const [activeTab, setActiveTab] = useState("excel");
+    const [selectedRange, setSelectedRange] = useState("all");
+    const [allExportNoticeBoard, setAllExportNoticeBoard] = useState([]);
     // const [selectedNoticeData, setSelectedNoticeData] = useState()
     const posts = [
         { icon: "📢", title: "AGM 2025 Date Rescheduled", tag: "Official", tc: "blue", author: "Sara Sharan", time: "2 hours ago", views: "128 views", content: "Due to unforeseen weather conditions, the AGM is postponed to Nov 12th at 5 PM in the Clubhouse." },
@@ -151,6 +163,15 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
         setActive("createNoticeBoard");
     };
 
+    const getAllExportNoticeBoard = async (societyId) => {
+    try {
+        const data = await getNoticeBoardApi(societyId);
+        setAllExportNoticeBoard(data.list || []);
+    } catch (error) {
+        console.log(error);
+    }
+};
+
     // const deleteNotice = async (noticeId) => {
     //     try {
     //         const data = await deleteNoticeApi(noticeId)
@@ -206,12 +227,103 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
     };
 
     //filter data by notice type
-    const filteredData = tab === ""
-        ? allNoticeBoard
-        : allNoticeBoard.filter((item) => item.notice_type === tab);
+    const filteredData = allNoticeBoard.filter((item) => {
 
-    const per = 5, total = Math.ceil(allNoticeBoard.length / per);
-    const rows = allNoticeBoard.slice((page - 1) * per, page * per);
+    // Notice Type Tab Filter
+    const matchesTab =
+        tab === "" || item.notice_type === tab;
+    
+     const matchesSearch =
+        !search ||
+        item.title?.toLowerCase().includes(search.toLowerCase()) ||
+        item.description?.toLowerCase().includes(search.toLowerCase());
+
+    // Status Dropdown Filter
+    const matchesStatus =
+        filterStatus === "" ||
+        item.status?.toLowerCase() === filterStatus.toLowerCase();
+
+    // Date Filter
+    const noticeDate = item.publish_date
+        ? new Date(item.publish_date)
+        : null;
+
+    const matchesStartDate =
+        !startDate ||
+        (noticeDate &&
+            noticeDate >= new Date(startDate));
+
+    const matchesEndDate =
+        !endDate ||
+        (noticeDate &&
+            noticeDate <= new Date(endDate + "T23:59:59"));
+
+    return (
+        matchesTab &&
+        matchesSearch &&
+        matchesStatus &&
+        matchesStartDate &&
+        matchesEndDate
+    );
+});
+
+    const per = 5;
+    const total = Math.ceil(filteredData.length / per);
+
+    const rows = filteredData.slice(
+        (page - 1) * per,
+        page * per
+    );
+
+      const handleStatusChange = (value) => {
+        setFilterStatus(value);
+        setPage(1);
+    };
+
+    const exportData =
+    selectedRange === "all"
+        ? allExportNoticeBoard
+        : filteredData;
+
+const downloadExcel = () =>
+    exportFile({
+        data: exportData,
+        fileName: "NoticeBoard",
+        sheetName: "NoticeBoard",
+        type: "xlsx",
+    });
+
+const downloadCSV = () =>
+    exportFile({
+        data: exportData,
+        fileName: "NoticeBoard",
+        sheetName: "NoticeBoard",
+        type: "csv",
+    });
+
+const downloadPDF = () =>
+    exportToPDF({
+        title: "Notice Board Report",
+        fileName: "NoticeBoard",
+        columns: ["Title", "Type", "Status"],
+        data: exportData.map((item) => [
+            item.title,
+            item.notice_type,
+            item.status,
+        ]),
+    });
+
+const handleExport = () => {
+    if (activeTab === "excel") {
+        downloadExcel();
+    } else if (activeTab === "csv") {
+        downloadCSV();
+    } else if (activeTab === "pdf") {
+        downloadPDF();
+    }
+
+    setShow(false);
+};
     return (
         <>
 
@@ -220,28 +332,102 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
                 {/* LEFT */}
                 <div className="col-12 col-lg-8">
                     <div className="sv-card">
-                        <div className="d-flex justify-content-end">
-                            <button className='btn btn-sm btn-ac ms-2 btn-primary'
+                        {/* Create Button Row */}
+                        <div className="d-flex justify-content-end mb-3">
+                            <button className="btn btn-sm btn-primary"
                                 onClick={() => {
                                     setActive("createNoticeBoard");
-                                    setSelectedNoticeData("")
-                                }}>
+                                    setSelectedNoticeData("");
+                                    }}
+                                >
                                 Create
                             </button>
                         </div>
+                          {/* Search & Export Row */}
+                        <div className="row align-items-center mb-3">
+                            <div className="col-md-4">
+                                <div className="d-flex">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Search by title..."
+                                        value={search}
+                                        onChange={(e) => {
+                                    setSearch(e.target.value);
+                                    setPage(1);
+                                }}
+                            />
+                                <button className="btn btn-primary ms-2">
+                                <FiSearch />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="col-md-8 text-md-end mt-2 mt-md-0">
+                            <button
+                                className="btn-ol ms-2"
+                                onClick={() => setShow(true)} >
+                                <CgExport className="me-1" />
+                                Export
+                            </button>
+                        </div>
+                    </div>
+
+{/* Filters Row */}
+<div className="row g-2 mb-3">
+    <div className="col-md-3">
+        <select
+            className="form-select"
+            value={filterStatus}
+            onChange={(e) => handleStatusChange(e.target.value)}
+        >
+            <option value="">All Status</option>
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+            <option value="archived">Archived</option>
+        </select>
+    </div>
+
+    <div className="col-md-3">
+        <input
+            type="date"
+            className="form-control"
+            value={startDate}
+            onChange={(e) => {
+                setStartDate(e.target.value);
+                setPage(1);
+            }}
+        />
+    </div>
+
+    <div className="col-md-3">
+        <input
+            type="date"
+            className="form-control"
+            value={endDate}
+            onChange={(e) => {
+                setEndDate(e.target.value);
+                setPage(1);
+            }}
+        />
+    </div>
+</div>
                         <div className="NoticeBoardTabs mt-3"
                         >
                             {tabs.map((t) => (
                                 <button
                                     key={t.id}
-                                    onClick={() => setTab(t.value)}
+                                    onClick={() => {
+                                        setTab(t.value);
+                                        setPage(1);
+                                    }}
                                     className={`NoticeBoardTabs-btn ${tab === t.value ? "active" : ""}`}
                                 >
                                     {t.icon} &nbsp;{t.id}
                                 </button>
                             ))}
                         </div>
-                        {filteredData.map((p, i, arr) => {
+                        {rows.map((p, i, arr) => {
                             const noticeData = getNoticeIcon(p.notice_type);
                             return (
                                 <div
@@ -383,6 +569,17 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
 
                 </div>
             </div>
+            <ExportModal
+    show={show}
+    onClose={() => setShow(false)}
+    onExport={handleExport}
+    activeTab={activeTab}
+    setActiveTab={setActiveTab}
+    selectedRange={selectedRange}
+    setSelectedRange={setSelectedRange}
+    totalRecords={allExportNoticeBoard.length}
+    currentRecords={filteredData.length}
+/>
         </>
 
     );

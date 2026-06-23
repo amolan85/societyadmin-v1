@@ -7,7 +7,8 @@ import { GetSessionData } from '../../utils/SessionManagement';
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
-import { CgExport } from "react-icons/cg";
+import { CgExport,CgImport  } from "react-icons/cg";
+import ExportModal from "../../components/Common/ExportModal";
 // import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -16,7 +17,7 @@ import {
   FiMapPin,
   FiUser,
   FiClock,
-  FiAlertCircle,
+  FiAlertCircle,FiSearch,
 } from "react-icons/fi";
 
 
@@ -24,6 +25,7 @@ const Complaints = ({ setActive }) => {
   const [tab, setTab] = useState("")
   const [societyId, setSocietyId] = useState("")
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -41,6 +43,9 @@ const Complaints = ({ setActive }) => {
   const [complaintId, setComplaintId] = useState("")
   const [show, setShow] = useState(false)
   const [activeTab, setActiveTab] = useState("excel");
+  const [allExportcomplaints, setAllExportcomplaints] = useState([]);
+  const [selectedRange, setSelectedRange] = useState("all");
+  const [exportModal, setExportModal] = useState(false);
   // const all = [
   //   { id: "#C-1042", title: "Lift B not working", unit: "A-201", cat: "Maintenance", pri: "High", st: "Open", sc: "red", time: "2h ago" },
   //   { id: "#C-1041", title: "Water leakage in corridor", unit: "B-305", cat: "Plumbing", pri: "Medium", st: "In Progress", sc: "orange", time: "5h ago" },
@@ -157,6 +162,14 @@ const Complaints = ({ setActive }) => {
     }
   }
 
+   const  getAllExportcomplaints= async (sid) => {
+          try {
+              const data = await getComplaintsApi(sid);
+              setAllExportcomplaints(data.list  || []);
+          } catch (error) {
+              console.error("Error fetching export violation alerts:", error);
+          }
+      };
 
   const downloadExcel = async () => {
     // create workbook
@@ -332,17 +345,23 @@ const Complaints = ({ setActive }) => {
     return "Just now";
   };
 
-
-  const filteredData = allComplaints.filter((item) => {
+const filteredData = allComplaints.filter((item) => {
 
   // Tab filter
   const matchesTab =
     tab === "" || item.status === tab;
 
-  // Dropdown status filter
+  // Status filter
   const matchesStatus =
     filterStatus === "" ||
     item.status?.toLowerCase() === filterStatus.toLowerCase();
+
+  // Search filter
+  const matchesSearch =
+    !search ||
+    item.title?.toLowerCase().includes(search.toLowerCase()) ||
+    item.description?.toLowerCase().includes(search.toLowerCase()) ||
+    item.unit?.toLowerCase().includes(search.toLowerCase());
 
   // Date filter
   const complaintDate = item.created_at
@@ -362,11 +381,11 @@ const Complaints = ({ setActive }) => {
   return (
     matchesTab &&
     matchesStatus &&
+    matchesSearch &&
     matchesStartDate &&
     matchesEndDate
   );
 });
-
   //pagination 
   const per = 5;
   const total = Math.ceil(filteredData.length / per);
@@ -426,48 +445,7 @@ const Complaints = ({ setActive }) => {
           ))}
         </div>
 
-             {/* Filter row: Status dropdown + Date From + Date To */}
-                    <div className="row g-2">
-
-                        <div className="col-md-4">
-                            <select
-                                className="form-select"
-                                value={filterStatus}
-                                onChange={(e) => handleStatusChange(e.target.value)}
-                            >
-                                <option value="">All Status</option>
-                                <option value="open">Open</option>
-                                <option value="resolved">Resolved</option>
-                                <option value="in_progress">In Progress</option>Closed
-                                <option value="closed">Closed</option>
-                            </select>
-                        </div>
-
-                        <div className="col-md-4">
-                            <input
-                                type="date"
-                                  className="form-control"
-                                  value={startDate}
-                                  onChange={(e) => {
-                                setStartDate(e.target.value);
-                                setPage(1);
-                              }}
-                            />
-                          </div>
-
-                        <div className="col-md-4">
-                            <input
-                                type="date"
-                                className="form-control"
-                                value={endDate}
-                                onChange={(e) => {
-                              setEndDate(e.target.value);
-                              setPage(1);
-                            }}
-                          />
-                        </div>
-
-                    </div>
+             
 
         <div className='row'>
           <div className='col-lg-7'>
@@ -486,7 +464,56 @@ const Complaints = ({ setActive }) => {
           </div>
         </div>
 
+                {/* ── Filter row: Date From + Date To + Search (same row) ── */}
+        <div className="row g-2 mt-3 mb-3 align-items-center">
+ 
+          {/* Date From */}
+          <div className="col-md-3">
+            <input
+              type="date"
+              className="form-control"
+              value={startDate}
+              onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
+            />
+          </div>
 
+          {/* Date To */}
+          <div className="col-md-3">
+            <input
+              type="date"
+              className="form-control"
+              value={endDate}
+              onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
+            />
+          </div>
+
+          {/* Search — same row, right side */}
+          <div className="col-md-3">
+            <div className="d-flex gap-2">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search by title, unit..."
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              />
+              <button
+                className="btn btn-primary"
+                onClick={() => setPage(1)}
+              >
+                <FiSearch />
+              </button>
+            </div>
+          </div>
+          <div className="col-md-3">
+           <button
+            className="btn-ol ms-2"
+            onClick={() => setShow(true)}
+            >
+          <CgExport /> Export
+        </button>
+        </div>
+        </div>
         {/* Table */}
         {(tab !== "" && tab !== "open" && tab !== "in_progress") &&
           <div className="sv-card p-0 overflow-hidden" >

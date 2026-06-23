@@ -137,7 +137,7 @@ const ViewParkingDetails = ({ setActive, violationId }) => {
                         <div className="d-flex gap-2 mt-3 mt-lg-0">
                             <button className="btn btn-sm btn-ad print-btn"><FiPrinter /> Print Ticket</button>
                             <button className="btn btn-danger btn-sm" onClick={() => setShow(true)}><FiCheckCircle /> Resolve Violation</button>
-                            <button className="btn btn-sm btn-ac btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
+                            <button className="btn btn-sm btn-ac btn-primary" onClick={() => setActive("violationAlerts")}>Back</button>
                         </div>
                     </div>
                 </div>

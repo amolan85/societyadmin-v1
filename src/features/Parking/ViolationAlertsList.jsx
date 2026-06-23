@@ -3,28 +3,10 @@ import "../../styles/AddMember.css";
 import { Badge, Pagination } from "../../components/Common/ReusableFunction";
 import { GetSessionData } from "../../utils/SessionManagement";
 import ViolationAlertModal from "./ViolationAlertModal";
-import ViewParkingDetails from "./ViewParkingDetails";
-import {
-    AddMemberApi,
-    getMembersApi,
-    getAllMembersWithoutPaginationApi,
-    getMembersByIdApi,
-    UpdateMemberApi,
-    deleteMembersApi,
-} from "../../services/AddMemberApi";
 import { toast } from "react-toastify";
-import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
-import { FiFilter, FiSearch } from "react-icons/fi";
-import {
-    FaUserCircle,
-    FaFileUpload,
-    FaCheckCircle,
-    FaExclamationTriangle,
-    FaClock,
-} from "react-icons/fa";
-import { getAllBlocksApi, getAllFlatsApi } from "../../services/UnitRegisterApi";
-import { CgExport, CgImport } from "react-icons/cg";
-import { parkingDashboardApi, ListParkingSlotsApi } from "../../services/ParkingApi";
+import { FiSearch } from "react-icons/fi";
+import { CgImport } from "react-icons/cg";
+import { ListParkingSlotsApi } from "../../services/ParkingApi";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import {
     violationAlertsApi,
@@ -52,26 +34,30 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
     const [allViolationAlerts, setAllViolationAlerts] = useState([]);
     const [allExportViolationAlerts, setAllExportViolationAlerts] = useState([]);
 
-    // ── Single source of truth for status filter ──────────────────────────────
-    // Used by both the tabs AND the dropdown — both set this same state
+    // ── Filter state ──────────────────────────────────────────────────────────
     const [filterStatus, setFilterStatus] = useState("");
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
 
+    // ── Stats (independent of current filter) ─────────────────────────────────
+    const [statsTotal, setStatsTotal] = useState(0);
+    const [statsOpen, setStatsOpen] = useState(0);
+    const [statsResolved, setStatsResolved] = useState(0);
+    const [statsDismissed, setStatsDismissed] = useState(0);
+
     // ── Parking slots ──────────────────────────────────────────────────────────
     const [allSlots, setAllSlots] = useState([]);
 
-    // ── ViolationAlertModal form state ────────────────────────────────────────
+    // ── Modal form state ──────────────────────────────────────────────────────
     const [showViolationAlert, setShowViolationAlert] = useState(false);
     const [slot, setSlot] = useState(null);
     const [vehicleNo, setVehicleNo] = useState("");
     const [violationType, setViolationType] = useState(null);
     const [vehicleType, setVehicleType] = useState(null);
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
+    const [firstName, setFirstName] = useState("");   // penalty_amount
+    const [lastName, setLastName] = useState("");     // description
+    const [uploadPhoto, setUploadPhoto] = useState(null);
     const [status, setStatus] = useState(null);
-
-    // ── Currently editing violation id ────────────────────────────────────────
     const [editingViolationId, setEditingViolationId] = useState(null);
 
     const violationStatusTabs = [
@@ -101,11 +87,9 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
         { value: "dismissed", label: "Dismissed" },
     ];
 
-    useEffect(() => {
-        SessionData();
-    }, []);
+    useEffect(() => { SessionData(); }, []);
 
-    // Re-fetch whenever filters change — but only after societyId is ready
+    // Re-fetch when filters change — only after societyId is ready
     useEffect(() => {
         if (!societyId) return;
         getAllVisitorAlerts(societyId, 1, search, filterStatus, dateFrom, dateTo);
@@ -117,21 +101,31 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
         setSocietyId(flats.society_id);
         setUserId(flats.user_id);
         getAllVisitorAlerts(flats.society_id, 1, "", "", "", "");
+        fetchStats(flats.society_id);
         getParkingSlots(flats.society_id);
+    };
+
+    // Independent stat counts — unaffected by current filter
+    const fetchStats = async (sid) => {
+        try {
+            const [all, open, resolved, dismissed] = await Promise.all([
+                violationAlertsApi(sid, 1, 1, null, null,        null, null),
+                violationAlertsApi(sid, 1, 1, null, "open",      null, null),
+                violationAlertsApi(sid, 1, 1, null, "resolved",  null, null),
+                violationAlertsApi(sid, 1, 1, null, "dismissed", null, null),
+            ]);
+            setStatsTotal(all.total || 0);
+            setStatsOpen(open.total || 0);
+            setStatsResolved(resolved.total || 0);
+            setStatsDismissed(dismissed.total || 0);
+        } catch (error) {
+            console.error("Error fetching stats:", error);
+        }
     };
 
     const getAllVisitorAlerts = async (sid, pg, searchText, statusFilter, fromDate, toDate) => {
         try {
-            const data = await violationAlertsApi(
-                sid,
-                pg || 1,
-                limit,
-                searchText,
-                statusFilter,
-                fromDate,
-                toDate
-            );
-            console.log("API response:", data); // ← add this
+            const data = await violationAlertsApi(sid, pg || 1, limit, searchText, statusFilter, fromDate, toDate);
             setAllViolationAlerts(data.violations || []);
             setPage(data.page);
             setLimit(data.limit);
@@ -153,11 +147,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
     const getParkingSlots = async (sid) => {
         try {
             const data = await ListParkingSlotsApi(sid);
-            const slotOptions = (data?.slots || []).map((item) => ({
-                value: item.id,
-                label: item.slot_number,
-            }));
-            setAllSlots(slotOptions);
+            setAllSlots((data?.slots || []).map((item) => ({ value: item.id, label: item.slot_number })));
         } catch (error) {
             console.error("Error fetching slots:", error);
         }
@@ -182,7 +172,6 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
         }
     };
 
-    // Single handler for both tabs and dropdown — sets filterStatus and triggers useEffect
     const handleStatusChange = (value) => {
         setFilterStatus(value);
         setPage(1);
@@ -196,6 +185,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
         setFirstName("");
         setLastName("");
         setStatus(null);
+        setUploadPhoto(null);
         setEditingViolationId(null);
         setErrors({});
         setErrorText("");
@@ -203,33 +193,28 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
 
     const handleCreateSubmit = async () => {
         const newErrors = {};
-        if (!slot)              newErrors.slot          = "Required";
         if (!vehicleNo.trim())  newErrors.vehicleNo     = "Required";
         if (!violationType)     newErrors.violationType = "Required";
         if (!vehicleType)       newErrors.vehicleType   = "Required";
         if (!firstName.trim())  newErrors.firstName     = "Required";
-
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
+        if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
         try {
             await createViolationAlertApi(
-                societyId,
-                userId,
-                slot?.value,
-                vehicleNo,
-                violationType?.value,
-                lastName,
-                null,
-                firstName
+                societyId,     // society_id
+                userId,        // reported_by
+                slot,          // slotId — API extracts .value internally
+                vehicleNo,     // vehicle_number
+                violationType, // violation_type — API extracts .value internally
+                lastName,      // description
+                firstName,     // penalty_amount
+                uploadPhoto    // photo file
             );
-
             toast.success("Violation Alert Added Successfully");
             setShowViolationAlert(false);
             resetForm();
             getAllVisitorAlerts(societyId, page, search, filterStatus, dateFrom, dateTo);
+            fetchStats(societyId);
         } catch (error) {
             console.error(error);
             toast.error(error?.message || "Failed to add violation");
@@ -244,30 +229,29 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
         if (!vehicleType)       newErrors.vehicleType   = "Required";
         if (!firstName.trim())  newErrors.firstName     = "Required";
         if (!status)            newErrors.status        = "Required";
-
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
+        if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
         try {
             await updateViolationAlertApi(
-                societyId,
-                editingViolationId,
-                slot?.value,
-                vehicleNo,
-                violationType?.value,
-                lastName,
-                null,
-                firstName,
-                vehicleType?.value,
-                status?.value
+                societyId,          // society_id
+                editingViolationId, // violation_id
+                slot,               // slotId — API extracts .value internally
+                vehicleNo,          // vehicle_number
+                violationType,      // violation_type — API extracts .value internally
+                lastName,           // description
+                firstName,          // penalty_amount
+                vehicleType,        // vehicle_type — API extracts .value internally
+                status,             // status — API extracts .value internally
+                uploadPhoto,        // photo file
+                null,               // resolution_remarks
+                null,               // resolved_at
+                null                // resolved_by
             );
-
             toast.success("Violation Alert Updated Successfully");
             setShowViolationAlert(false);
             resetForm();
             getAllVisitorAlerts(societyId, page, search, filterStatus, dateFrom, dateTo);
+            fetchStats(societyId);
         } catch (error) {
             console.error(error);
             toast.error(error?.message || "Failed to update violation");
@@ -275,11 +259,8 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
     };
 
     const handleViolationSubmit = async () => {
-        if (mode === "edit") {
-            await handleEditSubmit();
-        } else {
-            await handleCreateSubmit();
-        }
+        if (mode === "edit") await handleEditSubmit();
+        else await handleCreateSubmit();
     };
 
     const handleEditClick = async (item) => {
@@ -296,28 +277,18 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                 console.warn("Could not fetch latest violation details, using row data:", err);
             }
 
-            const matchedSlot = allSlots.find(
-                (s) => s.value === data.slot_id || s.label === data.slot_number
-            );
+            const matchedSlot = allSlots.find((s) => s.value === data.slot_id || s.label === data.slot_number);
             setSlot(matchedSlot || (data.slot_number ? { value: data.slot_id, label: data.slot_number } : null));
 
             setVehicleNo(data.vehicle_number || "");
 
-            const matchedViolationType = violationTypeOptions.find(
-                (v) => v.value === data.violation_type
-            );
+            const matchedViolationType = violationTypeOptions.find((v) => v.value === data.violation_type);
             setViolationType(matchedViolationType || null);
 
-            const matchedVehicleType = vehicleTypeOptions.find(
-                (v) => v.value === data.vehicle_type
-            );
+            const matchedVehicleType = vehicleTypeOptions.find((v) => v.value === data.vehicle_type);
             setVehicleType(matchedVehicleType || null);
 
-            setFirstName(
-                data.penalty_amount !== undefined && data.penalty_amount !== null
-                    ? String(data.penalty_amount)
-                    : ""
-            );
+            setFirstName(data.penalty_amount != null ? String(data.penalty_amount) : "");
             setLastName(data.description || "");
 
             const matchedStatus = statusOptions.find((s) => s.value === data.status);
@@ -331,58 +302,34 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
     };
 
     const handleDelete = async (violationId) => {
-        const confirmed = window.confirm("Are you sure you want to delete this violation alert?");
-        if (!confirmed) return;
+        if (!window.confirm("Are you sure you want to delete this violation alert?")) return;
         try {
             await deleteViolationAlertsApi(societyId, violationId);
             toast.success("Violation alert deleted successfully");
             getAllVisitorAlerts(societyId, page, search, filterStatus, dateFrom, dateTo);
+            fetchStats(societyId);
         } catch (error) {
             console.error("Delete Error:", error);
-            toast.error(error);
+            toast.error(error?.message || "Delete failed");
         }
     };
 
-    const exportData =
-        selectedRange === "all"
-            ? allExportViolationAlerts
-            : selectedRange === "search"
-                ? allViolationAlerts
-                : "";
+    const exportData = selectedRange === "all" ? allExportViolationAlerts : selectedRange === "search" ? allViolationAlerts : "";
 
-    const downloadExcel = () => {
-        exportFile({ data: exportData, fileName: "ViolationAlerts", sheetName: "ViolationAlerts", type: "xlsx" });
-    };
-
-    const downloadCSV = () => {
-        exportFile({ data: exportData, fileName: "ViolationAlerts", sheetName: "ViolationAlerts", type: "csv" });
-    };
-
-    const downloadPDF = () => {
-        exportToPDF({
-            title: "Violation Alerts Report",
-            fileName: "ViolationAlerts",
-            columns: ["Violation Type", "Slot No.", "Vehicle No.", "Penalty Amount"],
-            data: exportData.map((item) => [
-                item.violation_type,
-                item.slot_number,
-                item.vehicle_number,
-                item.penalty_amount,
-            ]),
-        });
-    };
+    const downloadExcel = () => exportFile({ data: exportData, fileName: "ViolationAlerts", sheetName: "ViolationAlerts", type: "xlsx" });
+    const downloadCSV   = () => exportFile({ data: exportData, fileName: "ViolationAlerts", sheetName: "ViolationAlerts", type: "csv" });
+    const downloadPDF   = () => exportToPDF({
+        title: "Violation Alerts Report",
+        fileName: "ViolationAlerts",
+        columns: ["Violation Type", "Slot No.", "Vehicle No.", "Penalty Amount"],
+        data: exportData.map((item) => [item.violation_type, item.slot_number, item.vehicle_number, item.penalty_amount]),
+    });
 
     const handleExport = () => {
-        if (activeTab === "excel")     { downloadExcel(); setExportModal(false); }
-        else if (activeTab === "csv")  { downloadCSV();   setExportModal(false); }
-        else if (activeTab === "pdf")  { downloadPDF();   setExportModal(false); }
+        if (activeTab === "excel")    { downloadExcel(); setExportModal(false); }
+        else if (activeTab === "csv") { downloadCSV();   setExportModal(false); }
+        else if (activeTab === "pdf") { downloadPDF();   setExportModal(false); }
     };
-
-    // Derived counts from current page data
-    const totalAlerts    = totalCount;
-    const totalOpen      = allViolationAlerts.filter((i) => i.status?.toLowerCase() === "open").length;
-    const totalResolved  = allViolationAlerts.filter((i) => i.status?.toLowerCase() === "resolved").length;
-    const totalDismissed = allViolationAlerts.filter((i) => i.status?.toLowerCase() === "dismissed").length;
 
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -394,6 +341,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
     return (
         <>
             <div className="pg cp-wrap">
+
                 {/* Header */}
                 <div className="d-flex justify-content-between align-items-center mb-4 text-start">
                     <div>
@@ -403,19 +351,11 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                     <div className="d-flex">
                         <button
                             className="btn btn-sm btn-ac ms-2 btn-primary"
-                            onClick={() => {
-                                resetForm();
-                                setSelectedViolation(null);
-                                setMode("add");
-                                setShowViolationAlert(true);
-                            }}
+                            onClick={() => { resetForm(); setSelectedViolation(null); setMode("add"); setShowViolationAlert(true); }}
                         >
                             + Create Violation Alert
                         </button>
-                        <button
-                            className="btn btn-sm btn-ac ms-2 btn-primary"
-                            onClick={() => setActive("parkingDashboard")}
-                        >
+                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingDashboard")}>
                             Back
                         </button>
                     </div>
@@ -424,10 +364,10 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                 {/* Stats */}
                 <div className="row g-3 mb-4">
                     {[
-                        [totalAlerts,    "All Violations Alerts",       "tile-blu"],
-                        [totalOpen,      "Open Violations Alerts",      "tile-grn"],
-                        [totalResolved,  "Resolved Violations Alerts",  "tile-yel"],
-                        [totalDismissed, "Dismissed Violations Alerts", "tile-red"],
+                        [statsTotal,     "All Violations Alerts",       "tile-blu"],
+                        [statsOpen,      "Open Violations Alerts",      "tile-grn"],
+                        [statsResolved,  "Resolved Violations Alerts",  "tile-yel"],
+                        [statsDismissed, "Dismissed Violations Alerts", "tile-red"],
                     ].map(([v, l, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
                             <div className={`tile bg-white ${cls}`}>
@@ -438,7 +378,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                     ))}
                 </div>
 
-                {/* Status Tabs — now use handleStatusChange (server-side) */}
+                {/* Status Tabs */}
                 <div className="row">
                     <div className="col-lg-8">
                         <div className="NoticeBoardTabs mt-3 bg-white">
@@ -456,70 +396,45 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                 </div>
 
                 {/* Toolbar */}
-                <div className="visitor-toolbar mb-4 mt-3">
-
-                    <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                        <div className="d-flex gap-2">
-                            <input
-                                type="text"
-                                className="form-control visitor-search"
-                                placeholder="Search by vehicle no..."
-                                value={search}
-                                onChange={handleSearchChange}
-                            />
-                            <button className="btn btn-primary" onClick={handleSearchClick}>
-                                <FiSearch />
-                            </button>
+                 <div className="row g-2 mt-3 mb-3 align-items-center">
+ 
+                         <div className="col-md-3">
+                            <input type="date" className="form-control" value={dateFrom}
+                                onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} />
                         </div>
-                        <button
-                            className="btn-ol ms-2"
-                            onClick={() => { getAllExportViolationAlerts(societyId); setExportModal(true); }}
-                        >
+                        <div className="col-md-3">
+                            <input type="date" className="form-control" value={dateTo}
+                                onChange={(e) => { setDateTo(e.target.value); setPage(1); }} />
+                        </div>
+
+                      <div className="col-md-3">
+                                  <div className="d-flex gap-2">
+                                    <input
+                                      type="text"
+                                      className="form-control"
+                                      placeholder="Search by title, unit..."
+                                      value={search}
+                                      onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                                    />
+                                    <button
+                                      className="btn btn-primary"
+                                      onClick={() => setPage(1)}
+                                    >
+                                      <FiSearch />
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="col-md-3">
+                        <button className="btn-ol ms-2" 
+                        onClick={() => { 
+                            getAllExportViolationAlerts(societyId); 
+                            setExportModal(true); 
+                            }}>
                             <CgImport /> Export
                         </button>
-                    </div>
-
-                    {/* Filter row: Status dropdown + Date From + Date To */}
-                    <div className="row g-2">
-
-                        <div className="col-md-4">
-                            <select
-                                className="form-select"
-                                value={filterStatus}
-                                onChange={(e) => handleStatusChange(e.target.value)}
-                            >
-                                <option value="">All Status</option>
-                                <option value="open">Open</option>
-                                <option value="resolved">Resolved</option>
-                                <option value="dismissed">Dismissed</option>
-                            </select>
                         </div>
-
-                        <div className="col-md-4">
-                            <input
-                                type="date"
-                                className="form-control"
-                                value={dateFrom}
-                                onChange={(e) => {
-                                    setDateFrom(e.target.value);
-                                    setPage(1);
-                                }}
-                            />
-                        </div>
-
-                        <div className="col-md-4">
-                            <input
-                                type="date"
-                                className="form-control"
-                                value={dateTo}
-                                onChange={(e) => {
-                                    setDateTo(e.target.value);
-                                    setPage(1);
-                                }}
-                            />
-                        </div>
-
-                    </div>
+                    
+                    
                 </div>
 
                 {/* Table */}
@@ -538,23 +453,11 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                             </thead>
                             <tbody>
                                 {allViolationAlerts.map((item, index) => (
-                                    <tr
-                                        key={index}
-                                        onClick={() => handleViewDetails(item)}
-                                        style={{ cursor: "pointer" }}
-                                    >
-                                        <td className="text-start">
-                                            <div className="fw-bold">{item.violation_type}</div>
-                                        </td>
-                                        <td className="text-start">
-                                            <div className="fw-bold">{item.slot_number}</div>
-                                        </td>
-                                        <td className="text-start">
-                                            <div className="fw-bold">{item.vehicle_number}</div>
-                                        </td>
-                                        <td className="text-start">
-                                            <div className="fw-bold">{item.penalty_amount}</div>
-                                        </td>
+                                    <tr key={index} onClick={() => handleViewDetails(item)} style={{ cursor: "pointer" }}>
+                                        <td className="text-start"><div className="fw-bold">{item.violation_type}</div></td>
+                                        <td className="text-start"><div className="fw-bold">{item.slot_number}</div></td>
+                                        <td className="text-start"><div className="fw-bold">{item.vehicle_number}</div></td>
+                                        <td className="text-start"><div className="fw-bold">{item.penalty_amount}</div></td>
                                         <td className="text-start">
                                             <Badge
                                                 label={item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : ""}
@@ -568,37 +471,21 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                                         </td>
                                         <td className="text-start" onClick={(e) => e.stopPropagation()}>
                                             <div className="member-action-dropdown dropdown">
-                                                <button
-                                                    className="member-action-btn"
-                                                    type="button"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-expanded="false"
-                                                >
-                                                    ⋮
-                                                </button>
+                                                <button className="member-action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
                                                 <ul className="dropdown-menu member-action-menu dropdown-menu-end">
                                                     <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            onClick={() => handleViewDetails(item)}
-                                                        >
+                                                        <button className="dropdown-item member-action-item" onClick={() => handleViewDetails(item)}>
                                                             View Details
                                                         </button>
                                                     </li>
                                                     <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            onClick={() => handleEditClick(item)}
-                                                        >
+                                                        <button className="dropdown-item member-action-item" onClick={() => handleEditClick(item)}>
                                                             Edit Violation Alert
                                                         </button>
                                                     </li>
                                                     <li><hr className="dropdown-divider" /></li>
                                                     <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item member-action-delete"
-                                                            onClick={() => handleDelete(item.id)}
-                                                        >
+                                                        <button className="dropdown-item member-action-item member-action-delete" onClick={() => handleDelete(item.id)}>
                                                             Delete Violation Alert
                                                         </button>
                                                     </li>
@@ -614,7 +501,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                 </div>
             </div>
 
-            {/* Modal */}
+            {/* Violation Alert Modal */}
             <ViolationAlertModal
                 showViolationAlert={showViolationAlert}
                 setShowViolationAlert={setShowViolationAlert}
@@ -627,6 +514,8 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                 setViolationType={setViolationType}
                 vehicleType={vehicleType}
                 setVehicleType={setVehicleType}
+                uploadPhoto={uploadPhoto}
+                setUploadPhoto={setUploadPhoto}
                 firstName={firstName}
                 setFirstName={setFirstName}
                 lastName={lastName}
