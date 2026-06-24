@@ -36,6 +36,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [visitorAllFlats, setVisitorAllFlats] = useState([]);
     const [visitorSelectedBlock, setVisitorSelectedBlock] = useState("");
     const [visitorSelectedFlat, setVisitorSelectedFlat] = useState("");
+    const [flatNumber, setFlatNumber] = useState("");
     // Stats
     const [stats, setStats] = useState({ total: 0, today: 0, pending: 0, checkedOut: 0 });
 
@@ -71,6 +72,8 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [approvalStatus, setApprovalStatus] = useState("");
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
+    const [scheduleStartDate, setScheduleStartDate] = useState("");
+    const [scheduleEndDate, setScheduleEndDate] = useState("");
     //allot parking
     const [showAllotParking, setShowAllotParking] = useState(false);
     const [allVisitors, setAllVisitors] = useState([]);
@@ -192,16 +195,39 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             setVisitorName(data.visitor_name || "");
             setMobile(data.mobile || "");
             setEmail(data.email || "");
-            setGender(data.gender || "");
+            setGender((data.gender || "").toLowerCase());
+
             setComingFrom(data.coming_from || "");
             setVehicleNumber(data.vehicle_number || "");
             setFlatId(data.flat_id || "");
+
             setPurpose(data.purpose || "");
-            setIdType(data.id_type || "");
+            setIdType((data.id_type || "").toLowerCase());
             setIdNumber(data.id_number || "");
+
             setParcelDescription(data.parcel_description || "");
             setParcelCompany(data.parcel_company || "");
             setParcelDeliveryType(data.parcel_delivery_type || "");
+
+            setVisitorSelectedBlock(data.block || "");
+
+            const flatsRes = await getAllFlatsApi(societyId, data.block);
+            setVisitorAllFlats(flatsRes?.flats || []);
+
+            setVisitorSelectedFlat(String(data.flat_id));
+            setFlatNumber(data.flat_number || "");
+
+            setScheduleStartDate(
+                data.schedule_start_date
+                    ? data.schedule_start_date.replace(" ", "T").slice(0, 16)
+                    : ""
+            );
+
+            setScheduleEndDate(
+                data.schedule_end_date
+                    ? data.schedule_end_date.replace(" ", "T").slice(0, 16)
+                    : ""
+            );
         } catch (error) {
             console.log(error);
         }
@@ -245,13 +271,16 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         setErrors({}); setErrorText("");
         setIsEdit(false);
         setEditVisitorId(null);
+        setScheduleStartDate("");
+        setScheduleEndDate("");
+
     };
 
     const validateForm = () => {
         let errs = {};
         if (!visitorName) errs.visitorName = "required";
         if (!mobile) errs.mobile = "required";
-        if (!isEdit && !flatId) errs.flatId = "required";
+        if (!isEdit && !flatNumber) errs.flatNumber = "required";
         if (visitorType === "guest") {
             if (!purpose) errs.purpose = "required";
             if (!isEdit && !idType) errs.idType = "required";
@@ -262,49 +291,91 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         }
         return errs;
     };
-
+    const formatDateTime = (date) => {
+        if (!date) return "";
+        return date.replace("T", " ") + ":00";
+    };
     const handleSubmit = async () => {
         try {
             const validationErrors = validateForm();
+
             if (Object.keys(validationErrors).length > 0) {
                 setErrors(validationErrors);
                 return;
             }
 
             if (isEdit) {
-                await UpdateVisitorApi(
-                    editVisitorId,
+
+                await UpdateVisitorApi({
+                    visitorId: editVisitorId,
                     societyId,
                     visitorName,
                     mobile,
+                    email,
+                    gender,
+                    visitorType,
+                    comingFrom,
+                    vehicleNumber,
                     purpose,
-                    vehicleNumber
-                );
+                    scheduleStartDate: formatDateTime(scheduleStartDate),
+                    scheduleEndDate: formatDateTime(scheduleEndDate)
+                });
+
                 toast.success("Visitor updated successfully!");
+
             } else {
+
                 if (visitorType === "guest") {
-                    await CreateGuestVisitorApi(
-                        societyId, flatId, visitorName, mobile,
-                        email, gender, "guest", comingFrom,
-                        vehicleNumber, purpose, idType, idNumber
-                    );
+
+                    await CreateGuestVisitorApi({
+                        societyId,
+                        flatId,
+                        visitorName,
+                        mobile,
+                        email,
+                        gender,
+                        visitorType: "guest",
+                        comingFrom,
+                        vehicleNumber,
+                        purpose,
+                        idType,
+                        idNumber,
+                        photo,
+                        scheduleStartDate: formatDateTime(scheduleStartDate),
+                        scheduleEndDate: formatDateTime(scheduleEndDate)
+                    });
+
                 } else {
-                    await CreateDeliveryApi(
-                        societyId, flatId, visitorName, mobile,
-                        vehicleNumber, parcelDescription, parcelCompany, parcelDeliveryType
-                    );
+
+                    await CreateDeliveryVisitorApi({
+                        societyId,
+                        flatId,
+                        visitorName,
+                        mobile,
+                        vehicleNumber,
+                        parcelDescription,
+                        parcelCompany,
+                        parcelDeliveryType,
+                        scheduleStartDate: formatDateTime(scheduleStartDate),
+                        scheduleEndDate: formatDateTime(scheduleEndDate)
+                    });
+
                 }
+
                 toast.success("Visitor added successfully!");
             }
 
             setShow(false);
             resetForm();
+
             setSearch("");
             setApprovalStatus("");
             setDateFrom("");
             setDateTo("");
+
             skipNextEffect.current = true;
-            getVisitors({
+
+            await getVisitors({
                 sid: societyId,
                 pg: 1,
                 searchText: "",
@@ -312,13 +383,24 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 fromDate: "",
                 toDate: ""
             });
-            // getVisitors(societyId, 1);
+
         } catch (error) {
-            toast.error(error?.message || "Something went wrong");
-            setErrorText(error?.message || "Error occurred");
+
+            console.error(error);
+
+            toast.error(
+                error?.response?.data?.message ||
+                error?.message ||
+                "Something went wrong"
+            );
+
+            setErrorText(
+                error?.response?.data?.message ||
+                error?.message ||
+                "Error occurred"
+            );
         }
     };
-
     const handleDelete = async (visitorId) => {
         if (!window.confirm("Are you sure you want to delete this visitor?")) return;
         try {
@@ -591,7 +673,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                             <div className="fw-semibold">{v.visitor_name}</div>
                                             <small className="text-muted">{v.mobile}</small>
                                         </td>
-                                        <td>{v.flat_id}</td>
+                                        <td>{v.flat_number || "-"}</td>
                                         <td>
                                             <Badge
                                                 label={v.visitor_type === "delivery" ? "Delivery" : "Guest"}
@@ -763,6 +845,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 setMobile={setMobile}
                 flatId={flatId}
                 setFlatId={setFlatId}
+                flatNumber={flatNumber}
                 photo={photo}
                 setPhoto={setPhoto}
                 // flatsList={flatsList}
@@ -795,6 +878,10 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 setParcelDescription={setParcelDescription}
                 handleSubmit={handleSubmit}
                 onClose={resetForm}
+                scheduleStartDate={scheduleStartDate}
+                setScheduleStartDate={setScheduleStartDate}
+                scheduleEndDate={scheduleEndDate}
+                setScheduleEndDate={setScheduleEndDate}
             />
             <AllotVisitorParkingModal
                 show={showAllotParking}

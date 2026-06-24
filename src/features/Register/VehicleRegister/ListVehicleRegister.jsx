@@ -7,7 +7,7 @@ import {
     CreateVehicleApi, ListVehiclesApi,
     GetVehicleByIdApi, UpdateVehicleApi, DeleteVehicleApi
 } from '../../../services/VehicleRegisterAPI';
-import { getAllBlocksApi, getAllFlatsApi } from '../../../services/UnitRegisterApi';
+import { getAllBlocksApi, getAllFlatsApi, getAllUnitsBySearchApi } from '../../../services/UnitRegisterApi';
 import VehicleModal from './VehicleModal';
 
 const ListVehicleRegister = ({ setActive, setVehicleId }) => {
@@ -35,7 +35,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
     const [allFlats, setAllFlats] = useState([]);
     const [selectedBlock, setSelectedBlock] = useState("");
     const [selectedFlat, setSelectedFlat] = useState("");
-
+    const [selectedOwnerName, setSelectedOwnerName] = useState("");
     // Form fields
     const [vehicleNumber, setVehicleNumber] = useState("");
     const [vehicleType, setVehicleType] = useState("");
@@ -44,6 +44,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
     const [stickerId, setStickerId] = useState("");
     const [rcDocument, setRcDocument] = useState(null);
     const [flatId, setFlatId] = useState("");
+    const [rcDocumentUrl, setRcDocumentUrl] = useState("");
 
     // Validation
     const [errors, setErrors] = useState({});
@@ -53,6 +54,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
     const [filterBlock, setFilterBlock] = useState("");
     const [filterFloor, setFilterFloor] = useState("");
     const [filterFlatStatus, setFilterFlatStatus] = useState("");
+    const [selectedOwnerId, setSelectedOwnerId] = useState(null);
 
     // Stats
     const [stats, setStats] = useState({ total: 0, twoWheeler: 0, fourWheeler: 0, other: 0 });
@@ -95,7 +97,15 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
             console.log(error);
         }
     };
-
+    // const generateStickerId = (flatNumber) => {
+    //     const random = Math.floor(1000 + Math.random() * 9000); // 4-digit random
+    //     const cleanFlat = (flatNumber || "").replace(/[^A-Za-z0-9]/g, "");
+    //     return `STK-${cleanFlat}-${random}`;
+    // };
+    const generateStickerId = (flatNumber) => {
+        const cleanFlat = (flatNumber || "").replace(/[^A-Za-z0-9]/g, "");
+        return `STK-${cleanFlat}`;
+    };
     const getVehicles = async ({ sid, pg, searchText, vType }) => {
         try {
             setLoading(true);
@@ -134,10 +144,12 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
         setVehicleNumber(""); setVehicleType(""); setVehicleModel("");
         setColor(""); setStickerId(""); setRcDocument(null);
         setFlatId(""); setSelectedBlock(""); setSelectedFlat("");
+        setSelectedOwnerId(null);  // ← add karo
+        setSelectedOwnerName("");
         setErrors({}); setErrorText("");
+        setRcDocumentUrl("");
         setIsEdit(false); setEditVehicleId(null);
     };
-
     const handleAdd = async () => {
         resetForm();
         const blockRes = await getAllBlocksApi(societyId);
@@ -150,11 +162,38 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
         const block = e.target.value;
         setSelectedBlock(block);
         setSelectedFlat("");
+        setSelectedOwnerId(null);
         setAllFlats([]);
         if (block) {
-            const res = await getAllFlatsApi(societyId, block);
-            setAllFlats(res?.flats || []);
+            const res = await getAllUnitsBySearchApi(societyId, block);
+            console.log("Flats with members:", res?.flats);
+            // ✅ client-side safety filter: sirf selected block ke flats rakho
+            const filtered = (res?.flats || []).filter(f => {
+                const sameBlock = String(f.block).toLowerCase() === String(block).toLowerCase();
+                const hasOwner = f.members?.some(m => m.occupancy_type === "owner");
+                return sameBlock && hasOwner; // ✅ sirf owner wale flats
+            });
+            setAllFlats(filtered);
         }
+    };
+    const handleFlatChange = (flatId) => {
+        setSelectedFlat(flatId);
+        const flatData = allFlats.find(f => String(f.flat_id) === String(flatId));
+        const owner = flatData?.members?.find(m => m.occupancy_type === "owner");
+
+        if (!owner) {
+            toast.error("This flat has no owner. Cannot add vehicle.");
+            setSelectedOwnerId(null);
+            setSelectedOwnerName("");
+            setStickerId("");
+            return;
+        }
+
+        setSelectedOwnerId(owner.user_id);
+        setSelectedOwnerName(`${owner.first_name || ""} ${owner.last_name || ""}`.trim());
+
+        // ✅ sticker id seedha box me bind
+        setStickerId(generateStickerId(flatData?.flat_number));
     };
 
     const handleEditOpen = async (vehicleId) => {
@@ -167,6 +206,9 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
             setColor(data.color || "");
             setStickerId(data.sticker_id || "");
             setFlatId(data.flat_id || "");
+            setRcDocumentUrl(data.rc_document || data.rc_document_url || "");
+            setSelectedOwnerName(data.owner_name || "");
+            setFlatId(data.flat_number || "");
             setIsEdit(true);
             setEditVehicleId(vehicleId);
             setShow(true);
@@ -177,12 +219,20 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
 
     const validateForm = () => {
         let errs = {};
+
         if (!vehicleNumber) errs.vehicleNumber = "required";
         if (!vehicleType) errs.vehicleType = "required";
+
+        if (!vehicleModel) errs.vehicleModel = "required";
+        if (!color) errs.color = "required";
+        if (!stickerId) errs.stickerId = "required";
+        if (!rcDocument && !isEdit) errs.rcDocument = "required";
+
         if (!isEdit) {
             if (!selectedFlat) errs.flatId = "required";
             if (!selectedBlock) errs.block = "required";
         }
+
         return errs;
     };
 
@@ -194,7 +244,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                 await UpdateVehicleApi(editVehicleId, societyId, vehicleNumber, vehicleType, vehicleModel, color, stickerId, rcDocument);
                 toast.success("Vehicle updated successfully!");
             } else {
-                await CreateVehicleApi(societyId, userId, selectedFlat, vehicleNumber, vehicleType, vehicleModel, color, stickerId, rcDocument);
+                await CreateVehicleApi(societyId, selectedOwnerId, selectedFlat, vehicleNumber, vehicleType, vehicleModel, color, stickerId, rcDocument);
                 toast.success("Vehicle added successfully!");
             }
             setShow(false);
@@ -333,7 +383,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                         <table className="sv-tbl">
                             <thead>
                                 <tr>
-                                    {["VEHICLE NUMBER", "UNIT", "TYPE", "MODEL", "COLOR", "STICKER ID", "ACTIONS"].map(h => (
+                                    {["OWNER", "VEHICLE NUMBER", "UNIT", "TYPE", "MODEL", "COLOR", "STICKER ID", "ACTIONS"].map(h => (
                                         <th key={h}>{h}</th>
                                     ))}
                                 </tr>
@@ -345,6 +395,31 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                                     <tr><td colSpan={7} className="text-center py-4 text-muted">No vehicles found</td></tr>
                                 ) : filteredVehicles.map((v, i) => (
                                     <tr className="text-start" key={i}>
+                                        <td>
+                                            <div className="d-flex align-items-center gap-2">
+                                                <img
+                                                    src={
+                                                        v.owner_profile_url?.startsWith("http")
+                                                            ? v.owner_profile_url
+                                                            : "../src/assets/profile.png"
+                                                    }
+                                                    alt="Profile"
+                                                    width={38}
+                                                    height={38}
+                                                    className="rounded-circle object-fit-cover"
+                                                    onError={(e) => { e.target.src = "../src/assets/profile.png"; }}
+                                                />
+                                                <div>
+                                                    <div className="fw-semibold">{v.owner_name || "—"}</div>
+                                                    {v.owner_email && (
+                                                        <div className="text-muted" style={{ fontSize: 12 }}>{v.owner_email}</div>
+                                                    )}
+                                                    {v.owner_mobile && (
+                                                        <div className="text-muted" style={{ fontSize: 12 }}>{v.owner_mobile}</div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </td>
                                         <td>
                                             <div className="fw-semibold">{v.vehicle_number}</div>
                                         </td>
@@ -431,6 +506,9 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                 flatId={flatId}
                 handleSubmit={handleSubmit}
                 onClose={resetForm}
+                onFlatChange={handleFlatChange}
+                selectedOwnerName={selectedOwnerName}
+                rcDocumentUrl={rcDocumentUrl}
             />
         </>
     );

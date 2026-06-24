@@ -19,7 +19,7 @@ const Visitormodal = ({
     onBlockChange,
     show,
     setShow,
-
+    flatNumber,
     mode = "add",           // "add" | "edit"
 
     errors = {},
@@ -73,7 +73,13 @@ const Visitormodal = ({
     setParcelDescription,
 
     handleSubmit,
-    onClose,                // optional extra callback when modal is closed/cancelled
+    onClose,
+
+    scheduleStartDate,
+    setScheduleStartDate,
+
+    scheduleEndDate,
+    setScheduleEndDate,// optional extra callback when modal is closed/cancelled
 }) => {
     if (!show) return null;
 
@@ -196,15 +202,27 @@ const Visitormodal = ({
                                                 {errors.flatId && <span className="text-danger mx-2">{errors.flatId}</span>}
                                             </div>
                                             {isEdit ? (
-                                                <input className="sv-in" value={flatId} disabled
-                                                    style={{ background: "#f8fafc", color: "#64748b" }} />
+                                                <input
+                                                    className="sv-in"
+                                                    value={flatNumber || ""}
+                                                    disabled
+                                                    style={{ background: "#f8fafc", color: "#64748b" }}
+                                                />
                                             ) : (
-                                                <select className={`form-select ${errors.flatId ? "error-input" : ""}`}
+                                                <select
+                                                    className={`form-select ${errors.flatId ? "error-input" : ""}`}
                                                     value={selectedFlat}
-                                                    onChange={e => { setSelectedFlat(e.target.value); setFlatId(e.target.value); }}>
+                                                    onChange={e => {
+                                                        setSelectedFlat(e.target.value);
+                                                        setFlatId(e.target.value);
+                                                    }}
+                                                >
                                                     <option value="">Select Flat</option>
+
                                                     {allFlats.map(f => (
-                                                        <option key={f.flat_id} value={f.flat_id}>{f.flat_number}</option>
+                                                        <option key={f.flat_id} value={f.flat_id}>
+                                                            {f.flat_number}
+                                                        </option>
                                                     ))}
                                                 </select>
                                             )}
@@ -219,7 +237,27 @@ const Visitormodal = ({
                                                 value={vehicleNumber} onChange={e => setVehicleNumber(e.target.value)} />
                                         </div>
                                     </div>
+                                    <div className="row g-3 mb-3">
+                                        <div className="col-6">
+                                            <label className="sv-lb">Schedule Start Date</label>
+                                            <input
+                                                type="datetime-local"
+                                                className="form-control"
+                                                value={scheduleStartDate}
+                                                onChange={(e) => setScheduleStartDate(e.target.value)}
+                                            />
+                                        </div>
 
+                                        <div className="col-6">
+                                            <label className="sv-lb">Schedule End Date</label>
+                                            <input
+                                                type="datetime-local"
+                                                className="form-control"
+                                                value={scheduleEndDate}
+                                                onChange={(e) => setScheduleEndDate(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
                                     {/* ── Guest-only Fields ── */}
                                     {visitorType === "guest" && (
                                         <>
@@ -310,6 +348,7 @@ const Visitormodal = ({
                                                     />
                                                 </div>
                                             </div>
+
                                             <div className="row g-3 mb-3">
                                                 <div className="col-12">
                                                     <label className="sv-lb">Photo</label>
