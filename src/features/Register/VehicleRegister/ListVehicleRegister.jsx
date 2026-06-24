@@ -167,11 +167,10 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
         if (block) {
             const res = await getAllUnitsBySearchApi(societyId, block);
             console.log("Flats with members:", res?.flats);
-            // ✅ client-side safety filter: sirf selected block ke flats rakho
             const filtered = (res?.flats || []).filter(f => {
                 const sameBlock = String(f.block).toLowerCase() === String(block).toLowerCase();
                 const hasOwner = f.members?.some(m => m.occupancy_type === "owner");
-                return sameBlock && hasOwner; // ✅ sirf owner wale flats
+                return sameBlock && hasOwner; // ✅ only owner flats
             });
             setAllFlats(filtered);
         }
