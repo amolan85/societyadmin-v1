@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import {
-    FiTrash2,
     FiVolume2,
     FiAlertTriangle,
     FiCalendar,
@@ -42,7 +41,13 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
 
-    // type counts for stats
+    // ── Stats (independent of filters — like ViolationAlertsList) ─────────────
+    const [statsTotal, setStatsTotal] = useState(0);
+    const [statsSent, setStatsSent] = useState(0);
+    const [statsScheduled, setStatsScheduled] = useState(0);
+    const [statsDraft, setStatsDraft] = useState(0);
+
+    // type counts for right panel
     const [typeCounts, setTypeCounts] = useState({
         announcement: 0,
         emergency: 0,
@@ -59,11 +64,11 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
     // =====================================================
 
     const broadcastType = [
-        { id: "All",          icon: <FiGrid size={15} color="#2563eb" />,        value: "" },
-        { id: "Announcement", icon: <FiVolume2 size={15} color="#f59e0b" />,     value: "announcement" },
+        { id: "All",          icon: <FiGrid size={15} color="#2563eb" />,          value: "" },
+        { id: "Announcement", icon: <FiVolume2 size={15} color="#f59e0b" />,       value: "announcement" },
         { id: "Emergency",    icon: <FiAlertTriangle size={15} color="#ef4444" />, value: "emergency" },
-        { id: "Circular",     icon: <FiFileText size={15} color="purple" />,     value: "circular" },
-        { id: "Event",        icon: <FiCalendar size={15} color="#10b981" />,    value: "event" },
+        { id: "Circular",     icon: <FiFileText size={15} color="purple" />,       value: "circular" },
+        { id: "Event",        icon: <FiCalendar size={15} color="#10b981" />,      value: "event" },
     ];
 
     // =====================================================
@@ -91,8 +96,30 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                 currentStartDate: "",
                 currentEndDate: "",
             });
+            fetchStats(sid);
         } catch (error) {
             console.log(error);
+        }
+    };
+
+    // =====================================================
+    // STATS — independent of current filter (like ViolationAlertsList)
+    // =====================================================
+
+    const fetchStats = async (sid) => {
+        try {
+            const [all, sent, scheduled, draft] = await Promise.all([
+                getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "",          currentStartDate: "", currentEndDate: "" }),
+                getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "sent",      currentStartDate: "", currentEndDate: "" }),
+                getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "scheduled", currentStartDate: "", currentEndDate: "" }),
+                getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "draft",     currentStartDate: "", currentEndDate: "" }),
+            ]);
+            setStatsTotal(all?.total_records         || 0);
+            setStatsSent(sent?.total_records          || 0);
+            setStatsScheduled(scheduled?.total_records || 0);
+            setStatsDraft(draft?.total_records        || 0);
+        } catch (error) {
+            console.error("Error fetching broadcast stats:", error);
         }
     };
 
@@ -201,6 +228,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                 currentStartDate: startDate,
                 currentEndDate: endDate,
             });
+            fetchStats(societyIdRef.current);
         } catch (error) {
             console.log(error);
             toast.error("Failed to delete broadcast");
@@ -208,7 +236,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
     };
 
     // =====================================================
-    // EDIT — navigate to CreateBroadcast with id
+    // EDIT
     // =====================================================
 
     const handleEditClick = (id) => {
@@ -222,8 +250,6 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
 
     const handleViewDetails = (broadcast) => {
         setBroadcastId(broadcast.id);
-        // Pass the full row data so ViewBroadcastDetails can render immediately
-        // while it fetches fresh data in the background
         if (setSelectedBroadcast) setSelectedBroadcast(broadcast);
         setActive("viewbroadcastdetails");
     };
@@ -285,22 +311,96 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
 
     return (
         <>
-            <div className="pg row g-4 nb-wrap">
+            <div className="pg">
 
-                {/* ── LEFT COLUMN ── */}
-                <div className="col-12 col-lg-8">
-                    <div className="sv-card">
+                {/* ── HEADER ── */}
+                <div className="d-flex justify-content-between align-items-center mb-4 text-start">
+                    <div>
+                        <h4 className="cp-title">Broadcast</h4>
+                        <p className="cp-sub">Send announcements, alerts and updates to residents.</p>
+                    </div>
+                    <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => { setActive("createbroadcast"); setBroadcastId(""); }}
+                    >
+                        + Create
+                    </button>
+                </div>
 
-                        {/* TOP BAR */}
-                        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <button
-                                className="btn btn-primary btn-sm"
-                                onClick={() => { setActive("createbroadcast"); setBroadcastId(""); }}
-                            >
-                                + Create
-                            </button>
+                {/* ── STAT TILES (same pattern as ViolationAlertsList) ── */}
+                <div className="row g-3 mb-4">
+                    {[
+                        [statsTotal,     "Total Broadcasts", "tile-blu"],
+                        [statsSent,      "Sent",             "tile-grn"],
+                        [statsScheduled, "Scheduled",        "tile-yel"],
+                        [statsDraft,     "Draft",            "tile-red"],
+                    ].map(([v, l, cls]) => (
+                        <div className="col-6 col-md-3" key={l}>
+                            <div className={`tile bg-white ${cls}`}>
+                                <div className="text-start text-muted">{l}</div>
+                                <div className="tile-val text-start mt-1">{v}</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
 
-                            <div className="d-flex gap-2">
+                {/* ── MAIN ROW ── */}
+                <div className="row g-4 nb-wrap">
+
+                    {/* ── LEFT COLUMN ── */}
+                    <div className="col-12 col-lg-8">
+                        <div className="sv-card">
+
+                            {/* FILTERS */}
+                            <div className="row g-2">
+                                <div className="col-md-4">
+                                    <select
+                                        className="form-select form-select-sm"
+                                        value={status}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setStatus(val);
+                                            setPage(1);
+                                            getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: val, currentStartDate: startDate, currentEndDate: endDate });
+                                        }}
+                                    >
+                                        <option value="">All Status</option>
+                                        <option value="draft">Draft</option>
+                                        <option value="scheduled">Scheduled</option>
+                                        <option value="sent">Sent</option>
+                                        <option value="failed">Failed</option>
+                                    </select>
+                                </div>
+                                <div className="col-md-4">
+                                    <input
+                                        type="date"
+                                        className="form-control form-control-sm"
+                                        value={startDate}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setStartDate(val);
+                                            setPage(1);
+                                            getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: val, currentEndDate: endDate });
+                                        }}
+                                    />
+                                </div>
+                                <div className="col-md-4">
+                                    <input
+                                        type="date"
+                                        className="form-control form-control-sm"
+                                        value={endDate}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setEndDate(val);
+                                            setPage(1);
+                                            getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: startDate, currentEndDate: val });
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* SEARCH */}
+                            <div className="d-flex gap-2 mt-3">
                                 <input
                                     type="text"
                                     placeholder="Search..."
@@ -313,293 +413,214 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                                     <FiSearch size={14} />
                                 </button>
                             </div>
-                        </div>
 
-                        {/* FILTERS */}
-                        <div className="row mt-3 g-2">
-                            <div className="col-md-4">
-                                <select
-                                    className="form-select form-select-sm"
-                                    value={status}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setStatus(val);
-                                        setPage(1);
-                                        getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: val, currentStartDate: startDate, currentEndDate: endDate });
-                                    }}
-                                >
-                                    <option value="">All Status</option>
-                                    <option value="draft">Draft</option>
-                                    <option value="scheduled">Scheduled</option>
-                                    <option value="sent">Sent</option>
-                                    <option value="failed">Failed</option>
-                                </select>
-                            </div>
-                            <div className="col-md-4">
-                                <input
-                                    type="date"
-                                    className="form-control form-control-sm"
-                                    value={startDate}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setStartDate(val);
-                                        setPage(1);
-                                        getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: val, currentEndDate: endDate });
-                                    }}
-                                />
-                            </div>
-                            <div className="col-md-4">
-                                <input
-                                    type="date"
-                                    className="form-control form-control-sm"
-                                    value={endDate}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setEndDate(val);
-                                        setPage(1);
-                                        getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: startDate, currentEndDate: val });
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* TYPE TABS */}
-                        <div className="NoticeBoardTabs mt-3">
-                            {broadcastType.map((t) => (
-                                <button
-                                    key={t.id}
-                                    onClick={() => {
-                                        setBroadcastTypeTab(t.value);
-                                        setPage(1);
-                                        getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: t.value, currentStatus: status, currentStartDate: startDate, currentEndDate: endDate });
-                                    }}
-                                    className={`NoticeBoardTabs-btn ${broadcastTypeTab === t.value ? "active" : ""}`}
-                                >
-                                    {t.icon} {t.id}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* LIST */}
-                        {loading ? (
-
-                            <div className="text-center py-5 text-muted">
-                                <div className="spinner-border mb-3" role="status" />
-                                Loading...
-                            </div>
-
-                        ) : allBroadcast.length === 0 ? (
-
-                            <div className="text-center py-5 text-muted">
-                                <FiGrid size={32} className="mb-2 opacity-25" />
-                                <br />
-                                No Broadcast Found
-                            </div>
-
-                        ) : (
-
-                            allBroadcast.map((p, i) => {
-                                const noticeData = getNoticeIcon(p.type);
-                                return (
-                                    <div
-                                        key={p.id}
-                                        className={`nb-post text-start ${i !== allBroadcast.length - 1 ? "nb-border" : ""}`}
+                            {/* TYPE TABS */}
+                            <div className="NoticeBoardTabs mt-3">
+                                {broadcastType.map((t) => (
+                                    <button
+                                        key={t.id}
+                                        onClick={() => {
+                                            setBroadcastTypeTab(t.value);
+                                            setPage(1);
+                                            getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: t.value, currentStatus: status, currentStartDate: startDate, currentEndDate: endDate });
+                                        }}
+                                        className={`NoticeBoardTabs-btn ${broadcastTypeTab === t.value ? "active" : ""}`}
                                     >
-                                        <div className="d-flex gap-3 align-items-start">
+                                        {t.icon} {t.id}
+                                    </button>
+                                ))}
+                            </div>
 
-                                            {/* TYPE ICON */}
-                                            <div
-                                                className="nb-avatar flex-shrink-0"
-                                                style={{ background: noticeData.bg, cursor: "pointer" }}
-                                                onClick={() => handleViewDetails(p)}
-                                            >
-                                                {noticeData.icon}
-                                            </div>
+                            {/* LIST */}
+                            {loading ? (
 
-                                            {/* CONTENT */}
-                                            <div
-                                                className="flex-grow-1 min-w-0"
-                                                style={{ cursor: "pointer" }}
-                                                onClick={() => handleViewDetails(p)}
-                                            >
-                                                {/* ROW 1 — title + badges */}
-                                                <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                                    <span className="nb-title">{p.title}</span>
-                                                    <Badge label={p.type} c={getTypeColor(p.type)} />
-                                                    {p.channel && (
-                                                        <span
-                                                            className="badge rounded-pill"
-                                                            style={{
-                                                                fontSize: 10,
-                                                                background: "#f3f4f6",
-                                                                color: "#374151",
-                                                                display: "inline-flex",
-                                                                alignItems: "center",
-                                                                gap: 3,
-                                                                padding: "2px 7px",
-                                                            }}
-                                                        >
-                                                            {getChannelIcon(p.channel)} {p.channel}
-                                                        </span>
-                                                    )}
-                                                    <Badge label={p.status} c={getStatusColor(p.status)} />
-                                                </div>
+                                <div className="text-center py-5 text-muted">
+                                    <div className="spinner-border mb-3" role="status" />
+                                    Loading...
+                                </div>
 
-                                                {/* MESSAGE */}
-                                                <p className="nb-content">{p.message}</p>
+                            ) : allBroadcast.length === 0 ? (
 
-                                                {/* META FOOTER */}
-                                                <div className="nb-meta d-flex flex-wrap gap-2">
-                                                    <span>👤 {name}</span>
-                                                    <span>•</span>
-                                                    <span>{timeAgo(p.sent_at || p.created_at)}</span>
-                                                    {p.scheduled_at && (
-                                                        <>
-                                                            <span>•</span>
-                                                            <span>📅 {new Date(p.scheduled_at).toLocaleDateString()}</span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
+                                <div className="text-center py-5 text-muted">
+                                    <FiGrid size={32} className="mb-2 opacity-25" />
+                                    <br />
+                                    No Broadcast Found
+                                </div>
 
-                                            {/* ⋮ DROPDOWN — stop propagation so click doesn't trigger view */}
-                                            <div
-                                                className="member-action-dropdown dropdown flex-shrink-0"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                <button
-                                                    className="member-action-btn"
-                                                    type="button"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-expanded="false"
+                            ) : (
+
+                                allBroadcast.map((p, i) => {
+                                    const noticeData = getNoticeIcon(p.type);
+                                    return (
+                                        <div
+                                            key={p.id}
+                                            className={`nb-post text-start ${i !== allBroadcast.length - 1 ? "nb-border" : ""}`}
+                                        >
+                                            <div className="d-flex gap-3 align-items-start">
+
+                                                {/* TYPE ICON */}
+                                                <div
+                                                    className="nb-avatar flex-shrink-0"
+                                                    style={{ background: noticeData.bg, cursor: "pointer" }}
+                                                    onClick={() => handleViewDetails(p)}
                                                 >
-                                                    ⋮
-                                                </button>
-                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            onClick={() => handleViewDetails(p)}
-                                                        >
-                                                            View Details
-                                                        </button>
-                                                    </li>
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            onClick={() => handleEditClick(p.id)}
-                                                        >
-                                                            Edit Broadcast
-                                                        </button>
-                                                    </li>
-                                                    <li><hr className="dropdown-divider" /></li>
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item member-action-delete"
-                                                            onClick={() => deleteBroadcast(p.id)}
-                                                        >
-                                                            Delete Broadcast
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            </div>
+                                                    {noticeData.icon}
+                                                </div>
 
+                                                {/* CONTENT */}
+                                                <div
+                                                    className="flex-grow-1 min-w-0"
+                                                    style={{ cursor: "pointer" }}
+                                                    onClick={() => handleViewDetails(p)}
+                                                >
+                                                    {/* ROW 1 — title + badges */}
+                                                    <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                        <span className="nb-title">{p.title}</span>
+                                                        <Badge label={p.type} c={getTypeColor(p.type)} />
+                                                        {p.channel && (
+                                                            <span
+                                                                className="badge rounded-pill"
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    background: "#f3f4f6",
+                                                                    color: "#374151",
+                                                                    display: "inline-flex",
+                                                                    alignItems: "center",
+                                                                    gap: 3,
+                                                                    padding: "2px 7px",
+                                                                }}
+                                                            >
+                                                                {getChannelIcon(p.channel)} {p.channel}
+                                                            </span>
+                                                        )}
+                                                        <Badge label={p.status} c={getStatusColor(p.status)} />
+                                                    </div>
+
+                                                    {/* MESSAGE */}
+                                                    <p className="nb-content">{p.message}</p>
+
+                                                    {/* META FOOTER */}
+                                                    <div className="nb-meta d-flex flex-wrap gap-2">
+                                                        <span>👤 {name}</span>
+                                                        <span>•</span>
+                                                        <span>{timeAgo(p.sent_at || p.created_at)}</span>
+                                                        {p.scheduled_at && (
+                                                            <>
+                                                                <span>•</span>
+                                                                <span>📅 {new Date(p.scheduled_at).toLocaleDateString()}</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* ⋮ DROPDOWN */}
+                                                <div
+                                                    className="member-action-dropdown dropdown flex-shrink-0"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <button
+                                                        className="member-action-btn"
+                                                        type="button"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false"
+                                                    >
+                                                        ⋮
+                                                    </button>
+                                                    <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item member-action-item"
+                                                                onClick={() => handleViewDetails(p)}
+                                                            >
+                                                                View Details
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item member-action-item"
+                                                                onClick={() => handleEditClick(p.id)}
+                                                            >
+                                                                Edit Broadcast
+                                                            </button>
+                                                        </li>
+                                                        <li><hr className="dropdown-divider" /></li>
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item member-action-item member-action-delete"
+                                                                onClick={() => deleteBroadcast(p.id)}
+                                                            >
+                                                                Delete Broadcast
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+
+                            {/* PAGINATION */}
+                            <Pagination
+                                page={page}
+                                total={totalPages}
+                                onChange={handlePageChange}
+                            />
+
+                            {/* RECORDS INFO */}
+                            {!loading && totalRecords > 0 && (
+                                <div className="text-center mt-2" style={{ fontSize: 12, color: "#6b7280" }}>
+                                    Showing {(page - 1) * limit + 1}–{Math.min(page * limit, totalRecords)} of {totalRecords} records
+                                </div>
+                            )}
+
+                        </div>
+                    </div>
+
+                    {/* ── RIGHT COLUMN ── */}
+                    <div className="col-12 col-lg-4">
+
+                        {/* TYPE BREAKDOWN CARD */}
+                        <div className="sv-card">
+                            <h6 className="mb-3 fw-semibold">Type Breakdown</h6>
+                            {[
+                                { key: "announcement", label: "Announcement", icon: <FiVolume2 size={14} color="#ff9800" />,      bg: "#fff3e0", color: "#c05500" },
+                                { key: "emergency",    label: "Emergency",    icon: <FiAlertTriangle size={14} color="#ef4444" />, bg: "#fee2e2", color: "#991b1b" },
+                                { key: "circular",     label: "Circular",     icon: <FiFileText size={14} color="#7c3aed" />,      bg: "#ede9fe", color: "#5b21b6" },
+                                { key: "event",        label: "Event",        icon: <FiCalendar size={14} color="#10b981" />,      bg: "#d1fae5", color: "#065f46" },
+                            ].map(({ key, label, icon, bg, color }) => {
+                                const count = typeCounts[key] || 0;
+                                const pct = allBroadcast.length
+                                    ? Math.round((count / allBroadcast.length) * 100)
+                                    : 0;
+                                return (
+                                    <div key={key} className="d-flex align-items-center gap-2 mb-3">
+                                        <div style={{
+                                            width: 28, height: 28, borderRadius: 6, background: bg,
+                                            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                                        }}>
+                                            {icon}
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div className="d-flex justify-content-between mb-1">
+                                                <span style={{ fontSize: 12, color: "#6b7280" }}>{label}</span>
+                                                <span style={{ fontSize: 12, fontWeight: 600, color }}>{count}</span>
+                                            </div>
+                                            <div style={{ height: 4, background: "#f3f4f6", borderRadius: 4 }}>
+                                                <div style={{
+                                                    height: 4, width: `${pct}%`,
+                                                    background: color, borderRadius: 4,
+                                                    transition: "width 0.4s ease",
+                                                }} />
+                                            </div>
                                         </div>
                                     </div>
                                 );
-                            })
-                        )}
-
-                        {/* PAGINATION */}
-                        <Pagination
-                            page={page}
-                            total={totalPages}
-                            onChange={handlePageChange}
-                        />
-
-                        {/* RECORDS INFO */}
-                        {!loading && totalRecords > 0 && (
-                            <div className="text-center mt-2" style={{ fontSize: 12, color: "#6b7280" }}>
-                                Showing {(page - 1) * limit + 1}–{Math.min(page * limit, totalRecords)} of {totalRecords} records
-                            </div>
-                        )}
-
-                    </div>
-                </div>
-
-                {/* ── RIGHT COLUMN ── */}
-                <div className="col-12 col-lg-4">
-
-                    {/* STATS CARD */}
-                    <div className="sv-card mb-3">
-                        <h6 className="mb-3 fw-semibold">Broadcast Statistics</h6>
-                        <div className="row text-center g-2">
-                            <div className="col-6">
-                                <div className="p-2 rounded" style={{ background: "#f0f9ff" }}>
-                                    <h4 className="mb-0" style={{ color: "#0369a1" }}>{totalRecords}</h4>
-                                    <small className="text-muted">Total Records</small>
-                                </div>
-                            </div>
-                            <div className="col-6">
-                                <div className="p-2 rounded" style={{ background: "#f0fdf4" }}>
-                                    <h4 className="mb-0" style={{ color: "#15803d" }}>{page}</h4>
-                                    <small className="text-muted">Current Page</small>
-                                </div>
-                            </div>
-                            <div className="col-6">
-                                <div className="p-2 rounded" style={{ background: "#fefce8" }}>
-                                    <h4 className="mb-0" style={{ color: "#a16207" }}>{totalPages}</h4>
-                                    <small className="text-muted">Total Pages</small>
-                                </div>
-                            </div>
-                            <div className="col-6">
-                                <div className="p-2 rounded" style={{ background: "#fdf4ff" }}>
-                                    <h4 className="mb-0" style={{ color: "#7e22ce" }}>{limit}</h4>
-                                    <small className="text-muted">Per Page</small>
-                                </div>
-                            </div>
+                            })}
                         </div>
-                    </div>
 
-                    {/* TYPE BREAKDOWN CARD */}
-                    <div className="sv-card">
-                        <h6 className="mb-3 fw-semibold">Type Breakdown</h6>
-                        {[
-                            { key: "announcement", label: "Announcement", icon: <FiVolume2 size={14} color="#ff9800" />,      bg: "#fff3e0", color: "#c05500" },
-                            { key: "emergency",    label: "Emergency",    icon: <FiAlertTriangle size={14} color="#ef4444" />, bg: "#fee2e2", color: "#991b1b" },
-                            { key: "circular",     label: "Circular",     icon: <FiFileText size={14} color="#7c3aed" />,      bg: "#ede9fe", color: "#5b21b6" },
-                            { key: "event",        label: "Event",        icon: <FiCalendar size={14} color="#10b981" />,      bg: "#d1fae5", color: "#065f46" },
-                        ].map(({ key, label, icon, bg, color }) => {
-                            const count = typeCounts[key] || 0;
-                            const pct = allBroadcast.length
-                                ? Math.round((count / allBroadcast.length) * 100)
-                                : 0;
-                            return (
-                                <div key={key} className="d-flex align-items-center gap-2 mb-3">
-                                    <div style={{
-                                        width: 28, height: 28, borderRadius: 6, background: bg,
-                                        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                                    }}>
-                                        {icon}
-                                    </div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div className="d-flex justify-content-between mb-1">
-                                            <span style={{ fontSize: 12, color: "#6b7280" }}>{label}</span>
-                                            <span style={{ fontSize: 12, fontWeight: 600, color }}>{count}</span>
-                                        </div>
-                                        <div style={{ height: 4, background: "#f3f4f6", borderRadius: 4 }}>
-                                            <div style={{
-                                                height: 4, width: `${pct}%`,
-                                                background: color, borderRadius: 4,
-                                                transition: "width 0.4s ease",
-                                            }} />
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
                     </div>
-
                 </div>
             </div>
 

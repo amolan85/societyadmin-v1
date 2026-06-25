@@ -16,15 +16,14 @@ import {
     FiUsers,
     FiEdit,
     FiTrash2,
-    FiSearch 
 } from "react-icons/fi";
 
 const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
 
     const [tab, setTab] = useState("");
     const [societyId, setSocietyId] = useState("");
-    const [name, setName] = useState("")
-    const [allNoticeBoard, setAllNoticeBoard] = useState([])
+    const [name, setName] = useState("");
+    const [allNoticeBoard, setAllNoticeBoard] = useState([]);
     const [page, setPage] = useState(1);
     const [filterStatus, setFilterStatus] = useState("");
     const [startDate, setStartDate] = useState("");
@@ -34,555 +33,390 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
     const [activeTab, setActiveTab] = useState("excel");
     const [selectedRange, setSelectedRange] = useState("all");
     const [allExportNoticeBoard, setAllExportNoticeBoard] = useState([]);
-    // const [selectedNoticeData, setSelectedNoticeData] = useState()
-    const posts = [
-        { icon: "📢", title: "AGM 2025 Date Rescheduled", tag: "Official", tc: "blue", author: "Sara Sharan", time: "2 hours ago", views: "128 views", content: "Due to unforeseen weather conditions, the AGM is postponed to Nov 12th at 5 PM in the Clubhouse." },
-        { icon: "💬", title: "Water Seepage in Block B Basement", tag: "Discussion", tc: "orange", author: "Raj Singh (B-402)", time: "Yesterday", comments: "14", locked: true, content: "There is a significant leak near pillar 14. Can the maintenance team prioritize this?" },
-        { icon: "👥", title: "Diwali Decoration Volunteers", tag: "Discussion", tc: "orange", author: "Priya Desai (Cultural Comm.)", time: "5 hours ago", comments: "8", content: "Looking for enthusiastic residents to help with rangoli and lighting for Diwali celebrations." },
-        { icon: "📋", title: "Found: Car Keys near Gate 2", tag: "Lost & Found", tc: "blue", author: "Security Office", time: "30 min ago", content: "A set of Honda car keys was found near Gate 2. Please collect from security." },
-    ];
+
+    // ── Stats (independent of filters — like ViolationAlertsList) ─────────────
+    const [statsTotal, setStatsTotal] = useState(0);
+    const [statsPublished, setStatsPublished] = useState(0);
+    const [statsDraft, setStatsDraft] = useState(0);
+    const [statsArchived, setStatsArchived] = useState(0);
 
     const tabs = [
-        {
-            id: "All",
-            value: "",
-        },
-        {
-            id: "General",
-            icon: <FiVolume2 size={18} color="#2563eb" />,
-            value: "general",
-        },
-        {
-            id: "Maintenance",
-            icon: <FiTool size={18} color="#f59e0b" />,
-            value: "maintenance",
-        },
-        {
-            id: "Emergency",
-            icon: <FiAlertTriangle size={18} color="#ef4444" />,
-            value: "emergency",
-        },
-        {
-            id: "Event",
-            icon: <FiCalendar size={18} color="#10b981" />,
-            value: "event",
-        },
-        {
-            id: "Legal",
-            icon: <FiBriefcase size={18} color="#7c3aed" />,
-            value: "legal",
-        },
-        {
-            id: "Meeting",
-            icon: <FiUsers size={18} color="#06b6d4" />,
-            value: "meeting",
-        },
+        { id: "All",         value: "" },
+        { id: "General",     icon: <FiVolume2 size={18} color="#2563eb" />,    value: "general" },
+        { id: "Maintenance", icon: <FiTool size={18} color="#f59e0b" />,       value: "maintenance" },
+        { id: "Emergency",   icon: <FiAlertTriangle size={18} color="#ef4444" />, value: "emergency" },
+        { id: "Event",       icon: <FiCalendar size={18} color="#10b981" />,   value: "event" },
+        { id: "Legal",       icon: <FiBriefcase size={18} color="#7c3aed" />,  value: "legal" },
+        { id: "Meeting",     icon: <FiUsers size={18} color="#06b6d4" />,      value: "meeting" },
     ];
-
-
 
     const getNoticeIcon = (type) => {
         switch (type) {
-            case "meeting":
-                return {
-                    icon: <FiUsers size={18} color="#06b6d4" />,
-                    bg: "#cffafe",
-                };
-
-            case "general":
-                return {
-                    icon: <FiVolume2 size={18} color="#2563eb" />,
-                    bg: "#dbeafe",
-                };
-
-            case "maintenance":
-                return {
-                    icon: <FiTool size={18} color="#f59e0b" />,
-                    bg: "#fef3c7",
-                };
-
-            case "emergency":
-                return {
-                    icon: <FiAlertTriangle size={18} color="#ef4444" />,
-                    bg: "#fee2e2",
-                };
-
-            case "legal":
-                return {
-                    icon: <FiBriefcase size={18} color="#7c3aed" />,
-                    bg: "#ede9fe",
-                };
-
-            case "event":
-                return {
-                    icon: <FiCalendar size={18} color="#10b981" />,
-                    bg: "#d1fae5",
-                };
-
-            default:
-                return {
-                    icon: <FiCalendar size={18} color="#6b7280" />,
-                    bg: "#f3f4f6",
-                };
+            case "meeting":     return { icon: <FiUsers size={18} color="#06b6d4" />,      bg: "#cffafe" };
+            case "general":     return { icon: <FiVolume2 size={18} color="#2563eb" />,    bg: "#dbeafe" };
+            case "maintenance": return { icon: <FiTool size={18} color="#f59e0b" />,       bg: "#fef3c7" };
+            case "emergency":   return { icon: <FiAlertTriangle size={18} color="#ef4444" />, bg: "#fee2e2" };
+            case "legal":       return { icon: <FiBriefcase size={18} color="#7c3aed" />,  bg: "#ede9fe" };
+            case "event":       return { icon: <FiCalendar size={18} color="#10b981" />,   bg: "#d1fae5" };
+            default:            return { icon: <FiCalendar size={18} color="#6b7280" />,   bg: "#f3f4f6" };
         }
     };
 
-    // const tabs = [{ id: "General", icon: "📢", value: "general" }, { id: "Maintenance", icon: "⚠️", value: "maintenance" }, { id: "Emergency", icon: "📄", value: "emergency" }, { id: "Event", icon: "📅", value: "event" }, { id: "Legal", icon: "📅", value: "legal" }, { id: "Meeting", icon: "📅", value: "meeting" },];
-    // Load session data on component mount for get session data
     useEffect(() => {
-        SessionData()
-    }, [])
+        SessionData();
+    }, []);
 
-    //fetch session data
     const SessionData = async () => {
-        const data = await GetSessionData()
-        console.log(data.data)
-        const flats = data.data.flats[0]
-        console.log(data.data.first_name)
-        setName(data.data.first_name + " " + data.data.last_name)
-        setSocietyId(flats.society_id)
-        //fetch get notice board
-        getNoticeBoard(flats.society_id)
-    }
+        const data = await GetSessionData();
+        const flats = data.data.flats[0];
+        setName(data.data.first_name + " " + data.data.last_name);
+        setSocietyId(flats.society_id);
+        getNoticeBoard(flats.society_id);
+        fetchStats(flats.society_id);
+    };
 
-    //function for get broadcast
-    const getNoticeBoard = async (societyId) => {
-
+    const getNoticeBoard = async (sid) => {
         try {
-            const data = await getNoticeBoardApi(societyId)
-            console.log(data.list)
-            setAllNoticeBoard(data.list)
+            const data = await getNoticeBoardApi(sid);
+            setAllNoticeBoard(data.list);
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
-    }
+    };
 
-    //fetch get notice board by id
+    // =====================================================
+    // STATS — independent of current filter (like ViolationAlertsList)
+    // Uses client-side count from full list since NoticeBoardApi
+    // likely doesn't support per-status pagination.
+    // If your API supports status filtering, swap to Promise.all like Broadcast.
+    // =====================================================
+
+    const fetchStats = async (sid) => {
+        try {
+            const data = await getNoticeBoardApi(sid);
+            const list = data.list || [];
+            setStatsTotal(list.length);
+            setStatsPublished(list.filter(n => n.status === "published").length);
+            setStatsDraft(list.filter(n => n.status === "draft").length);
+            setStatsArchived(list.filter(n => n.status === "archived").length);
+        } catch (error) {
+            console.error("Error fetching notice stats:", error);
+        }
+    };
+
     const getNoticeBoardById = async (selectedData) => {
         setSelectedNoticeData(selectedData);
         setActive("createNoticeBoard");
     };
 
-    const getAllExportNoticeBoard = async (societyId) => {
-    try {
-        const data = await getNoticeBoardApi(societyId);
-        setAllExportNoticeBoard(data.list || []);
-    } catch (error) {
-        console.log(error);
-    }
-};
+    const getAllExportNoticeBoard = async (sid) => {
+        try {
+            const data = await getNoticeBoardApi(sid);
+            setAllExportNoticeBoard(data.list || []);
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
-    // const deleteNotice = async (noticeId) => {
-    //     try {
-    //         const data = await deleteNoticeApi(noticeId)
-    //         console.log(data)
-    //         toast.success("Notice deleted successfully!")
-    //         getNoticeBoard(societyId)
-    //     } catch (error) {
-    //         console.log(error)
-    //     }
-    // }
     const deleteNotice = async (noticeId) => {
         const confirmed = window.confirm("Are you sure you want to delete this notice?");
-
         if (!confirmed) return;
-
         try {
-            const data = await deleteNoticeApi(noticeId,societyId);
-            console.log(data);
+            await deleteNoticeApi(noticeId, societyId);
             toast.success("Notice deleted successfully!");
             getNoticeBoard(societyId);
+            fetchStats(societyId);
         } catch (error) {
             console.log(error);
         }
     };
 
     const timeAgo = (utcDate) => {
-
-        // UTC date convert
         const past = new Date(utcDate);
-
-        // current UTC time
         const now = new Date();
-
         const seconds = Math.floor((now - past) / 1000);
-
         const minutes = Math.floor(seconds / 60);
         const hours = Math.floor(minutes / 60);
         const days = Math.floor(hours / 24);
-
-        if (days > 0) {
-            return `${days} day${days > 1 ? "s" : ""} ago`;
-        }
-
-        if (hours > 0) {
-            return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-        }
-
-        if (minutes > 0) {
-            return `${minutes} min ago`;
-        }
-
+        if (days > 0)    return `${days} day${days > 1 ? "s" : ""} ago`;
+        if (hours > 0)   return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+        if (minutes > 0) return `${minutes} min ago`;
         return "Just now";
     };
 
-    //filter data by notice type
     const filteredData = allNoticeBoard.filter((item) => {
+        const matchesTab    = tab === "" || item.notice_type === tab;
+        const matchesSearch = !search || item.title?.toLowerCase().includes(search.toLowerCase()) || item.description?.toLowerCase().includes(search.toLowerCase());
+        const matchesStatus = filterStatus === "" || item.status?.toLowerCase() === filterStatus.toLowerCase();
+        const noticeDate    = item.publish_date ? new Date(item.publish_date) : null;
+        const matchesStart  = !startDate || (noticeDate && noticeDate >= new Date(startDate));
+        const matchesEnd    = !endDate   || (noticeDate && noticeDate <= new Date(endDate + "T23:59:59"));
+        return matchesTab && matchesSearch && matchesStatus && matchesStart && matchesEnd;
+    });
 
-    // Notice Type Tab Filter
-    const matchesTab =
-        tab === "" || item.notice_type === tab;
-    
-     const matchesSearch =
-        !search ||
-        item.title?.toLowerCase().includes(search.toLowerCase()) ||
-        item.description?.toLowerCase().includes(search.toLowerCase());
-
-    // Status Dropdown Filter
-    const matchesStatus =
-        filterStatus === "" ||
-        item.status?.toLowerCase() === filterStatus.toLowerCase();
-
-    // Date Filter
-    const noticeDate = item.publish_date
-        ? new Date(item.publish_date)
-        : null;
-
-    const matchesStartDate =
-        !startDate ||
-        (noticeDate &&
-            noticeDate >= new Date(startDate));
-
-    const matchesEndDate =
-        !endDate ||
-        (noticeDate &&
-            noticeDate <= new Date(endDate + "T23:59:59"));
-
-    return (
-        matchesTab &&
-        matchesSearch &&
-        matchesStatus &&
-        matchesStartDate &&
-        matchesEndDate
-    );
-});
-
-    const per = 5;
+    const per   = 5;
     const total = Math.ceil(filteredData.length / per);
+    const rows  = filteredData.slice((page - 1) * per, page * per);
 
-    const rows = filteredData.slice(
-        (page - 1) * per,
-        page * per
-    );
-
-      const handleStatusChange = (value) => {
+    const handleStatusChange = (value) => {
         setFilterStatus(value);
         setPage(1);
     };
 
-    const exportData =
-    selectedRange === "all"
-        ? allExportNoticeBoard
-        : filteredData;
+    const exportData = selectedRange === "all" ? allExportNoticeBoard : filteredData;
 
-const downloadExcel = () =>
-    exportFile({
-        data: exportData,
-        fileName: "NoticeBoard",
-        sheetName: "NoticeBoard",
-        type: "xlsx",
-    });
-
-const downloadCSV = () =>
-    exportFile({
-        data: exportData,
-        fileName: "NoticeBoard",
-        sheetName: "NoticeBoard",
-        type: "csv",
-    });
-
-const downloadPDF = () =>
-    exportToPDF({
+    const downloadExcel = () => exportFile({ data: exportData, fileName: "NoticeBoard", sheetName: "NoticeBoard", type: "xlsx" });
+    const downloadCSV   = () => exportFile({ data: exportData, fileName: "NoticeBoard", sheetName: "NoticeBoard", type: "csv" });
+    const downloadPDF   = () => exportToPDF({
         title: "Notice Board Report",
         fileName: "NoticeBoard",
         columns: ["Title", "Type", "Status"],
-        data: exportData.map((item) => [
-            item.title,
-            item.notice_type,
-            item.status,
-        ]),
+        data: exportData.map((item) => [item.title, item.notice_type, item.status]),
     });
 
-const handleExport = () => {
-    if (activeTab === "excel") {
-        downloadExcel();
-    } else if (activeTab === "csv") {
-        downloadCSV();
-    } else if (activeTab === "pdf") {
-        downloadPDF();
-    }
+    const handleExport = () => {
+        if (activeTab === "excel")    downloadExcel();
+        else if (activeTab === "csv") downloadCSV();
+        else if (activeTab === "pdf") downloadPDF();
+        setShow(false);
+    };
 
-    setShow(false);
-};
     return (
         <>
+            <div className="pg">
 
-            <div className="pg row g-4 nb-wrap">
+                {/* ── HEADER ── */}
+                <div className="d-flex justify-content-between align-items-center mb-4 text-start">
+                    <div>
+                        <h4 className="cp-title">Notice Board</h4>
+                        <p className="cp-sub">Manage and publish notices for residents.</p>
+                    </div>
+                    <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => { setActive("createNoticeBoard"); setSelectedNoticeData(""); }}
+                    >
+                        + Create
+                    </button>
+                </div>
 
-                {/* LEFT */}
-                <div className="col-12 col-lg-8">
-                    <div className="sv-card">
-                        {/* Create Button Row */}
-                        <div className="d-flex justify-content-end mb-3">
-                            <button className="btn btn-sm btn-primary"
-                                onClick={() => {
-                                    setActive("createNoticeBoard");
-                                    setSelectedNoticeData("");
-                                    }}
-                                >
-                                Create
-                            </button>
+                {/* ── STAT TILES (same pattern as ViolationAlertsList) ── */}
+                <div className="row g-3 mb-4">
+                    {[
+                        [statsTotal,     "Total Notices", "tile-blu"],
+                        [statsPublished, "Published",     "tile-grn"],
+                        [statsDraft,     "Draft",         "tile-yel"],
+                        [statsArchived,  "Archived",      "tile-red"],
+                    ].map(([v, l, cls]) => (
+                        <div className="col-6 col-md-3" key={l}>
+                            <div className={`tile bg-white ${cls}`}>
+                                <div className="text-start text-muted">{l}</div>
+                                <div className="tile-val text-start mt-1">{v}</div>
+                            </div>
                         </div>
-                          {/* Search & Export Row */}
-                        <div className="row align-items-center mb-3">
-                            <div className="col-md-4">
-                                <div className="d-flex">
+                    ))}
+                </div>
+
+                {/* ── MAIN ROW ── */}
+                <div className="row g-4 nb-wrap">
+
+                    {/* ── LEFT ── */}
+                    <div className="col-12 col-lg-8">
+                        <div className="sv-card">
+
+                            {/* SEARCH & EXPORT */}
+                            <div className="row align-items-center mb-3">
+                                <div className="col-md-6">
                                     <input
                                         type="text"
                                         className="form-control"
                                         placeholder="Search by title..."
                                         value={search}
-                                        onChange={(e) => {
-                                    setSearch(e.target.value);
-                                    setPage(1);
-                                }}
-                            />
-                                {/* <button className="btn btn-primary ms-2">
-                                <FiSearch />
-                                </button> */}
-                            </div>
-                        </div>
-
-                        <div className="col-md-8 text-md-end mt-2 mt-md-0">
-                            <button
-                                className="btn-ol ms-2"
-                                onClick={() => setShow(true)} >
-                                <CgExport className="me-1" />
-                                Export
-                            </button>
-                        </div>
-                    </div>
-
-{/* Filters Row */}
-<div className="row g-2 mb-3">
-    <div className="col-md-3">
-        <select
-            className="form-select"
-            value={filterStatus}
-            onChange={(e) => handleStatusChange(e.target.value)}
-        >
-            <option value="">All Status</option>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="archived">Archived</option>
-        </select>
-    </div>
-
-    <div className="col-md-3">
-        <input
-            type="date"
-            className="form-control"
-            value={startDate}
-            onChange={(e) => {
-                setStartDate(e.target.value);
-                setPage(1);
-            }}
-        />
-    </div>
-
-    <div className="col-md-3">
-        <input
-            type="date"
-            className="form-control"
-            value={endDate}
-            onChange={(e) => {
-                setEndDate(e.target.value);
-                setPage(1);
-            }}
-        />
-    </div>
-</div>
-                        <div className="NoticeBoardTabs mt-3"
-                        >
-                            {tabs.map((t) => (
-                                <button
-                                    key={t.id}
-                                    onClick={() => {
-                                        setTab(t.value);
-                                        setPage(1);
-                                    }}
-                                    className={`NoticeBoardTabs-btn ${tab === t.value ? "active" : ""}`}
-                                >
-                                    {t.icon} &nbsp;{t.id}
-                                </button>
-                            ))}
-                        </div>
-                        {rows.map((p, i, arr) => {
-                            const noticeData = getNoticeIcon(p.notice_type);
-                            return (
-                                <div
-                                    key={i}
-                                    className={`nb-post text-start ${i < arr.length - 1 ? "nb-border" : ""}`}
-                                >
-
-                                    <div className="d-flex gap-3">
-
-                                        <div
-                                            className="nb-avatar"
-                                            style={{ background: noticeData.bg }}
-                                        >
-                                            {noticeData.icon}
-                                        </div>
-                                        <div className="flex-grow-1">
-
-                                            <div className="d-flex justify-content-between align-items-start flex-wrap mb-1">
-
-                                                {/* Left Side */}
-                                                <div className="d-flex align-items-center gap-2 flex-wrap">
-                                                    <span className="nb-title">{p.title}</span>
-                                                    <Badge
-                                                        label={p.notice_type}
-                                                        c={
-                                                            p.notice_type === "general"
-                                                                ? "blue"
-                                                                : p.notice_type === "maintenance"
-                                                                    ? "orange"
-                                                                    : p.notice_type === "emergency"
-                                                                        ? "red"
-                                                                        : p.notice_type === "event"
-                                                                            ? "green"
-                                                                            : p.notice_type === "legal"
-                                                                                ? "purple"
-                                                                                : p.notice_type === "meeting"
-                                                                                    ? "peacock"
-                                                                                    : "gray"
-                                                        }
-                                                    />
-                                                    {/* <Badge label={p.notice_type} c={p.tc} /> */}
-                                                </div>
-
-                                                {/* Right Side */}
-                                                <div className="d-flex align-items-center gap-3">
-
-                                                    {p.status === "draft" && (
-                                                        <FiEdit
-                                                            size={18}
-                                                            style={{ cursor: "pointer", color: "orange" }}
-                                                            onClick={() => getNoticeBoardById(p.notice_id)}
-                                                        />
-                                                    )}
-
-                                                    {p.locked && (
-                                                        <span className="nb-locked">🔒 Locked</span>
-                                                    )}
-
-                                                    <FiTrash2
-                                                        size={18}
-                                                        style={{ cursor: "pointer", color: "red" }}
-                                                        onClick={() => deleteNotice(p.notice_id)}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <p className="nb-content">{p.description}</p>
-
-                                            <div className="nb-meta">
-                                                👤 {name} • {timeAgo(p.publish_date)}
-                                                {p.views && ` • 👁 ${p.views}`}
-
-                                            </div>
-
-                                        </div>
-                                    </div>
+                                        onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                                    />
                                 </div>
-                            )
-                        })}
-                        <Pagination
-                            page={page}
-                            total={total}
-                            onChange={setPage}
-                        />
-
-                    </div>
-                </div>
-
-                {/* RIGHT */}
-                <div className="col-12 col-lg-4">
-
-                    {/* Stats */}
-                    <div className="sv-card mb-3">
-                        <div className="row g-0 text-center">
-                            {[["24", "Active notices", ""], ["3", "Pending Review", "tx-danger"], ["156", "Comments Today", ""], ["12", "New Threads", ""]]
-                                .map(([v, l, cls], i) => (
-                                    <div
-                                        key={l}
-                                        className={`col-6 py-3 nb-stat ${cls} ${i < 2 ? "nb-bb" : ""} ${i % 2 === 0 ? "nb-br" : ""}`}
+                                <div className="col-md-6 text-md-end mt-2 mt-md-0">
+                                    <button
+                                        className="btn-ol ms-2"
+                                        onClick={() => { getAllExportNoticeBoard(societyId); setShow(true); }}
                                     >
-                                        <div className="nb-stat-val">{v}</div>
-                                        <div className="nb-stat-label">{l}</div>
-                                    </div>
-                                ))}
-                        </div>
-                    </div>
-
-                    {/* Moderation */}
-                    <div className="sv-card">
-
-                        <div className="d-flex align-items-center gap-2 mb-3">
-                            <span>⚠️</span>
-                            <h6 className="nb-side-title">Moderation Queue (3)</h6>
-                        </div>
-
-                        {[
-                            { name: "Raj Singh (A-612)", time: "10m ago", text: "Why is the gym AC never working?…" },
-                            { name: "Neha Verma (C-501)", time: "45m ago", text: "Selling my old sofa set..." },
-                        ].map((m, i) => (
-                            <div key={i} className="nb-mod-box">
-
-                                <div className="d-flex justify-content-between mb-1">
-                                    <span className="nb-mod-name">{m.name}</span>
-                                    <span className="nb-mod-time">{m.time}</span>
+                                        <CgExport className="me-1" /> Export
+                                    </button>
                                 </div>
-
-                                <p className="nb-mod-text text-start">"{m.text}"</p>
-
-                                <div className="d-flex gap-2">
-                                    <button className="btn-ok flex-grow-1">Approve</button>
-                                    <button className="btn-er flex-grow-1">Reject</button>
-                                </div>
-
                             </div>
-                        ))}
 
-                        <button className="btn-ac w-100">Show all moderation</button>
+                            {/* FILTERS */}
+                            <div className="row g-2 mb-3">
+                                <div className="col-md-4">
+                                    <select
+                                        className="form-select"
+                                        value={filterStatus}
+                                        onChange={(e) => handleStatusChange(e.target.value)}
+                                    >
+                                        <option value="">All Status</option>
+                                        <option value="draft">Draft</option>
+                                        <option value="published">Published</option>
+                                        <option value="archived">Archived</option>
+                                    </select>
+                                </div>
+                                <div className="col-md-4">
+                                    <input
+                                        type="date"
+                                        className="form-control"
+                                        value={startDate}
+                                        onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
+                                    />
+                                </div>
+                                <div className="col-md-4">
+                                    <input
+                                        type="date"
+                                        className="form-control"
+                                        value={endDate}
+                                        onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* TYPE TABS */}
+                            <div className="NoticeBoardTabs mt-3">
+                                {tabs.map((t) => (
+                                    <button
+                                        key={t.id}
+                                        onClick={() => { setTab(t.value); setPage(1); }}
+                                        className={`NoticeBoardTabs-btn ${tab === t.value ? "active" : ""}`}
+                                    >
+                                        {t.icon} &nbsp;{t.id}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* ROWS */}
+                            {rows.map((p, i, arr) => {
+                                const noticeData = getNoticeIcon(p.notice_type);
+                                return (
+                                    <div
+                                        key={i}
+                                        className={`nb-post text-start ${i < arr.length - 1 ? "nb-border" : ""}`}
+                                    >
+                                        <div className="d-flex gap-3">
+
+                                            <div className="nb-avatar" style={{ background: noticeData.bg }}>
+                                                {noticeData.icon}
+                                            </div>
+
+                                            <div className="flex-grow-1">
+
+                                                <div className="d-flex justify-content-between align-items-start flex-wrap mb-1">
+
+                                                    {/* Left Side — title + type badge + STATUS BADGE */}
+                                                    <div className="d-flex align-items-center gap-2 flex-wrap">
+                                                        <span className="nb-title">{p.title}</span>
+                                                        <Badge
+                                                            label={p.notice_type}
+                                                            c={
+                                                                p.notice_type === "general"     ? "blue"
+                                                                : p.notice_type === "maintenance" ? "orange"
+                                                                : p.notice_type === "emergency"   ? "red"
+                                                                : p.notice_type === "event"       ? "green"
+                                                                : p.notice_type === "legal"       ? "purple"
+                                                                : p.notice_type === "meeting"     ? "peacock"
+                                                                : "gray"
+                                                            }
+                                                        />
+                                                        {/* ── STATUS BADGE ── */}
+                                                        <Badge
+                                                            label={p.status}
+                                                            c={
+                                                                p.status === "published" ? "green"
+                                                                : p.status === "draft"   ? "orange"
+                                                                : p.status === "archived"? "red"
+                                                                : "gray"
+                                                            }
+                                                        />
+                                                    </div>
+
+                                                    {/* Right Side — edit / delete */}
+                                                    <div className="d-flex align-items-center gap-3">
+                                                        {p.status === "draft" && (
+                                                            <FiEdit
+                                                                size={18}
+                                                                style={{ cursor: "pointer", color: "orange" }}
+                                                                onClick={() => getNoticeBoardById(p.notice_id)}
+                                                            />
+                                                        )}
+                                                        {p.locked && (
+                                                            <span className="nb-locked">🔒 Locked</span>
+                                                        )}
+                                                        <FiTrash2
+                                                            size={18}
+                                                            style={{ cursor: "pointer", color: "red" }}
+                                                            onClick={() => deleteNotice(p.notice_id)}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <p className="nb-content">{p.description}</p>
+
+                                                <div className="nb-meta">
+                                                    👤 {name} • {timeAgo(p.publish_date)}
+                                                    {p.views && ` • 👁 ${p.views}`}
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            <Pagination page={page} total={total} onChange={setPage} />
+
+                        </div>
                     </div>
 
+                    {/* ── RIGHT ── */}
+                    <div className="col-12 col-lg-4">
+
+                        {/* Moderation */}
+                        <div className="sv-card">
+                            <div className="d-flex align-items-center gap-2 mb-3">
+                                <span>⚠️</span>
+                                <h6 className="nb-side-title">Moderation Queue (3)</h6>
+                            </div>
+                            {[
+                                { name: "Raj Singh (A-612)",   time: "10m ago", text: "Why is the gym AC never working?…" },
+                                { name: "Neha Verma (C-501)",  time: "45m ago", text: "Selling my old sofa set..." },
+                            ].map((m, i) => (
+                                <div key={i} className="nb-mod-box">
+                                    <div className="d-flex justify-content-between mb-1">
+                                        <span className="nb-mod-name">{m.name}</span>
+                                        <span className="nb-mod-time">{m.time}</span>
+                                    </div>
+                                    <p className="nb-mod-text text-start">"{m.text}"</p>
+                                    <div className="d-flex gap-2">
+                                        <button className="btn-ok flex-grow-1">Approve</button>
+                                        <button className="btn-er flex-grow-1">Reject</button>
+                                    </div>
+                                </div>
+                            ))}
+                            <button className="btn-ac w-100">Show all moderation</button>
+                        </div>
+
+                    </div>
                 </div>
             </div>
+
             <ExportModal
-    show={show}
-    onClose={() => setShow(false)}
-    onExport={handleExport}
-    activeTab={activeTab}
-    setActiveTab={setActiveTab}
-    selectedRange={selectedRange}
-    setSelectedRange={setSelectedRange}
-    totalRecords={allExportNoticeBoard.length}
-    currentRecords={filteredData.length}
-/>
+                show={show}
+                onClose={() => setShow(false)}
+                onExport={handleExport}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                selectedRange={selectedRange}
+                setSelectedRange={setSelectedRange}
+                totalRecords={allExportNoticeBoard.length}
+                currentRecords={filteredData.length}
+            />
         </>
-
     );
-}
+};
 
-export default NoticeBoard
+export default NoticeBoard;
