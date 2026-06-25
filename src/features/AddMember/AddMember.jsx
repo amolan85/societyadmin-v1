@@ -48,6 +48,10 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   const [limit, setLimit] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [mode, setMode] = useState("add");
+  //filter
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("")
 
   const [allMembers, setAllMembers] = useState([]);
   const [allMembersWithoutPagination, setAllMembersWithoutPagination] = useState([]);
@@ -85,16 +89,27 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   //function for get members
   const getMembers = async (societyId, page) => {
     try {
-      const data = await getMembersApi(societyId, page);
+      const data = await getMembersApi(
+        societyId,
+        page,
+        filterStatus,      // ← add karo
+        filterDateFrom,    // ← add karo
+        filterDateTo       // ← add karo
+      );
       setAllMembers(data.members);
       setPage(data.page);
       setLimit(data.per_page);
-      setTotalCount(data.total_count);
+      setTotalCount(data.pagination?.total || 0);;
     } catch (error) {
       console.error("Error fetching members:", error);
     }
   };
-
+  const filteredMembers = allMembers.filter((m) => {
+    const matchType = !filterStatus || m.occupancy_type === filterStatus;
+    const matchFrom = !filterDateFrom || new Date(m.start_date) >= new Date(filterDateFrom);
+    const matchTo = !filterDateTo || new Date(m.start_date) <= new Date(filterDateTo);
+    return matchType && matchFrom && matchTo;
+  });
   const getAllMembersWithoutPagination = async (societyId, search) => {
     try {
       const data = await getAllMembersWithoutPaginationApi(societyId, search);
@@ -133,13 +148,17 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   const getAllFlats = async (societyId, block) => {
     try {
       const data = await getAllFlatsApi(societyId, block);
+      console.log(data, "All flats response");
 
-      console.log(data.flats, "All flats");
+      // ✅ data se flats extract karo
+      const flats = data?.flats || data?.data?.flats || [];
 
       setAllFlats(
-        data.flats.map((item) => ({
-          value: item.flat_number,
+        flats.map((item) => ({
+          value: item.flat_id,
           label: item.flat_number,
+          flat_id: item.flat_id,
+          flat_number: item.flat_number,
         }))
       );
     } catch (error) {
@@ -262,6 +281,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
           mobileNo,
           emailId,
           blocks?.value,
+          //flat?.flat_id,
           flat?.value,
           finalMemType,
           moveInDate,
@@ -288,6 +308,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
           mobileNo,
           emailId,
           blocks?.value,
+          //flat?.flat_id,
           flat?.value,
           finalMemType,
           moveInDate,
@@ -315,82 +336,83 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     }
   };
 
- const GetMemberDetailsById = async (memberId) => {
-  try {
-    const data = await getMembersByIdApi(societyId, memberId);
+  const GetMemberDetailsById = async (memberId) => {
+    try {
+      const data = await getMembersByIdApi(societyId, memberId);
 
-    setMId(memberId);
+      setMId(memberId);
 
-    setFirstName(data.first_name || "");
-    setLastName(data.last_name || "");
-    setEmailId(data.email || "");
-    setMobileNo(data.mobile || "");
+      setFirstName(data.first_name || "");
+      setLastName(data.last_name || "");
+      setEmailId(data.email || "");
+      setMobileNo(data.mobile || "");
 
-    const flatDetails = data.flats?.[0];
+      const flatDetails = data.flats?.[0];
 
-    if (flatDetails) {
-      setBlocks({
-        value: flatDetails.block,
-        label: flatDetails.block,
-      });
+      if (flatDetails) {
+        setBlocks({
+          value: flatDetails.block,
+          label: flatDetails.block,
+        });
 
-      setFlat({
-        value: flatDetails.flat_id,
-        label: flatDetails.flat_number,
-      });
+        setFlat({
+          value: flatDetails.flat_id,
+          label: flatDetails.flat_number,
+          flat_id: flatDetails.flat_id,
+        });
 
-      setFamilyType(flatDetails.occupancy_type);
+        setFamilyType(flatDetails.occupancy_type);
 
-      setMemType(
-        flatDetails.occupancy_type === "owner_relative"
-          ? "familyMember"
-          : flatDetails.occupancy_type === "tenant_relative"
-          ? "familyMember"
-          : flatDetails.occupancy_type
-      );
+        setMemType(
+          flatDetails.occupancy_type === "owner_relative"
+            ? "familyMember"
+            : flatDetails.occupancy_type === "tenant_relative"
+              ? "familyMember"
+              : flatDetails.occupancy_type
+        );
 
-      setMoveInDate(flatDetails.start_date || "");
-      setMoveOutDate(flatDetails.end_date || "");
-    }
-
-    data.flats?.[0]?.documents?.forEach((doc) => {
-      switch (doc.document_type) {
-        case "id_proof":
-          setIdProof(doc.url);
-          break;
-
-        case "family_photo":
-          setFamilyPhoto(doc.url);
-          break;
-
-        case "agreement":
-          setAgreement(doc.url);
-          break;
-
-        case "ownership":
-          setOwnershipDocuments(doc.url);
-          break;
-
-        case "maintenance_receipt":
-          setMaintenanceReceipt(doc.url);
-          break;
-
-        case "rent_agreement":
-          setRentAgreement(doc.url);
-          break;
-
-        case "police_noc":
-          setPoliceNoc(doc.url);
-          break;
-
-        default:
-          break;
+        setMoveInDate(flatDetails.start_date || "");
+        setMoveOutDate(flatDetails.end_date || "");
       }
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
+
+      data.flats?.[0]?.documents?.forEach((doc) => {
+        switch (doc.document_type) {
+          case "id_proof":
+            setIdProof(doc.url);
+            break;
+
+          case "family_photo":
+            setFamilyPhoto(doc.url);
+            break;
+
+          case "agreement":
+            setAgreement(doc.url);
+            break;
+
+          case "ownership":
+            setOwnershipDocuments(doc.url);
+            break;
+
+          case "maintenance_receipt":
+            setMaintenanceReceipt(doc.url);
+            break;
+
+          case "rent_agreement":
+            setRentAgreement(doc.url);
+            break;
+
+          case "police_noc":
+            setPoliceNoc(doc.url);
+            break;
+
+          default:
+            break;
+        }
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
   // const handleDelete = async (memberId) => {
   //   try {
   //     const data = await deleteMembersApi(memberId);
@@ -596,13 +618,6 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
           <div className="d-flex">
             <button
               className="btn-ol ms-2"
-              data-bs-toggle="dropdown"
-            >
-              <FiFilter size={14} />
-              Filter
-            </button>
-            <button
-              className="btn-ol ms-2"
               onClick={() => {
                 getAllMembersWithoutPagination(societyId, "");
                 setExportModal(true);
@@ -624,7 +639,47 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
             </button>
           </div>
         </div>
-
+        <div className="row g-2 mb-4">
+          <div className="col-md-4">
+            <select
+              className="form-select"
+              value={filterStatus}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setPage(1);
+                getMembers(societyId, 1);
+              }}
+            >
+              <option value="">All Types</option>
+              <option value="owner">Owner</option>
+              <option value="tenant">Tenant</option>
+              <option value="owner_relative">Owner Family</option>
+              <option value="tenant_relative">Tenant Family</option>
+            </select>
+          </div>
+          <div className="col-md-4">
+            <input
+              type="date"
+              className="form-control"
+              value={filterDateFrom}
+              onChange={(e) => {
+                setFilterDateFrom(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          <div className="col-md-4">
+            <input
+              type="date"
+              className="form-control"
+              value={filterDateTo}
+              onChange={(e) => {
+                setFilterDateTo(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+        </div>
         {/* <div className='row'>
                     <div className='col-lg-7'>
                         <div className="NoticeBoardTabs mt-3 bg-white"
@@ -663,7 +718,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                 </tr>
               </thead>
               <tbody>
-                {allMembers.map((s, i) => (
+                {filteredMembers.map((s, i) => (
                   <tr className="text-start" key={i}>
                     {/* <td className="sa-name">{s.first_name} {s.last_name}</td> */}
                     <td>
@@ -722,13 +777,13 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                     <td className="sa-name">{s.mobile}</td>
                     <td>
                       <Badge
-                        label={s.status === "Approved" ? "Active" : s.status}
+                        label={s.occupant_status === "Approved" ? "Active" : s.occupant_status}
                         c={
-                          s.status === "Approved"
+                          s.occupant_status === "Approved"
                             ? "green"
-                            : s.status === "Pending"
+                            : s.occupant_status === "Pending"
                               ? "yellow"
-                              : s.status === "Inactive"
+                              : s.occupant_status === "Inactive"
                                 ? "gray"
                                 : "gray"
                         }
