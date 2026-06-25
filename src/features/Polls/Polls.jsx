@@ -154,16 +154,18 @@ const Polls = ({ setActive, setPollId }) => {
     };
 
     // Filter by status + search title
-    const filteredData = allPolls.filter((item) => {
-        const statusMatch =
-            tab === "" || item.status === tab;
+    const filteredData = Array.isArray(allPolls)
+        ? allPolls.filter((item) => {
+            const statusMatch =
+                tab === "" || item.status === tab;
 
-        const searchMatch =
-            search === "" ||
-            item.question?.toLowerCase().includes(search.toLowerCase());
+            const searchMatch =
+                search === "" ||
+                item.question?.toLowerCase().includes(search.toLowerCase());
 
-        return statusMatch && searchMatch;
-    });
+            return statusMatch && searchMatch;
+        })
+        : [];
     return (
         <div className="pg row g-4 pl-wrap">
 
@@ -189,7 +191,11 @@ const Polls = ({ setActive, setPollId }) => {
 
                     <button className="btn-ac" onClick={() => setActive("createPoll")}>+ Create Poll</button>
                 </div>
-
+                {filteredData.length === 0 && (
+                    <div className="sv-card p-4 text-center">
+                        <p className="tx-muted mb-0">No polls Added Here.</p>
+                    </div>
+                )}
                 {filteredData.map((p, i) => {
 
                     const totalVotes = getTotalVotes(p.options);
