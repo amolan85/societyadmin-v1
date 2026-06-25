@@ -26,7 +26,7 @@ const CreatePoll = ({ setActive, pollId }) => {
     }, [])
 
     useEffect(() => {
-        if (pollId, societyId) {
+        if (pollId && societyId) {
             PollsById();
         }
     }, [pollId, societyId]);
