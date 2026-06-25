@@ -1,0 +1,225 @@
+/* ── Billing.css ────────────────────────────────────────────────────── */
+
+/* ── Stat Cards ────────────────────────────────────────────────────── */
+.billing-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    border: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: box-shadow 0.2s;
+}
+.billing-stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.billing-stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+}
+.billing-stat-label { font-size: 12px; color: #6b7280; font-weight: 500; margin-bottom: 2px; }
+.billing-stat-value { font-size: 22px; font-weight: 700; color: #111827; line-height: 1; }
+.billing-stat-sub   { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+/* ── Section Card ───────────────────────────────────────────────────── */
+.billing-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid #f0f0f0;
+}
+.billing-card-title {
+    font-size: 15px; font-weight: 700; color: #111827;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+}
+
+/* ── Table ──────────────────────────────────────────────────────────── */
+.billing-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.billing-table th {
+    background: #f9fafb; color: #6b7280;
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 10px 14px; border-bottom: 1px solid #e5e7eb;
+    text-align: left; white-space: nowrap;
+}
+.billing-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151; vertical-align: middle;
+}
+.billing-table tbody tr:hover { background: #f9fafb; }
+.billing-table tbody tr:last-child td { border-bottom: none; }
+
+/* ── Status Badges ──────────────────────────────────────────────────── */
+.bill-badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; white-space: nowrap;
+}
+.bill-badge.paid     { background: #d1fae5; color: #065f46; }
+.bill-badge.unpaid   { background: #fee2e2; color: #991b1b; }
+.bill-badge.partial  { background: #fef3c7; color: #92400e; }
+.bill-badge.overdue  { background: #fde8d8; color: #9a3412; }
+
+/* ── Tabs ───────────────────────────────────────────────────────────── */
+.billing-tabs {
+    display: flex; gap: 4px;
+    background: #f3f4f6; border-radius: 10px;
+    padding: 4px; margin-bottom: 20px;
+}
+.billing-tab {
+    flex: 1; padding: 8px 16px;
+    border: none; background: transparent;
+    border-radius: 8px; font-size: 13px; font-weight: 500;
+    color: #6b7280; cursor: pointer; transition: all 0.15s;
+    white-space: nowrap;
+}
+.billing-tab.active {
+    background: #fff; color: #2563eb;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* ── Modal ──────────────────────────────────────────────────────────── */
+.billing-modal-header {
+    background: #2563eb; color: #fff;
+    padding: 16px 20px; border-radius: 12px 12px 0 0;
+    font-size: 16px; font-weight: 700;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.billing-modal-header .close-btn {
+    background: rgba(255,255,255,0.2); border: none;
+    color: #fff; width: 28px; height: 28px;
+    border-radius: 50%; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background 0.15s;
+}
+.billing-modal-header .close-btn:hover { background: rgba(255,255,255,0.35); }
+
+/* ── Form ───────────────────────────────────────────────────────────── */
+.billing-form-label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 4px; }
+.billing-form-input {
+    width: 100%; padding: 8px 12px;
+    border: 1px solid #d1d5db; border-radius: 8px;
+    font-size: 13px; color: #111827;
+    background: #fff; outline: none;
+    transition: border-color 0.15s;
+}
+.billing-form-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.billing-form-input.error { border-color: #ef4444; }
+
+/* ── Action Buttons ─────────────────────────────────────────────────── */
+.billing-btn {
+    padding: 8px 16px; border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+    border: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.15s;
+}
+.billing-btn-primary { background: #2563eb; color: #fff; }
+.billing-btn-primary:hover { background: #1d4ed8; }
+.billing-btn-success { background: #059669; color: #fff; }
+.billing-btn-success:hover { background: #047857; }
+.billing-btn-danger  { background: #dc2626; color: #fff; }
+.billing-btn-danger:hover  { background: #b91c1c; }
+.billing-btn-outline {
+    background: #fff; color: #374151;
+    border: 1px solid #d1d5db;
+}
+.billing-btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
+.billing-btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* ── Override Badge ─────────────────────────────────────────────────── */
+.override-badge {
+    display: inline-flex; align-items: center;
+    padding: 2px 8px; border-radius: 12px;
+    font-size: 10px; font-weight: 600;
+    background: #fef3c7; color: #92400e;
+}
+
+/* ── Amount Display ─────────────────────────────────────────────────── */
+.amount-display {
+    font-family: 'Courier New', monospace;
+    font-weight: 700; color: #111827;
+}
+.amount-green { color: #059669; }
+.amount-red   { color: #dc2626; }
+.amount-muted { color: #6b7280; font-weight: 400; }
+
+/* ── Ledger Row ─────────────────────────────────────────────────────── */
+.ledger-debit  { color: #dc2626; font-weight: 600; }
+.ledger-credit { color: #059669; font-weight: 600; }
+
+/* ── Search + Filter Bar ────────────────────────────────────────────── */
+.billing-toolbar {
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap; margin-bottom: 16px;
+}
+.billing-search-wrap {
+    position: relative; flex: 1; min-width: 200px;
+}
+.billing-search-wrap input {
+    padding-left: 34px;
+    width: 100%;
+}
+.billing-search-icon {
+    position: absolute; left: 10px; top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af; font-size: 14px;
+}
+
+/* ── Defaulters list ────────────────────────────────────────────────── */
+.defaulter-row {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+.defaulter-row:last-child { border-bottom: none; }
+.defaulter-name { font-size: 13px; font-weight: 600; color: #111827; }
+.defaulter-flat { font-size: 11px; color: #6b7280; }
+.defaulter-amt  { font-size: 14px; font-weight: 700; color: #dc2626; }
+
+/* ── Bill Detail ─────────────────────────────────────────────────────── */
+.bill-detail-header {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: #fff; border-radius: 12px;
+    padding: 24px; margin-bottom: 20px;
+}
+.bill-detail-number { font-size: 13px; opacity: 0.8; }
+.bill-detail-flat   { font-size: 22px; font-weight: 700; }
+.bill-detail-owner  { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+.bill-summary-row {
+    display: flex; justify-content: space-between;
+    align-items: center; padding: 8px 0;
+    border-bottom: 1px dashed #e5e7eb; font-size: 13px;
+}
+.bill-summary-row:last-child { border-bottom: none; }
+.bill-summary-row.total {
+    font-weight: 700; font-size: 15px;
+    border-top: 2px solid #e5e7eb;
+    border-bottom: none; padding-top: 12px; margin-top: 4px;
+}
+
+/* ── Payment Mode Icons ──────────────────────────────────────────────── */
+.pay-mode-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 6px;
+    font-size: 11px; font-weight: 600;
+    background: #f3f4f6; color: #374151;
+}
+
+/* ── Charge Head Scope Badge ─────────────────────────────────────────── */
+.scope-badge {
+    display: inline-flex; align-items: center;
+    padding: 2px 8px; border-radius: 12px;
+    font-size: 10px; font-weight: 600;
+}
+.scope-badge.centralised { background: #dbeafe; color: #1e40af; }
+.scope-badge.per_flat    { background: #f3e8ff; color: #6b21a8; }
+.scope-badge.fixed       { background: #d1fae5; color: #065f46; }
+.scope-badge.per_sqft    { background: #fef3c7; color: #92400e; }
