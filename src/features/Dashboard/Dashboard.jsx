@@ -234,7 +234,7 @@ export default function App() {
     complaints: <Complaints setActive={setActive} />,
     createComplaints: <CreateComplaints setActive={setActive} />,
     parkingList: <ParkingList setActive={setActive} />,
-    parkingDashboard: <ParkingDashboard setActive={setActive} setViolationId={setViolationId} setVisitorParkingId={setVisitorParkingId} />,
+    parkingDashboard: <ParkingDashboard setActive={setActive} setViolationId={setViolationId} setVisitorParkingId={setVisitorParkingId} setVehicleId={setVehicleId} />,
     visitorParking: <VisitorParkingList setActive={setActive} setVisitorParkingId={setVisitorParkingId} /* setViolationId={setViolationId} */ />,
     violationAlerts: <ViolationAlertsList setActive={setActive} setViolationId={setViolationId} />,
     parkingRules: <ParkingRules setActive={setActive} />,

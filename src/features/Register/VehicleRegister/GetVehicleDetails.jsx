@@ -19,6 +19,8 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
     const [show, setShow] = useState(false);
     const [errors, setErrors] = useState({});
     const [errorText, setErrorText] = useState("");
+    const [rcDocumentUrl, setRcDocumentUrl] = useState("");
+    const [selectedOwnerName, setSelectedOwnerName] = useState("");
 
     // Form fields
     const [vehicleNumber, setVehicleNumber] = useState("");
@@ -39,6 +41,9 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
             setColor(vehicle.color || "");
             setStickerId(vehicle.sticker_id || "");
             setFlatId(vehicle.flat_id || "");
+            setSelectedOwnerName(vehicle.owner_name || "");
+            setFlatId(vehicle.flat_number || vehicle.flat_id || "");
+            setRcDocumentUrl(vehicle.rc_document_url || "");
         }
     }, [vehicle]);
 
@@ -67,6 +72,7 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
             );
 
             setVehicle(res?.data || res);
+            console.log("Full vehicle response:", res?.data || res);
         } catch (e) {
             toast.error("Could not load vehicle details");
         } finally {
@@ -158,10 +164,7 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
             <div className="pg cp-wrap">
 
                 {/* Profile Header Card */}
-                <div className="sv-card p-4 mb-3" style={{
-                    background: "#eff6ff",
-                    border: "1px solid #93c5fd"
-                }}>
+                <div className="sv-card p-4 mb-3" >
                     <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
 
                         {/* Left: Icon + Info */}
@@ -197,6 +200,11 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
                                         <span className="text-muted" style={{ fontSize: 13 }}>
                                             <FiMapPin size={12} className="me-1" />
                                             Unit {vehicle.flat_id}
+                                        </span>
+                                    )}
+                                    {vehicle.owner_name && (
+                                        <span className="text-muted" style={{ fontSize: 13 }}>
+                                            👤 {vehicle.owner_name}
                                         </span>
                                     )}
                                 </div>
@@ -258,29 +266,101 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
                                 ))}
                             </div>
                         </div>
-
                         {/* RC Document */}
                         {vehicle.rc_document_url && (
                             <div className="sv-card p-4 mb-3">
                                 <h6 className="fw-bold mb-3 text-start">RC Document</h6>
-                                <a
-                                    href={vehicle.rc_document_url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="btn btn-sm btn-outline-primary"
-                                >
-                                    📄 View RC Document
-                                </a>
+
+                                <div className="row align-items-center">
+                                    <div className="col-md-8">
+                                        <div className="d-flex align-items-center gap-3">
+                                            <div
+                                                style={{
+                                                    width: "48px",
+                                                    height: "48px",
+                                                    borderRadius: "10px",
+                                                    background: "#eff6ff",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    fontSize: "20px"
+                                                }}
+                                            >
+                                                📄
+                                            </div>
+
+                                            <div className="text-start">
+                                                <div className="fw-semibold">RC Document</div>
+                                                <small className="text-muted">
+                                                    Uploaded Vehicle Document
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="col-md-4 text-md-end mt-3 mt-md-0">
+                                        <a
+                                            href={vehicle.rc_document_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="btn btn-outline-primary"
+                                            style={{ borderRadius: "8px" }}
+                                        >
+                                            View Document
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         )}
 
                     </div>
 
                     {/* Right Column */}
+                    {/* Right Column */}
                     <div className="col-12 col-lg-4">
 
-                        {/* Vehicle Profile Card */}
+                        {/* ✅ Owner Details Card */}
                         <div className="sv-card p-4 mb-3 text-start">
+                            <h6 className="fw-bold mb-3">Owner Details</h6>
+                            <div className="d-flex align-items-center gap-3 mb-3">
+                                <img
+                                    src={
+                                        vehicle.owner_profile_url?.startsWith("http")
+                                            ? vehicle.owner_profile_url
+                                            : "../src/assets/profile.png"
+                                    }
+                                    alt="Owner"
+                                    width={48}
+                                    height={48}
+                                    className="rounded-circle object-fit-cover"
+                                    onError={(e) => { e.target.src = "../src/assets/profile.png"; }}
+                                />
+                                <div>
+                                    <div className="fw-bold" style={{ fontSize: 14 }}>{vehicle.owner_name || "—"}</div>
+                                    <small className="text-muted">{vehicle.unit_type || "Owner"}</small>
+                                </div>
+                            </div>
+                            <div className="d-flex flex-column gap-2">
+                                {vehicle.owner_email && (
+                                    <div style={{ fontSize: 13 }}>
+                                        <span className="text-muted">Email: </span>{vehicle.owner_email}
+                                    </div>
+                                )}
+                                {vehicle.owner_mobile && (
+                                    <div style={{ fontSize: 13 }}>
+                                        <span className="text-muted">Mobile: </span>{vehicle.owner_mobile}
+                                    </div>
+                                )}
+                                {vehicle.flat_number && (
+                                    <div style={{ fontSize: 13 }}>
+                                        <span className="text-muted">Flat: </span>{vehicle.flat_number}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Vehicle Profile Card */}
+                        {/* <div className="sv-card p-4 mb-3 text-start">
                             <h6 className="fw-bold mb-3">Vehicle Summary</h6>
                             <div className="d-flex align-items-center gap-3 mb-3">
                                 <div style={{
@@ -313,7 +393,7 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </div> */}
 
                         {/* Activity Log */}
                         <div className="sv-card p-4 text-start">
@@ -370,6 +450,8 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
                 setRcDocument={setRcDocument}
                 flatId={flatId}
                 handleSubmit={handleUpdate}
+                selectedOwnerName={selectedOwnerName}
+                rcDocumentUrl={rcDocumentUrl}
             />
         </>
     );

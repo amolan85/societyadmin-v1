@@ -49,6 +49,9 @@ const VehicleModal = ({
 
     handleSubmit,
     onClose,
+    onFlatChange,
+    selectedOwnerName = "",
+    rcDocumentUrl = "",
 }) => {
     if (!show) return null;
 
@@ -112,19 +115,27 @@ const VehicleModal = ({
                                                 <select
                                                     className={`form-select ${errors.flatId ? "error-input" : ""}`}
                                                     value={selectedFlat}
-                                                    onChange={e => setSelectedFlat(e.target.value)}
+                                                    onChange={e => {
+                                                        onFlatChange ? onFlatChange(e.target.value) : setSelectedFlat(e.target.value);
+                                                    }}
                                                 >
                                                     <option value="">Select Flat</option>
                                                     {allFlats.map(f => (
                                                         <option key={f.flat_id} value={f.flat_id}>{f.flat_number}</option>
                                                     ))}
                                                 </select>
+
+                                                {selectedFlat && selectedOwnerName && (
+                                                    <small className="d-block mt-1">
+                                                        Owner: <span className="fw-bold">{selectedOwnerName}</span>
+                                                    </small>
+                                                )}
                                             </div>
                                         </div>
                                     )}
 
                                     {/* In edit mode: show flat as disabled */}
-                                    {isEdit && (
+                                    {/* {isEdit && (
                                         <div className="row g-3 mb-3">
                                             <div className="col-6">
                                                 <label className="sv-lb">Flat / Unit</label>
@@ -136,8 +147,30 @@ const VehicleModal = ({
                                                 />
                                             </div>
                                         </div>
+                                    )} */}
+  {/* In edit mode: show flat as disabled */}
+                                    {isEdit && (
+                                        <div className="row g-3 mb-3">
+                                            <div className="col-6">
+                                                <label className="sv-lb">Flat / Unit</label>
+                                                <input
+                                                    className="sv-in"
+                                                    value={flatId}
+                                                    disabled
+                                                    style={{ background: "#f8fafc", color: "#64748b" }}
+                                                />
+                                            </div>
+                                            <div className="col-6">
+                                                <label className="sv-lb">Owner</label>
+                                                <input
+                                                    className="sv-in"
+                                                    value={selectedOwnerName}
+                                                    disabled
+                                                    style={{ background: "#f8fafc", color: "#64748b" }}
+                                                />
+                                            </div>
+                                        </div>
                                     )}
-
                                     {/* Vehicle Number + Type */}
                                     <div className="row g-3 mb-3">
                                         <div className="col-6">
@@ -173,18 +206,24 @@ const VehicleModal = ({
                                     {/* Model + Color */}
                                     <div className="row g-3 mb-3">
                                         <div className="col-6">
-                                            <label className="sv-lb">Vehicle Model (Optional)</label>
+                                            <div className="d-flex">  {/* ← d-flex wrapper add karo */}
+                                                <label className="sv-lb">Vehicle Model <span className="text-danger">*</span></label>
+                                                {errors.vehicleModel && <span className="text-danger mx-2">{errors.vehicleModel}</span>}
+                                            </div>
                                             <input
-                                                className="sv-in"
+                                                className={`sv-in ${errors.vehicleModel ? "error-input" : ""}`}
                                                 placeholder="Eg. Honda City"
                                                 value={vehicleModel}
                                                 onChange={e => setVehicleModel(e.target.value)}
                                             />
                                         </div>
                                         <div className="col-6">
-                                            <label className="sv-lb">Color (Optional)</label>
+                                            <div className="d-flex">  {/* ← d-flex wrapper add karo */}
+                                                <label className="sv-lb">Color <span className="text-danger">*</span></label>
+                                                {errors.color && <span className="text-danger mx-2">{errors.color}</span>}
+                                            </div>
                                             <input
-                                                className="sv-in"
+                                                className={`sv-in ${errors.color ? "error-input" : ""}`}
                                                 placeholder="Eg. White"
                                                 value={color}
                                                 onChange={e => setColor(e.target.value)}
@@ -195,12 +234,17 @@ const VehicleModal = ({
                                     {/* Sticker ID */}
                                     <div className="row g-3 mb-3">
                                         <div className="col-6">
-                                            <label className="sv-lb">Sticker ID (Optional)</label>
+                                            <div className="d-flex">
+                                                <label className="sv-lb">Sticker ID <span className="text-danger">*</span></label>
+                                                {errors.stickerId && <span className="text-danger mx-2">{errors.stickerId}</span>}
+                                            </div>
                                             <input
-                                                className="sv-in"
-                                                placeholder="Eg. STK001"
+                                                className={`sv-in ${errors.stickerId ? "error-input" : ""}`}
+                                                placeholder="Auto-generated"
                                                 value={stickerId}
+                                                readOnly={!isEdit}
                                                 onChange={e => setStickerId(e.target.value)}
+                                                style={!isEdit ? { background: "#f8fafc", color: "#64748b" } : {}}
                                             />
                                         </div>
                                     </div>
@@ -208,21 +252,39 @@ const VehicleModal = ({
                                     {/* RC Document */}
                                     <div className="row g-3 mb-3">
                                         <div className="col-12">
-                                            <label className="sv-lb">RC Document (Optional)</label>
+                                            <div className="d-flex">
+                                                <label className="sv-lb">
+                                                    RC Document{!isEdit && <span className="text-danger">*</span>}
+                                                </label>
+                                                {errors.rcDocument && (
+                                                    <span className="text-danger mx-2">{errors.rcDocument}</span>
+                                                )}
+                                            </div>
+
+                                            {isEdit && rcDocumentUrl && (
+                                                <div className="mb-2">
+                                                    <a href={rcDocumentUrl} target="_blank" rel="noopener noreferrer">
+                                                        View current RC document
+                                                    </a>
+                                                </div>
+                                            )}
+
                                             <input
                                                 type="file"
                                                 className="form-control"
                                                 accept="image/*,.pdf"
                                                 onChange={e => setRcDocument && setRcDocument(e.target.files[0])}
                                             />
+
+                                            {isEdit && (
+                                                <small className="text-muted d-block mt-1">
+                                                    Leave empty to keep the existing document.
+                                                </small>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {isEdit && (
-                                        <p className="text-muted mb-0" style={{ fontSize: 12 }}>
-                                            * Flat / Unit cannot be changed after registration.
-                                        </p>
-                                    )}
+                                  
 
                                     {errorText && <h6 className="text-danger mt-2">{errorText}</h6>}
                                 </div>

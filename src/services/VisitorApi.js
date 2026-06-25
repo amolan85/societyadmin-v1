@@ -40,51 +40,117 @@ export const CreateVisitorApi = async (societyId, flatId, visitorName, mobileNo,
     });
 }
 // Guest ke liye
-export const CreateGuestVisitorApi = async (societyId, flatId, visitorName, mobile, email, gender, visitorType, comingFrom, vehicleNumber, purpose, idType, idNumber) => {
-    const url = UrlData + 'visitor/CreateVisitor';
-    const data = {
-        society_id: societyId,
-        flat_id: flatId,
-        visitor_name: visitorName,
-        mobile: mobile,
-        email: email || null,
-        gender: gender?.toLowerCase() || null,
-        visitor_type: visitorType,
-        coming_from: comingFrom || null,
-        vehicle_number: vehicleNumber || null,
-        purpose: purpose,
-        id_type: idType?.toLowerCase() || null,
-        id_number: idNumber || null,
-        photo_url: null,
-        parcel_description: null,
-        parcel_company: null,
-        parcel_delivery_type: null,
-        approval_status: "pending"
+export const CreateGuestVisitorApi = async ({
+    societyId,
+    flatId,
+    visitorName,
+    mobile,
+    email,
+    gender,
+    visitorType,
+    vehicleNumber,
+    purpose,
+    idType,
+    idNumber,
+    comingFrom,
+    photo,
+    scheduleStartDate,
+    scheduleEndDate
+}) => {
+
+    const url = UrlData + "visitor/CreateVisitor";
+
+    const formData = new FormData();
+
+    formData.append("society_id", societyId);
+    formData.append("flat_id", flatId);
+    formData.append("visitor_name", visitorName);
+    formData.append("mobile", mobile);
+    formData.append("email", email || "");
+    formData.append("gender", gender?.toLowerCase() || "");
+    formData.append("visitor_type", "guest");
+    formData.append("coming_from", comingFrom || "");
+    formData.append("vehicle_number", vehicleNumber || "");
+    formData.append("purpose", purpose || "");
+    formData.append("id_type", idType?.toLowerCase() || "");
+    formData.append("id_number", idNumber || "");
+    formData.append("approval_status", "pending");
+
+    formData.append("schedule_start_date", scheduleStartDate || "");
+    formData.append("schedule_end_date", scheduleEndDate || "");
+
+    if (photo) {
+        formData.append("photo", photo);
     }
-    return await apiClient({ method: 'post', url, data, timeout: 30000 })
-        .then(res => res.data.data)
-        .catch(error => { throw ErrorHandler(error); });
-}
+
+    try {
+        const response = await apiClient({
+            method: "post",
+            url,
+            data: formData,
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
+
+        return response.data;
+    } catch (error) {
+        throw ErrorHandler(error);
+    }
+};
 
 // Delivery ke liye
-export const CreateDeliveryApi = async (societyId, flatId, visitorName, mobile, vehicleNumber, parcelDescription, parcelCompany, parcelDeliveryType) => {
-    const url = UrlData + 'visitor/CreateVisitor';
-    const data = {
-        society_id: societyId,
-        flat_id: flatId,
-        visitor_name: visitorName,
-        mobile: mobile,
-        visitor_type: "delivery",
-        vehicle_number: vehicleNumber || null,
-        parcel_description: parcelDescription || null,
-        parcel_company: parcelCompany,
-        parcel_delivery_type: parcelDeliveryType?.toLowerCase(),
-        approval_status: "pending"
+export const CreateDeliveryApi = async ({
+    societyId,
+    flatId,
+    visitorName,
+    mobile,
+    vehicleNumber,
+    parcelDescription,
+    parcelCompany,
+    parcelDeliveryType,
+    scheduleStartDate,
+    scheduleEndDate
+}) => {
+
+    const url = UrlData + "visitor/CreateVisitor";
+
+    const formData = new FormData();
+
+    formData.append("society_id", societyId);
+    formData.append("flat_id", flatId);
+    formData.append("visitor_name", visitorName);
+    formData.append("mobile", mobile);
+    formData.append("visitor_type", "delivery");
+    formData.append("vehicle_number", vehicleNumber || "");
+
+    formData.append("parcel_description", parcelDescription || "");
+    formData.append("parcel_company", parcelCompany || "");
+    formData.append(
+        "parcel_delivery_type",
+        parcelDeliveryType?.toLowerCase() || ""
+    );
+
+    formData.append("approval_status", "pending");
+
+    formData.append("schedule_start_date", scheduleStartDate || "");
+    formData.append("schedule_end_date", scheduleEndDate || "");
+
+    try {
+        const response = await apiClient({
+            method: "post",
+            url,
+            data: formData,
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
+
+        return response.data;
+    } catch (error) {
+        throw ErrorHandler(error);
     }
-    return await apiClient({ method: 'post', url, data, timeout: 30000 })
-        .then(res => res.data.data)
-        .catch(error => { throw ErrorHandler(error); });
-}
+};
 
 export const ListVisitorsApi = async (data) => {
     const url = UrlData + 'visitor/ListVisitors';
@@ -185,36 +251,59 @@ export const GetMonthlyVisitorSummaryApi = async (societyId) => {
         .catch(error => { throw ErrorHandler(error); });
 }
 
-export const UpdateVisitorApi = async (
+export const UpdateVisitorApi = async ({
     visitorId,
     societyId,
     visitorName,
     mobile,
+    email,
+    gender,
+    visitorType,
+    comingFrom,
+    vehicleNumber,
     purpose,
-    vehicleNumber
-) => {
+    scheduleStartDate,
+    scheduleEndDate
+}) => {
+
+    const url = UrlData + "visitor/UpdateVisitor";
+
+    const formData = new FormData();
+
+    formData.append("visitor_id", visitorId);
+    formData.append("society_id", societyId);
+    formData.append("visitor_name", visitorName || "");
+    formData.append("mobile", mobile || "");
+    formData.append("email", email || "");
+    formData.append("gender", gender || "");
+    formData.append("visitor_type", visitorType || "guest");
+    formData.append("coming_from", comingFrom || "");
+    formData.append("vehicle_number", vehicleNumber || "");
+    formData.append("purpose", purpose || "");
+
+    formData.append(
+        "schedule_start_date",
+        scheduleStartDate || ""
+    );
+
+    formData.append(
+        "schedule_end_date",
+        scheduleEndDate || ""
+    );
+
     try {
-        const url = UrlData + "visitor/UpdateVisitor";
-
-        const body = {
-            visitor_id: visitorId,
-            society_id: societyId,
-            visitor_name: visitorName,
-            mobile: mobile,
-            purpose: purpose,
-            vehicle_number: vehicleNumber
-        };
-
         const response = await apiClient({
-            method: "post", // ya "put" agar API PUT use karti hai
-            url: url,
-            data: body
+            method: "post",
+            url,
+            data: formData,
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
         });
 
-        return response?.data?.data;
+        return response.data;
     } catch (error) {
-        const errors = ErrorHandler(error);
-        throw errors;
+        throw ErrorHandler(error);
     }
 };
 
