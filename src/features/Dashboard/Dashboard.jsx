@@ -443,6 +443,7 @@ import VisitorRegister from "../Register/VisitorRegister/VisitorRegister";
 import GetVisitorDetails from "../Register/VisitorRegister/GetVisitorDetails";
 import ListVehicleRegister from "../Register/VehicleRegister/ListVehicleRegister";
 import GetVehicleDetails from "../Register/VehicleRegister/GetVehicleDetails";
+import FlatApprovals from "../FlatOccupancy/FlatApprovals";
 import Billing from "../Billing/Billing";
 
 
@@ -485,6 +486,7 @@ const NAV = [
   },
   {
     sec: "Operations", items: [
+      { id: "flatApprovals", icon: "🏘️", lbl: "Flat Approvals" },
       { id: "complaints", icon: "🚨", lbl: "Complaints" },
       { id: "parkingDashboard", icon: "🚗", lbl: "Parking" },
       { id: "rentals", icon: "🏢", lbl: "Rentals & Tenants" },
@@ -572,6 +574,7 @@ const TITLES = {
   vehicleRegister: ["Administration", "Registers", "Vehicle Register"],
   vehicleDetailsPage: ["Administration", "Registers", "Vehicle Register", "Vehicle Details"],
   billing: ["Operations", "Billing"],
+  flatApprovals: ["Operations", "Flat Approvals"],
 };
 
 /* ══ ROOT APP ══════════════════════════════════ */
@@ -657,7 +660,8 @@ export default function App() {
     vehicleRegister: <ListVehicleRegister setActive={setActive} setVehicleId={setVehicleId} />,
     vehicleDetailsPage: <GetVehicleDetails setActive={setActive} vehicleId={vehicleId} />,
     // ✅ BILLING
-    billing: <Billing setActive={setActive} />
+    billing: <Billing setActive={setActive} />,
+    flatApprovals: <FlatApprovals setActive={setActive} />,
   };
 
 
