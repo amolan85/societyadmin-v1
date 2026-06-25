@@ -1,459 +1,5 @@
-// import { useState, useEffect } from 'react'
-// import { Badge, Pagination } from '../../components/Common/ReusableFunction';
-// import "../../styles/StaffAttendance.css"
-// import { deleteBroadcastApi, getBroadcastApi } from '../../services/BroadcastApi';
-// import { GetSessionData } from '../../utils/SessionManagement';
-// import { toast } from "react-toastify";
-// import { FiEdit, FiTrash2 } from 'react-icons/fi';
-// import {
-//     FiVolume2,
-//     FiAlertTriangle,
-//     FiCalendar,
-//     FiGrid,
-//     FiFileText
-// } from "react-icons/fi";
-// import jsPDF from "jspdf";
-// import autoTable from "jspdf-autotable";
-
-// const Broadcast = ({ setActive, setBroadcastId }) => {
-//     const [page, setPage] = useState(1);
-//     const [allBroadcast, setAllBroadcast] = useState([])
-//     const [broadcastTypeTab, setBroadcastTypeTab] = useState("")
-//     const [societyId, setSocietyId] = useState("")
-//     const [name, setName] = useState("")
-
-//     const broadcastType = [
-//         { id: "All", icon: <FiGrid size={18} color="#2563eb" />, value: "" },
-//         { id: "Announcement", icon: <FiVolume2 size={18} color="#f59e0b" />, value: "announcement" },
-//         { id: "Emergency", icon: <FiAlertTriangle size={18} color="#ef4444" />, value: "emergency" },
-//         { id: "Circular", icon: <FiFileText size={18} color="purple" />, value: "circular" },
-//         { id: "Event", icon: <FiCalendar size={18} color="#10b981" />, value: "event" },
-//     ];
-
-
-
-//     // Load session data on component mount for get session data
-//     useEffect(() => {
-//         SessionData()
-//     }, [])
-
-//     // Get session data and fetch broadcast list
-//     const SessionData = async () => {
-//         const data = await GetSessionData()
-//         console.log(data.data)
-//         const flats = data.data.flats[0]
-//         setSocietyId(flats.society_id)
-//         setName(data.data.first_name + " " + data.data.last_name)
-//         //call function for get broadcast
-//         getBroadcast(flats.society_id)
-//     }
-
-//     //function for get broadcast
-//     const getBroadcast = async (societyId) => {
-//         try {
-//             const data = await getBroadcastApi(societyId)
-//             setAllBroadcast(data)
-//         } catch (error) {
-//             console.log(error)
-//         }
-//     }
-
-//     //function for get broad cast by id
-//     const getBroadcastById = (id) => {
-//         setBroadcastId(id);
-//         setActive("createbroadcast");    // pehle ID set karo
-//     };
-
-//     const deleteBroadcast = async (broadcastId) => {
-//         try {
-//             const data = await deleteBroadcastApi(broadcastId)
-//             console.log(data)
-//             toast.success("Broadcast deleted successfully!")
-//             getBroadcast(societyId)
-//         } catch (error) {
-//             console.log(error)
-//         }
-//     }
-
-//     const downloadExcel = () => {
-
-//         // convert json to worksheet
-//         const worksheet = XLSX.utils.json_to_sheet(allBroadcast);
-
-//         // create workbook
-//         const workbook = XLSX.utils.book_new();
-
-//         // append worksheet
-//         XLSX.utils.book_append_sheet(workbook, worksheet, "Broadcast");
-
-//         // download file
-//         XLSX.writeFile(workbook, "BroadcastData.xlsx");
-//     };
-
-//     const downloadCSV = () => {
-
-//         // convert json data to worksheet
-//         const worksheet = XLSX.utils.json_to_sheet(allBroadcast);
-
-//         // convert worksheet to csv
-//         const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
-
-//         // create blob
-//         const blob = new Blob([csvOutput], {
-//             type: "text/csv;charset=utf-8;",
-//         });
-
-//         // create download link
-//         const link = document.createElement("a");
-
-//         link.href = URL.createObjectURL(blob);
-
-//         link.download = "BroadcastData.csv";
-
-//         link.click();
-//     };
-
-//     const downloadPDF = () => {
-
-//         // landscape mode
-//         const doc = new jsPDF("landscape");
-
-//         // PDF Heading
-//         doc.setFontSize(18);
-//         doc.text("Broadcast Report", 14, 15);
-
-//         // table columns
-//         const tableColumn = [
-//             "Subject",
-//             "Content",
-//             "Type",
-//             "Schedule Date",
-//             "Status",
-//         ];
-
-//         // table rows
-//         const tableRows = allBroadcast.map((item) => [
-//             item.title,
-//             item.message,
-//             item.type,
-//             item.scheduled_at,
-//             item.status,
-//         ]);
-
-//         autoTable(doc, {
-//             head: [tableColumn],
-//             body: tableRows,
-
-//             // table start after heading
-//             startY: 25,
-
-//             styles: {
-//                 fontSize: 8,
-//                 cellPadding: 3,
-//             },
-
-//             headStyles: {
-//                 fillColor: [13, 110, 253],
-//             },
-
-//             theme: "grid",
-//         });
-
-//         doc.save("BroadcastData.pdf");
-//     };
-
-//     const filteredData = broadcastTypeTab === ""
-//         ? allBroadcast
-//         : allBroadcast.filter((item) => item.type === broadcastTypeTab);
-
-//     //for pagination
-//     const per = 10, total = Math.ceil(filteredData.length / per);
-//     const rows = filteredData.slice((page - 1) * per, page * per);
-
-
-//     const timeAgo = (utcDate) => {
-
-//         // UTC date convert
-//         const past = new Date(utcDate);
-
-//         // current UTC time
-//         const now = new Date();
-
-//         const seconds = Math.floor((now - past) / 1000);
-
-//         const minutes = Math.floor(seconds / 60);
-//         const hours = Math.floor(minutes / 60);
-//         const days = Math.floor(hours / 24);
-
-//         if (days > 0) {
-//             return `${days} day${days > 1 ? "s" : ""} ago`;
-//         }
-
-//         if (hours > 0) {
-//             return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-//         }
-
-//         if (minutes > 0) {
-//             return `${minutes} min ago`;
-//         }
-
-//         return "Just now";
-//     };
-
-
-//     const getNoticeIcon = (type) => {
-//         switch (type) {
-//             case "announcement":
-//                 return {
-//                     icon: <FiVolume2 size={18} color="#ff9800" />,
-//                     bg: "#fff3e0",
-//                 };
-//             case "circular":
-//                 return {
-//                     icon: <FiFileText size={18} color="#7c3aed" />,
-//                     bg: "#ede9fe",
-//                 };
-
-//             case "emergency":
-//                 return {
-//                     icon: <FiAlertTriangle size={18} color="#ef4444" />,
-//                     bg: "#fee2e2",
-//                 };
-
-//             case "event":
-//                 return {
-//                     icon: <FiCalendar size={18} color="#10b981" />,
-//                     bg: "#d1fae5",
-//                 };
-
-//             default:
-//                 return {
-//                     icon: <FiCalendar size={18} color="#6b7280" />,
-//                     bg: "#f3f4f6",
-//                 };
-//         }
-//     };
-
-
-//     return (
-//         <>
-//             <div className="pg row g-4 nb-wrap">
-
-//                 {/* LEFT */}
-//                 <div className="col-12 col-lg-8">
-//                     <div className="sv-card">
-//                         <div className="d-flex justify-content-end">
-
-//                             <button className='btn btn-sm btn-primary' onClick={() => { setActive("createbroadcast"); setBroadcastId("") }}>Create</button>
-//                         </div>
-//                         <div className="NoticeBoardTabs mt-3"
-//                         >
-//                             {broadcastType.map((t) => (
-//                                 <button
-//                                     key={t.id}
-//                                     onClick={() => { setBroadcastTypeTab(t.value); setPage(1); }}
-//                                     className={`NoticeBoardTabs-btn ${broadcastTypeTab === t.value ? "active" : ""}`}
-//                                 >
-//                                     {t.icon} &nbsp;{t.id}
-//                                 </button>
-//                             ))}
-//                         </div>
-//                         {rows.map((p, i, arr) => {
-//                             const noticeData = getNoticeIcon(p.type);
-//                             return (
-//                                 <div
-//                                     key={p.broadcast_id}
-//                                     className={`nb-post text-start ${i < arr.length - 1 ? "nb-border" : ""}`}
-//                                 >
-
-//                                     <div className="d-flex gap-3">
-
-//                                         <div
-//                                             className="nb-avatar"
-//                                             style={{ background: noticeData.bg }}
-//                                         >
-//                                             {noticeData.icon}
-//                                         </div>
-//                                         <div className="flex-grow-1">
-
-//                                             <div className="d-flex justify-content-between align-items-start flex-wrap mb-1">
-
-//                                                 {/* Left Side */}
-//                                                 <div className="d-flex align-items-center gap-2 flex-wrap">
-//                                                     <span className="nb-title">{p.title}</span>
-//                                                     <Badge
-//                                                         label={p.type}
-//                                                         c={
-//                                                             p.type === "announcement"
-//                                                                 ? "orange"
-//                                                                 : p.type === "circular"
-//                                                                     ? "purple"
-//                                                                     : p.type === "emergency"
-//                                                                         ? "red"
-//                                                                         : p.type === "event"
-//                                                                             ? "green"
-
-//                                                                             : "gray"
-//                                                         }
-//                                                     />
-//                                                     {/* <Badge label={p.notice_type} c={p.tc} /> */}
-//                                                 </div>
-
-//                                                 {/* Right Side */}
-//                                                 <div className="d-flex align-items-center gap-3">
-//                                                     {p.status === "draft" ? (
-//                                                         <FiEdit
-//                                                             size={18}
-//                                                             style={{ cursor: "pointer", color: "orange" }}
-//                                                             onClick={() => getBroadcastById(p.broadcast_id)}
-//                                                         />
-//                                                     ) : (
-//                                                         <Badge
-//                                                             label={p.status}
-//                                                             c={
-//                                                                 p.status === "scheduled"
-//                                                                     ? "blue"
-//                                                                     : p.status === "sent"
-//                                                                         ? "green"
-//                                                                         : p.status === "failed"
-//                                                                             ? "red"
-//                                                                             : "gray"
-//                                                             }
-//                                                         />
-//                                                     )}
-//                                                     {p.locked && (
-//                                                         <span className="nb-locked">🔒 Locked</span>
-//                                                     )}
-
-//                                                     <FiTrash2
-//                                                         size={18}
-//                                                         style={{ cursor: "pointer", color: "red" }}
-//                                                         onClick={() => deleteBroadcast(p.broadcast_id)}
-//                                                     />
-//                                                 </div>
-//                                             </div>
-
-//                                             <p className="nb-content">{p.message}</p>
-
-//                                             <div className="nb-meta">
-//                                                 👤 {name} • {timeAgo(p.sent_at)}
-//                                                 {p.views && ` • 👁 ${p.views}`}
-
-//                                             </div>
-
-//                                         </div>
-//                                     </div>
-//                                 </div>
-//                             )
-//                         })}
-//                         <Pagination
-//                             page={page}
-//                             total={total}
-//                             onChange={setPage}
-//                         />
-//                     </div>
-//                 </div>
-
-//                 {/* RIGHT */}
-//                 <div className="col-12 col-lg-4">
-
-//                     {/* Stats */}
-//                     <div className="sv-card mb-3">
-//                         <div className="row g-0 text-center">
-//                             {[["24", "Active notices", ""], ["3", "Pending Review", "tx-danger"], ["156", "Comments Today", ""], ["12", "New Threads", ""]]
-//                                 .map(([v, l, cls], i) => (
-//                                     <div
-//                                         key={l}
-//                                         className={`col-6 py-3 nb-stat ${cls} ${i < 2 ? "nb-bb" : ""} ${i % 2 === 0 ? "nb-br" : ""}`}
-//                                     >
-//                                         <div className="nb-stat-val">{v}</div>
-//                                         <div className="nb-stat-label">{l}</div>
-//                                     </div>
-//                                 ))}
-//                         </div>
-//                     </div>
-
-//                     {/* Moderation */}
-//                     <div className="sv-card">
-
-//                         <div className="d-flex align-items-center gap-2 mb-3">
-//                             <span>⚠️</span>
-//                             <h6 className="nb-side-title">Moderation Queue (3)</h6>
-//                         </div>
-
-//                         {[
-//                             { name: "Raj Singh (A-612)", time: "10m ago", text: "Why is the gym AC never working?…" },
-//                             { name: "Neha Verma (C-501)", time: "45m ago", text: "Selling my old sofa set..." },
-//                         ].map((m, i) => (
-//                             <div key={i} className="nb-mod-box">
-
-//                                 <div className="d-flex justify-content-between mb-1">
-//                                     <span className="nb-mod-name">{m.name}</span>
-//                                     <span className="nb-mod-time">{m.time}</span>
-//                                 </div>
-
-//                                 <p className="nb-mod-text text-start">"{m.text}"</p>
-
-//                                 <div className="d-flex gap-2">
-//                                     <button className="btn-ok flex-grow-1">Approve</button>
-//                                     <button className="btn-er flex-grow-1">Reject</button>
-//                                 </div>
-
-//                             </div>
-//                         ))}
-
-//                         <button className="btn-ac w-100">Show all moderation</button>
-//                     </div>
-
-//                 </div>
-//             </div>
-
-//         </>
-//     )
-// }
-
-// export default Broadcast
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
-    FiEdit,
     FiTrash2,
     FiVolume2,
     FiAlertTriangle,
@@ -473,7 +19,7 @@ import {
 } from "../../services/BroadcastApi";
 import { GetSessionData } from "../../utils/SessionManagement";
 
-const Broadcast = ({ setActive, setBroadcastId }) => {
+const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
 
     // =====================================================
     // STATES
@@ -486,6 +32,7 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
     const [allBroadcast, setAllBroadcast] = useState([]);
     const [loading, setLoading] = useState(false);
     const [societyId, setSocietyId] = useState("");
+    const societyIdRef = useRef("");
     const [name, setName] = useState("");
 
     // filters
@@ -503,16 +50,20 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
         event: 0,
     });
 
+    // delete modal
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedBroadcastId, setSelectedBroadcastId] = useState(null);
+
     // =====================================================
     // TABS CONFIG
     // =====================================================
 
     const broadcastType = [
-        { id: "All", icon: <FiGrid size={15} color="#2563eb" />, value: "" },
-        { id: "Announcement", icon: <FiVolume2 size={15} color="#f59e0b" />, value: "announcement" },
-        { id: "Emergency", icon: <FiAlertTriangle size={15} color="#ef4444" />, value: "emergency" },
-        { id: "Circular", icon: <FiFileText size={15} color="purple" />, value: "circular" },
-        { id: "Event", icon: <FiCalendar size={15} color="#10b981" />, value: "event" },
+        { id: "All",          icon: <FiGrid size={15} color="#2563eb" />,        value: "" },
+        { id: "Announcement", icon: <FiVolume2 size={15} color="#f59e0b" />,     value: "announcement" },
+        { id: "Emergency",    icon: <FiAlertTriangle size={15} color="#ef4444" />, value: "emergency" },
+        { id: "Circular",     icon: <FiFileText size={15} color="purple" />,     value: "circular" },
+        { id: "Event",        icon: <FiCalendar size={15} color="#10b981" />,    value: "event" },
     ];
 
     // =====================================================
@@ -527,11 +78,12 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
         try {
             const data = await GetSessionData();
             const flats = data.data.flats[0];
-            setSocietyId(flats.society_id);
+            const sid = flats.society_id;
+            setSocietyId(sid);
+            societyIdRef.current = sid;
             setName(`${data.data.first_name} ${data.data.last_name}`);
-            // pass societyId directly since state won't be set yet
             getBroadcast({
-                sid: flats.society_id,
+                sid,
                 currentPage: 1,
                 currentSearch: "",
                 currentType: "",
@@ -545,35 +97,7 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
     };
 
     // =====================================================
-    // AUTO LOAD — re-fetch when any filter or page changes
-    // (skips on first render — SessionData handles that call)
-    // =====================================================
-
-    useEffect(() => {
-        if (!societyId) return;
-        getBroadcast({
-            sid: societyId,
-            currentPage: page,
-            currentSearch: search,
-            currentType: broadcastTypeTab,
-            currentStatus: status,
-            currentStartDate: startDate,
-            currentEndDate: endDate,
-        });
-    }, [page, broadcastTypeTab, status, startDate, endDate]);
-    // NOTE: search is intentionally excluded — it fires only on button/Enter
-
-    // =====================================================
     // API — GET BROADCAST LIST
-    //
-    // Your getBroadcastListApi service already does:
-    //   return response.data.data
-    // So what comes back is directly:
-    //   { records: [...], total_pages: 3, total_records: 28, page: 1, limit: 10 }
-    //
-    // Payload keys MUST match what the service function expects:
-    //   currentPage, currentSearch, currentType,
-    //   currentStatus, currentStartDate, currentEndDate
     // =====================================================
 
     const getBroadcast = async ({
@@ -586,30 +110,24 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
         currentEndDate,
     }) => {
         try {
-            setLoading(true);
-
             const payload = {
                 society_id: sid,
-                currentPage: currentPage,
-                limit: limit,
-                currentSearch: currentSearch,
-                currentType: currentType,
-                currentStatus: currentStatus,
-                currentStartDate: currentStartDate,
-                currentEndDate: currentEndDate,
+                currentPage,
+                limit,
+                currentSearch,
+                currentType,
+                currentStatus,
+                currentStartDate,
+                currentEndDate,
             };
 
-            // service returns response.data.data directly
-            // shape: { records: [], total_pages: N, total_records: N }
             const apiData = await getBroadcastListApi(payload);
-
             const records = apiData?.records || [];
 
             setAllBroadcast(records);
             setTotalPages(apiData?.total_pages || 1);
             setTotalRecords(apiData?.total_records || 0);
 
-            // type counts for breakdown bars
             const counts = { announcement: 0, emergency: 0, circular: 0, event: 0 };
             records.forEach((r) => {
                 if (counts[r.type] !== undefined) counts[r.type]++;
@@ -619,19 +137,17 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
         } catch (error) {
             console.log(error);
             toast.error("Failed to load broadcasts");
-        } finally {
-            setLoading(false);
         }
     };
 
     // =====================================================
-    // SEARCH — fires API with current search value
+    // SEARCH
     // =====================================================
 
     const handleSearch = () => {
         setPage(1);
         getBroadcast({
-            sid: societyId,
+            sid: societyIdRef.current,
             currentPage: 1,
             currentSearch: search,
             currentType: broadcastTypeTab,
@@ -646,19 +162,25 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
     };
 
     // =====================================================
-    // PAGINATION — page change triggers useEffect above
+    // PAGINATION
     // =====================================================
 
     const handlePageChange = (newPage) => {
         setPage(newPage);
-        // useEffect [page, ...] will fire getBroadcast automatically
+        getBroadcast({
+            sid: societyIdRef.current,
+            currentPage: newPage,
+            currentSearch: search,
+            currentType: broadcastTypeTab,
+            currentStatus: status,
+            currentStartDate: startDate,
+            currentEndDate: endDate,
+        });
     };
 
     // =====================================================
     // DELETE
     // =====================================================
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [selectedBroadcastId, setSelectedBroadcastId] = useState(null);
 
     const deleteBroadcast = (broadcastId) => {
         setSelectedBroadcastId(broadcastId);
@@ -667,14 +189,11 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
 
     const confirmDeleteBroadcast = async () => {
         try {
-            await deleteBroadcastApi(selectedBroadcastId,societyId);
-
+            await deleteBroadcastApi(selectedBroadcastId, societyIdRef.current);
             toast.success("Broadcast deleted successfully");
-
             setShowDeleteModal(false);
-
             getBroadcast({
-                sid: societyId,
+                sid: societyIdRef.current,
                 currentPage: page,
                 currentSearch: search,
                 currentType: broadcastTypeTab,
@@ -682,60 +201,35 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                 currentStartDate: startDate,
                 currentEndDate: endDate,
             });
-
         } catch (error) {
             console.log(error);
             toast.error("Failed to delete broadcast");
         }
     };
 
-
-    // const deleteBroadcast = async (broadcastId) => {
-
-    //     const confirmDelete = window.confirm(
-    //         "Do you want to delete this broadcast?"
-    //     );
-
-    //     if (!confirmDelete) {
-    //         return;
-    //     }
-
-    //     try {
-
-    //         await deleteBroadcastApi(broadcastId);
-
-    //         toast.success("Broadcast deleted successfully");
-
-    //         // reload current page
-    //         getBroadcast({
-    //             sid: societyId,
-    //             currentPage: page,
-    //             currentSearch: search,
-    //             currentType: broadcastTypeTab,
-    //             currentStatus: status,
-    //             currentStartDate: startDate,
-    //             currentEndDate: endDate,
-    //         });
-
-    //     } catch (error) {
-
-    //         console.log(error);
-
-    //         toast.error("Failed to delete broadcast");
-    //     }
-    // };
-
     // =====================================================
-    // EDIT
+    // EDIT — navigate to CreateBroadcast with id
     // =====================================================
 
-    const getBroadcastById = (id) => {
+    const handleEditClick = (id) => {
         setBroadcastId(id);
         setActive("createbroadcast");
     };
 
     // =====================================================
-    // TIME AGO
+    // VIEW DETAILS — pass full object so detail page renders instantly
+    // =====================================================
+
+    const handleViewDetails = (broadcast) => {
+        setBroadcastId(broadcast.id);
+        // Pass the full row data so ViewBroadcastDetails can render immediately
+        // while it fetches fresh data in the background
+        if (setSelectedBroadcast) setSelectedBroadcast(broadcast);
+        setActive("viewbroadcastdetails");
+    };
+
+    // =====================================================
+    // HELPERS
     // =====================================================
 
     const timeAgo = (utcDate) => {
@@ -746,46 +240,42 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
         const minutes = Math.floor(seconds / 60);
         const hours = Math.floor(minutes / 60);
         const days = Math.floor(hours / 24);
-        if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
-        if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+        if (days > 0)    return `${days} day${days > 1 ? "s" : ""} ago`;
+        if (hours > 0)   return `${hours} hour${hours > 1 ? "s" : ""} ago`;
         if (minutes > 0) return `${minutes} min ago`;
         return "Just now";
     };
 
-    // =====================================================
-    // ICON CONFIG
-    // =====================================================
-
     const getNoticeIcon = (type) => {
         switch (type) {
-            case "announcement": return { icon: <FiVolume2 size={16} color="#ff9800" />, bg: "#fff3e0" };
-            case "circular": return { icon: <FiFileText size={16} color="#7c3aed" />, bg: "#ede9fe" };
-            case "emergency": return { icon: <FiAlertTriangle size={16} color="#ef4444" />, bg: "#fee2e2" };
-            case "event": return { icon: <FiCalendar size={16} color="#10b981" />, bg: "#d1fae5" };
-            default: return { icon: <FiCalendar size={16} color="#6b7280" />, bg: "#f3f4f6" };
+            case "announcement": return { icon: <FiVolume2 size={16} color="#ff9800" />,      bg: "#fff3e0" };
+            case "circular":     return { icon: <FiFileText size={16} color="#7c3aed" />,      bg: "#ede9fe" };
+            case "emergency":    return { icon: <FiAlertTriangle size={16} color="#ef4444" />, bg: "#fee2e2" };
+            case "event":        return { icon: <FiCalendar size={16} color="#10b981" />,      bg: "#d1fae5" };
+            default:             return { icon: <FiCalendar size={16} color="#6b7280" />,      bg: "#f3f4f6" };
         }
     };
 
     const getChannelIcon = (channel) => {
         switch (channel) {
-            case "email": return <FiMail size={12} />;
-            case "sms": return <FiMessageSquare size={12} />;
+            case "email":    return <FiMail size={12} />;
+            case "sms":      return <FiMessageSquare size={12} />;
             case "whatsapp": return <span style={{ fontSize: 12 }}>💬</span>;
-            default: return null;
+            default:         return null;
         }
     };
 
     const getStatusColor = (s) => {
-        if (s === "sent") return "green";
+        if (s === "sent")      return "green";
         if (s === "scheduled") return "blue";
-        if (s === "draft") return "orange";
+        if (s === "draft")     return "orange";
         return "red";
     };
 
     const getTypeColor = (t) => {
         if (t === "announcement") return "orange";
-        if (t === "emergency") return "red";
-        if (t === "circular") return "purple";
+        if (t === "emergency")    return "red";
+        if (t === "circular")     return "purple";
         return "green";
     };
 
@@ -831,7 +321,12 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                                 <select
                                     className="form-select form-select-sm"
                                     value={status}
-                                    onChange={(e) => { setStatus(e.target.value); setPage(1); }}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setStatus(val);
+                                        setPage(1);
+                                        getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: val, currentStartDate: startDate, currentEndDate: endDate });
+                                    }}
                                 >
                                     <option value="">All Status</option>
                                     <option value="draft">Draft</option>
@@ -845,7 +340,12 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                                     type="date"
                                     className="form-control form-control-sm"
                                     value={startDate}
-                                    onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setStartDate(val);
+                                        setPage(1);
+                                        getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: val, currentEndDate: endDate });
+                                    }}
                                 />
                             </div>
                             <div className="col-md-4">
@@ -853,7 +353,12 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                                     type="date"
                                     className="form-control form-control-sm"
                                     value={endDate}
-                                    onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setEndDate(val);
+                                        setPage(1);
+                                        getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: startDate, currentEndDate: val });
+                                    }}
                                 />
                             </div>
                         </div>
@@ -863,7 +368,11 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                             {broadcastType.map((t) => (
                                 <button
                                     key={t.id}
-                                    onClick={() => { setBroadcastTypeTab(t.value); setPage(1); }}
+                                    onClick={() => {
+                                        setBroadcastTypeTab(t.value);
+                                        setPage(1);
+                                        getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: t.value, currentStatus: status, currentStartDate: startDate, currentEndDate: endDate });
+                                    }}
                                     className={`NoticeBoardTabs-btn ${broadcastTypeTab === t.value ? "active" : ""}`}
                                 >
                                     {t.icon} {t.id}
@@ -875,7 +384,7 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                         {loading ? (
 
                             <div className="text-center py-5 text-muted">
-                                <div className="spinner-border spinner-border-sm me-2" role="status" />
+                                <div className="spinner-border mb-3" role="status" />
                                 Loading...
                             </div>
 
@@ -896,56 +405,44 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                                         key={p.id}
                                         className={`nb-post text-start ${i !== allBroadcast.length - 1 ? "nb-border" : ""}`}
                                     >
-                                        <div className="d-flex gap-3">
+                                        <div className="d-flex gap-3 align-items-start">
 
-                                            <div className="nb-avatar" style={{ background: noticeData.bg }}>
+                                            {/* TYPE ICON */}
+                                            <div
+                                                className="nb-avatar flex-shrink-0"
+                                                style={{ background: noticeData.bg, cursor: "pointer" }}
+                                                onClick={() => handleViewDetails(p)}
+                                            >
                                                 {noticeData.icon}
                                             </div>
 
-                                            <div className="flex-grow-1 min-w-0">
-
-                                                {/* ROW 1 — title + actions */}
-                                                <div className="d-flex justify-content-between align-items-start flex-wrap gap-1 mb-1">
-
-                                                    <div className="d-flex align-items-center gap-2 flex-wrap">
-                                                        <span className="nb-title">{p.title}</span>
-                                                        <Badge label={p.type} c={getTypeColor(p.type)} />
-                                                        {p.channel && (
-                                                            <span
-                                                                className="badge rounded-pill"
-                                                                style={{
-                                                                    fontSize: 10,
-                                                                    background: "#f3f4f6",
-                                                                    color: "#374151",
-                                                                    display: "inline-flex",
-                                                                    alignItems: "center",
-                                                                    gap: 3,
-                                                                    padding: "2px 7px",
-                                                                }}
-                                                            >
-                                                                {getChannelIcon(p.channel)} {p.channel}
-                                                            </span>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="d-flex gap-2 align-items-center">
-                                                        {p.status === "draft" ? (
-                                                            <FiEdit
-                                                                size={16}
-                                                                title="Edit draft"
-                                                                style={{ cursor: "pointer", color: "orange" }}
-                                                                onClick={() => getBroadcastById(p.id)}
-                                                            />
-                                                        ) : (
-                                                            <Badge label={p.status} c={getStatusColor(p.status)} />
-                                                        )}
-                                                        <FiTrash2
-                                                            size={16}
-                                                            title="Delete"
-                                                            style={{ cursor: "pointer", color: "red" }}
-                                                            onClick={() => deleteBroadcast(p.id)}
-                                                        />
-                                                    </div>
+                                            {/* CONTENT */}
+                                            <div
+                                                className="flex-grow-1 min-w-0"
+                                                style={{ cursor: "pointer" }}
+                                                onClick={() => handleViewDetails(p)}
+                                            >
+                                                {/* ROW 1 — title + badges */}
+                                                <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                    <span className="nb-title">{p.title}</span>
+                                                    <Badge label={p.type} c={getTypeColor(p.type)} />
+                                                    {p.channel && (
+                                                        <span
+                                                            className="badge rounded-pill"
+                                                            style={{
+                                                                fontSize: 10,
+                                                                background: "#f3f4f6",
+                                                                color: "#374151",
+                                                                display: "inline-flex",
+                                                                alignItems: "center",
+                                                                gap: 3,
+                                                                padding: "2px 7px",
+                                                            }}
+                                                        >
+                                                            {getChannelIcon(p.channel)} {p.channel}
+                                                        </span>
+                                                    )}
+                                                    <Badge label={p.status} c={getStatusColor(p.status)} />
                                                 </div>
 
                                                 {/* MESSAGE */}
@@ -964,6 +461,49 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                                                     )}
                                                 </div>
                                             </div>
+
+                                            {/* ⋮ DROPDOWN — stop propagation so click doesn't trigger view */}
+                                            <div
+                                                className="member-action-dropdown dropdown flex-shrink-0"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <button
+                                                    className="member-action-btn"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                >
+                                                    ⋮
+                                                </button>
+                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() => handleViewDetails(p)}
+                                                        >
+                                                            View Details
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() => handleEditClick(p.id)}
+                                                        >
+                                                            Edit Broadcast
+                                                        </button>
+                                                    </li>
+                                                    <li><hr className="dropdown-divider" /></li>
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item member-action-delete"
+                                                            onClick={() => deleteBroadcast(p.id)}
+                                                        >
+                                                            Delete Broadcast
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+
                                         </div>
                                     </div>
                                 );
@@ -1025,10 +565,10 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                     <div className="sv-card">
                         <h6 className="mb-3 fw-semibold">Type Breakdown</h6>
                         {[
-                            { key: "announcement", label: "Announcement", icon: <FiVolume2 size={14} color="#ff9800" />, bg: "#fff3e0", color: "#c05500" },
-                            { key: "emergency", label: "Emergency", icon: <FiAlertTriangle size={14} color="#ef4444" />, bg: "#fee2e2", color: "#991b1b" },
-                            { key: "circular", label: "Circular", icon: <FiFileText size={14} color="#7c3aed" />, bg: "#ede9fe", color: "#5b21b6" },
-                            { key: "event", label: "Event", icon: <FiCalendar size={14} color="#10b981" />, bg: "#d1fae5", color: "#065f46" },
+                            { key: "announcement", label: "Announcement", icon: <FiVolume2 size={14} color="#ff9800" />,      bg: "#fff3e0", color: "#c05500" },
+                            { key: "emergency",    label: "Emergency",    icon: <FiAlertTriangle size={14} color="#ef4444" />, bg: "#fee2e2", color: "#991b1b" },
+                            { key: "circular",     label: "Circular",     icon: <FiFileText size={14} color="#7c3aed" />,      bg: "#ede9fe", color: "#5b21b6" },
+                            { key: "event",        label: "Event",        icon: <FiCalendar size={14} color="#10b981" />,      bg: "#d1fae5", color: "#065f46" },
                         ].map(({ key, label, icon, bg, color }) => {
                             const count = typeCounts[key] || 0;
                             const pct = allBroadcast.length
@@ -1061,52 +601,28 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                     </div>
 
                 </div>
-
-
-
-
-
-
-
-
-
             </div>
 
-
-
-
-
-
+            {/* ── DELETE MODAL ── */}
             <div
                 className={`modal fade ${showDeleteModal ? "show d-block" : ""}`}
                 tabIndex="-1"
-                style={{
-                    backgroundColor: "rgba(0,0,0,0.5)"
-                }}
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
             >
                 <div className="modal-dialog modal-dialog-centered">
                     <div className="modal-content">
-
                         <div className="modal-header bg-danger text-white">
-                            <h5 className="modal-title">
-                                Confirm Delete
-                            </h5>
-
+                            <h5 className="modal-title">Confirm Delete</h5>
                             <button
                                 type="button"
                                 className="btn-close btn-close-white"
                                 onClick={() => setShowDeleteModal(false)}
                             />
                         </div>
-
                         <div className="modal-body">
-                            <p>
-                                Are you sure you want to delete this broadcast?
-                            </p>
+                            <p>Are you sure you want to delete this broadcast?</p>
                         </div>
-
                         <div className="modal-footer">
-
                             <button
                                 type="button"
                                 className="btn btn-secondary"
@@ -1114,7 +630,6 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                             >
                                 Cancel
                             </button>
-
                             <button
                                 type="button"
                                 className="btn btn-danger"
@@ -1122,19 +637,11 @@ const Broadcast = ({ setActive, setBroadcastId }) => {
                             >
                                 Delete
                             </button>
-
                         </div>
-
                     </div>
                 </div>
             </div>
         </>
-
-
-
-
-
-
     );
 };
 

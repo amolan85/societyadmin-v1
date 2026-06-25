@@ -33,34 +33,60 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
     //fetch get session data 
     const SessionData = async () => {
-        const data = await GetSessionData()
-        console.log(data.data)
-        const flats = data.data.flats[0]
-        setSocietyId(flats.society_id)
+    try {
+        const data = await GetSessionData();
+
+        const flats = data.data.flats[0];
+
+        console.log("Session Society Id:", flats.society_id);
+
+        setSocietyId(flats.society_id);
+    } catch (error) {
+        console.log(error);
     }
+};
 
     //load getbroadcast by id data on component mount
     useEffect(() => {
-        if (broadcastId) {
-            GetBroadCastById();
-        }
-    }, [broadcastId]);
+    if (broadcastId && societyId) {
+        GetBroadCastById();
+    }
+}, [broadcastId, societyId]);
 
     //function for fetch get broadcast by id api
     const GetBroadCastById = async () => {
+    try {
+        const data = await getBroadcastByIdApi(broadcastId, societyId);
 
-        try {
-            const data = await getBroadcastByIdApi(broadcastId);
-            setSubject(data?.title || "");
-            setContent(data?.message || "");
-            setTab(data?.type || "");
-            setChannel(data?.channel || "");
-            setBId(data?.broadcast_id || null);
+        console.log("Broadcast Data:", data);
+
+        setSubject(data.title || "");
+        setContent(data.message || "");
+        setTab(data.type || "announcement");
+        setChannel(data.channel || "");
+        setBId(data.broadcast_id || "");
+
+        if (data.scheduled_at) {
+            setSchedule("scheduleLater");
+
+            const dt = new Date(data.scheduled_at);
+            const formatted =
+                dt.getFullYear() +
+                "-" +
+                String(dt.getMonth() + 1).padStart(2, "0") +
+                "-" +
+                String(dt.getDate()).padStart(2, "0") +
+                "T" +
+                String(dt.getHours()).padStart(2, "0") +
+                ":" +
+                String(dt.getMinutes()).padStart(2, "0");
+
+            setScheduleDateTime(formatted);
         }
-        catch (error) {
-            console.log(error);
-        }
-    };
+    } catch (error) {
+        console.log(error);
+    }
+};
 
     //handle change for file attachment
     const handleFileChange = (e) => {
@@ -107,6 +133,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
           
             if (bId) {
                await UpdateBroadcastApi(
+                 societyId,
                     bId,
                     subject,
                     content,

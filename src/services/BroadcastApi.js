@@ -93,11 +93,14 @@ export const CreateBroadcastApi = async (societyId, subject, content, channel, s
     }
 };
 
+
+
 //get broadcast by id api
-export const getBroadcastByIdApi = async (broadcastId) => {
+export const getBroadcastByIdApi = async (broadcastId, societyId) => {
     const url = UrlData + 'broadcast/GetBroadcastById';
     const data = {
         broadcast_id: broadcastId,
+        society_id: societyId,
     }
     return await apiClient({
         method: 'post',
@@ -113,14 +116,22 @@ export const getBroadcastByIdApi = async (broadcastId) => {
     });
 }
 
-
 //update broadcast api
 export const UpdateBroadcastApi = async (
-    broadcastId, subject, content, channel, status, type, attachment, scheduleDateTime
+    societyId,
+    broadcastId,
+    subject,
+    content,
+    channel,
+    status,
+    type,
+    attachment,
+    scheduleDateTime
 ) => {
     try {
         const url = UrlData + "broadcast/UpdateBroadcast";
         const formData = new FormData();
+        formData.append("society_id", societyId);
         formData.append("broadcast_id", broadcastId);
         formData.append("title", subject);
         formData.append("message", content);

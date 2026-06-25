@@ -12,6 +12,7 @@ import Register from "../Register/Register";
 import { APP_CSS } from "../../components/Common/GlobalCss";
 import Complaints from "../Complaints/Complaints";
 import Broadcast from "../Broadcast/Broadcast";
+import ViewBroadcastDetails from "../Broadcast/ViewBroadcastDetails"
 import { GetSessionData, } from "../../utils/SessionManagement";
 import CreatePoll from "../Polls/CreatePoll";
 import CreateComplaints from "../Complaints/CreateComplaints";
@@ -107,6 +108,7 @@ const PARENT_MAP = {
 
   // Communication
   createbroadcast: "broadcasting",
+  viewbroadcastdetails: "broadcasting",
   createNoticeBoard: "noticeboard",
   createPoll: "polls",
 
@@ -133,6 +135,7 @@ const TITLES = {
   overview: ["Dashboards", "Overview"],
   broadcasting: ["Communication", "Broadcasting"],
   createbroadcast: ["Communication", "Create Broadcast"],
+  viewbroadcastdetails: ["Communication", "Broadcasting", "Broadcast Details"],
   noticeboard: ["Communication", "Notice Board"],
   createNoticeBoard: ["Communication", "Create Notice Board"],
   createPoll: ["Communication", "Create Poll"],
@@ -181,6 +184,7 @@ export default function App() {
   const [profileUrl, setProfileUrl] = useState("")
   const [visitorParkingId, setVisitorParkingId] = useState(null)
   const [broadcastId, setBroadcastId] = useState(null);
+  const [selectedBroadcast, setSelectedBroadcast] = useState(null);
   const [memberId, setMemberId] = useState(null);
   const [tenantId, setTenantId] = useState(null);
   const [flatId, setFlatId] = useState(null)
@@ -213,8 +217,9 @@ export default function App() {
 
   const PAGES = {
     overview: <Overview />,
-    broadcasting: <Broadcast setActive={setActive} setBroadcastId={setBroadcastId} />,
+    broadcasting: <Broadcast setActive={setActive} setBroadcastId={setBroadcastId} setSelectedBroadcast={setSelectedBroadcast} />,
     createbroadcast: <CreateBroadcast setActive={setActive} broadcastId={broadcastId} />,
+    viewbroadcastdetails: <ViewBroadcastDetails setActive={setActive} setBroadcastId={setBroadcastId} broadcastId={broadcastId} preloadedBroadcast={selectedBroadcast} />,
     polls: <Polls setActive={setActive} setPollId={setPollId} />,
     createPoll: <CreatePoll setActive={setActive} pollId={pollId} />,
     addmember: <AddMember setActive={setActive} setMemberId={setMemberId} setFlatId={setFlatId} />,
