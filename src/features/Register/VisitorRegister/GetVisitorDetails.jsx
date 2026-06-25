@@ -33,6 +33,7 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
     const [remarks, setRemarks] = useState("");
     const [parkingDetails, setParkingDetails] = useState(null);
     const [selectedVisitor, setSelectedVisitor] = useState(null);
+    const [visitorSelectedBlock, setVisitorSelectedBlock] = useState("");
 
     const [slotId, setSlotId] = useState("");
     const [vehicleType, setVehicleType] = useState("4_wheeler");
@@ -64,6 +65,7 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
             setVehicleNumber(visitor.vehicle_number || "");
             setParcelCompany(visitor.parcel_company || "");
             setVisitorSelectedFlat(String(visitor.flat_id || ""));
+            setVisitorSelectedBlock(visitor.block || "");
             setFlatNumber(visitor.flat_number || "");
             setParcelDeliveryType(visitor.parcel_delivery_type || "");
             setParcelDescription(visitor.parcel_description || "");
@@ -254,13 +256,28 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
             if (!parcelDeliveryType) errs.parcelDeliveryType = "required";
         }
         if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+
         try {
-            await UpdateVisitorApi(visitor.id, societyId, visitorName, mobile, purpose, vehicleNumber, scheduleStartDate
-                ? scheduleStartDate.replace("T", " ") + ":00"
-                : "",
-                scheduleEndDate
+            // ✅ Object pass karo, positional arguments nahi
+            await UpdateVisitorApi({
+                visitorId: visitor.id,        // ← visitor_id
+                societyId: societyId,         // ← society_id
+                visitorName,
+                mobile,
+                email: visitor.email || "",
+                gender: visitor.gender || "",
+                visitorType,
+                comingFrom: visitor.coming_from || "",
+                vehicleNumber,
+                purpose,
+                scheduleStartDate: scheduleStartDate
+                    ? scheduleStartDate.replace("T", " ") + ":00"
+                    : "",
+                scheduleEndDate: scheduleEndDate
                     ? scheduleEndDate.replace("T", " ") + ":00"
-                    : "");
+                    : ""
+            });
+
             toast.success("Visitor updated successfully");
             setShow(false);
             setErrors({});
@@ -669,7 +686,8 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                 selectedFlat={visitorSelectedFlat}
                 setSelectedFlat={setVisitorSelectedFlat}
                 flatNumber={flatNumber}
-                setSelectedBlock={() => { }}
+                selectedBlock={visitorSelectedBlock}
+                setSelectedBlock={setVisitorSelectedBlock}
                 selectedFlat=""
                 //setSelectedFlat={() => { }}
                 onBlockChange={() => { }}

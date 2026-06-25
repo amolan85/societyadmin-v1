@@ -36,8 +36,9 @@ import { violationAlertsApi, createViolationAlertApi } from "../../services/Viol
 import AllocateSlotModal from "./AllocateSlotModal";
 import { visitorParkingApi, getVisitorParkingByIdApi, AllotVisitorParkingApi } from "../../services/VisitorParkingApi";
 import ViolationAlertModal from "./ViolationAlertModal";
+import { ListVehiclesApi,GetVehicleByIdApi } from "../../services/VehicleRegisterAPI";
 
-const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) => {
+const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setVehicleId}) => {
     const [societyId, setSocietyId] = useState("");
     const [userId, setUserId] = useState("");
     const [errors, setErrors] = useState({});
@@ -54,7 +55,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
     const [search, setSearch] = useState("");
     const [mId, setMId] = useState("");
     const [selectedRange, setSelectedRange] = useState("all");
-
+    const [allVehicles, setAllVehicles] = useState([]);
     const [totalSlots, setTotalSlots] = useState("");
     const [occupanyRate, setOccupanyRate] = useState("");
     const [visitorSlots, setVisitorSlots] = useState("");
@@ -166,6 +167,25 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
         } catch (error) {
             console.error(error);
             toast.error(error?.message || "Failed to allot parking");
+        }
+    };
+    const getVehicles = async (societyId) => {
+        try {
+            const data = await ListVehiclesApi({
+                societyId: societyId,
+                currentPage: 1,
+                pageSize: 10,
+                search: "",
+                vehicleType: "",
+                flatId: null,
+                userId: null
+            });
+
+            console.log("Vehicle List:", data);
+
+            setAllVehicles(data?.vehicles || []);
+        } catch (error) {
+            console.error("Error fetching vehicles:", error);
         }
     };
     const getVisitors = async (societyId) => {
@@ -329,6 +349,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
         violationAlerts(flats.society_id);
         //getParkingSlots(flats.society_id);
         getVisitors(flats.society_id);
+        getVehicles(flats.society_id);
     };
 
     const parkingDashboard = async (societyId) => {
@@ -457,7 +478,21 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
     const handleBlockChange = (selectedOption) => {
         setBlocks(selectedOption);
     };
+    const handleVehicleClick = async (vehicleId) => {
+        try {
+            const data = await GetVehicleByIdApi(vehicleId, societyId);
 
+            console.log("Vehicle Details:", data);
+
+            // detail page par bhejna ho to
+            setVehicleId(vehicleId);
+            setActive("vehicleDetailsPage");
+
+        } catch (error) {
+            console.error("Error fetching vehicle details:", error);
+            toast.error("Failed to fetch vehicle details");
+        }
+    };
     const exportData =
         selectedRange === "all"
             ? allMembersWithoutPagination
@@ -618,7 +653,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
                                     VISITOR PARKING
                                 </div>
                                 <div className="d-flex align-items-center gap-2">
-                                    {[FiSearch, FiFilter, FiDownload, FiPlus].map((Icon, i) => (
+                                    {[FiDownload, FiPlus].map((Icon, i) => (
                                         <button
                                             key={i}
                                             style={{
@@ -637,7 +672,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
                                             onClick={() => {
                                                 if (Icon === FiPlus) {
                                                     resetForm();
-                                                    setShowVisitorParkingModal(true);
+                                                    //setShowVisitorParkingModal(true);
                                                 }
                                             }}
                                         >
@@ -692,16 +727,6 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
                                             cursor: "pointer", color: "#555", boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
                                         }}
                                     >
-                                        <FiFilter size={15} />
-                                    </button>
-                                    <button
-                                        style={{
-                                            width: "36px", height: "36px", borderRadius: "10px",
-                                            border: "1px solid #dde0ee", background: "#ffffff",
-                                            display: "flex", alignItems: "center", justifyContent: "center",
-                                            cursor: "pointer", color: "#555", boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                                        }}
-                                    >
                                         <FiDownload size={15} />
                                     </button>
                                     <button
@@ -742,11 +767,85 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
                         </div>
                     </div>
                 </div>
-                <div className="row g-3">
+                <div className="row g-3 mt-1">
 
+                    {/* Visitor Parking */}
+                    <div className="col-md-6">
+                        <div className="vpd-card">
+                            <div className="vpd-header">
+                                <div className="vpd-title">
+                                    <FiEye className="me-2 text-primary" />
+                                    OWNER PARKING
+                                </div>
+                                <div className="d-flex align-items-center gap-2">
+                                    {[FiDownload, FiPlus].map((Icon, i) => (
+                                        <button
+                                            key={i}
+                                            style={{
+                                                width: "36px",
+                                                height: "36px",
+                                                borderRadius: "10px",
+                                                border: "1px solid #dde0ee",
+                                                background: "#ffffff",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                cursor: "pointer",
+                                                color: "#555",
+                                                boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                                            }}
+                                            onClick={() => {
+                                                if (Icon === FiPlus) {
+                                                    resetForm();
+                                                    //  setShowVisitorParkingModal(true);
+                                                }
+                                            }}
+                                        >
+                                            <Icon size={15} />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {allVehicles.slice(0, 3).map((item) => (
+                                <div
+                                    key={item.vehicle_id}
+                                    className="vpd-row"
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() => handleVehicleClick(item.vehicle_id)}
+                                >
+                                    <div className="d-flex align-items-center">
+                                        <div className="vpd-icon-wrapper">
+                                            {getVehicleIcon(item.vehicle_type)}
+                                        </div>
+
+                                        <div>
+                                            <div className="vpd-name text-start">
+                                                {item.vehicle_number}
+                                            </div>
+
+                                            <div className="vpd-subtitle text-start">
+                                                {item.vehicle_type}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="text-end">
+                                        <div className="vpd-slot">
+                                            {item.sticker_id}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+
+                            <div className="vpd-footer" onClick={() => setActive("vehicleRegister")}>
+                                View All Owners
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 {/* Tenant Table */}
-                <div className="sv-card p-0 overflow-hidden mt-4">
+                {/* <div className="sv-card p-0 overflow-hidden mt-4">
                     <div className="sa-table-wrap">
                         <table className="sv-tbl">
                             <thead>
@@ -833,7 +932,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId }) =>
                         </table>
                     </div>
                     <Pagination page={page} total={total} onChange={handlePageChange} />
-                </div>
+                </div> */}
             </div>
 
             <AllocateSlotModal

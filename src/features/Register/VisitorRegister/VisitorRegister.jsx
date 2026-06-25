@@ -129,9 +129,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     //         setPage(data.page || pg);
     //     } catch (error) { console.error("Error fetching visitors:", error); }
     // };
-    const getVisitors = async ({
-        sid, pg, searchText, status, fromDate, toDate
-    }) => {
+    const getVisitors = async ({ sid, pg, searchText, status, fromDate, toDate }) => {
         try {
             setLoading(true);
             const data = await ListVisitorsApi({
@@ -142,16 +140,23 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 currentFromDate: fromDate,
                 currentToDate: toDate,
             });
-            setVisitorsList(data.visitors || []);
-            setTotalCount(data.total || 0);
-            setTotalPages(data.total_pages || 1);
-            setPage(data.page || pg);
+
+            // ✅ FIX: API response structure sahi se read karo
+            const visitors = data?.visitors || [];
+            const pagination = data?.pagination || {};
+
+            setVisitorsList(visitors);
+            setTotalCount(pagination.total || 0);
+            setTotalPages(pagination.total_pages || 1);
+            setPage(pagination.page || pg);
+
             setStats({
-                total: data?.total || 0,
+                total: pagination.total || 0,
                 today: 0,
-                pending: 0,
-                checkedOut: 0,
+                pending: visitors.filter(v => v.approval_status === "pending").length,
+                checkedOut: visitors.filter(v => v.entry_status === "completed").length,
             });
+
         } catch (error) {
             console.error("Error fetching visitors:", error);
             toast.error("Failed to load visitors");
@@ -280,7 +285,8 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         let errs = {};
         if (!visitorName) errs.visitorName = "required";
         if (!mobile) errs.mobile = "required";
-        if (!isEdit && !flatNumber) errs.flatNumber = "required";
+        //if (!isEdit && !flatNumber) errs.flatNumber = "required";
+        if (!isEdit && !flatId) errs.flatId = "required";
         if (visitorType === "guest") {
             if (!purpose) errs.purpose = "required";
             if (!isEdit && !idType) errs.idType = "required";
@@ -670,8 +676,28 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                 {visitorsList.map((v, i) => (
                                     <tr className="text-start" key={i}>
                                         <td>
-                                            <div className="fw-semibold">{v.visitor_name}</div>
-                                            <small className="text-muted">{v.mobile}</small>
+                                            <div className="d-flex align-items-center gap-2">
+                                                <img
+                                                    src={
+                                                        v.photo_url?.startsWith("http")
+                                                            ? v.photo_url
+                                                            : "../src/assets/profile.png"
+                                                    }
+                                                    alt="Profile"
+                                                    width={38}
+                                                    height={38}
+                                                    className="rounded-circle object-fit-cover flex-shrink-0"
+                                                    onError={(e) => { e.target.src = "../src/assets/profile.png"; }}
+                                                />
+                                                <div>
+                                                    <div className="fw-semibold">
+                                                        {v.visitor_name || "-"}
+                                                    </div>
+                                                    <small className="text-muted">
+                                                        {v.mobile || "-"}
+                                                    </small>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td>{v.flat_number || "-"}</td>
                                         <td>
@@ -846,6 +872,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 flatId={flatId}
                 setFlatId={setFlatId}
                 flatNumber={flatNumber}
+                setFlatNumber={setFlatNumber}
                 photo={photo}
                 setPhoto={setPhoto}
                 // flatsList={flatsList}

@@ -20,6 +20,7 @@ const Visitormodal = ({
     show,
     setShow,
     flatNumber,
+    setFlatNumber,
     mode = "add",           // "add" | "edit"
 
     errors = {},
@@ -215,6 +216,8 @@ const Visitormodal = ({
                                                     onChange={e => {
                                                         setSelectedFlat(e.target.value);
                                                         setFlatId(e.target.value);
+                                                        const flat = allFlats.find(f => String(f.flat_id) === e.target.value);
+                                                        if (flat && setFlatNumber) setFlatNumber(flat.flat_number);
                                                     }}
                                                 >
                                                     <option value="">Select Flat</option>
