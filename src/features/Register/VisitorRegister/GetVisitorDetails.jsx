@@ -688,7 +688,7 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                 flatNumber={flatNumber}
                 selectedBlock={visitorSelectedBlock}
                 setSelectedBlock={setVisitorSelectedBlock}
-                selectedFlat=""
+                // selectedFlat=""
                 //setSelectedFlat={() => { }}
                 onBlockChange={() => { }}
                 errors={errors}

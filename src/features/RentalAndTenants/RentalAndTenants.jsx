@@ -1052,7 +1052,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                 setEmailId={setEmailId}
                 startDate={startDate}
                 setStartDate={setStartDate}
-                mode={mode}
+                // mode={mode}
                 endDate={endDate}
                 setEndDate={setEndDate}
                 familyType={familyType}
@@ -1118,7 +1118,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                 setEmailId={setEmailId}
                 startDate={startDate}
                 setStartDate={setStartDate}
-                mode={mode}
+                // mode={mode}
                 endDate={endDate}
                 setEndDate={setEndDate}
                 familyType={familyType}
