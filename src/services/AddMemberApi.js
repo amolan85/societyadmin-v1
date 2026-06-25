@@ -58,7 +58,7 @@ export const AddMemberApi = async (
         formData.append("mobile", mobileNo);
         formData.append("block", wing);
         formData.append("floor", "1");
-        formData.append("flat_number", flat);
+        formData.append("flat_id", flat);
         formData.append("occupancy_type", finalMemType);
         formData.append("start_date", moveInDate);
         formData.append("end_date", moveOutDate);
@@ -119,7 +119,7 @@ export const UpdateMemberApi = async (
         formData.append("mobile", mobileNo);
         formData.append("block", wing);
         formData.append("floor", "1");
-        formData.append("flat_number", flat);
+        formData.append("flat_id", flat);
         formData.append("occupancy_type", finalMemType);
         formData.append("start_date", moveInDate);
         formData.append("end_date", moveOutDate);
