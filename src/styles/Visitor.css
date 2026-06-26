@@ -1,4 +1,3 @@
-
 .visitor-timeline {
   position: relative;
   padding-left: 25px;
@@ -47,4 +46,32 @@
 .house-icon {
   font-size: 20px;
   color: #9ca3af;
+}
+
+/* Inside */
+.badge-green {
+  background: #DCFCE7;
+  color: #166534;
+  border: 1px solid #86EFAC;
+}
+
+/* Waiting */
+.badge-orange {
+  background: #FFF7ED;
+  color: #C2410C;
+  border: 1px solid #FDBA74;
+}
+
+/* Checked Out */
+.badge-blue {
+  background: #DBEAFE;
+  color: #1D4ED8;
+  border: 1px solid #93C5FD;
+}
+
+/* Default */
+.badge-grey {
+  background: #F3F4F6;
+  color: #4B5563;
+  border: 1px solid #D1D5DB;
 }

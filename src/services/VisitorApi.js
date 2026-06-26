@@ -3,44 +3,7 @@ import UrlData from "../utils/Url";
 import apiClient from "./apiClient";
 
 //api function for create visitor
-export const CreateVisitorApi = async (societyId, flatId, visitorName, mobileNo, emailId, visitorGender, visitorType, vehicleNumber, purpose) => {
-    const url = UrlData + 'visitor/CreateVisitor';
-    const data = {
-        society_id: societyId,
-        flat_id: flatId,
-        visitor_name: visitorName,
-        mobile: mobileNo,
-        email: emailId,
-        gender: visitorGender,
-        visitor_type: visitorType,
-        coming_from: "",
-        vehicle_number: vehicleNumber,
-        purpose: purpose,
-        id_type: "",
-        id_number: "",
-        photo_url: "",
-        parcel_description: null,
-        parcel_company: null,
-        parcel_delivery_type: null,
-        approval_status: "pending"
-
-    }
-    return await apiClient({
-        method: 'post',
-        url: url,
-        data: data,
-        timeout: 30000,
-    }).then((response) => {
-        return response.data.data;
-    }).catch((error) => {
-        console.log(error);
-        const errors = ErrorHandler(error);
-        console.log(errors, "Errors get visitor parking");
-        throw errors;
-    });
-}
-// Guest ke liye
-export const CreateGuestVisitorApi = async ({
+export const CreateVisitorApi = async ({
     societyId,
     flatId,
     visitorName,
@@ -68,7 +31,7 @@ export const CreateGuestVisitorApi = async ({
     formData.append("mobile", mobile);
     formData.append("email", email || "");
     formData.append("gender", gender?.toLowerCase() || "");
-    formData.append("visitor_type", "guest");
+    formData.append("visitor_type", (visitorType || "guest").toLowerCase());
     formData.append("coming_from", comingFrom || "");
     formData.append("vehicle_number", vehicleNumber || "");
     formData.append("purpose", purpose || "");
@@ -99,74 +62,22 @@ export const CreateGuestVisitorApi = async ({
     }
 };
 
-// Delivery ke liye
-export const CreateDeliveryApi = async ({
-    societyId,
-    flatId,
-    visitorName,
-    mobile,
-    vehicleNumber,
-    parcelDescription,
-    parcelCompany,
-    parcelDeliveryType,
-    scheduleStartDate,
-    scheduleEndDate
-}) => {
-
-    const url = UrlData + "visitor/CreateVisitor";
-
-    const formData = new FormData();
-
-    formData.append("society_id", societyId);
-    formData.append("flat_id", flatId);
-    formData.append("visitor_name", visitorName);
-    formData.append("mobile", mobile);
-    formData.append("visitor_type", "delivery");
-    formData.append("vehicle_number", vehicleNumber || "");
-
-    formData.append("parcel_description", parcelDescription || "");
-    formData.append("parcel_company", parcelCompany || "");
-    formData.append(
-        "parcel_delivery_type",
-        parcelDeliveryType?.toLowerCase() || ""
-    );
-
-    formData.append("approval_status", "pending");
-
-    formData.append("schedule_start_date", scheduleStartDate || "");
-    formData.append("schedule_end_date", scheduleEndDate || "");
-
-    try {
-        const response = await apiClient({
-            method: "post",
-            url,
-            data: formData,
-            headers: {
-                "Content-Type": "multipart/form-data"
-            }
-        });
-
-        return response.data;
-    } catch (error) {
-        throw ErrorHandler(error);
-    }
-};
-
 export const ListVisitorsApi = async (data) => {
     const url = UrlData + 'visitor/ListVisitors';
     const isValidDate = (date) => date && !isNaN(new Date(date).getTime());
 
     const payload = {
-        society_id: data.societyId,
+        search: data.currentSearch || "",
+        visitor_type: data.currentVisitorType || "",
+        entry_status: data.currentEntryStatus || "",
+        approval_status: data.currentStatus || "",
+        flat_id: data.currentFlatId || null,
+        date_from: isValidDate(data.currentFromDate) ? data.currentFromDate : "",
+        date_to: isValidDate(data.currentToDate) ? data.currentToDate : "",
+        schedule_date: data.currentScheduleDate || "",
         page: data.currentPage,
-        limit: 10,
-        search: data.currentSearch,
-        visitor_type: "",
-        entry_status: "",
-        approval_status: data.currentStatus,
-        flat_id: "",
-        date_from: isValidDate(data.currentFromDate) ? data.currentFromDate : null,
-        date_to: isValidDate(data.currentToDate) ? data.currentToDate : null,
+        page_size: data.pageSize || 10,
+        society_id: data.societyId
     };
 
     return await apiClient({ method: 'post', url, data: payload, timeout: 30000 })

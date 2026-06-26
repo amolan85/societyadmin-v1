@@ -603,6 +603,7 @@ export default function App() {
   const [selectedSocietyId, setSelectedSocietyId] = useState(null);
   const [selectedSlotData, setSelectedSlotData] = useState(null);
   const [vehicleId, setVehicleId] = useState(null);
+  const [societyId, setSocietyId] = useState("");
   useLayoutEffect(() => {
     if (!document.getElementById("bs-css")) {
       const l = document.createElement("link");
@@ -685,6 +686,7 @@ export default function App() {
     const data = await GetSessionData()
     console.log(data.data)
     const flats = data.data.flats[0]
+    setSocietyId(flats.society_id)
     //setSocietyName(flats.society_name)
     setFirstName(data.data.first_name)
     setLastName(data.data.last_name)
@@ -693,10 +695,13 @@ export default function App() {
 
   //log out function
   const LogoutData = async () => {
-    console.log("adbcd")
-    const data = await LogoutApi()
-    navigation("/")
-  }
+    try {
+      await LogoutApi(societyId);
+      navigation("/");
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <>
       <div className="app-shell">
