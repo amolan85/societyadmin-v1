@@ -1,11 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
-import { FiEdit2, FiRefreshCw, FiSearch } from "react-icons/fi";
+import { FiEdit2, FiRefreshCw, FiSearch, FiPlus, FiTrash2 } from "react-icons/fi";
 import { Pagination } from "../../components/Common/ReusableFunction";
 import {
-    listFlatChargeConfigsApi, listChargeHeadsApi,
-    overrideFlatChargeApi, resetFlatChargeOverrideApi,
-    getFlatChargeConfigApi
+    listFlatChargeConfigsApi,
+    listChargeHeadsApi,
+    overrideFlatChargeApi,
+    resetFlatChargeOverrideApi,
+    getFlatChargeConfigApi,
+    addFlatChargeApi,
+    removeFlatChargeApi,
 } from "../../services/BillingApi";
 import { getAllMembersWithoutPaginationApi } from "../../services/AddMemberApi";
 import { GetSessionData } from "../../utils/SessionManagement";
@@ -13,186 +17,547 @@ import "../../styles/Billing.css";
 
 const fmt = (n) => "₹" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 });
 
-const FlatCharges = ({ setActive }) => {
-    const [societyId, setSocietyId] = useState("");
-    const [configs, setConfigs]     = useState([]);
-    const [heads, setHeads]         = useState([]);
-    const [allMembers, setAllMembers] = useState([]);
-    const [page, setPage]           = useState(1);
-    const [pageSize]                = useState(20);
-    const [total, setTotal]         = useState(0);
+// ─── Get society_id directly — same pattern as ParkingDashboard ──────────────
+const getSessionSocietyId = () => {
+    const s = GetSessionData();
+    return s?.data?.flats?.[0]?.society_id || null;
+};
 
-    // Filters
-    const [filterHead, setFilterHead]         = useState("");
-    const [filterPropType, setFilterPropType] = useState("");
-    const [filterOverride, setFilterOverride] = useState("");
+// ─── Flat Summary Modal ───────────────────────────────────────────────────────
+const FlatSummaryModal = ({ flatId, flatLabel, onClose }) => {
+    const [charges, setCharges] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Override Modal
-    const [showModal, setShowModal]   = useState(false);
-    const [modalHead, setModalHead]   = useState(null);
-    const [modalFlat, setModalFlat]   = useState(null);
-    const [overrideForm, setOverrideForm] = useState({
-        charge_type: "fixed", amount: "", rate_per_sqft: ""
+    useEffect(() => {
+        getFlatChargeConfigApi(flatId)
+            .then((res) => setCharges(res?.charges || []))
+            .catch(() => toast.error("Failed to load flat charges"))
+            .finally(() => setLoading(false));
+    }, [flatId]);
+
+    const total = charges.reduce((s, c) => s + parseFloat(c.amount || 0), 0);
+
+    return (
+        <div className="modal show d-block" style={{ background: "rgba(0,0,0,0.45)" }}>
+            <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content" style={{ borderRadius: 12, border: "none" }}>
+                    <div className="billing-modal-header">
+                        <span>🏠 {flatLabel} — Monthly Charges</span>
+                        <button className="close-btn" onClick={onClose}>×</button>
+                    </div>
+                    <div style={{ padding: 20 }}>
+                        {loading ? (
+                            <div style={{ textAlign: "center", color: "#9ca3af", padding: 24 }}>Loading...</div>
+                        ) : charges.length === 0 ? (
+                            <div style={{ textAlign: "center", color: "#9ca3af", padding: 24 }}>
+                                No charges configured
+                            </div>
+                        ) : (
+                            <table className="billing-table">
+                                <thead>
+                                    <tr>
+                                        <th>Head</th>
+                                        <th>Type</th>
+                                        <th className="text-end">Amount</th>
+                                        <th>Source</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {charges.map((c) => (
+                                        <tr key={c.head_id}>
+                                            <td>
+                                                <div style={{ fontWeight: 600 }}>{c.head_name}</div>
+                                                <div style={{ fontSize: 11, color: "#6b7280" }}>{c.head_code}</div>
+                                            </td>
+                                            <td>
+                                                <span className={`scope-badge ${c.charge_type}`} style={{ fontSize: 10 }}>
+                                                    {c.charge_type === "per_sqft" ? `₹${c.rate_per_sqft}/sqft` : "Fixed"}
+                                                </span>
+                                            </td>
+                                            <td className="text-end amount-display">{fmt(c.amount)}</td>
+                                            <td>
+                                                {c.is_override
+                                                    ? <span className="override-badge">Override</span>
+                                                    : <span style={{ fontSize: 11, color: "#059669" }}>Auto</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colSpan={2} style={{ fontWeight: 700, paddingTop: 10 }}>Total Monthly</td>
+                                        <td className="text-end amount-display"
+                                            style={{ fontWeight: 800, color: "#2563eb", paddingTop: 10 }}>
+                                            {fmt(total)}
+                                        </td>
+                                        <td />
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ─── Add / Edit Charge Modal ──────────────────────────────────────────────────
+const ChargeModal = ({ mode, config, heads, flats, onSave, onClose }) => {
+    const isEdit = mode === "edit";
+    const [form, setForm] = useState({
+        flat_id:        isEdit ? config?.flat_id        : "",
+        head_id:        isEdit ? config?.head_id        : "",
+        charge_type:    isEdit ? (config?.charge_type   || "fixed") : "fixed",
+        amount:         isEdit ? (config?.amount        || "")      : "",
+        rate_per_sqft:  isEdit ? (config?.rate_per_sqft || "")      : "",
+        effective_from: "",
+        effective_to:   "",
     });
     const [saving, setSaving] = useState(false);
 
-    // Flat Config view modal
-    const [showFlatConfig, setShowFlatConfig] = useState(false);
-    const [flatConfigData, setFlatConfigData] = useState([]);
-    const [selectedFlat, setSelectedFlat]     = useState(null);
-
-    useEffect(() => {
-        const s = GetSessionData();
-        if (s?.society_id) {
-            setSocietyId(s.society_id);
-            fetchHeads();
-            fetchMembers(s.society_id);
-        }
-    }, []);
-
-    useEffect(() => { if (societyId) fetchConfigs(); }, [societyId, page, filterHead, filterPropType, filterOverride]);
-
-    const fetchConfigs = async () => {
-        try {
-            const res = await listFlatChargeConfigsApi({
-                headId:       filterHead       ? parseInt(filterHead)       : null,
-                propertyType: filterPropType   || "",
-                isOverride:   filterOverride !== "" ? parseInt(filterOverride) : null,
-                page, pageSize
-            });
-            setConfigs(res?.configs || []);
-            setTotal(res?.pagination?.total || 0);
-        } catch (e) {
-            toast.error(typeof e === "string" ? e : "Failed to load configs");
-        }
+    const handleHeadChange = (headId) => {
+        const head = heads.find((h) => String(h.id) === String(headId));
+        setForm((prev) => ({
+            ...prev,
+            head_id:       headId,
+            charge_type:   head?.charge_type || "fixed",
+            amount:        head?.charge_scope === "centralised" && head?.charge_type === "fixed"
+                           ? (head?.centralised_amount || "") : prev.amount,
+            rate_per_sqft: head?.charge_scope === "centralised" && head?.charge_type === "per_sqft"
+                           ? (head?.centralised_rate || "") : prev.rate_per_sqft,
+        }));
     };
 
-    const fetchHeads = async () => {
-        try {
-            const res = await listChargeHeadsApi("");
-            setHeads(res?.charge_heads || res || []);
-        } catch (_) {}
-    };
+    const handleSave = async () => {
+        if (!form.flat_id) { toast.error("Select a flat");         return; }
+        if (!form.head_id) { toast.error("Select a charge head");  return; }
+        if (form.charge_type === "fixed"    && !form.amount)       { toast.error("Amount is required");        return; }
+        if (form.charge_type === "per_sqft" && !form.rate_per_sqft){ toast.error("Rate per sqft is required"); return; }
 
-    const fetchMembers = async (sId) => {
-        try {
-            const res = await getAllMembersWithoutPaginationApi(sId, "", "", "", "", null);
-            setAllMembers(res?.members || res || []);
-        } catch (_) {}
-    };
-
-    const openOverride = (config) => {
-        setModalFlat({ flat_id: config.flat_id, flat_number: config.flat_number, block: config.block, area_sqft: config.area_sqft });
-        setModalHead({ id: config.head_id, head_code: config.head_code, head_name: config.head_name, charge_scope: config.charge_scope });
-        setOverrideForm({
-            charge_type:   config.charge_type   || "fixed",
-            amount:        config.amount         || "",
-            rate_per_sqft: config.rate_per_sqft  || ""
-        });
-        setShowModal(true);
-    };
-
-    const handleSaveOverride = async () => {
-        if (overrideForm.charge_type === "fixed" && !overrideForm.amount) {
-            toast.error("Amount is required"); return;
-        }
-        if (overrideForm.charge_type === "per_sqft" && !overrideForm.rate_per_sqft) {
-            toast.error("Rate per sqft is required"); return;
-        }
         setSaving(true);
         try {
-            await overrideFlatChargeApi({
-                flat_id:       modalFlat.flat_id,
-                head_id:       modalHead.id,
-                charge_type:   overrideForm.charge_type,
-                amount:        overrideForm.charge_type === "fixed" ? parseFloat(overrideForm.amount) : null,
-                rate_per_sqft: overrideForm.charge_type === "per_sqft" ? parseFloat(overrideForm.rate_per_sqft) : null,
+            await onSave({
+                flat_id:        parseInt(form.flat_id),
+                head_id:        parseInt(form.head_id),
+                charge_type:    form.charge_type,
+                amount:         form.charge_type === "fixed"    ? parseFloat(form.amount)        : null,
+                rate_per_sqft:  form.charge_type === "per_sqft" ? parseFloat(form.rate_per_sqft) : null,
+                effective_from: form.effective_from || null,
+                effective_to:   form.effective_to   || null,
             });
-            toast.success("Override saved successfully");
-            setShowModal(false);
-            fetchConfigs();
+            onClose();
         } catch (e) {
-            toast.error(typeof e === "string" ? e : "Failed to save override");
+            toast.error(typeof e === "string" ? e : "Failed to save");
         } finally {
             setSaving(false);
         }
     };
 
+    const selectedFlat = flats.find((f) => String(f.flat_id) === String(form.flat_id));
+    const selectedHead = heads.find((h) => String(h.id)      === String(form.head_id));
+
+    return (
+        <div className="modal show d-block" style={{ background: "rgba(0,0,0,0.45)" }}>
+            <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content" style={{ borderRadius: 12, border: "none" }}>
+                    <div className="billing-modal-header">
+                        <span>{isEdit ? "✏️ Edit Charge" : "➕ Add Individual Charge"}</span>
+                        <button className="close-btn" onClick={onClose}>×</button>
+                    </div>
+                    <div style={{ padding: 20 }}>
+                        <div className="row g-3">
+                            <div className="col-12">
+                                <label className="billing-form-label">Flat *</label>
+                                <select className="billing-form-input"
+                                    value={form.flat_id}
+                                    onChange={(e) => setForm({ ...form, flat_id: e.target.value })}
+                                    disabled={isEdit}>
+                                    <option value="">Select Flat</option>
+                                    {flats.map((f) => (
+                                        <option key={f.flat_id} value={f.flat_id}>
+                                            {f.flat_number}{f.block ? ` / ${f.block}` : ""}
+                                        </option>
+                                    ))}
+                                </select>
+                                {selectedFlat?.area_sqft && (
+                                    <div style={{ fontSize: 11, color: "#6b7280", marginTop: 3 }}>
+                                        Area: {selectedFlat.area_sqft} sqft
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="col-12">
+                                <label className="billing-form-label">Charge Head *</label>
+                                <select className="billing-form-input"
+                                    value={form.head_id}
+                                    onChange={(e) => handleHeadChange(e.target.value)}
+                                    disabled={isEdit}>
+                                    <option value="">Select Charge Head</option>
+                                    {heads.map((h) => (
+                                        <option key={h.id} value={h.id}>
+                                            {h.head_name} ({h.head_code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="col-12">
+                                <label className="billing-form-label">Charge Type</label>
+                                <div className="d-flex gap-3">
+                                    {["fixed", "per_sqft"].map((t) => (
+                                        <label key={t} className="d-flex align-items-center gap-2"
+                                            style={{ cursor: "pointer", fontSize: 13 }}>
+                                            <input type="radio" name="charge_type"
+                                                checked={form.charge_type === t}
+                                                onChange={() => setForm({ ...form, charge_type: t })} />
+                                            {t === "fixed" ? "Fixed Amount" : "Per SqFt"}
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {form.charge_type === "fixed" ? (
+                                <div className="col-12">
+                                    <label className="billing-form-label">Amount (₹) *</label>
+                                    <input type="number" className="billing-form-input"
+                                        min="0" step="0.01" value={form.amount}
+                                        onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                                        placeholder="0.00" />
+                                </div>
+                            ) : (
+                                <div className="col-12">
+                                    <label className="billing-form-label">Rate Per SqFt (₹) *</label>
+                                    <input type="number" className="billing-form-input"
+                                        min="0" step="0.001" value={form.rate_per_sqft}
+                                        onChange={(e) => setForm({ ...form, rate_per_sqft: e.target.value })}
+                                        placeholder="0.03" />
+                                    {selectedFlat?.area_sqft && form.rate_per_sqft && (
+                                        <div style={{ fontSize: 12, color: "#059669", marginTop: 4 }}>
+                                            = {fmt(parseFloat(form.rate_per_sqft) * parseFloat(selectedFlat.area_sqft))} / month
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <div className="col-6">
+                                <label className="billing-form-label">Effective From</label>
+                                <input type="date" className="billing-form-input"
+                                    value={form.effective_from}
+                                    onChange={(e) => setForm({ ...form, effective_from: e.target.value })} />
+                            </div>
+                            <div className="col-6">
+                                <label className="billing-form-label">Effective To</label>
+                                <input type="date" className="billing-form-input"
+                                    value={form.effective_to}
+                                    onChange={(e) => setForm({ ...form, effective_to: e.target.value })} />
+                            </div>
+
+                            {selectedHead && (
+                                <div className="col-12">
+                                    <div style={{
+                                        background: "#f0f9ff", border: "1px solid #bae6fd",
+                                        borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#0369a1"
+                                    }}>
+                                        <strong>{selectedHead.head_name}</strong> ·
+                                        {selectedHead.charge_scope === "centralised"
+                                            ? ` Centralised default: ${selectedHead.charge_type === "fixed"
+                                                ? fmt(selectedHead.centralised_amount)
+                                                : `₹${selectedHead.centralised_rate}/sqft`}`
+                                            : " Per Flat charge"
+                                        }
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="d-flex justify-content-end gap-2 mt-3">
+                            <button className="billing-btn billing-btn-outline" onClick={onClose}>Cancel</button>
+                            <button className="billing-btn billing-btn-primary" onClick={handleSave} disabled={saving}>
+                                {saving ? "Saving..." : isEdit ? "Update" : "Add Charge"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+const FlatCharges = ({ setActive }) => {
+
+    const [configs,   setConfigs]   = useState([]);
+    const [heads,     setHeads]     = useState([]);
+    const [flats,     setFlats]     = useState([]);
+    const [page,      setPage]      = useState(1);
+    const [pageSize]                = useState(20);
+    const [total,     setTotal]     = useState(0);
+    const [loading,   setLoading]   = useState(false);
+
+    // Filters
+    const [filterHead,      setFilterHead]     = useState("");
+    const [filterPropType,  setFilterPropType] = useState("");
+    const [filterFlat,      setFilterFlat]     = useState("");
+    const [filterOverride,  setFilterOverride] = useState("");
+    const [searchInput,     setSearchInput]    = useState("");
+    const [appliedSearch,   setAppliedSearch]  = useState("");
+
+    // Modals
+    const [showAddModal,    setShowAddModal]   = useState(false);
+    const [showEditModal,   setShowEditModal]  = useState(false);
+    const [editConfig,      setEditConfig]     = useState(null);
+    const [showSummary,     setShowSummary]    = useState(false);
+    const [summaryFlat,     setSummaryFlat]    = useState(null);
+    const [actionKey,       setActionKey]      = useState(null);
+
+    // ── Load heads and flats once on mount ───────────────────────────────────
+    useEffect(() => {
+        const sid = getSessionSocietyId();
+        if (!sid) {
+            toast.error("Session expired — please login again");
+            return;
+        }
+        loadHeads();
+        loadFlats(sid);
+        // Trigger initial config load
+        loadConfigs(sid, 1, "", "", "", "", "");
+    }, []);
+
+    const loadHeads = async () => {
+        try {
+            const res = await listChargeHeadsApi("");
+            setHeads(res?.charge_heads || []);
+        } catch (_) {}
+    };
+
+    const loadFlats = async (sid) => {
+        try {
+            const res = await getAllMembersWithoutPaginationApi(sid, "");
+            const members = res?.members || res || [];
+            const seen = new Set();
+            const opts = [];
+            members.forEach((m) => {
+                if (m.flat_id && !seen.has(m.flat_id)) {
+                    seen.add(m.flat_id);
+                    opts.push({
+                        flat_id:     m.flat_id,
+                        flat_number: m.flat_number,
+                        block:       m.block,
+                        area_sqft:   m.area_sqft,
+                    });
+                }
+            });
+            setFlats(opts);
+        } catch (_) {}
+    };
+
+    // ── Core fetch — called directly, no societyId state dependency ──────────
+    const loadConfigs = async (sid, pg, head, propType, flat, override, srch) => {
+        if (!sid) return;
+        setLoading(true);
+        try {
+            const res = await listFlatChargeConfigsApi({
+                headId:       head      ? parseInt(head)      : null,
+                propertyType: propType  || "",
+                flatId:       flat      ? parseInt(flat)      : null,
+                isOverride:   override !== "" ? parseInt(override) : null,
+                search:       srch      || "",
+                page:         pg,
+                pageSize,
+            });
+            setConfigs(res?.configs || []);
+            setTotal(res?.pagination?.total || 0);
+        } catch (e) {
+            toast.error(typeof e === "string" ? e : "Failed to load charges");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ── Re-fetch when filters/page change ───────────────────────────────────
+    useEffect(() => {
+        const sid = getSessionSocietyId();
+        if (!sid) return;
+        loadConfigs(sid, page, filterHead, filterPropType, filterFlat, filterOverride, appliedSearch);
+    }, [page, filterHead, filterPropType, filterFlat, filterOverride, appliedSearch]);
+
+    const handleSearch = () => {
+        setAppliedSearch(searchInput);
+        setPage(1);
+    };
+
+    const clearFilters = () => {
+        setFilterHead(""); setFilterPropType(""); setFilterFlat("");
+        setFilterOverride(""); setSearchInput(""); setAppliedSearch(""); setPage(1);
+    };
+
+    const refresh = () => {
+        const sid = getSessionSocietyId();
+        loadConfigs(sid, page, filterHead, filterPropType, filterFlat, filterOverride, appliedSearch);
+    };
+
+    // ── Actions ──────────────────────────────────────────────────────────────
+    const handleAddSave = async (payload) => {
+        await addFlatChargeApi(payload);
+        toast.success("Charge added successfully");
+        refresh();
+    };
+
+    const handleEditSave = async (payload) => {
+        await overrideFlatChargeApi(payload);
+        toast.success("Charge updated successfully");
+        refresh();
+    };
+
     const handleReset = async (config) => {
-        if (!window.confirm(`Reset override for ${config.flat_number} — ${config.head_name}?`)) return;
+        if (!window.confirm(
+            `Reset Flat ${config.flat_number} — ${config.head_name} to centralised rate?`
+        )) return;
+        const key = `reset_${config.flat_id}_${config.head_id}`;
+        setActionKey(key);
         try {
             await resetFlatChargeOverrideApi(config.flat_id, config.head_id);
             toast.success("Reset to centralised rate");
-            fetchConfigs();
+            refresh();
         } catch (e) {
-            toast.error(typeof e === "string" ? e : "Failed to reset");
+            toast.error(typeof e === "string" ? e : "Reset failed");
+        } finally {
+            setActionKey(null);
         }
     };
 
-    const viewFlatConfig = async (config) => {
-        setSelectedFlat({ flat_number: config.flat_number, block: config.block, area_sqft: config.area_sqft });
+    const handleRemove = async (config) => {
+        if (!window.confirm(
+            `Remove ${config.head_name} from Flat ${config.flat_number}?`
+        )) return;
+        const key = `remove_${config.flat_id}_${config.head_id}`;
+        setActionKey(key);
         try {
-            const res = await getFlatChargeConfigApi(config.flat_id);
-            setFlatConfigData(res?.charges || res || []);
-            setShowFlatConfig(true);
+            await removeFlatChargeApi(config.flat_id, config.head_id);
+            toast.success("Charge removed");
+            refresh();
         } catch (e) {
-            toast.error("Failed to load flat config");
+            toast.error(typeof e === "string" ? e : "Remove failed");
+        } finally {
+            setActionKey(null);
         }
     };
-
-    const totalMonthly = flatConfigData.reduce((s, c) => s + parseFloat(c.amount || 0), 0);
 
     return (
         <div className="pg" style={{ padding: "20px 24px" }}>
 
-            {/* Header */}
-            <div className="d-flex align-items-center justify-content-between mb-4">
+            {/* ── Header ── */}
+            <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
                 <div>
                     <h4 style={{ fontWeight: 700, margin: 0 }}>🏠 Flat Charge Configuration</h4>
                     <p style={{ color: "#6b7280", fontSize: 13, margin: 0 }}>
-                        View and override per-flat charge amounts
+                        {total} configs · View, override or add individual charges per flat
                     </p>
                 </div>
-                <div className="d-flex gap-2">
-                    <button className="billing-btn billing-btn-outline" onClick={() => setActive("billingDashboard")}>
-                        ← Dashboard
+                <div className="d-flex gap-2 flex-wrap">
+                    <button className="billing-btn billing-btn-outline"
+                        onClick={() => setActive("billingDashboard")}>← Dashboard</button>
+                    <button className="billing-btn billing-btn-outline"
+                        onClick={() => setActive("chargeHeads")}>🏷️ Charge Heads</button>
+                    <button className="billing-btn billing-btn-outline" onClick={refresh}>
+                        <FiRefreshCw size={12} /> Refresh
                     </button>
-                    <button className="billing-btn billing-btn-primary" onClick={() => setActive("chargeHeads")}>
-                        🏷️ Charge Heads
+                    <button className="billing-btn billing-btn-primary"
+                        onClick={() => setShowAddModal(true)}>
+                        <FiPlus size={13} /> Add Individual Charge
                     </button>
                 </div>
             </div>
 
-            {/* Filters */}
-            <div className="billing-toolbar">
-                <select className="billing-form-input" style={{ width: 180 }}
-                    value={filterHead}
-                    onChange={(e) => { setFilterHead(e.target.value); setPage(1); }}>
-                    <option value="">All Charge Heads</option>
-                    {heads.map((h) => <option key={h.id} value={h.id}>{h.head_name}</option>)}
-                </select>
-                <select className="billing-form-input" style={{ width: 160 }}
-                    value={filterPropType}
-                    onChange={(e) => { setFilterPropType(e.target.value); setPage(1); }}>
-                    <option value="">All Property Types</option>
-                    <option value="residential_flat">Residential Flat</option>
-                    <option value="commercial_shop">Commercial Shop</option>
-                    <option value="commercial_office">Commercial Office</option>
-                </select>
-                <select className="billing-form-input" style={{ width: 150 }}
-                    value={filterOverride}
-                    onChange={(e) => { setFilterOverride(e.target.value); setPage(1); }}>
-                    <option value="">All (Override + Auto)</option>
-                    <option value="1">Overrides Only</option>
-                    <option value="0">Auto-applied Only</option>
-                </select>
-                <button className="billing-btn billing-btn-outline billing-btn-sm"
-                    onClick={() => { setFilterHead(""); setFilterPropType(""); setFilterOverride(""); setPage(1); }}>
-                    Clear
-                </button>
+            {/* ── Filters ── */}
+            <div className="billing-card mb-3" style={{ padding: "14px 16px" }}>
+                <div className="d-flex gap-2 flex-wrap align-items-end">
+
+                    {/* Search */}
+                    <div style={{ flex: 1, minWidth: 180 }}>
+                        <label className="billing-form-label">Search</label>
+                        <div style={{ position: "relative" }}>
+                            <FiSearch style={{
+                                position: "absolute", left: 10,
+                                top: "50%", transform: "translateY(-50%)", color: "#9ca3af"
+                            }} />
+                            <input type="text" className="billing-form-input"
+                                style={{ paddingLeft: 32 }}
+                                placeholder="Flat, block, head name, owner..."
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleSearch()} />
+                        </div>
+                    </div>
+
+                    {/* Flat */}
+                    <div>
+                        <label className="billing-form-label">Flat</label>
+                        <select className="billing-form-input" style={{ width: 150 }}
+                            value={filterFlat}
+                            onChange={(e) => { setFilterFlat(e.target.value); setPage(1); }}>
+                            <option value="">All Flats</option>
+                            {flats.map((f) => (
+                                <option key={f.flat_id} value={f.flat_id}>
+                                    {f.flat_number}{f.block ? ` / ${f.block}` : ""}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Head */}
+                    <div>
+                        <label className="billing-form-label">Charge Head</label>
+                        <select className="billing-form-input" style={{ width: 170 }}
+                            value={filterHead}
+                            onChange={(e) => { setFilterHead(e.target.value); setPage(1); }}>
+                            <option value="">All Heads</option>
+                            {heads.map((h) => (
+                                <option key={h.id} value={h.id}>{h.head_name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Property type */}
+                    <div>
+                        <label className="billing-form-label">Property Type</label>
+                        <select className="billing-form-input" style={{ width: 160 }}
+                            value={filterPropType}
+                            onChange={(e) => { setFilterPropType(e.target.value); setPage(1); }}>
+                            <option value="">All Types</option>
+                            <option value="residential_flat">Residential</option>
+                            <option value="commercial_shop">Shop</option>
+                            <option value="commercial_office">Office</option>
+                        </select>
+                    </div>
+
+                    {/* Source */}
+                    <div>
+                        <label className="billing-form-label">Source</label>
+                        <select className="billing-form-input" style={{ width: 140 }}
+                            value={filterOverride}
+                            onChange={(e) => { setFilterOverride(e.target.value); setPage(1); }}>
+                            <option value="">All Sources</option>
+                            <option value="1">Overrides Only</option>
+                            <option value="0">Auto-applied Only</option>
+                        </select>
+                    </div>
+
+                    <div className="d-flex gap-2" style={{ marginTop: 18 }}>
+                        <button className="billing-btn billing-btn-primary billing-btn-sm"
+                            onClick={handleSearch}>
+                            <FiSearch size={12} /> Search
+                        </button>
+                        <button className="billing-btn billing-btn-outline billing-btn-sm"
+                            onClick={clearFilters}>Clear</button>
+                    </div>
+                </div>
             </div>
 
-            {/* Table */}
+            {/* ── Table ── */}
             <div className="billing-card" style={{ padding: 0, overflow: "hidden" }}>
                 <div style={{ overflowX: "auto" }}>
                     <table className="billing-table">
@@ -200,235 +565,175 @@ const FlatCharges = ({ setActive }) => {
                             <tr>
                                 <th>Flat</th>
                                 <th>Block</th>
-                                <th>Property Type</th>
-                                <th>Area (sqft)</th>
+                                <th>Property</th>
+                                <th>SqFt</th>
                                 <th>Owner</th>
                                 <th>Charge Head</th>
                                 <th>Scope</th>
-                                <th>Charge Type</th>
+                                <th>Type</th>
                                 <th className="text-end">Amount</th>
                                 <th>Source</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {configs.length === 0 ? (
+                            {loading ? (
                                 <tr>
                                     <td colSpan={11} style={{ textAlign: "center", padding: 40, color: "#9ca3af" }}>
-                                        No charge configs found
+                                        <div style={{ fontSize: 24, marginBottom: 8 }}>⏳</div>
+                                        Loading charges...
                                     </td>
                                 </tr>
-                            ) : configs.map((c, i) => (
-                                <tr key={i}>
-                                    <td>
-                                        <button
-                                            style={{ background: "none", border: "none", padding: 0,
-                                                fontWeight: 700, color: "#2563eb", cursor: "pointer", fontSize: 13 }}
-                                            onClick={() => viewFlatConfig(c)}
-                                        >
-                                            {c.flat_number}
-                                        </button>
-                                    </td>
-                                    <td style={{ color: "#6b7280" }}>{c.block || "—"}</td>
-                                    <td>
-                                        <span style={{ fontSize: 11, padding: "2px 6px",
-                                            background: "#f3f4f6", borderRadius: 6 }}>
-                                            {(c.property_type || "").replace(/_/g, " ")}
-                                        </span>
-                                    </td>
-                                    <td style={{ color: "#6b7280", fontSize: 12 }}>
-                                        {c.area_sqft ? `${c.area_sqft} sqft` : "—"}
-                                    </td>
-                                    <td>
-                                        <div style={{ fontSize: 12 }}>{c.owner_name || "—"}</div>
-                                        <div style={{ fontSize: 11, color: "#9ca3af" }}>{c.owner_mobile || ""}</div>
-                                    </td>
-                                    <td>
-                                        <div style={{ fontWeight: 600, fontSize: 13 }}>{c.head_name}</div>
-                                        <div style={{ fontSize: 11, color: "#2563eb" }}>{c.head_code}</div>
-                                    </td>
-                                    <td>
-                                        <span className={`scope-badge ${c.charge_scope}`}>
-                                            {c.charge_scope === "centralised" ? "Central" : "Per Flat"}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span className={`scope-badge ${c.charge_type}`}>
-                                            {c.charge_type === "per_sqft"
-                                                ? `₹${c.rate_per_sqft}/sqft`
-                                                : "Fixed"}
-                                        </span>
-                                    </td>
-                                    <td className="text-end amount-display">{fmt(c.amount)}</td>
-                                    <td>
-                                        {c.is_override
-                                            ? <span className="override-badge">🔧 Override</span>
-                                            : <span style={{ fontSize: 11, color: "#059669" }}>✅ Auto</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <div className="d-flex gap-1">
-                                            <button
-                                                className="billing-btn billing-btn-outline billing-btn-sm"
-                                                title="Override amount"
-                                                onClick={() => openOverride(c)}
-                                            >
-                                                <FiEdit2 size={12} />
+                            ) : configs.length === 0 ? (
+                                <tr>
+                                    <td colSpan={11} style={{ textAlign: "center", padding: "48px 20px" }}>
+                                        <div style={{ color: "#9ca3af" }}>
+                                            <div style={{ fontSize: 36, marginBottom: 12 }}>🏠</div>
+                                            <div style={{ fontWeight: 600, marginBottom: 6 }}>No charge configs found</div>
+                                            <div style={{ fontSize: 12, marginBottom: 16 }}>
+                                                Create charge heads first and auto-apply, or add individually
+                                            </div>
+                                            <button className="billing-btn billing-btn-primary"
+                                                onClick={() => setShowAddModal(true)}>
+                                                <FiPlus size={13} /> Add Individual Charge
                                             </button>
-                                            {c.is_override === 1 && (
-                                                <button
-                                                    className="billing-btn billing-btn-outline billing-btn-sm"
-                                                    title="Reset to centralised rate"
-                                                    onClick={() => handleReset(c)}
-                                                >
-                                                    <FiRefreshCw size={12} />
-                                                </button>
-                                            )}
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                            ) : configs.map((c, i) => {
+                                const resetKey  = `reset_${c.flat_id}_${c.head_id}`;
+                                const removeKey = `remove_${c.flat_id}_${c.head_id}`;
+                                return (
+                                    <tr key={i}>
+                                        <td>
+                                            <button style={{
+                                                background: "none", border: "none", padding: 0,
+                                                fontWeight: 700, color: "#2563eb",
+                                                cursor: "pointer", fontSize: 13
+                                            }}
+                                                onClick={() => {
+                                                    setSummaryFlat({
+                                                        flat_id:    c.flat_id,
+                                                        flat_label: `${c.flat_number}${c.block ? ` / ${c.block}` : ""}`
+                                                    });
+                                                    setShowSummary(true);
+                                                }}
+                                                title="View all charges for this flat">
+                                                {c.flat_number}
+                                            </button>
+                                        </td>
+                                        <td style={{ color: "#6b7280" }}>{c.block || "—"}</td>
+                                        <td>
+                                            <span style={{
+                                                fontSize: 10, padding: "2px 6px",
+                                                background: "#f3f4f6", borderRadius: 6
+                                            }}>
+                                                {(c.property_type || "").replace(/_/g, " ")}
+                                            </span>
+                                        </td>
+                                        <td style={{ color: "#6b7280", fontSize: 12 }}>
+                                            {c.area_sqft || "—"}
+                                        </td>
+                                        <td>
+                                            <div style={{ fontSize: 12 }}>{c.owner_name?.trim() || "—"}</div>
+                                            <div style={{ fontSize: 11, color: "#9ca3af" }}>{c.owner_mobile || ""}</div>
+                                        </td>
+                                        <td>
+                                            <div style={{ fontWeight: 600, fontSize: 13 }}>{c.head_name}</div>
+                                            <div style={{ fontSize: 11, color: "#2563eb" }}>{c.head_code}</div>
+                                        </td>
+                                        <td>
+                                            <span className={`scope-badge ${c.charge_scope}`}>
+                                                {c.charge_scope === "centralised" ? "Central" : "Per Flat"}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span className={`scope-badge ${c.charge_type}`}>
+                                                {c.charge_type === "per_sqft"
+                                                    ? `₹${c.rate_per_sqft}/sqft`
+                                                    : "Fixed"}
+                                            </span>
+                                        </td>
+                                        <td className="text-end amount-display">{fmt(c.amount)}</td>
+                                        <td>
+                                            {c.is_override
+                                                ? <span className="override-badge">🔧 Override</span>
+                                                : <span style={{ fontSize: 11, color: "#059669" }}>✅ Auto</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div className="d-flex gap-1">
+                                                <button
+                                                    className="billing-btn billing-btn-outline billing-btn-sm"
+                                                    title="Edit amount"
+                                                    onClick={() => { setEditConfig(c); setShowEditModal(true); }}>
+                                                    <FiEdit2 size={11} />
+                                                </button>
+                                                {c.is_override === 1 && c.charge_scope === "centralised" && (
+                                                    <button
+                                                        className="billing-btn billing-btn-outline billing-btn-sm"
+                                                        title="Reset to centralised rate"
+                                                        onClick={() => handleReset(c)}
+                                                        disabled={actionKey === resetKey}>
+                                                        {actionKey === resetKey
+                                                            ? <span style={{ fontSize: 9 }}>...</span>
+                                                            : <FiRefreshCw size={11} />}
+                                                    </button>
+                                                )}
+                                                <button
+                                                    className="billing-btn billing-btn-danger billing-btn-sm"
+                                                    title="Remove charge"
+                                                    onClick={() => handleRemove(c)}
+                                                    disabled={actionKey === removeKey}>
+                                                    {actionKey === removeKey
+                                                        ? <span style={{ fontSize: 9 }}>...</span>
+                                                        : <FiTrash2 size={11} />}
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
                 {total > pageSize && (
-                    <div style={{ padding: "12px 16px", borderTop: "1px solid #f3f4f6" }}>
+                    <div style={{
+                        padding: "12px 16px", borderTop: "1px solid #f3f4f6",
+                        display: "flex", alignItems: "center", justifyContent: "space-between"
+                    }}>
+                        <span style={{ fontSize: 12, color: "#6b7280" }}>
+                            Showing {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, total)} of {total}
+                        </span>
                         <Pagination
-                            currentPage={page}
-                            totalPages={Math.ceil(total / pageSize)}
-                            onPageChange={setPage}
+                            page={page}
+                            total={Math.ceil(total / pageSize)}
+                            onChange={(p) => setPage(p)}
                         />
                     </div>
                 )}
             </div>
 
-            {/* ── Override Modal ── */}
-            {showModal && modalFlat && modalHead && (
-                <div className="modal show d-block" style={{ background: "rgba(0,0,0,0.4)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content" style={{ borderRadius: 12, border: "none" }}>
-                            <div className="billing-modal-header">
-                                <span>🔧 Override Charge — {modalFlat.flat_number}</span>
-                                <button className="close-btn" onClick={() => setShowModal(false)}>×</button>
-                            </div>
-                            <div style={{ padding: 20 }}>
-                                <div style={{
-                                    background: "#f0f9ff", borderRadius: 8, padding: "10px 14px", marginBottom: 16,
-                                    fontSize: 13, color: "#0369a1"
-                                }}>
-                                    <strong>{modalHead.head_name}</strong> ({modalHead.head_code})
-                                    {modalFlat.area_sqft && <span> · {modalFlat.area_sqft} sqft</span>}
-                                </div>
-
-                                <div className="row g-3">
-                                    <div className="col-12">
-                                        <label className="billing-form-label">Charge Type</label>
-                                        <div className="d-flex gap-3">
-                                            {["fixed", "per_sqft"].map((t) => (
-                                                <label key={t} className="d-flex align-items-center gap-1"
-                                                    style={{ cursor: "pointer", fontSize: 13 }}>
-                                                    <input type="radio" name="ov_type"
-                                                        checked={overrideForm.charge_type === t}
-                                                        onChange={() => setOverrideForm({ ...overrideForm, charge_type: t })}
-                                                    />
-                                                    {t === "fixed" ? "Fixed Amount" : "Per SqFt"}
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    {overrideForm.charge_type === "fixed" ? (
-                                        <div className="col-12">
-                                            <label className="billing-form-label">Amount (₹) *</label>
-                                            <input type="number" className="billing-form-input" min="0" step="0.01"
-                                                value={overrideForm.amount}
-                                                onChange={(e) => setOverrideForm({ ...overrideForm, amount: e.target.value })}
-                                                placeholder="0.00"
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="col-12">
-                                            <label className="billing-form-label">Rate Per SqFt (₹) *</label>
-                                            <input type="number" className="billing-form-input" min="0" step="0.001"
-                                                value={overrideForm.rate_per_sqft}
-                                                onChange={(e) => setOverrideForm({ ...overrideForm, rate_per_sqft: e.target.value })}
-                                                placeholder="0.03"
-                                            />
-                                            {modalFlat.area_sqft && overrideForm.rate_per_sqft && (
-                                                <div style={{ fontSize: 12, color: "#059669", marginTop: 4 }}>
-                                                    = {fmt(parseFloat(overrideForm.rate_per_sqft) * parseFloat(modalFlat.area_sqft))} / month
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="d-flex justify-content-end gap-2 mt-3">
-                                    <button className="billing-btn billing-btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-                                    <button className="billing-btn billing-btn-primary" onClick={handleSaveOverride} disabled={saving}>
-                                        {saving ? "Saving..." : "Save Override"}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            {/* ── Modals ── */}
+            {showAddModal && (
+                <ChargeModal mode="add" heads={heads} flats={flats}
+                    onSave={handleAddSave}
+                    onClose={() => setShowAddModal(false)} />
             )}
 
-            {/* ── Flat Config View Modal ── */}
-            {showFlatConfig && selectedFlat && (
-                <div className="modal show d-block" style={{ background: "rgba(0,0,0,0.4)" }}>
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content" style={{ borderRadius: 12, border: "none" }}>
-                            <div className="billing-modal-header">
-                                <span>🏠 Flat {selectedFlat.flat_number} — Monthly Charges</span>
-                                <button className="close-btn" onClick={() => setShowFlatConfig(false)}>×</button>
-                            </div>
-                            <div style={{ padding: 20 }}>
-                                <table className="billing-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Head</th>
-                                            <th>Type</th>
-                                            <th className="text-end">Amount</th>
-                                            <th>Source</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {flatConfigData.map((c) => (
-                                            <tr key={c.head_id}>
-                                                <td>
-                                                    <div style={{ fontWeight: 600, fontSize: 13 }}>{c.head_name}</div>
-                                                    <div style={{ fontSize: 11, color: "#6b7280" }}>{c.head_code}</div>
-                                                </td>
-                                                <td>
-                                                    <span className={`scope-badge ${c.charge_type}`} style={{ fontSize: 10 }}>
-                                                        {c.charge_type === "per_sqft" ? `₹${c.rate_per_sqft}/sqft` : "Fixed"}
-                                                    </span>
-                                                </td>
-                                                <td className="text-end amount-display">{fmt(c.amount)}</td>
-                                                <td>
-                                                    {c.is_override
-                                                        ? <span className="override-badge">Override</span>
-                                                        : <span style={{ fontSize: 11, color: "#059669" }}>Auto</span>
-                                                    }
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colSpan={2} style={{ fontWeight: 700, paddingTop: 12 }}>Total Monthly</td>
-                                            <td className="text-end amount-display" style={{ fontWeight: 800, color: "#2563eb" }}>
-                                                {fmt(totalMonthly)}
-                                            </td>
-                                            <td />
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            {showEditModal && editConfig && (
+                <ChargeModal mode="edit" config={editConfig} heads={heads} flats={flats}
+                    onSave={handleEditSave}
+                    onClose={() => { setShowEditModal(false); setEditConfig(null); }} />
+            )}
+
+            {showSummary && summaryFlat && (
+                <FlatSummaryModal
+                    flatId={summaryFlat.flat_id}
+                    flatLabel={summaryFlat.flat_label}
+                    onClose={() => { setShowSummary(false); setSummaryFlat(null); }} />
             )}
         </div>
     );
