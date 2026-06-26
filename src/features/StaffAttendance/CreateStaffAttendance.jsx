@@ -35,10 +35,10 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
     }, [])
 
     useEffect(() => {
-        if (staffId ) {
-            StaffById();
-        }
-    }, [staffId]);
+    if (staffId && societyId) {
+        StaffById();
+    }
+}, [staffId, societyId]);
 
     const SessionData = async () => {
         const data = await GetSessionData()
@@ -48,7 +48,7 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
     }
 
     const StaffById = async () => {
-        const data = await getStaffByIdApi(staffId)
+        const data = await getStaffByIdApi(staffId,societyId)
         console.log(data)
         setFirstName(data.first_name)
         setLastName(data.last_name)
@@ -57,6 +57,7 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
         setSalary(data.salary)
         setJoiningDate(data.joining_date)
         setSId(data.staff_id)
+        setSocietyId(flats.society_id)
     }
 
     const validateForm = () => {
@@ -101,6 +102,7 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
             }
             if (sId) {
                 await UpdateStaffApi(
+                    societyId,
                     sId,
                     firstName,
                     lastName,

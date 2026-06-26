@@ -57,9 +57,10 @@ export const createStaffApi = async (societyId, firstName, lastName, emailId, mo
 }
 
 //update staff api
-export const UpdateStaffApi = async (staffId, firstName, lastName, emailId, mobileNo, role, salary, joiningDate) => {
+export const UpdateStaffApi = async (societyId,staffId, firstName, lastName, emailId, mobileNo, role, salary, joiningDate) => {
     const url = UrlData + 'staff/UpdateStaff';
     const data = {
+        society_id: societyId,
         staff_id: staffId,
         first_name: firstName,
         last_name: lastName,
@@ -109,10 +110,12 @@ export const markAttendanceStaffApi = async (staffId, attendanceId, societyId, a
     });
 }
 
-export const getStaffByIdApi = async (staffId) => {
+export const getStaffByIdApi = async (staffId,societyId) => {
     const url = UrlData + 'staff/GetStaffById';
     const data = {
+        
         staff_id: staffId,
+        society_id: societyId,
     }
     return await apiClient({
         method: 'post',
