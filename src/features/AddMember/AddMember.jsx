@@ -86,30 +86,13 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     getAllBlocks(flats.society_id);
   };
 
-  //function for get members
-  const getMembers = async (societyId, page) => {
-    try {
-      const data = await getMembersApi(
-        societyId,
-        page,
-        filterStatus,      // ← add karo
-        filterDateFrom,    // ← add karo
-        filterDateTo       // ← add karo
-      );
-      setAllMembers(data.members);
-      setPage(data.page);
-      setLimit(data.per_page);
-      setTotalCount(data.pagination?.total || 0);;
-    } catch (error) {
-      console.error("Error fetching members:", error);
-    }
-  };
-  const filteredMembers = allMembers.filter((m) => {
-    const matchType = !filterStatus || m.occupancy_type === filterStatus;
-    const matchFrom = !filterDateFrom || new Date(m.start_date) >= new Date(filterDateFrom);
-    const matchTo = !filterDateTo || new Date(m.start_date) <= new Date(filterDateTo);
-    return matchType && matchFrom && matchTo;
-  });
+
+  // const filteredMembers = allMembers.filter((m) => {
+  //   const matchType = !filterStatus || m.occupancy_type === filterStatus;
+  //   const matchFrom = !filterDateFrom || new Date(m.start_date) >= new Date(filterDateFrom);
+  //   const matchTo = !filterDateTo || new Date(m.start_date) <= new Date(filterDateTo);
+  //   return matchType && matchFrom && matchTo;
+  // });
   const getAllMembersWithoutPagination = async (societyId, search) => {
     try {
       const data = await getAllMembersWithoutPaginationApi(societyId, search);
@@ -473,7 +456,30 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
         ? allMembers
         : "";
 
+  const getMembers = async (
+    societyId,
+    page = 1,
+    occupancyType = "",
+    startDate = "",
+    endDate = ""
+  ) => {
+    try {
+      const data = await getMembersApi(
+        societyId,
+        page,
+        occupancyType,
+        startDate,
+        endDate
+      );
 
+      setAllMembers(data.members || []);
+      setTotalCount(data.total_count || 0);
+      setLimit(data.per_page || 10);
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  };
   const downloadExcel = async () => {
     exportFile({
       data: exportData,
@@ -545,7 +551,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
       if (!value.trim()) {
         setPage(1);
         const data = await getMembers(societyId, 1);
-        setAllMembers(data?.members || []);
+        //setAllMembers(data?.members || []);
         return;
       }
 
@@ -645,9 +651,18 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
               className="form-select"
               value={filterStatus}
               onChange={(e) => {
-                setFilterStatus(e.target.value);
+                const value = e.target.value;
+
+                setFilterStatus(value);
                 setPage(1);
-                getMembers(societyId, 1);
+
+                getMembers(
+                  societyId,
+                  1,
+                  value,
+                  filterDateFrom,
+                  filterDateTo
+                );
               }}
             >
               <option value="">All Types</option>
@@ -663,8 +678,18 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
               className="form-control"
               value={filterDateFrom}
               onChange={(e) => {
-                setFilterDateFrom(e.target.value);
+                const value = e.target.value;
+
+                setFilterDateFrom(value);
                 setPage(1);
+
+                getMembers(
+                  societyId,
+                  1,
+                  filterStatus,
+                  value,
+                  filterDateTo
+                );
               }}
             />
           </div>
@@ -674,8 +699,18 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
               className="form-control"
               value={filterDateTo}
               onChange={(e) => {
-                setFilterDateTo(e.target.value);
+                const value = e.target.value;
+
+                setFilterDateTo(value);
                 setPage(1);
+
+                getMembers(
+                  societyId,
+                  1,
+                  filterStatus,
+                  filterDateFrom,
+                  value
+                );
               }}
             />
           </div>
@@ -718,7 +753,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                 </tr>
               </thead>
               <tbody>
-                {filteredMembers.map((s, i) => (
+                {allMembers.map((s, i) => (
                   <tr className="text-start" key={i}>
                     {/* <td className="sa-name">{s.first_name} {s.last_name}</td> */}
                     <td>

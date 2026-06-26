@@ -8,7 +8,7 @@ import { BiExport } from 'react-icons/bi';
 import { FiFilter, FiSearch } from 'react-icons/fi';
 import { toast } from "react-toastify";
 import {
-    CreateGuestVisitorApi, CreateDeliveryApi, ListVisitorsApi,
+    CreateVisitorApi, ListVisitorsApi,
     GetVisitorApi, DeleteVisitorApi, VisitorCheckoutApi,
     ApproveVisitorApi, RejectVisitorApi, UpdateVisitorApi
 } from '../../../services/VisitorApi';
@@ -26,7 +26,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [search, setSearch] = useState("");
     const [societyId, setSocietyId] = useState("");
     const [visitorsList, setVisitorsList] = useState([]);
-    const skipNextEffect = useRef(false);
     //const [flatsList, setFlatsList] = useState([]);
     const [isEdit, setIsEdit] = useState(false);
     const [editVisitorId, setEditVisitorId] = useState(null);
@@ -72,8 +71,12 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [approvalStatus, setApprovalStatus] = useState("");
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
+    const [visitorTypeFilter, setVisitorTypeFilter] = useState("");
     const [scheduleStartDate, setScheduleStartDate] = useState("");
     const [scheduleEndDate, setScheduleEndDate] = useState("");
+    const [flatIdFilter, setFlatIdFilter] = useState("");
+    const [scheduleDate, setScheduleDate] = useState("");
+    const [entryStatus, setEntryStatus] = useState("");
     //allot parking
     const [showAllotParking, setShowAllotParking] = useState(false);
     const [allVisitors, setAllVisitors] = useState([]);
@@ -86,7 +89,12 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [parcelDescription, setParcelDescription] = useState("");
     const [parcelCompany, setParcelCompany] = useState("");
     const [parcelDeliveryType, setParcelDeliveryType] = useState("");
-
+    // temp states
+    const [tempVisitorType, setTempVisitorType] = useState("");
+    const [tempEntryStatus, setTempEntryStatus] = useState("");
+    const [tempFlatId, setTempFlatId] = useState("");
+    const [tempScheduleDate, setTempScheduleDate] = useState("");
+    const [showMoreFilters, setShowMoreFilters] = useState(false);
     useEffect(() => { SessionData(); }, []);
 
     const SessionData = async () => {
@@ -101,24 +109,42 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             sid: firstFlat.society_id,
             pg: 1,
             searchText: "",
-            status: "",
+            visitorType: "",
+            entryStatus: "",
+            approvalStatus: "",
+            flatId: null,
             fromDate: "",
-            toDate: ""
+            toDate: "",
+            scheduleDate: ""
         });
     };
-    const initialLoadDone = useRef(false);
     // Auto re-fetch when filters change (except search)
     useEffect(() => {
         if (!societyId) return;
+
         getVisitors({
             sid: societyId,
             pg: page,
             searchText: search,
-            status: approvalStatus,
+            visitorType: visitorTypeFilter,
+            entryStatus,
+            approvalStatus,
+            flatId: flatIdFilter,
             fromDate: dateFrom,
-            toDate: dateTo
+            toDate: dateTo,
+            scheduleDate
         });
-    }, [page, approvalStatus, dateFrom, dateTo]);
+
+    }, [
+        page,
+        approvalStatus,
+        visitorTypeFilter,
+        entryStatus,
+        flatIdFilter,
+        scheduleDate,
+        dateFrom,
+        dateTo
+    ]);
 
     // const getVisitors = async (sId, pg,) => {
     //     try {
@@ -129,19 +155,35 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     //         setPage(data.page || pg);
     //     } catch (error) { console.error("Error fetching visitors:", error); }
     // };
-    const getVisitors = async ({ sid, pg, searchText, status, fromDate, toDate }) => {
+    const getVisitors = async ({
+        sid,
+        pg,
+        searchText,
+        status,
+        fromDate,
+        toDate,
+        visitorType = "",
+        entryStatus = "",
+        flatId = null,
+        scheduleDate = ""
+    }) => {
         try {
             setLoading(true);
+
             const data = await ListVisitorsApi({
                 societyId: sid,
                 currentPage: pg,
                 currentSearch: searchText,
-                currentStatus: status,
+                currentVisitorType: visitorType,
+                currentEntryStatus: entryStatus,
+                currentStatus: approvalStatus,
+                currentFlatId: flatId,
                 currentFromDate: fromDate,
                 currentToDate: toDate,
+                currentScheduleDate: scheduleDate,
+                pageSize: 10
             });
 
-            // ✅ FIX: API response structure sahi se read karo
             const visitors = data?.visitors || [];
             const pagination = data?.pagination || {};
 
@@ -150,21 +192,12 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             setTotalPages(pagination.total_pages || 1);
             setPage(pagination.page || pg);
 
-            setStats({
-                total: pagination.total || 0,
-                today: 0,
-                pending: visitors.filter(v => v.approval_status === "pending").length,
-                checkedOut: visitors.filter(v => v.entry_status === "completed").length,
-            });
-
         } catch (error) {
-            console.error("Error fetching visitors:", error);
-            toast.error("Failed to load visitors");
+            console.error(error);
         } finally {
             setLoading(false);
         }
     };
-
     // Search fires only on button click
     // const handleSearch = () => {
     //     setPage(1);
@@ -311,7 +344,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             }
 
             if (isEdit) {
-
                 await UpdateVisitorApi({
                     visitorId: editVisitorId,
                     societyId,
@@ -326,50 +358,27 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                     scheduleStartDate: formatDateTime(scheduleStartDate),
                     scheduleEndDate: formatDateTime(scheduleEndDate)
                 });
-
-                toast.success("Visitor updated successfully!");
-
             } else {
-
-                if (visitorType === "guest") {
-
-                    await CreateGuestVisitorApi({
-                        societyId,
-                        flatId,
-                        visitorName,
-                        mobile,
-                        email,
-                        gender,
-                        visitorType: "guest",
-                        comingFrom,
-                        vehicleNumber,
-                        purpose,
-                        idType,
-                        idNumber,
-                        photo,
-                        scheduleStartDate: formatDateTime(scheduleStartDate),
-                        scheduleEndDate: formatDateTime(scheduleEndDate)
-                    });
-
-                } else {
-
-                    await CreateDeliveryVisitorApi({
-                        societyId,
-                        flatId,
-                        visitorName,
-                        mobile,
-                        vehicleNumber,
-                        parcelDescription,
-                        parcelCompany,
-                        parcelDeliveryType,
-                        scheduleStartDate: formatDateTime(scheduleStartDate),
-                        scheduleEndDate: formatDateTime(scheduleEndDate)
-                    });
-
-                }
-
-                toast.success("Visitor added successfully!");
+                await CreateVisitorApi({
+                    societyId,
+                    flatId,
+                    visitorName,
+                    mobile,
+                    email,
+                    gender,
+                    visitorType,
+                    vehicleNumber,
+                    purpose,
+                    idType,
+                    idNumber,
+                    comingFrom,
+                    photo,
+                    scheduleStartDate: formatDateTime(scheduleStartDate),
+                    scheduleEndDate: formatDateTime(scheduleEndDate)
+                });
             }
+
+            toast.success(isEdit ? "Visitor updated successfully!" : "Visitor added successfully!");
 
             setShow(false);
             resetForm();
@@ -379,32 +388,24 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             setDateFrom("");
             setDateTo("");
 
-            skipNextEffect.current = true;
 
-            await getVisitors({
+            getVisitors({
                 sid: societyId,
                 pg: 1,
                 searchText: "",
-                status: "",
+                visitorType: "",
+                entryStatus: "",
+                approvalStatus: "",
+                flatId: null,
                 fromDate: "",
-                toDate: ""
+                toDate: "",
+                scheduleDate: ""
             });
 
         } catch (error) {
-
             console.error(error);
-
-            toast.error(
-                error?.response?.data?.message ||
-                error?.message ||
-                "Something went wrong"
-            );
-
-            setErrorText(
-                error?.response?.data?.message ||
-                error?.message ||
-                "Error occurred"
-            );
+            toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+            setErrorText(error?.response?.data?.message || error?.message || "Error occurred");
         }
     };
     const handleDelete = async (visitorId) => {
@@ -575,15 +576,156 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
 
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
 
-                        <button
-                            className="btn btn-sm btn-ac ms-2 btn-primary"
-                            // onClick={() => { resetForm(); setShow(true); }}
-                            onClick={handleAddVisitor}
-                        >
-                            + Add Visitor
-                        </button>
+                        <div className="d-flex align-items-center gap-2">
+
+                            <button
+                                className="btn btn-sm btn-ac btn-primary"
+                                onClick={handleAddVisitor}
+                            >
+                                + Add Visitor
+                            </button>
+
+                            <div className="position-relative">
+
+                                <button
+                                    className={`btn btn-sm btn-ac btn-primary ${showMoreFilters ? "active" : ""}`}
+                                    onClick={() => {
+
+                                        setTempVisitorType(visitorTypeFilter);
+                                        setTempEntryStatus(entryStatus);
+                                        setTempFlatId(flatIdFilter);
+                                        setTempScheduleDate(scheduleDate);
+
+                                        setShowMoreFilters(v => !v);
+                                    }}
+                                >
+                                    <FiFilter size={14} /> More Filters
+                                </button>
+
+                                {showMoreFilters && (
+
+                                    <div
+                                        className="shadow border rounded-3 bg-white p-3 position-absolute start-0 mt-1"
+                                        style={{
+                                            width: "320px",
+                                            zIndex: 999,
+                                            top: "100%",
+                                            maxHeight: "450px",
+                                            overflowY: "auto"
+                                        }}
+                                    >
+
+                                        {/* Visitor Type */}
+
+                                        <p className="text-muted fw-semibold mb-1 text-start"
+                                            style={{
+                                                fontSize: 11,
+                                                textTransform: "uppercase"
+                                            }}>
+                                            Visitor Type
+                                        </p>
+
+                                        <div className="d-flex gap-2 flex-wrap mb-3">
+
+                                            {[
+                                                ["", "All"],
+                                                ["guest", "Guest"],
+                                                ["delivery", "Delivery"]
+                                            ].map(([value, label]) => (
+
+                                                <button
+                                                    key={value}
+                                                    className={`btn btn-sm rounded-pill ${tempVisitorType === value ? "btn-primary" : "btn-outline-secondary"}`}
+                                                    onClick={() => setTempVisitorType(value)}
+                                                >
+                                                    {label}
+                                                </button>
+
+                                            ))}
+
+                                        </div>
+
+                                        {/* Entry Status */}
+
+                                        <label className="form-label fw-semibold text-start d-block mb-1">
+                                            Entry Status
+                                        </label>
+
+                                        <select
+                                            className="form-select mb-3"
+                                            value={tempEntryStatus}
+                                            onChange={(e) => setTempEntryStatus(e.target.value)}
+                                        >
+                                            <option value="">All</option>
+                                            <option value="waiting">Waiting</option>
+                                            <option value="checked_in">Checked In</option>
+                                            <option value="checked_out">Checked Out</option>
+                                        </select>
+
+
+                                        {/* Schedule Date */}
+
+                                        <label className="form-label fw-semibold text-start d-block mb-1">
+                                            Schedule Date
+                                        </label>
+
+                                        <input
+                                            type="date"
+                                            className="form-control mb-3"
+                                            value={tempScheduleDate}
+                                            onChange={(e) =>
+                                                setTempScheduleDate(e.target.value)
+                                            }
+                                        />
+
+                                        <div className="d-flex justify-content-between">
+
+                                            <button
+                                                className="btn btn-outline-secondary btn-sm"
+                                                onClick={() => {
+
+                                                    setTempVisitorType("");
+                                                    setTempEntryStatus("");
+                                                    setTempFlatId("");
+                                                    setTempScheduleDate("");
+
+                                                }}
+                                            >
+                                                Clear All
+                                            </button>
+
+                                            <button
+                                                className="btn btn-primary btn-sm"
+                                                onClick={() => {
+
+                                                    setVisitorTypeFilter(tempVisitorType);
+                                                    setEntryStatus(tempEntryStatus);
+                                                    setFlatIdFilter(tempFlatId);
+                                                    setScheduleDate(tempScheduleDate);
+
+                                                    setPage(1);
+
+                                                    setShowMoreFilters(false);
+
+                                                }}
+                                            >
+                                                Apply Filters
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+                                )}
+
+                            </div>
+
+                        </div>
+
+                        {/* SEARCH */}
 
                         <div className="d-flex gap-2">
+
                             <input
                                 type="text"
                                 className="form-control visitor-search"
@@ -592,70 +734,90 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                 onChange={(e) => setSearch(e.target.value)}
                             />
 
-                            {/* Search button */}
                             <button
                                 className="btn btn-primary"
                                 onClick={() => {
+
                                     setPage(1);
+
                                     getVisitors({
                                         sid: societyId,
                                         pg: 1,
                                         searchText: search,
-                                        status: approvalStatus,
+                                        visitorType: visitorTypeFilter,
+                                        entryStatus,
+                                        approvalStatus,
+                                        flatId: flatIdFilter,
                                         fromDate: dateFrom,
-                                        toDate: dateTo
+                                        toDate: dateTo,
+                                        scheduleDate
                                     });
+
                                 }}
                             >
                                 <FiSearch />
                             </button>
+
                         </div>
 
                     </div>
 
+                    {/* Bottom Row */}
+
                     <div className="row g-2">
 
                         <div className="col-md-4">
+
                             <select
                                 className="form-select"
                                 value={approvalStatus}
                                 onChange={(e) => {
+
                                     setApprovalStatus(e.target.value);
                                     setPage(1);
-                                    // REMOVE the direct getVisitors call here
+
                                 }}
                             >
+
                                 <option value="">All Status</option>
                                 <option value="pending">Pending</option>
                                 <option value="approved">Approved</option>
                                 <option value="rejected">Rejected</option>
+
                             </select>
+
                         </div>
 
                         <div className="col-md-4">
+
                             <input
                                 type="date"
                                 className="form-control"
                                 value={dateFrom}
                                 onChange={(e) => {
+
                                     setDateFrom(e.target.value);
                                     setPage(1);
-                                    // REMOVE the direct getVisitors call here
+
                                 }}
                             />
+
                         </div>
 
                         <div className="col-md-4">
+
                             <input
                                 type="date"
                                 className="form-control"
                                 value={dateTo}
                                 onChange={(e) => {
+
                                     setDateTo(e.target.value);
                                     setPage(1);
-                                    // REMOVE the direct getVisitors call here
+
                                 }}
                             />
+
                         </div>
 
                     </div>
@@ -667,7 +829,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                         <table className="sv-tbl">
                             <thead>
                                 <tr>
-                                    {["VISITOR", "UNIT", "TYPE", "PURPOSE / PARCEL", "VEHICLE", "CHECK IN", "CHECK OUT", "STATUS", "ACTIONS"].map(h => (
+                                    {["VISITOR", "UNIT", "TYPE", "PURPOSE / PARCEL", "VEHICLE", "CHECK IN", "CHECK OUT", "ENTRY STATUS", "STATUS", "ACTIONS"].map(h => (
                                         <th key={h}>{h}</th>
                                     ))}
                                 </tr>
@@ -723,21 +885,45 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                         </td>
                                         <td>
                                             <Badge
-                                                label={v.check_out_time ? "Checked Out"
-                                                    : v.entry_status === "checked_in" ? "Inside"
-                                                        : v.entry_status === "checked_out" ? "Checked Out"
-                                                            : v.approval_status === "pending" ? "Pending"
-                                                                : v.approval_status === "rejected" ? "Rejected"
-                                                                    : v.approval_status === "approved" ? "Approved"
-                                                                        : "—"
+                                                label={
+                                                    v.entry_status === "checked_in" || v.entry_status === "inside"
+                                                        ? "Inside"
+                                                        : v.entry_status === "waiting"
+                                                            ? "Waiting"
+                                                            : v.entry_status === "checked_out"
+                                                                ? "Checked Out"
+                                                                : "-"
                                                 }
-                                                c={v.check_out_time ? "grey"
-                                                    : v.entry_status === "checked_in" ? "green"
-                                                        : v.entry_status === "checked_out" ? "grey"
-                                                            : v.approval_status === "pending" ? "yellow"
-                                                                : v.approval_status === "rejected" ? "red"
-                                                                    : v.approval_status === "approved" ? "green"
-                                                                        : "grey"
+                                                c={
+                                                    v.entry_status === "checked_in" || v.entry_status === "inside"
+                                                        ? "green"
+                                                        : v.entry_status === "waiting"
+                                                            ? "orange"
+                                                            : v.entry_status === "checked_out"
+                                                                ? "blue"
+                                                                : "grey"
+                                                }
+                                            />
+                                        </td>
+                                        <td>
+                                            <Badge
+                                                label={
+                                                    v.approval_status === "pending"
+                                                        ? "Pending"
+                                                        : v.approval_status === "approved"
+                                                            ? "Approved"
+                                                            : v.approval_status === "rejected"
+                                                                ? "Rejected"
+                                                                : "-"
+                                                }
+                                                c={
+                                                    v.approval_status === "pending"
+                                                        ? "yellow"
+                                                        : v.approval_status === "approved"
+                                                            ? "green"
+                                                            : v.approval_status === "rejected"
+                                                                ? "red"
+                                                                : "grey"
                                                 }
                                             />
                                         </td>

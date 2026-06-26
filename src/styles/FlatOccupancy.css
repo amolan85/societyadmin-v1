@@ -1,48 +1,301 @@
+/* === Flat Approvals redesign === */
+
+.occ-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.occ-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.occ-title {
+    margin: 0 0 2px;
+    font-weight: 700;
+}
+
+.occ-subtitle {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* Segmented tab control */
+.occ-tabs {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    background: var(--surface-2, #f1f2f5);
+    border-radius: 12px;
+    width: fit-content;
+}
+
+.occ-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border: none;
+    background: transparent;
+    border-radius: 9px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, box-shadow .15s ease;
+}
+
+.occ-tab:hover {
+    color: var(--text, #1f2430);
+}
+
+.occ-tab.is-active {
+    background: #fff;
+    color: var(--text, #1f2430);
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
+}
+
+.occ-tab-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.occ-tab-count {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--muted);
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 999px;
+    padding: 1px 7px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.occ-tab.is-active .occ-tab-count {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+/* List + cards */
+.occ-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .occ-card {
-    transition: box-shadow 0.2s ease, transform 0.15s ease;
-    border: 1px solid #eef0f3;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid rgba(16, 24, 40, 0.06);
+    border-left: 3px solid var(--rail, #d9d9d9);
+    padding: 16px 18px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+    transition: box-shadow .15s ease, transform .15s ease;
 }
 
 .occ-card:hover {
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(16, 24, 40, 0.07);
 }
 
-/* Modal */
-.modal-backdrop-custom {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.45);
+.occ-card-row {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.occ-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1050;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
 }
 
-.occ-modal {
-    background: #fff;
-    border-radius: 12px;
-    padding: 24px;
-    width: 100%;
-    max-width: 440px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    animation: occModalIn 0.18s ease;
+.occ-main {
+    flex: 1 1 auto;
+    text-align: left;
+    min-width: 0;
 }
 
-@keyframes occModalIn {
-    from { opacity: 0; transform: translateY(-10px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+.occ-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
 }
 
-.occ-modal-close {
-    background: none;
-    border: none;
+.occ-name {
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.occ-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.occ-meta-row,
+.occ-contact-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
     color: var(--muted);
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 6px;
+    margin-bottom: 4px;
 }
 
-.occ-modal-close:hover {
-    background: #f3f4f6;
+.occ-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.occ-meta-divider {
+    width: 1px;
+    height: 12px;
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.occ-requested {
+    font-size: 11.5px;
+    color: var(--muted);
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
+.occ-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+.occ-reject-btn {
+    border-color: #c23b3b !important;
+    color: #c23b3b !important;
+}
+
+/* Empty state */
+.occ-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 56px 20px;
+    border: 1px dashed rgba(16, 24, 40, 0.12);
+    border-radius: 14px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.occ-empty-title {
+    font-weight: 700;
+    color: var(--text, #1f2430);
+    margin: 6px 0 0;
+}
+
+.occ-empty-copy {
+    font-size: 13px;
+    margin: 0;
+}
+
+/* Skeleton loading */
+.occ-skeleton {
+    height: 96px;
+    background: linear-gradient(90deg, #f4f5f7 25%, #ececef 37%, #f4f5f7 63%);
+    background-size: 400% 100%;
+    animation: occ-shimmer 1.3s ease-in-out infinite;
+    border-left: 3px solid #ececef;
+}
+
+@keyframes occ-shimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .occ-skeleton { animation: none; }
+}
+
+/* Pagination */
+.occ-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 4px 2px;
+}
+
+.occ-pagination-count {
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+.occ-pagination-ellipsis {
+    padding: 0 6px;
+    color: var(--muted);
+}
+
+/* Modal */
+.occ-modal-person {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+}
+
+.occ-modal-detail {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.occ-modal-confirm-text {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: left;
+    margin-bottom: 16px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .occ-card-row {
+        flex-wrap: wrap;
+    }
+
+    .occ-actions {
+        width: 100%;
+        padding-top: 8px;
+        border-top: 1px solid rgba(16, 24, 40, 0.06);
+        margin-top: 8px;
+    }
+
+    .occ-actions button {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .occ-pagination {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
 }

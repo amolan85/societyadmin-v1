@@ -38,13 +38,16 @@ export const LoginApi = async (emailId, password) => {
   }
 };
 
-export const LogoutApi = async () => {
+export const LogoutApi = async (societyId) => {
   try {
     const url = UrlData + "auth/logout";
 
     const response = await apiClient({
       method: "post",
       url: url,
+      data: {
+        society_id: societyId,
+      },
 
     });
     await SessionDestroy()
