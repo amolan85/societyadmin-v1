@@ -345,244 +345,247 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                 </div>
 
                 {/* ── MAIN ROW ── */}
-                {/* <div className="row g-4 nb-wrap"> */}
+                <div className="row g-4 nb-wrap">
 
-                {/* ── LEFT COLUMN ── */}
-                <div className="sv-card">
+                    {/* ── LEFT COLUMN ── */}
                     <div className="sv-card">
+                        <div className="sv-card">
 
-                        {/* FILTERS */}
-                        <div className="row g-2">
-                            <div className="col-md-4">
-                                <select
-                                    className="form-select form-select-sm"
-                                    value={status}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setStatus(val);
-                                        setPage(1);
-                                        getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: val, currentStartDate: startDate, currentEndDate: endDate });
-                                    }}
-                                >
-                                    <option value="">All Status</option>
-                                    <option value="draft">Draft</option>
-                                    <option value="scheduled">Scheduled</option>
-                                    <option value="sent">Sent</option>
-                                    <option value="failed">Failed</option>
-                                </select>
-                            </div>
-                            <div className="col-md-4">
-                                <input
-                                    type="date"
-                                    className="form-control form-control-sm"
-                                    value={startDate}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setStartDate(val);
-                                        setPage(1);
-                                        getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: val, currentEndDate: endDate });
-                                    }}
-                                />
-                            </div>
-                            <div className="col-md-4">
-                                <input
-                                    type="date"
-                                    className="form-control form-control-sm"
-                                    value={endDate}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setEndDate(val);
-                                        setPage(1);
-                                        getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: startDate, currentEndDate: val });
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* SEARCH */}
-                        <div className="d-flex gap-2 mt-3">
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                className="form-control form-control-sm"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                onKeyDown={handleSearchKeyDown}
-                            />
-                            <button className="btn btn-primary btn-sm" onClick={handleSearch}>
-                                <FiSearch size={14} />
-                            </button>
-                        </div>
-
-                        {/* TYPE TABS */}
-                        <div className="NoticeBoardTabs mt-3">
-                            {broadcastType.map((t) => (
-                                <button
-                                    key={t.id}
-                                    onClick={() => {
-                                        setBroadcastTypeTab(t.value);
-                                        setPage(1);
-                                        getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: t.value, currentStatus: status, currentStartDate: startDate, currentEndDate: endDate });
-                                    }}
-                                    className={`NoticeBoardTabs-btn ${broadcastTypeTab === t.value ? "active" : ""}`}
-                                >
-                                    {t.icon} {t.id}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* LIST */}
-                        {loading ? (
-
-                            <div className="text-center py-5 text-muted">
-                                <div className="spinner-border mb-3" role="status" />
-                                Loading...
-                            </div>
-
-                        ) : allBroadcast.length === 0 ? (
-
-                            <div className="text-center py-5 text-muted">
-                                <FiGrid size={32} className="mb-2 opacity-25" />
-                                <br />
-                                No Broadcast Found
-                            </div>
-
-                        ) : (
-
-                            allBroadcast.map((p, i) => {
-                                const noticeData = getNoticeIcon(p.type);
-                                return (
-                                    <div
-                                        key={p.id}
-                                        className={`nb-post text-start ${i !== allBroadcast.length - 1 ? "nb-border" : ""}`}
+                            {/* FILTERS */}
+                            <div className="row g-2">
+                                <div className="col-md-4">
+                                    <select
+                                        className="form-select form-select-sm"
+                                        value={status}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setStatus(val);
+                                            setPage(1);
+                                            getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: val, currentStartDate: startDate, currentEndDate: endDate });
+                                        }}
                                     >
-                                        <div className="d-flex gap-3 align-items-start">
-
-                                            {/* TYPE ICON */}
-                                            <div
-                                                className="nb-avatar flex-shrink-0"
-                                                style={{ background: noticeData.bg, cursor: "pointer" }}
-                                                onClick={() => handleViewDetails(p)}
-                                            >
-                                                {noticeData.icon}
-                                            </div>
-
-                                            {/* CONTENT */}
-                                            <div
-                                                className="flex-grow-1 min-w-0"
-                                                style={{ cursor: "pointer" }}
-                                                onClick={() => handleViewDetails(p)}
-                                            >
-                                                {/* ROW 1 — title + badges */}
-                                                <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                                    <span className="nb-title">{p.title}</span>
-                                                    <Badge label={p.type} c={getTypeColor(p.type)} />
-                                                    {p.channel && (
-                                                        <span
-                                                            className="badge rounded-pill"
-                                                            style={{
-                                                                fontSize: 10,
-                                                                background: "#f3f4f6",
-                                                                color: "#374151",
-                                                                display: "inline-flex",
-                                                                alignItems: "center",
-                                                                gap: 3,
-                                                                padding: "2px 7px",
-                                                            }}
-                                                        >
-                                                            {getChannelIcon(p.channel)} {p.channel}
-                                                        </span>
-                                                    )}
-                                                    <Badge label={p.status} c={getStatusColor(p.status)} />
-                                                </div>
-
-                                                {/* ROW 2 — message • name • time */}
-                                                <div className="d-flex align-items-center gap-1 flex-wrap" style={{ fontSize: 12, color: "#6b7280" }}>
-                                                    <span style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                                        {p.message}
-                                                    </span>
-                                                    <span>•</span>
-                                                    <span>👤 {name}</span>
-                                                    <span>•</span>
-                                                    <span>{timeAgo(p.sent_at || p.created_at)}</span>
-                                                    {p.scheduled_at && (
-                                                        <>
-                                                            <span>•</span>
-                                                            <span>📅 {new Date(p.scheduled_at).toLocaleDateString()}</span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* ⋮ DROPDOWN */}
-                                            <div
-                                                className="member-action-dropdown dropdown flex-shrink-0"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                <button
-                                                    className="member-action-btn"
-                                                    type="button"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-expanded="false"
-                                                >
-                                                    ⋮
-                                                </button>
-                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            onClick={() => handleViewDetails(p)}
-                                                        >
-                                                            View Details
-                                                        </button>
-                                                    </li>
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            onClick={() => handleEditClick(p.id)}
-                                                        >
-                                                            Edit Broadcast
-                                                        </button>
-                                                    </li>
-                                                    <li><hr className="dropdown-divider" /></li>
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item member-action-delete"
-                                                            onClick={() => deleteBroadcast(p.id)}
-                                                        >
-                                                            Delete Broadcast
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-
-                        {/* PAGINATION */}
-                        <Pagination
-                            page={page}
-                            total={totalPages}
-                            onChange={handlePageChange}
-                        />
-
-                        {/* RECORDS INFO */}
-                        {!loading && totalRecords > 0 && (
-                            <div className="text-center mt-2" style={{ fontSize: 12, color: "#6b7280" }}>
-                                Showing {(page - 1) * limit + 1}–{Math.min(page * limit, totalRecords)} of {totalRecords} records
+                                        <option value="">All Status</option>
+                                        <option value="draft">Draft</option>
+                                        <option value="scheduled">Scheduled</option>
+                                        <option value="sent">Sent</option>
+                                        <option value="failed">Failed</option>
+                                    </select>
+                                </div>
+                                <div className="col-md-4">
+                                    <input
+                                        type="date"
+                                        className="form-control form-control-sm"
+                                        value={startDate}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setStartDate(val);
+                                            setPage(1);
+                                            getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: val, currentEndDate: endDate });
+                                        }}
+                                    />
+                                </div>
+                                <div className="col-md-4">
+                                    <input
+                                        type="date"
+                                        className="form-control form-control-sm"
+                                        value={endDate}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setEndDate(val);
+                                            setPage(1);
+                                            getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: startDate, currentEndDate: val });
+                                        }}
+                                    />
+                                </div>
                             </div>
-                        )}
 
+                            {/* SEARCH */}
+                            <div className="row g-2 mt-2">
+                                <div className="col-md-3">
+                                    <div className="d-flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Search..."
+                                            className="form-control form-control-sm"
+                                            value={search}
+                                            onChange={(e) => setSearch(e.target.value)}
+                                            onKeyDown={handleSearchKeyDown}
+                                        />
+                                        <button className="btn btn-primary btn-sm" onClick={handleSearch}>
+                                            <FiSearch size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* TYPE TABS */}
+                            <div className="NoticeBoardTabs mt-3">
+                                {broadcastType.map((t) => (
+                                    <button
+                                        key={t.id}
+                                        onClick={() => {
+                                            setBroadcastTypeTab(t.value);
+                                            setPage(1);
+                                            getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: t.value, currentStatus: status, currentStartDate: startDate, currentEndDate: endDate });
+                                        }}
+                                        className={`NoticeBoardTabs-btn ${broadcastTypeTab === t.value ? "active" : ""}`}
+                                    >
+                                        {t.icon} {t.id}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* LIST */}
+                            {loading ? (
+
+                                <div className="text-center py-5 text-muted">
+                                    <div className="spinner-border mb-3" role="status" />
+                                    Loading...
+                                </div>
+
+                            ) : allBroadcast.length === 0 ? (
+
+                                <div className="text-center py-5 text-muted">
+                                    <FiGrid size={32} className="mb-2 opacity-25" />
+                                    <br />
+                                    No Broadcast Found
+                                </div>
+
+                            ) : (
+
+                                allBroadcast.map((p, i) => {
+                                    const noticeData = getNoticeIcon(p.type);
+                                    return (
+                                        <div
+                                            key={p.id}
+                                            className={`nb-post text-start ${i !== allBroadcast.length - 1 ? "nb-border" : ""}`}
+                                        >
+                                            <div className="d-flex gap-3 align-items-start">
+
+                                                {/* TYPE ICON */}
+                                                <div
+                                                    className="nb-avatar flex-shrink-0"
+                                                    style={{ background: noticeData.bg, cursor: "pointer" }}
+                                                    onClick={() => handleViewDetails(p)}
+                                                >
+                                                    {noticeData.icon}
+                                                </div>
+
+                                                {/* CONTENT */}
+                                                <div
+                                                    className="flex-grow-1 min-w-0"
+                                                    style={{ cursor: "pointer" }}
+                                                    onClick={() => handleViewDetails(p)}
+                                                >
+                                                    {/* ROW 1 — title + badges */}
+                                                    <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                        <span className="nb-title">{p.title}</span>
+                                                        <Badge label={p.type} c={getTypeColor(p.type)} />
+                                                        {p.channel && (
+                                                            <span
+                                                                className="badge rounded-pill"
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    background: "#f3f4f6",
+                                                                    color: "#374151",
+                                                                    display: "inline-flex",
+                                                                    alignItems: "center",
+                                                                    gap: 3,
+                                                                    padding: "2px 7px",
+                                                                }}
+                                                            >
+                                                                {getChannelIcon(p.channel)} {p.channel}
+                                                            </span>
+                                                        )}
+                                                        <Badge label={p.status} c={getStatusColor(p.status)} />
+                                                    </div>
+
+                                                    {/* MESSAGE */}
+                                                    <p className="nb-content">{p.message}</p>
+
+                                                    {/* META FOOTER */}
+                                                    <div className="nb-meta d-flex flex-wrap gap-2">
+                                                        <span>👤 {name}</span>
+                                                        <span>•</span>
+                                                        <span>{timeAgo(p.sent_at || p.created_at)}</span>
+                                                        {p.scheduled_at && (
+                                                            <>
+                                                                <span>•</span>
+                                                                <span>📅 {new Date(p.scheduled_at).toLocaleDateString()}</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* ⋮ DROPDOWN */}
+                                                <div
+                                                    className="member-action-dropdown dropdown flex-shrink-0"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <button
+                                                        className="member-action-btn"
+                                                        type="button"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false"
+                                                    >
+                                                        ⋮
+                                                    </button>
+                                                    <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item member-action-item"
+                                                                onClick={() => handleViewDetails(p)}
+                                                            >
+                                                                View Details
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item member-action-item"
+                                                                onClick={() => handleEditClick(p.id)}
+                                                            >
+                                                                Edit Broadcast
+                                                            </button>
+                                                        </li>
+                                                        <li><hr className="dropdown-divider" /></li>
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item member-action-item member-action-delete"
+                                                                onClick={() => deleteBroadcast(p.id)}
+                                                            >
+                                                                Delete Broadcast
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+
+                            {/* PAGINATION */}
+                            <Pagination
+                                page={page}
+                                total={totalPages}
+                                onChange={handlePageChange}
+                            />
+
+                            {/* RECORDS INFO */}
+                            {!loading && totalRecords > 0 && (
+                                <div className="text-center mt-2" style={{ fontSize: 12, color: "#6b7280" }}>
+                                    Showing {(page - 1) * limit + 1}–{Math.min(page * limit, totalRecords)} of {totalRecords} records
+                                </div>
+                            )}
+
+                        </div>
                     </div>
-                </div>
 
-                {/* ── RIGHT COLUMN ── */}
-                <div className="col-12 col-lg-4">
+                    {/* ── RIGHT COLUMN ── */}
+                    <div className="col-12 col-lg-4">
 
-                    {/* TYPE BREAKDOWN CARD
+                        {/* TYPE BREAKDOWN CARD
                         <div className="sv-card">
                             <h6 className="mb-3 fw-semibold">Type Breakdown</h6>
                             {[
@@ -621,9 +624,9 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                             })}
                         </div> */}
 
+                    </div>
                 </div>
             </div>
-            {/* </div> */}
 
             {/* ── DELETE MODAL ── */}
             <div
