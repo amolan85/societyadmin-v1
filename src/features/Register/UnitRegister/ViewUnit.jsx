@@ -39,6 +39,7 @@ const ViewUnit = ({ setActive, flatId }) => {
   const [fullName, setFullName] = useState("");
   const [emailId, setEmailId] = useState("");
   const [mobileNo, setMobileNo] = useState("");
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
     SessionData();
@@ -50,7 +51,7 @@ const ViewUnit = ({ setActive, flatId }) => {
       console.log(data.data);
       const flats = data.data.flats[0];
       setSocietyId(flats.society_id);
-      getAllBlocks(flats.society_id);
+      //getAllBlocks(flats.society_id);
       getAllFloor(flats.society_id);
     } catch (error) {
       console.log(error);
@@ -66,6 +67,7 @@ const ViewUnit = ({ setActive, flatId }) => {
 
   const GetFlatDetailsById = async () => {
     try {
+      setPageLoading(true);
       const data = await getFlatByIdApi(societyId, flatId);
       console.log(data, "Flat Details by ID");
       //   setBlock(data.block);
@@ -98,6 +100,9 @@ const ViewUnit = ({ setActive, flatId }) => {
       }
     } catch (error) {
       console.log(error);
+    }
+    finally {
+      setPageLoading(false); // ✅
     }
   };
 
@@ -277,9 +282,13 @@ const ViewUnit = ({ setActive, flatId }) => {
 
               <button
                 className="btn btn-sm btn-ac btn-primary"
-                onClick={() => {
+                onClick={async () => {
                   setMode("edit");
-                  setShow(true);
+                  await Promise.all([
+                    getAllBlocks(societyId),
+                    getAllFloor(societyId),
+                  ]);
+                  setShow(true); // ✅ blocks/floors load hone ke baad modal open
                 }}
               >
                 <FiEdit className="me-1" size={16} />
@@ -432,10 +441,10 @@ const ViewUnit = ({ setActive, flatId }) => {
                             : m.occupancy_type === "owner_relative"
                               ? "Owner Family"
                               : m.occupancy_type
-                                  ?.replaceAll("_", " ")
-                                  .replace(/\b\w/g, (char) =>
-                                    char.toUpperCase(),
-                                  )}
+                                ?.replaceAll("_", " ")
+                                .replace(/\b\w/g, (char) =>
+                                  char.toUpperCase(),
+                                )}
                         </small>
                       </div>
                     </div>

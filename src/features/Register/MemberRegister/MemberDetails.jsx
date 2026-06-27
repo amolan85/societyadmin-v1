@@ -57,18 +57,19 @@ const MemberDetails = ({
   const [memType, setMemType] = useState("");
   const [familyType, setFamilyType] = useState("");
   const [errors, setErrors] = useState({})
-  const [errorText, setErrorText] = useState("")
+  const [errorText, setErrorText] = useState("");
+  const [pageLoading, setPageLoading] = useState(true);
 
-    const addMemberType = [
+  const addMemberType = [
     { id: "Owner", value: "owner" },
     { id: "Tenant", value: "tenant" },
     { id: "Family Member", value: "familyMember" },
   ];
 
   const finalMemType =
-        familyType === "tenant_relative" || familyType === "owner_relative"
-            ? familyType
-            : memType;
+    familyType === "tenant_relative" || familyType === "owner_relative"
+      ? familyType
+      : memType;
 
   useEffect(() => {
     SessionData();
@@ -80,8 +81,8 @@ const MemberDetails = ({
       const flats = data.data.flats[0];
       setSocietyId(flats.society_id);
       setSocietyName(flats.society_name);
-      getAllFlats(flats.society_id);
-      getAllBlocks(flats.society_id);
+      //getAllFlats(flats.society_id);
+      //getAllBlocks(flats.society_id);
     } catch (error) {
       console.log(error);
     }
@@ -126,208 +127,226 @@ const MemberDetails = ({
 
   const GetMemberDetailsById = async () => {
     try {
+      setPageLoading(true);
       const data = await getMembersByIdApi(societyId, memberId);
 
-      setFirstName(data.first_name);
-      setLastName(data.last_name);
-      setEmailId(data.email);
-      setMobileNo(data.mobile);
-      // setBlocks(data.block);
-      // setFlat(data.flat_number);
-      setBlocks({
-        value: data.block,
-        label: data.block,
-      });
+      setFirstName(data.first_name || "");
+      setLastName(data.last_name || "");
+      setEmailId(data.email || "");
+      setMobileNo(data.mobile || "");
+      setProfileUrl(data.profile_url || "");
 
-      setFlat({
-        value: data.flat_id,
-        label: data.flat_number,
-      });
-      // memType(data.occupancy_type);
-      // setFamilyType(data.occupancy_type === "owner_relative" ? "Owner Family" : data.occupancy_type === "tenant_relative" ? "Tenant Family" : "");
-      setOccupancyType(data.occupancy_type);
-      setFamilyType(data.occupancy_type);
-      setMemType(
-        data.occupancy_type === "owner_relative"
-          ? "familyMember"
-          : data.occupancy_type === "tenant_relative"
+      const flat = data.flats?.[0];
+
+      if (flat) {
+
+        setBlocks({
+          value: flat.block,
+          label: flat.block,
+        });
+
+        setFlat({
+          value: flat.flat_id,
+          label: flat.flat_number,
+        });
+
+        setFlatIdNo(flat.flat_id);
+
+        setArea(flat.area_sqft);
+
+        setUnitType(flat.unit_type);
+
+        setOccupancyType(flat.occupancy?.occupancy_type || "");
+
+        setFamilyType(flat.occupancy?.occupancy_type || "");
+
+        setMemType(
+          flat.occupancy?.occupancy_type === "owner_relative"
             ? "familyMember"
-            : data.occupancy_type,
-      );
-      setStatus(data.status);
-      setArea(data.area_sqft);
-      setMoveInDate(data.start_date);
-      setMoveOutDate(data.end_date);
-      setFlatIdNo(data.flat_id);
-      setProfileUrl(data.profile_url);
-      setUnitType(data.unit_type);
-      data.documents?.forEach((doc) => {
-        switch (doc.document_type) {
-          case "id_proof":
-            setIdProof(doc.url);
-            break;
+            : flat.occupancy?.occupancy_type === "tenant_relative"
+              ? "familyMember"
+              : flat.occupancy?.occupancy_type
+        );
 
-          case "family_photo":
-            setFamilyPhoto(doc.url);
-            break;
+        setStatus(flat.occupancy?.occupant_status || "");
 
-          case "agreement":
-            setAgreement(doc.url);
-            break;
+        setMoveInDate(flat.occupancy?.start_date || "");
 
-          case "ownership":
-            setOwnershipDocuments(doc.url);
-            break;
+        setMoveOutDate(flat.occupancy?.end_date || "");
 
-          case "maintenance_receipt":
-            setMaintenanceReceipt(doc.url);
-            break;
+        flat.documents?.forEach((doc) => {
+          switch (doc.document_type) {
 
-          case "rent_agreement":
-            setRentAgreement(doc.url);
-            break;
+            case "id_proof":
+              setIdProof(doc.url);
+              break;
 
-          case "police_noc":
-            setPoliceNoc(doc.url);
-            break;
+            case "family_photo":
+              setFamilyPhoto(doc.url);
+              break;
 
-          default:
-            break;
-        }
-      });
+            case "agreement":
+              setAgreement(doc.url);
+              break;
+
+            case "ownership":
+              setOwnershipDocuments(doc.url);
+              break;
+
+            case "maintenance_receipt":
+              setMaintenanceReceipt(doc.url);
+              break;
+
+            case "rent_agreement":
+              setRentAgreement(doc.url);
+              break;
+
+            case "police_noc":
+              setPoliceNoc(doc.url);
+              break;
+
+            default:
+              break;
+          }
+        });
+      }
+
     } catch (error) {
       console.log(error);
     }
+    finally {
+      setPageLoading(false); // ✅
+    }
   };
 
-    //function for validation
-    const validateForm = () => {
-      let errors = {};
-  
-      if (!firstName) {
-        errors.firstName = "required";
+  //function for validation
+  const validateForm = () => {
+    let errors = {};
+
+    if (!firstName) {
+      errors.firstName = "required";
+    }
+
+    if (!lastName) {
+      errors.lastName = "required";
+    }
+
+    if (!emailId) {
+      errors.emailId = "required";
+    } else if (!/\S+@\S+\.\S+/.test(emailId)) {
+      errors.emailId = "Invalid email";
+    }
+    // else {
+    //     errors.emailId = ""
+    // }
+    if (!mobileNo) {
+      errors.mobileNo = "required";
+    } else if (!/^[0-9]{10}$/.test(mobileNo)) {
+      errors.mobileNo = "Invalid mobile no.";
+    }
+    // else {
+    //     errors.mobileNo = ""
+    // }
+
+    if (!blocks) {
+      errors.blocks = "required";
+    }
+
+    if (!flat) {
+      errors.flat = "required";
+    }
+    if (!moveInDate) {
+      errors.moveInDate = "required";
+    }
+    if (!memType) {
+      errors.memType = "required";
+    }
+
+    if (memType === "owner") {
+      if (!idProof) {
+        errors.idProof = "required";
       }
-  
-      if (!lastName) {
-        errors.lastName = "required";
+
+      if (!agreement) {
+        errors.agreement = "required";
       }
-  
-      if (!emailId) {
-        errors.emailId = "required";
-      } else if (!/\S+@\S+\.\S+/.test(emailId)) {
-        errors.emailId = "Invalid email";
+
+      if (!maintenanceReceipt) {
+        errors.maintenanceReceipt = "required";
       }
-      // else {
-      //     errors.emailId = ""
-      // }
-      if (!mobileNo) {
-        errors.mobileNo = "required";
-      } else if (!/^[0-9]{10}$/.test(mobileNo)) {
-        errors.mobileNo = "Invalid mobile no.";
+
+      if (!nominationDetails) {
+        errors.nominationDetails = "required";
       }
-      // else {
-      //     errors.mobileNo = ""
-      // }
-  
-      if (!blocks) {
-        errors.blocks = "required";
+
+      if (!familyPhoto) {
+        errors.familyPhoto = "required";
       }
-  
-      if (!flat) {
-        errors.flat = "required";
+
+      if (!ownershipDocuments) {
+        errors.ownershipDocuments = "required";
       }
-      if (!moveInDate) {
-        errors.moveInDate = "required";
+    }
+    if (memType === "tenant") {
+      if (!moveOutDate) {
+        errors.moveOutDate = "required";
       }
-      if (!memType) {
-        errors.memType = "required";
+      if (!rentAgreement) {
+        errors.rentAgreement = "required";
       }
-  
-      if (memType === "owner") {
-        if (!idProof) {
-          errors.idProof = "required";
-        }
-  
-        if (!agreement) {
-          errors.agreement = "required";
-        }
-  
-        if (!maintenanceReceipt) {
-          errors.maintenanceReceipt = "required";
-        }
-  
-        if (!nominationDetails) {
-          errors.nominationDetails = "required";
-        }
-  
-        if (!familyPhoto) {
-          errors.familyPhoto = "required";
-        }
-  
-        if (!ownershipDocuments) {
-          errors.ownershipDocuments = "required";
-        }
+      if (!policeNoc) {
+        errors.policeNoc = "required";
       }
-      if (memType === "tenant") {
-        if (!moveOutDate) {
-          errors.moveOutDate = "required";
-        }
-        if (!rentAgreement) {
-          errors.rentAgreement = "required";
-        }
-        if (!policeNoc) {
-          errors.policeNoc = "required";
-        }
+    }
+    if (memType === "familyMember") {
+      if (!familyType) {
+        errors.familyType = "required";
       }
-      if (memType === "familyMember") {
-        if (!familyType) {
-          errors.familyType = "required";
-        }
+    }
+    return errors;
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const validationErrors = validateForm();
+
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
       }
-      return errors;
-    };
-  
-    const handleSubmit = async () => {
-      try {
-        const validationErrors = validateForm();
-  
-        if (Object.keys(validationErrors).length > 0) {
-          setErrors(validationErrors);
-          return;
-        }
-          await UpdateMemberApi(
-            societyId,
-            memberId,
-            firstName,
-            lastName,
-            mobileNo,
-            emailId,
-            blocks?.value,
-            flat?.value,
-            finalMemType,
-            moveInDate,
-            moveOutDate,
-            agreement,
-            rentAgreement,
-            policeNoc,
-            idProof,
-            familyPhoto,
-            maintenanceReceipt,
-            ownershipDocuments,
-            nominationDetails,
-          );
-  
-          toast.success("Member updated successfully!");
-        //   resetForm();
-          GetMemberDetailsById();
-        
-        setShow(false);
-      } catch (error) {
-        console.log(error);
-        toast.error(error);
-        setErrorText(error);
-      }
-    };
+      await UpdateMemberApi(
+        societyId,
+        memberId,
+        firstName,
+        lastName,
+        mobileNo,
+        emailId,
+        blocks?.value,
+        flat?.value,
+        finalMemType,
+        moveInDate,
+        moveOutDate,
+        agreement,
+        rentAgreement,
+        policeNoc,
+        idProof,
+        familyPhoto,
+        maintenanceReceipt,
+        ownershipDocuments,
+        nominationDetails,
+      );
+
+      toast.success("Member updated successfully!");
+      //   resetForm();
+      GetMemberDetailsById();
+
+      setShow(false);
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+      setErrorText(error);
+    }
+  };
   return (
     <>
       <div className="container-fluid min-vh-100">
@@ -359,13 +378,12 @@ const MemberDetails = ({
                   </span>
 
                   <span
-                    className={`badge ${
-                      status === "Pending"
-                        ? "bg-warning-subtle text-warning"
-                        : status === "Approved"
-                          ? "bg-success-subtle text-success"
-                          : "bg-secondary-subtle text-secondary"
-                    }`}
+                    className={`badge ${status === "Pending"
+                      ? "bg-warning-subtle text-warning"
+                      : status === "Approved"
+                        ? "bg-success-subtle text-success"
+                        : "bg-secondary-subtle text-secondary"
+                      }`}
                   >
                     {status === "Approved" ? "Active" : status}
                   </span>
@@ -411,8 +429,9 @@ const MemberDetails = ({
 
               <button
                 className="btn btn-sm btn-ac btn-primary"
-                onClick={() => {
+                onClick={async () => {
                   setMode("edit");
+                  await getAllBlocks(societyId); // ✅ sirf yahan
                   setShow(true);
                 }}
               >
@@ -676,9 +695,9 @@ const MemberDetails = ({
         setFamilyPhoto={setFamilyPhoto}
         ownershipDocuments={ownershipDocuments}
         setOwnershipDocuments={setOwnershipDocuments}
-          errors={errors}
-          errorText={errorText}
-          handleSubmit={handleSubmit}
+        errors={errors}
+        errorText={errorText}
+        handleSubmit={handleSubmit}
       />
     </>
   );

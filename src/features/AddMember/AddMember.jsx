@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "../../styles/AddMember.css";
 import { Badge, Pagination } from "../../components/Common/ReusableFunction";
 import { GetSessionData } from "../../utils/SessionManagement";
+import { useLoader } from "../../context/LoaderContext";
 import {
   AddMemberApi,
   getMembersApi,
@@ -11,7 +12,7 @@ import {
   deleteMembersApi,
 } from "../../services/AddMemberApi";
 import { toast } from "react-toastify";
-import { FiFilter, FiSearch } from "react-icons/fi";
+import { FiSearch } from "react-icons/fi";
 import {
   getAllBlocksApi,
   getAllFlatsApi,
@@ -48,6 +49,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   const [limit, setLimit] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [mode, setMode] = useState("add");
+  const [tableLoading, setTableLoading] = useState(true);
   //filter
   const [filterStatus, setFilterStatus] = useState("");
   const [filterDateFrom, setFilterDateFrom] = useState("");
@@ -63,6 +65,8 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   const [search, setSearch] = useState("");
   const [mId, setMId] = useState("");
   const [selectedRange, setSelectedRange] = useState("all");
+  // const { loading, setLoading } = useLoader();
+  const { loading: globalLoading, setLoading } = useLoader(); // rename karo
 
   const addMemberType = [
     { id: "Owner", value: "owner" },
@@ -78,12 +82,20 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
 
   const SessionData = async () => {
     const data = await GetSessionData();
-    console.log(data.data);
     const flats = data.data.flats[0];
     setSocietyId(flats.society_id);
     setUserId(flats.user_id);
-    getMembers(flats.society_id);
-    getAllBlocks(flats.society_id);
+
+    // ✅ Dono ek saath, loading tab tak rahe jab tak dono complete na ho
+    setLoading(true);
+    try {
+      await Promise.all([
+        getMembers(flats.society_id),
+        // getAllBlocks(flats.society_id),
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
 
@@ -248,6 +260,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
 
   const handleSubmit = async () => {
     try {
+      setLoading(true);
       const validationErrors = validateForm();
 
       if (Object.keys(validationErrors).length > 0) {
@@ -317,6 +330,9 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
       toast.error(error);
       setErrorText(error);
     }
+    finally {
+      setLoading(false);
+    }
   };
 
   const GetMemberDetailsById = async (memberId) => {
@@ -344,54 +360,37 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
           flat_id: flatDetails.flat_id,
         });
 
-        setFamilyType(flatDetails.occupancy_type);
+        // ✅ occupancy object ke andar se nikalo
+        const occupancy = flatDetails.occupancy;
+
+        setFamilyType(occupancy?.occupancy_type || "");
 
         setMemType(
-          flatDetails.occupancy_type === "owner_relative"
+          occupancy?.occupancy_type === "owner_relative"
             ? "familyMember"
-            : flatDetails.occupancy_type === "tenant_relative"
+            : occupancy?.occupancy_type === "tenant_relative"
               ? "familyMember"
-              : flatDetails.occupancy_type
+              : occupancy?.occupancy_type || ""
         );
 
-        setMoveInDate(flatDetails.start_date || "");
-        setMoveOutDate(flatDetails.end_date || "");
+        setMoveInDate(occupancy?.start_date || "");
+        setMoveOutDate(occupancy?.end_date || "");
       }
 
-      data.flats?.[0]?.documents?.forEach((doc) => {
+      // ✅ documents flatDetails ke andar hain
+      flatDetails?.documents?.forEach((doc) => {
         switch (doc.document_type) {
-          case "id_proof":
-            setIdProof(doc.url);
-            break;
-
-          case "family_photo":
-            setFamilyPhoto(doc.url);
-            break;
-
-          case "agreement":
-            setAgreement(doc.url);
-            break;
-
-          case "ownership":
-            setOwnershipDocuments(doc.url);
-            break;
-
-          case "maintenance_receipt":
-            setMaintenanceReceipt(doc.url);
-            break;
-
-          case "rent_agreement":
-            setRentAgreement(doc.url);
-            break;
-
-          case "police_noc":
-            setPoliceNoc(doc.url);
-            break;
-
-          default:
-            break;
+          case "id_proof": setIdProof(doc.url); break;
+          case "family_photo": setFamilyPhoto(doc.url); break;
+          case "agreement": setAgreement(doc.url); break;
+          case "ownership": setOwnershipDocuments(doc.url); break;
+          case "maintenance_receipt": setMaintenanceReceipt(doc.url); break;
+          case "rent_agreement": setRentAgreement(doc.url); break;
+          case "police_noc": setPoliceNoc(doc.url); break;
+          default: break;
         }
       });
+
     } catch (error) {
       console.log(error);
     }
@@ -412,19 +411,22 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   //     toast.error(error);
   //   }
   // };
-  const handleDelete = async (memberId) => {
+  const handleDelete = async (memberId, societyId) => {
     const confirmed = window.confirm("Are you sure you want to delete this member?");
 
     if (!confirmed) return;
 
     try {
-      const data = await deleteMembersApi(memberId);
-      console.log(data, "Delete response");
+      setLoading(true);
+
+      await deleteMembersApi(memberId, societyId);
       toast.success("Member deleted successfully");
-      getMembers(societyId, page);
+      await getMembers(societyId, page);
+
     } catch (error) {
-      console.error("Delete Error:", error);
       toast.error(error);
+    } finally {
+      setLoading(false);
     }
   };
   const resetForm = () => {
@@ -464,6 +466,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     endDate = ""
   ) => {
     try {
+      setTableLoading(true);
       const data = await getMembersApi(
         societyId,
         page,
@@ -472,12 +475,16 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
         endDate
       );
 
-      setAllMembers(data.members || []);
-      setTotalCount(data.total_count || 0);
-      setLimit(data.per_page || 10);
+      setAllMembers(data?.members || []);
+      setPage(data?.pagination?.page || 1);
+      setLimit(data?.pagination?.page_size || 10);
+      setTotalCount(data?.pagination?.total || 0);
     } catch (error) {
       console.log(error);
       toast.error(error);
+    }
+    finally {
+      setTableLoading(false); // ✅ local
     }
   };
   const downloadExcel = async () => {
@@ -538,8 +545,9 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     (item) => item.occupancy_type?.toLowerCase() === "tenant",
   ).length;
 
-  const totalFamilyMember = allMembers.filter(
-    (item) => item.occupancy_type?.toLowerCase() === "familyMember",
+  const totalFamilyMember = allMembers.filter(item =>
+    item.occupancy_type === "owner_relative" ||
+    item.occupancy_type === "tenant_relative"
   ).length;
 
 
@@ -547,27 +555,29 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     const value = e.target.value;
     setSearch(value);
 
+    if (value.trim() === "") {
+      getMembers(societyId, 1, filterStatus, filterDateFrom, filterDateTo);
+      return;
+    }
+
+    if (value.length < 3) return;
+
     try {
-      if (!value.trim()) {
-        setPage(1);
-        const data = await getMembers(societyId, 1);
-        //setAllMembers(data?.members || []);
-        return;
-      }
+      setTableLoading(true);
 
-      if (value.length < 3) return;
-
-      const data = await getAllMembersWithoutPaginationApi(
+      const response = await getAllMembersWithoutPaginationApi(
         societyId,
         value
       );
 
-      setAllMembers(data?.members || []);
+      setAllMembers(response?.members || []);
     } catch (error) {
-      console.error("Search error:", error);
+      console.error(error);
+    } finally {
+      setTableLoading(false);
     }
   };
-  const total = Math.ceil(totalCount / limit);
+  const total = limit > 0 ? Math.ceil(totalCount / limit) : 1;
 
   return (
     <>
@@ -591,129 +601,146 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
           ))}
         </div>
 
-        <div className="d-flex justify-content-between align-items-center mb-4 text-start">
-          {/* <div>
-                        <h4 className="cp-title">Members</h4>
-                        <p className="cp-sub">
-                            Manage and track all society members
-                        </p>
-                    </div> */}
-          <div className="col-12 col-md-4 col-lg-3 position-relative">
-            <span
-              style={{
-                position: "absolute",
-                left: "15px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "#aaa",
-              }}
-            >
-              <FiSearch size={16} />
-            </span>
+        <div className="member-toolbar mb-4">
 
-            <input
-              type="text"
-              className="form-control rounded-pill"
-              placeholder="Search by name, unit, or email..."
-              value={search}
-              // onChange={(e) => setSearch(e.target.value)}
-              onChange={handleSearch}
-              style={{ paddingLeft: "35px" }}
-            />
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+            <div className="d-flex align-items-center gap-2">
+
+              <button
+                className="btn btn-sm btn-primary"
+                onClick={async () => {          // ✅ async add karo
+                  setMode("add");
+                  setShow(true);
+                  resetForm();
+                  setBlocks(null);
+                  setFlat(null);
+                  await getAllBlocks(societyId);
+                }}
+              >
+                + Add Member
+              </button>
+
+              <button
+                className="btn btn-sm btn-primary"
+                onClick={() => {
+                  getAllMembersWithoutPagination(societyId, "");
+                  setExportModal(true);
+                }}
+              >
+                <CgExport className="me-1" />
+                Export
+              </button>
+
+            </div>
+
+            {/* SEARCH */}
+
+            <div className="d-flex gap-2">
+
+              <input
+                type="text"
+                className="form-control member-search"
+                placeholder="Search..."
+                value={search}
+                onChange={handleSearch}
+              />
+
+              <button className="btn btn-primary">
+                <FiSearch />
+              </button>
+
+            </div>
+
           </div>
-          <div className="d-flex">
-            <button
-              className="btn-ol ms-2"
-              onClick={() => {
-                getAllMembersWithoutPagination(societyId, "");
-                setExportModal(true);
-              }}
-            >
-              <CgExport /> Export
-            </button>
-            <button
-              className="btn btn-sm btn-ac ms-2 btn-primary"
-              onClick={() => {
-                setMode("add");
-                setShow(true);
-                resetForm();
-                setBlocks(null);
-                setFlat(null);
-              }}
-            >
-              + Add Member
-            </button>
+
+          {/* FILTERS */}
+
+          <div className="row g-2">
+
+            <div className="col-md-4">
+
+              <select
+                className="form-select"
+                value={filterStatus}
+                onChange={(e) => {
+
+                  const value = e.target.value;
+                  setFilterStatus(value);
+
+                  getMembers(
+                    societyId,
+                    1,
+                    value,
+                    filterDateFrom,
+                    filterDateTo
+                  );
+
+                }}
+              >
+
+                <option value="">All Types</option>
+                <option value="owner">Owner</option>
+                <option value="tenant">Tenant</option>
+                <option value="owner_relative">Owner Family</option>
+                <option value="tenant_relative">Tenant Family</option>
+
+              </select>
+
+            </div>
+
+            <div className="col-md-4">
+
+              <input
+                type="date"
+                className="form-control"
+                value={filterDateFrom}
+                onChange={(e) => {
+
+                  const value = e.target.value;
+
+                  setFilterDateFrom(value);
+
+                  getMembers(
+                    societyId,
+                    1,
+                    filterStatus,
+                    value,
+                    filterDateTo
+                  );
+
+                }}
+              />
+
+            </div>
+
+            <div className="col-md-4">
+
+              <input
+                type="date"
+                className="form-control"
+                value={filterDateTo}
+                onChange={(e) => {
+
+                  const value = e.target.value;
+
+                  setFilterDateTo(value);
+
+                  getMembers(
+                    societyId,
+                    1,
+                    filterStatus,
+                    filterDateFrom,
+                    value
+                  );
+
+                }}
+              />
+
+            </div>
+
           </div>
-        </div>
-        <div className="row g-2 mb-4">
-          <div className="col-md-4">
-            <select
-              className="form-select"
-              value={filterStatus}
-              onChange={(e) => {
-                const value = e.target.value;
 
-                setFilterStatus(value);
-                setPage(1);
-
-                getMembers(
-                  societyId,
-                  1,
-                  value,
-                  filterDateFrom,
-                  filterDateTo
-                );
-              }}
-            >
-              <option value="">All Types</option>
-              <option value="owner">Owner</option>
-              <option value="tenant">Tenant</option>
-              <option value="owner_relative">Owner Family</option>
-              <option value="tenant_relative">Tenant Family</option>
-            </select>
-          </div>
-          <div className="col-md-4">
-            <input
-              type="date"
-              className="form-control"
-              value={filterDateFrom}
-              onChange={(e) => {
-                const value = e.target.value;
-
-                setFilterDateFrom(value);
-                setPage(1);
-
-                getMembers(
-                  societyId,
-                  1,
-                  filterStatus,
-                  value,
-                  filterDateTo
-                );
-              }}
-            />
-          </div>
-          <div className="col-md-4">
-            <input
-              type="date"
-              className="form-control"
-              value={filterDateTo}
-              onChange={(e) => {
-                const value = e.target.value;
-
-                setFilterDateTo(value);
-                setPage(1);
-
-                getMembers(
-                  societyId,
-                  1,
-                  filterStatus,
-                  filterDateFrom,
-                  value
-                );
-              }}
-            />
-          </div>
         </div>
         {/* <div className='row'>
                     <div className='col-lg-7'>
@@ -753,135 +780,131 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                 </tr>
               </thead>
               <tbody>
-                {allMembers.map((s, i) => (
-                  <tr className="text-start" key={i}>
-                    {/* <td className="sa-name">{s.first_name} {s.last_name}</td> */}
-                    <td>
-                      <div className="d-flex align-items-center gap-2">
-                        <img
-                          src={
-                            s.profile_url ||
-                            /* "https://i.pravatar.cc/60?img=32" */ "../src/assets/profile.png"
-                          }
-                          alt="Profile"
-                          width={38}
-                          height={38}
-                          className="rounded-circle object-fit-cover"
-                        />
-
-                        <div>
-                          <div className="fw-semibold">
-                            {s.first_name} {s.last_name}
+                {tableLoading ? (
+                  [...Array(5)].map((_, i) => (
+                    <tr key={i}>
+                      <td>
+                        <div className="d-flex align-items-center gap-2">
+                          <div className="skeleton-box rounded-circle" style={{ width: 38, height: 38, flexShrink: 0 }} />
+                          <div>
+                            <div className="skeleton-box mb-1" style={{ width: 120, height: 13 }} />
+                            <div className="skeleton-box" style={{ width: 80, height: 11 }} />
                           </div>
-
-                          <small className="text-muted">{s.email}</small>
                         </div>
-                      </div>
-                    </td>
-                    <td className="sa-name">{s.flat_number}</td>
-                    <td>
-                      {s.occupancy_type && (
-                        <Badge
-                          label={
-                            s.occupancy_type
-                              ? s.occupancy_type === "tenant_relative"
+                      </td>
+                      <td><div className="skeleton-box" style={{ width: 50, height: 13 }} /></td>
+                      <td><div className="skeleton-box" style={{ width: 65, height: 22, borderRadius: 12 }} /></td>
+                      <td><div className="skeleton-box" style={{ width: 100, height: 13 }} /></td>
+                      <td><div className="skeleton-box" style={{ width: 65, height: 22, borderRadius: 12 }} /></td>
+                      <td><div className="skeleton-box" style={{ width: 28, height: 28, borderRadius: 6 }} /></td>
+                    </tr>
+                  ))
+                ) : (
+                  allMembers.map((s, i) => (
+                    <tr className="text-start" key={i}>
+                      <td>
+                        <div className="d-flex align-items-center gap-2">
+                          <img
+                            src={s.profile_url || "../src/assets/profile.png"}
+                            alt="Profile"
+                            width={38}
+                            height={38}
+                            className="rounded-circle object-fit-cover"
+                          />
+                          <div>
+                            <div className="fw-semibold">
+                              {s.first_name} {s.last_name}
+                            </div>
+                            <small className="text-muted">{s.email}</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="sa-name">{s.flat_number}</td>
+                      <td>
+                        {s.occupancy_type && (
+                          <Badge
+                            label={
+                              s.occupancy_type === "tenant_relative"
                                 ? "Tenant Family"
                                 : s.occupancy_type === "owner_relative"
                                   ? "Owner Family"
                                   : s.occupancy_type
                                     .replaceAll("_", " ")
-                                    .replace(/\b\w/g, (char) =>
-                                      char.toUpperCase(),
-                                    )
-                              : ""
-                          }
+                                    .replace(/\b\w/g, (char) => char.toUpperCase())
+                            }
+                            c={
+                              s.occupancy_type === "owner"
+                                ? "blue"
+                                : s.occupancy_type === "tenant"
+                                  ? "pink"
+                                  : s.occupancy_type === "tenant_relative"
+                                    ? "lightpink"
+                                    : s.occupancy_type === "owner_relative"
+                                      ? "lightblue"
+                                      : "grey"
+                            }
+                          />
+                        )}
+                      </td>
+                      <td className="sa-name">{s.mobile}</td>
+                      <td>
+                        <Badge
+                          label={s.occupant_status === "Approved" ? "Active" : s.occupant_status}
                           c={
-                            s.occupancy_type === "owner"
-                              ? "blue"
-                              : s.occupancy_type === "tenant"
-                                ? "pink"
-                                : s.occupancy_type === "tenant_relative"
-                                  ? "lightpink"
-                                  : s.occupancy_type === "owner_relative"
-                                    ? "lightblue"
-                                    : "grey"
+                            s.occupant_status === "Approved"
+                              ? "green"
+                              : s.occupant_status === "Pending"
+                                ? "yellow"
+                                : "gray"
                           }
                         />
-                      )}
-                    </td>
-                    <td className="sa-name">{s.mobile}</td>
-                    <td>
-                      <Badge
-                        label={s.occupant_status === "Approved" ? "Active" : s.occupant_status}
-                        c={
-                          s.occupant_status === "Approved"
-                            ? "green"
-                            : s.occupant_status === "Pending"
-                              ? "yellow"
-                              : s.occupant_status === "Inactive"
-                                ? "gray"
-                                : "gray"
-                        }
-                      />{" "}
-                    </td>
-                    {/* <td className="sa-name">
-                                            <button className="btn btn-light border-0"
-                                                onClick={() => getMembersById(s.user_id)}
-                                            > ⋮</button>
-                                        </td> */}
-                    <td>
-                      <div className="member-action-dropdown dropdown">
-                        <button
-                          className="member-action-btn"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          ⋮
-                        </button>
-
-                        <ul className="dropdown-menu member-action-menu dropdown-menu-end">
-                          <li>
-                            <button
-                              className="dropdown-item member-action-item"
-                              onClick={() =>
-                                getMembersById(s.user_id, s.flat_id)
-                              }
-                            >
-                              View Profile
-                            </button>
-                          </li>
-
-                          <li>
-                            <button
-                              className="dropdown-item member-action-item"
-                              onClick={() => {
-                                setMode("edit");
-                                setShow(true);
-                                GetMemberDetailsById(s.user_id);
-                              }}
-                            >
-                              Edit Member
-                            </button>
-                          </li>
-
-                          <li>
-                            <hr className="dropdown-divider" />
-                          </li>
-
-                          <li>
-                            <button
-                              className="dropdown-item member-action-item member-action-delete"
-                              onClick={() => handleDelete(s.user_id)}
-                            >
-                              Delete Member
-                            </button>
-                          </li>
-                        </ul>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td>
+                        <div className="member-action-dropdown dropdown">
+                          <button
+                            className="member-action-btn"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            ⋮
+                          </button>
+                          <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                            <li>
+                              <button
+                                className="dropdown-item member-action-item"
+                                onClick={() => getMembersById(s.user_id, s.flat_id)}
+                              >
+                                View Profile
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                className="dropdown-item member-action-item"
+                                onClick={() => {
+                                  setMode("edit");
+                                  setShow(true);
+                                  GetMemberDetailsById(s.user_id);
+                                }}
+                              >
+                                Edit Member
+                              </button>
+                            </li>
+                            <li><hr className="dropdown-divider" /></li>
+                            <li>
+                              <button
+                                className="dropdown-item member-action-item member-action-delete"
+                                onClick={() => handleDelete(s.user_id, societyId)}
+                              >
+                                Delete Member
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

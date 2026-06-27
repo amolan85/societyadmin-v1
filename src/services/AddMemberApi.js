@@ -157,11 +157,11 @@ export const UpdateMemberApi = async (
     }
 };
 
-export const deleteMembersApi = async (memberId) => {
+export const deleteMembersApi = async (memberId, societyId) => {
     const url = UrlData + 'member/DeleteMember';
     const data = {
         user_id: memberId,
-
+        society_id: societyId,
     }
     return await apiClient({
         method: 'post',
