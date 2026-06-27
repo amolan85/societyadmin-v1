@@ -33,8 +33,8 @@ const CreateComplaints = ({ setActive }) => {
             // icon: "🔴"
         },
         {
-            id: "Normal",
-            value: "normal",
+            id: "Medium",
+            value: "medium",
             // icon: "🟢"
         },
         {

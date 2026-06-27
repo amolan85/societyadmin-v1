@@ -64,11 +64,11 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
     // =====================================================
 
     const broadcastType = [
-        { id: "All",          icon: <FiGrid size={15} color="#2563eb" />,          value: "" },
-        { id: "Announcement", icon: <FiVolume2 size={15} color="#f59e0b" />,       value: "announcement" },
-        { id: "Emergency",    icon: <FiAlertTriangle size={15} color="#ef4444" />, value: "emergency" },
-        { id: "Circular",     icon: <FiFileText size={15} color="purple" />,       value: "circular" },
-        { id: "Event",        icon: <FiCalendar size={15} color="#10b981" />,      value: "event" },
+        { id: "All", icon: <FiGrid size={15} color="#2563eb" />, value: "" },
+        { id: "Announcement", icon: <FiVolume2 size={15} color="#f59e0b" />, value: "announcement" },
+        { id: "Emergency", icon: <FiAlertTriangle size={15} color="#ef4444" />, value: "emergency" },
+        { id: "Circular", icon: <FiFileText size={15} color="purple" />, value: "circular" },
+        { id: "Event", icon: <FiCalendar size={15} color="#10b981" />, value: "event" },
     ];
 
     // =====================================================
@@ -109,15 +109,15 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
     const fetchStats = async (sid) => {
         try {
             const [all, sent, scheduled, draft] = await Promise.all([
-                getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "",          currentStartDate: "", currentEndDate: "" }),
-                getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "sent",      currentStartDate: "", currentEndDate: "" }),
+                getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "", currentStartDate: "", currentEndDate: "" }),
+                getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "sent", currentStartDate: "", currentEndDate: "" }),
                 getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "scheduled", currentStartDate: "", currentEndDate: "" }),
-                getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "draft",     currentStartDate: "", currentEndDate: "" }),
+                getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "draft", currentStartDate: "", currentEndDate: "" }),
             ]);
-            setStatsTotal(all?.total_records         || 0);
-            setStatsSent(sent?.total_records          || 0);
+            setStatsTotal(all?.total_records || 0);
+            setStatsSent(sent?.total_records || 0);
             setStatsScheduled(scheduled?.total_records || 0);
-            setStatsDraft(draft?.total_records        || 0);
+            setStatsDraft(draft?.total_records || 0);
         } catch (error) {
             console.error("Error fetching broadcast stats:", error);
         }
@@ -266,42 +266,42 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
         const minutes = Math.floor(seconds / 60);
         const hours = Math.floor(minutes / 60);
         const days = Math.floor(hours / 24);
-        if (days > 0)    return `${days} day${days > 1 ? "s" : ""} ago`;
-        if (hours > 0)   return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+        if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
+        if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
         if (minutes > 0) return `${minutes} min ago`;
         return "Just now";
     };
 
     const getNoticeIcon = (type) => {
         switch (type) {
-            case "announcement": return { icon: <FiVolume2 size={16} color="#ff9800" />,      bg: "#fff3e0" };
-            case "circular":     return { icon: <FiFileText size={16} color="#7c3aed" />,      bg: "#ede9fe" };
-            case "emergency":    return { icon: <FiAlertTriangle size={16} color="#ef4444" />, bg: "#fee2e2" };
-            case "event":        return { icon: <FiCalendar size={16} color="#10b981" />,      bg: "#d1fae5" };
-            default:             return { icon: <FiCalendar size={16} color="#6b7280" />,      bg: "#f3f4f6" };
+            case "announcement": return { icon: <FiVolume2 size={16} color="#ff9800" />, bg: "#fff3e0" };
+            case "circular": return { icon: <FiFileText size={16} color="#7c3aed" />, bg: "#ede9fe" };
+            case "emergency": return { icon: <FiAlertTriangle size={16} color="#ef4444" />, bg: "#fee2e2" };
+            case "event": return { icon: <FiCalendar size={16} color="#10b981" />, bg: "#d1fae5" };
+            default: return { icon: <FiCalendar size={16} color="#6b7280" />, bg: "#f3f4f6" };
         }
     };
 
     const getChannelIcon = (channel) => {
         switch (channel) {
-            case "email":    return <FiMail size={12} />;
-            case "sms":      return <FiMessageSquare size={12} />;
+            case "email": return <FiMail size={12} />;
+            case "sms": return <FiMessageSquare size={12} />;
             case "whatsapp": return <span style={{ fontSize: 12 }}>💬</span>;
-            default:         return null;
+            default: return null;
         }
     };
 
     const getStatusColor = (s) => {
-        if (s === "sent")      return "green";
+        if (s === "sent") return "green";
         if (s === "scheduled") return "blue";
-        if (s === "draft")     return "orange";
+        if (s === "draft") return "orange";
         return "red";
     };
 
     const getTypeColor = (t) => {
         if (t === "announcement") return "orange";
-        if (t === "emergency")    return "red";
-        if (t === "circular")     return "purple";
+        if (t === "emergency") return "red";
+        if (t === "circular") return "purple";
         return "green";
     };
 
@@ -330,10 +330,10 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                 {/* ── STAT TILES (same pattern as ViolationAlertsList) ── */}
                 <div className="row g-3 mb-4">
                     {[
-                        [statsTotal,     "Total Broadcasts", "tile-blu"],
-                        [statsSent,      "Sent",             "tile-grn"],
-                        [statsScheduled, "Scheduled",        "tile-yel"],
-                        [statsDraft,     "Draft",            "tile-red"],
+                        [statsTotal, "Total Broadcasts", "tile-blu"],
+                        [statsSent, "Sent", "tile-grn"],
+                        [statsScheduled, "Scheduled", "tile-yel"],
+                        [statsDraft, "Draft", "tile-red"],
                     ].map(([v, l, cls]) => (
                         <div className="col-6 col-md-3" key={l}>
                             <div className={`tile bg-white ${cls}`}>
@@ -348,7 +348,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                 <div className="row g-4 nb-wrap">
 
                     {/* ── LEFT COLUMN ── */}
-                    <div className="col-12 col-lg-8">
+                    <div className="sv-card">
                         <div className="sv-card">
 
                             {/* FILTERS */}
@@ -400,18 +400,22 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                             </div>
 
                             {/* SEARCH */}
-                            <div className="d-flex gap-2 mt-3">
-                                <input
-                                    type="text"
-                                    placeholder="Search..."
-                                    className="form-control form-control-sm"
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    onKeyDown={handleSearchKeyDown}
-                                />
-                                <button className="btn btn-primary btn-sm" onClick={handleSearch}>
-                                    <FiSearch size={14} />
-                                </button>
+                            <div className="row g-2 mt-2">
+                                <div className="col-md-3">
+                                    <div className="d-flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Search..."
+                                            className="form-control form-control-sm"
+                                            value={search}
+                                            onChange={(e) => setSearch(e.target.value)}
+                                            onKeyDown={handleSearchKeyDown}
+                                        />
+                                        <button className="btn btn-primary btn-sm" onClick={handleSearch}>
+                                            <FiSearch size={14} />
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* TYPE TABS */}
@@ -581,7 +585,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                     {/* ── RIGHT COLUMN ── */}
                     <div className="col-12 col-lg-4">
 
-                        {/* TYPE BREAKDOWN CARD */}
+                        {/* TYPE BREAKDOWN CARD
                         <div className="sv-card">
                             <h6 className="mb-3 fw-semibold">Type Breakdown</h6>
                             {[
@@ -618,7 +622,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                                     </div>
                                 );
                             })}
-                        </div>
+                        </div> */}
 
                     </div>
                 </div>
