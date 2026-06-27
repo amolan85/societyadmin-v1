@@ -191,6 +191,14 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             setTotalCount(pagination.total || 0);
             setTotalPages(pagination.total_pages || 1);
             setPage(pagination.page || pg);
+            const today = new Date().toISOString().split("T")[0];
+
+            setStats({
+                total: pagination.total || 0,
+                today: visitors.filter(v => v.check_in_time?.startsWith(today)).length,
+                pending: visitors.filter(v => v.approval_status === "pending").length,
+                checkedOut: visitors.filter(v => !!v.check_out_time).length
+            });
 
         } catch (error) {
             console.error(error);
@@ -658,8 +666,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                         >
                                             <option value="">All</option>
                                             <option value="waiting">Waiting</option>
-                                            <option value="checked_in">Checked In</option>
-                                            <option value="checked_out">Checked Out</option>
+                                            <option value="completed">Complete</option>
                                         </select>
 
 
@@ -886,22 +893,18 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                         <td>
                                             <Badge
                                                 label={
-                                                    v.entry_status === "checked_in" || v.entry_status === "inside"
-                                                        ? "Inside"
-                                                        : v.entry_status === "waiting"
-                                                            ? "Waiting"
-                                                            : v.entry_status === "checked_out"
-                                                                ? "Checked Out"
-                                                                : "-"
+                                                    v.entry_status === "waiting"
+                                                        ? "Waiting"
+                                                        : ["complete", "completed"].includes(v.entry_status?.toLowerCase())
+                                                            ? "Completed"
+                                                            : "-"
                                                 }
                                                 c={
-                                                    v.entry_status === "checked_in" || v.entry_status === "inside"
-                                                        ? "green"
-                                                        : v.entry_status === "waiting"
-                                                            ? "orange"
-                                                            : v.entry_status === "checked_out"
-                                                                ? "blue"
-                                                                : "grey"
+                                                    v.entry_status === "waiting"
+                                                        ? "orange"
+                                                        : ["complete", "completed"].includes(v.entry_status?.toLowerCase())
+                                                            ? "green"
+                                                            : "grey"
                                                 }
                                             />
                                         </td>

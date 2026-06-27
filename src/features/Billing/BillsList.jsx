@@ -28,158 +28,257 @@ const StatusBadge = ({ status, isOverdue }) => {
 
 // ── Pay Modal ─────────────────────────────────────────────────────────────────
 const PayModal = ({ bill, onClose, onSuccess }) => {
-    const [payForm, setPayForm] = useState({
-        principal_amount: parseFloat(bill.balance_principal || 0).toFixed(2),
-        interest_amount:  parseFloat(bill.balance_interest  || 0).toFixed(2),
-        payment_mode: "bank", bank_name: "", branch: "",
-        cheque_no: "", transaction_ref: "", narration: ""
-    });
-    const [useWallet,   setUseWallet]   = useState(false);
-    const [walletAmt,   setWalletAmt]   = useState("");
-    const [loading,     setLoading]     = useState(false);
+    const billBalance = parseFloat(bill.balance_principal || 0) + parseFloat(bill.balance_interest || 0);
 
-    const totalPay = parseFloat(payForm.principal_amount || 0) + parseFloat(payForm.interest_amount || 0);
-    const showBank  = ["bank","neft","rtgs","cheque"].includes(payForm.payment_mode);
-    const showCheque= payForm.payment_mode === "cheque";
-    const showTxn   = ["bank","upi","neft","rtgs"].includes(payForm.payment_mode);
+    const [walletBalance, setWalletBalance] = useState(0);
+    const [walletLoading, setWalletLoading] = useState(true);
+    const [useWallet,     setUseWallet]     = useState(false);
+    const [loading,       setLoading]       = useState(false);
+
+    // Payment form — only shown when cash/bank needed
+    const [payForm, setPayForm] = useState({
+        payment_mode:   "bank",
+        bank_name:      "",
+        transaction_ref:"",
+        cheque_no:      "",
+        narration:      "",
+    });
+
+    // Fetch wallet balance on open
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const { getWalletDetailsApi } = await import("../../services/BillingApi");
+                const res = await getWalletDetailsApi(bill.flat_id);
+                const bal = parseFloat(res?.wallet?.balance || 0);
+                setWalletBalance(bal);
+                if (bal > 0) setUseWallet(true); // auto-check if wallet has balance
+            } catch (_) {}
+            finally { setWalletLoading(false); }
+        };
+        load();
+    }, [bill.flat_id]);
+
+    // Calculated amounts
+    const walletDeduct    = useWallet ? Math.min(walletBalance, billBalance) : 0;
+    const remainingAmount = Math.max(0, billBalance - walletDeduct);
+    const willBePaid      = remainingAmount <= 0;
+
+    const showBank   = ["bank","neft","rtgs","cheque"].includes(payForm.payment_mode);
+    const showCheque = payForm.payment_mode === "cheque";
+    const showTxn    = ["bank","upi","neft","rtgs"].includes(payForm.payment_mode);
 
     const handlePay = async () => {
-        if (totalPay <= 0) { toast.error("Amount must be > 0"); return; }
+        if (!willBePaid && remainingAmount > 0 && !payForm.payment_mode) {
+            toast.error("Select payment mode for remaining amount");
+            return;
+        }
         setLoading(true);
         try {
-            // Apply wallet first if selected
-            if (useWallet && parseFloat(walletAmt || 0) > 0) {
-                await applyWalletToBillApi(bill.bill_id, parseFloat(walletAmt));
-                toast.success(`Wallet ₹${walletAmt} applied`);
+            // Step 1: Apply wallet if selected
+            if (useWallet && walletDeduct > 0) {
+                await applyWalletToBillApi(bill.bill_id, walletDeduct);
+                if (willBePaid) {
+                    toast.success(`Bill fully paid from wallet ₹${walletDeduct.toFixed(2)}`);
+                } else {
+                    toast.success(`Wallet ₹${walletDeduct.toFixed(2)} applied`);
+                }
             }
-            // Record remaining payment if any
-            if (totalPay > 0) {
+
+            // Step 2: Record remaining cash/bank payment if needed
+            if (remainingAmount > 0) {
                 await recordPaymentApi({
-                    flat_id: bill.flat_id, bill_id: bill.bill_id,
-                    bill_month: bill.bill_month, bill_year: bill.bill_year,
-                    receipt_date: new Date().toISOString().split("T")[0],
-                    principal_amount: parseFloat(payForm.principal_amount || 0),
-                    interest_amount:  parseFloat(payForm.interest_amount  || 0),
-                    payment_mode: payForm.payment_mode,
-                    bank_name: payForm.bank_name || null, branch: payForm.branch || null,
-                    cheque_no: payForm.cheque_no || null,
-                    transaction_ref: payForm.transaction_ref || null,
-                    narration: payForm.narration || null,
+                    flat_id:          bill.flat_id,
+                    bill_id:          bill.bill_id,
+                    bill_month:       bill.bill_month,
+                    bill_year:        bill.bill_year,
+                    receipt_date:     new Date().toISOString().split("T")[0],
+                    principal_amount: Math.min(remainingAmount, parseFloat(bill.balance_principal || 0)),
+                    interest_amount:  Math.max(0, remainingAmount - parseFloat(bill.balance_principal || 0)),
+                    payment_mode:     payForm.payment_mode,
+                    bank_name:        payForm.bank_name        || null,
+                    transaction_ref:  payForm.transaction_ref  || null,
+                    cheque_no:        payForm.cheque_no        || null,
+                    narration:        payForm.narration        || null,
                 });
+                toast.success("Payment recorded successfully");
             }
-            toast.success("Payment recorded");
+
             onSuccess();
         } catch (e) {
             toast.error(typeof e === "string" ? e : "Payment failed");
-        } finally { setLoading(false); }
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <div className="modal show d-block" style={{ background:"rgba(0,0,0,0.45)" }}>
+        <div className="modal show d-block" style={{ background: "rgba(0,0,0,0.45)" }}>
             <div className="modal-dialog modal-dialog-centered modal-lg">
-                <div className="modal-content" style={{ borderRadius:12, border:"none" }}>
+                <div className="modal-content" style={{ borderRadius: 12, border: "none" }}>
                     <div className="billing-modal-header">
-                        <span>💳 Record Payment — {bill.flat_number} {bill.bill_month} {bill.bill_year}</span>
+                        <span>💳 Record Payment — {bill.flat_number}{bill.block ? ` / ${bill.block}` : ""} · {bill.bill_month} {bill.bill_year}</span>
                         <button className="close-btn" onClick={onClose}>×</button>
                     </div>
-                    <div style={{ padding:20 }}>
-                        {/* Bill summary */}
-                        <div style={{ background:"#f9fafb", borderRadius:8, padding:"12px 16px", marginBottom:16 }}>
-                            <div className="d-flex justify-content-between" style={{ fontSize:13 }}>
-                                <span>Total Bill</span><span className="amount-display">{fmt(bill.total_amount)}</span>
+                    <div style={{ padding: 20 }}>
+
+                        {/* ── Bill summary ── */}
+                        <div style={{ background: "#f9fafb", borderRadius: 8, padding: "12px 16px", marginBottom: 16 }}>
+                            <div className="d-flex justify-content-between mb-1" style={{ fontSize: 13 }}>
+                                <span style={{ color: "#6b7280" }}>Total Bill</span>
+                                <span style={{ fontWeight: 600 }}>{fmt(bill.total_amount)}</span>
                             </div>
-                            <div className="d-flex justify-content-between" style={{ fontSize:13 }}>
-                                <span>Paid</span><span className="amount-green">{fmt(bill.paid_amount)}</span>
+                            <div className="d-flex justify-content-between mb-1" style={{ fontSize: 13 }}>
+                                <span style={{ color: "#6b7280" }}>Already Paid</span>
+                                <span style={{ color: "#059669", fontWeight: 600 }}>{fmt(bill.paid_amount)}</span>
                             </div>
-                            {parseFloat(bill.wallet_applied || 0) > 0 && (
-                                <div className="d-flex justify-content-between" style={{ fontSize:13 }}>
-                                    <span>Wallet Applied</span><span style={{ color:"#7c3aed" }}>{fmt(bill.wallet_applied)}</span>
-                                </div>
-                            )}
-                            <div className="d-flex justify-content-between" style={{ fontSize:13, fontWeight:700, borderTop:"1px solid #e5e7eb", paddingTop:4, marginTop:4 }}>
+                            <div className="d-flex justify-content-between" style={{
+                                fontSize: 15, fontWeight: 700,
+                                borderTop: "1px solid #e5e7eb", paddingTop: 8, marginTop: 4
+                            }}>
                                 <span>Balance Due</span>
-                                <span className="amount-red">{fmt(parseFloat(bill.balance_principal||0)+parseFloat(bill.balance_interest||0))}</span>
+                                <span style={{ color: "#dc2626" }}>{fmt(billBalance)}</span>
                             </div>
                         </div>
 
-                        {/* Wallet option */}
-                        <div style={{ background:"#f3e8ff", border:"1px solid #d8b4fe", borderRadius:8, padding:"10px 14px", marginBottom:16 }}>
-                            <label className="d-flex align-items-center gap-2" style={{ cursor:"pointer", fontWeight:600, fontSize:13, color:"#7c3aed" }}>
-                                <input type="checkbox" checked={useWallet} onChange={(e) => setUseWallet(e.target.checked)} />
-                                💜 Apply Wallet Balance First
-                            </label>
-                            {useWallet && (
-                                <div className="mt-2">
-                                    <label className="billing-form-label">Wallet Amount to Apply (₹)</label>
-                                    <input type="number" className="billing-form-input" min="0" step="0.01"
-                                        value={walletAmt}
-                                        onChange={(e) => setWalletAmt(e.target.value)}
-                                        placeholder="Leave blank to apply full available balance" />
+                        {/* ── Wallet section ── */}
+                        <div style={{
+                            background: useWallet && walletDeduct > 0 ? "#f0fdf4" : "#f5f3ff",
+                            border: `1px solid ${useWallet && walletDeduct > 0 ? "#86efac" : "#ddd6fe"}`,
+                            borderRadius: 8, padding: "12px 16px", marginBottom: 16
+                        }}>
+                            <div className="d-flex align-items-center justify-content-between">
+                                <label className="d-flex align-items-center gap-2"
+                                    style={{ cursor: walletBalance > 0 ? "pointer" : "default",
+                                             fontWeight: 600, fontSize: 13,
+                                             color: walletBalance > 0 ? "#7c3aed" : "#9ca3af" }}>
+                                    <input type="checkbox"
+                                        checked={useWallet}
+                                        disabled={walletBalance <= 0 || walletLoading}
+                                        onChange={(e) => setUseWallet(e.target.checked)} />
+                                    💜 Use Wallet Balance
+                                </label>
+                                <span style={{ fontSize: 13, fontWeight: 600,
+                                               color: walletBalance > 0 ? "#7c3aed" : "#9ca3af" }}>
+                                    {walletLoading ? "Loading..." : `Available: ${fmt(walletBalance)}`}
+                                </span>
+                            </div>
+
+                            {!walletLoading && walletBalance <= 0 && (
+                                <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>
+                                    No wallet balance. Credit wallet from Wallet Manager first.
+                                </div>
+                            )}
+
+                            {useWallet && walletDeduct > 0 && (
+                                <div style={{ marginTop: 10 }}>
+                                    <div className="d-flex justify-content-between"
+                                        style={{ fontSize: 13, padding: "6px 0",
+                                                 borderTop: "1px solid #bbf7d0" }}>
+                                        <span style={{ color: "#065f46" }}>💜 Wallet deduction</span>
+                                        <span style={{ color: "#059669", fontWeight: 700 }}>- {fmt(walletDeduct)}</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between"
+                                        style={{ fontSize: 14, fontWeight: 700, padding: "6px 0",
+                                                 borderTop: "1px solid #bbf7d0" }}>
+                                        <span>Remaining to Pay</span>
+                                        <span style={{ color: remainingAmount > 0 ? "#dc2626" : "#059669" }}>
+                                            {remainingAmount > 0 ? fmt(remainingAmount) : "₹0.00 — Fully Paid! ✅"}
+                                        </span>
+                                    </div>
                                 </div>
                             )}
                         </div>
 
-                        <div className="row g-3">
-                            <div className="col-6">
-                                <label className="billing-form-label">Principal (₹)</label>
-                                <input type="number" className="billing-form-input" min="0" step="0.01"
-                                    value={payForm.principal_amount}
-                                    onChange={(e) => setPayForm({...payForm, principal_amount: e.target.value})} />
-                            </div>
-                            <div className="col-6">
-                                <label className="billing-form-label">Interest (₹)</label>
-                                <input type="number" className="billing-form-input" min="0" step="0.01"
-                                    value={payForm.interest_amount}
-                                    onChange={(e) => setPayForm({...payForm, interest_amount: e.target.value})} />
-                            </div>
-                            <div className="col-6">
-                                <label className="billing-form-label">Payment Mode *</label>
-                                <select className="billing-form-input" value={payForm.payment_mode}
-                                    onChange={(e) => setPayForm({...payForm, payment_mode: e.target.value})}>
-                                    <option value="bank">Bank Transfer</option>
-                                    <option value="cash">Cash</option>
-                                    <option value="cheque">Cheque</option>
-                                    <option value="upi">UPI</option>
-                                    <option value="neft">NEFT</option>
-                                    <option value="rtgs">RTGS</option>
-                                </select>
-                            </div>
-                            {showBank && (
-                                <div className="col-6">
-                                    <label className="billing-form-label">Bank Name</label>
-                                    <input type="text" className="billing-form-input" value={payForm.bank_name}
-                                        onChange={(e) => setPayForm({...payForm, bank_name: e.target.value})} placeholder="HDFC Bank" />
+                        {/* ── Cash/Bank payment section — only if remaining > 0 ── */}
+                        {remainingAmount > 0 && (
+                            <>
+                                <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 10, fontWeight: 600 }}>
+                                    {useWallet && walletDeduct > 0
+                                        ? `Collect remaining ${fmt(remainingAmount)} via:`
+                                        : "Payment details:"}
                                 </div>
-                            )}
-                            {showCheque && (
-                                <div className="col-6">
-                                    <label className="billing-form-label">Cheque No</label>
-                                    <input type="text" className="billing-form-input" value={payForm.cheque_no}
-                                        onChange={(e) => setPayForm({...payForm, cheque_no: e.target.value})} />
+                                <div className="row g-3">
+                                    <div className="col-6">
+                                        <label className="billing-form-label">Payment Mode *</label>
+                                        <select className="billing-form-input"
+                                            value={payForm.payment_mode}
+                                            onChange={(e) => setPayForm({ ...payForm, payment_mode: e.target.value })}>
+                                            <option value="bank">Bank Transfer</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="cheque">Cheque</option>
+                                            <option value="upi">UPI</option>
+                                            <option value="neft">NEFT</option>
+                                            <option value="rtgs">RTGS</option>
+                                        </select>
+                                    </div>
+                                    {showBank && (
+                                        <div className="col-6">
+                                            <label className="billing-form-label">Bank Name</label>
+                                            <input type="text" className="billing-form-input"
+                                                value={payForm.bank_name}
+                                                onChange={(e) => setPayForm({ ...payForm, bank_name: e.target.value })}
+                                                placeholder="HDFC Bank" />
+                                        </div>
+                                    )}
+                                    {showCheque && (
+                                        <div className="col-6">
+                                            <label className="billing-form-label">Cheque No</label>
+                                            <input type="text" className="billing-form-input"
+                                                value={payForm.cheque_no}
+                                                onChange={(e) => setPayForm({ ...payForm, cheque_no: e.target.value })} />
+                                        </div>
+                                    )}
+                                    {showTxn && (
+                                        <div className="col-6">
+                                            <label className="billing-form-label">Transaction Ref</label>
+                                            <input type="text" className="billing-form-input"
+                                                value={payForm.transaction_ref}
+                                                onChange={(e) => setPayForm({ ...payForm, transaction_ref: e.target.value })} />
+                                        </div>
+                                    )}
+                                    <div className="col-12">
+                                        <label className="billing-form-label">Narration</label>
+                                        <input type="text" className="billing-form-input"
+                                            value={payForm.narration}
+                                            onChange={(e) => setPayForm({ ...payForm, narration: e.target.value })}
+                                            placeholder="e.g. March 2026 maintenance payment" />
+                                    </div>
                                 </div>
-                            )}
-                            {showTxn && (
-                                <div className="col-6">
-                                    <label className="billing-form-label">Transaction Ref</label>
-                                    <input type="text" className="billing-form-input" value={payForm.transaction_ref}
-                                        onChange={(e) => setPayForm({...payForm, transaction_ref: e.target.value})} />
-                                </div>
-                            )}
-                            <div className="col-12">
-                                <label className="billing-form-label">Narration</label>
-                                <input type="text" className="billing-form-input" value={payForm.narration}
-                                    onChange={(e) => setPayForm({...payForm, narration: e.target.value})}
-                                    placeholder="e.g. June 2026 maintenance payment" />
-                            </div>
+                            </>
+                        )}
+
+                        {/* ── Total summary ── */}
+                        <div style={{
+                            background: willBePaid ? "#d1fae5" : "#dbeafe",
+                            borderRadius: 8, padding: "12px 16px", marginTop: 16,
+                            display: "flex", justifyContent: "space-between", alignItems: "center"
+                        }}>
+                            <span style={{ fontWeight: 600, color: willBePaid ? "#065f46" : "#1e40af" }}>
+                                {willBePaid ? "✅ Bill will be FULLY PAID" : "Amount Being Paid Now"}
+                            </span>
+                            <span style={{ fontSize: 16, fontWeight: 700,
+                                           color: willBePaid ? "#059669" : "#1e40af" }}>
+                                {willBePaid
+                                    ? `${fmt(walletDeduct)} (from wallet)`
+                                    : fmt(walletDeduct + remainingAmount)}
+                            </span>
                         </div>
-                        <div style={{ background:"#dbeafe", borderRadius:8, padding:"10px 16px", marginTop:12, display:"flex", justifyContent:"space-between" }}>
-                            <span style={{ fontSize:13, color:"#1e40af", fontWeight:600 }}>Total Payment</span>
-                            <span style={{ fontSize:16, fontWeight:700, color:"#1e40af" }}>{fmt(totalPay)}</span>
-                        </div>
+
                         <div className="d-flex justify-content-end gap-2 mt-3">
                             <button className="billing-btn billing-btn-outline" onClick={onClose}>Cancel</button>
-                            <button className="billing-btn billing-btn-success" onClick={handlePay} disabled={loading}>
-                                {loading ? "Processing..." : "Record Payment"}
+                            <button
+                                className="billing-btn billing-btn-success"
+                                onClick={handlePay}
+                                disabled={loading || walletLoading}
+                                style={{ minWidth: 160 }}>
+                                {loading
+                                    ? "Processing..."
+                                    : willBePaid
+                                        ? "💜 Pay from Wallet"
+                                        : remainingAmount < billBalance
+                                            ? `💜 Wallet + Pay ${fmt(remainingAmount)}`
+                                            : `Record Payment ${fmt(remainingAmount)}`}
                             </button>
                         </div>
                     </div>
@@ -188,6 +287,7 @@ const PayModal = ({ bill, onClose, onSuccess }) => {
         </div>
     );
 };
+
 
 // ── Generate Bill Modal ───────────────────────────────────────────────────────
 const GenModal = ({ flatOptions, onClose, onSuccess }) => {
