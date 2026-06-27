@@ -19,7 +19,7 @@ import {
   UpdateUnitsApi,
 } from "../../../services/UnitRegisterApi";
 
-const ViewUnit = ({ setActive, flatId }) => {
+const ViewUnit = ({ setActive, flatId, setMemberId }) => {
   const [societyId, setSocietyId] = useState(null);
   const [area, setArea] = useState("");
   const [allBlocks, setAllBlocks] = useState([]);
@@ -52,7 +52,7 @@ const ViewUnit = ({ setActive, flatId }) => {
       const flats = data.data.flats[0];
       setSocietyId(flats.society_id);
       //getAllBlocks(flats.society_id);
-      getAllFloor(flats.society_id);
+      // getAllFloor(flats.society_id);
     } catch (error) {
       console.log(error);
     }
@@ -105,7 +105,10 @@ const ViewUnit = ({ setActive, flatId }) => {
       setPageLoading(false); // ✅
     }
   };
-
+  const getMemberById = (memberId, flatId) => {
+    setMemberId(memberId);
+    setActive("memberDetails");
+  };
   const getAllBlocks = async (societyId) => {
     try {
       const data = await getAllBlocksApi(societyId);
@@ -191,6 +194,7 @@ const ViewUnit = ({ setActive, flatId }) => {
 
       await UpdateUnitsApi(
         flatId,
+        societyId,
         block.value,
         flatNo,
         floor.value,
@@ -358,7 +362,14 @@ const ViewUnit = ({ setActive, flatId }) => {
 
                 <button
                   className="btn btn-sm btn-ad grey-btn"
-                  onClick={() => setActive("memberDetails")}
+                  onClick={() => {
+                    const ownerMember = members?.find((m) => m.occupancy_type === "owner");
+                    if (ownerMember) {
+                      getMemberById(ownerMember.user_id, flatId);
+                    } else {
+                      toast.error("Owner details not found");
+                    }
+                  }}
                 >
                   View Profile
                 </button>

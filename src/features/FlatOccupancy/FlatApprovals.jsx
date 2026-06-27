@@ -180,11 +180,11 @@ const FlatApprovals = () => {
             {/* Header */}
             <div className="occ-header">
                 <div>
-                    <h4 className="occ-title">Occupancy approvals</h4>
-                    <p className="occ-subtitle">Review who's moving in or out before it's confirmed on record.</p>
+                    <p className="occ-breadcrumb">Operations</p>
+                    <h4 className="occ-title">Flat Approvals</h4>
+                    <p className="occ-subtitle">Review and approve occupancy requests before they're confirmed on record.</p>
                 </div>
             </div>
-
             {/* Segmented control */}
             <div className="occ-tabs" role="tablist">
                 {tabs.map((t) => (

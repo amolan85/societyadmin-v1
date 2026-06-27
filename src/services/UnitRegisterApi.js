@@ -77,10 +77,11 @@ export const AddUnitsApi = async (societyId, block, flatNo, floor, areaSqft, uni
     });
 }
 
-export const UpdateUnitsApi = async (unitId, block, flatNo, floor, areaSqft, unitType, currentStatus, fullName, email, mobile) => {
+export const UpdateUnitsApi = async (unitId,societyId, block, flatNo, floor, areaSqft, unitType, currentStatus, fullName, email, mobile) => {
     const url = UrlData + 'flat/UpdateUnit';
     const data = {
         flat_id: unitId,
+        society_id: societyId,
         block: block,
         flat_number: flatNo,
         floor: floor,

@@ -51,6 +51,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
   const [mode, setMode] = useState("mode");
   const [unitId, setUnitId] = useState("");
   const [selectedRange, setSelectedRange] = useState("all");
+  const [tableLoading, setTableLoading] = useState(true);
 
   useEffect(() => {
     SessionData();
@@ -61,8 +62,8 @@ const UnitRegister = ({ setActive, setFlatId }) => {
     console.log(data.data);
     const flats = data.data.flats[0];
     setSocietyId(flats.society_id);
-    getAllBlocks(flats.society_id);
-    getAllFloor(flats.society_id);
+    //getAllBlocks(flats.society_id);
+    //getAllFloor(flats.society_id);
   };
 
   useEffect(() => {
@@ -73,6 +74,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
   //function for get members
   const getAllUnits = async (societyId, page) => {
     try {
+      setTableLoading(true);
       const data = await getAllUnitsApi(societyId, page);
       console.log(data, "All units");
       setTotalUnits(data.total_units);
@@ -84,6 +86,9 @@ const UnitRegister = ({ setActive, setFlatId }) => {
       setTotalCount(data.total_count);
     } catch (error) {
       console.error("Error fetching units:", error);
+    }
+    finally {
+      setTableLoading(false); // ✅
     }
   };
 
@@ -273,6 +278,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
       if (mode === "edit") {
         await UpdateUnitsApi(
           unitId,
+          societyId,
           block.value,
           flatNo,
           floor.value,
@@ -515,10 +521,14 @@ const UnitRegister = ({ setActive, setFlatId }) => {
             </button>
             <button
               className="btn btn-sm btn-ac ms-2 btn-primary"
-              onClick={() => {
+              onClick={async () => {
                 setMode("add");
-                setShow(true);
                 resetForm();
+                await Promise.all([
+                  getAllBlocks(societyId),
+                  getAllFloor(societyId),
+                ]);
+                setShow(true); // ✅ load hone ke baad open
               }}
             >
               + Add Unit
@@ -670,10 +680,14 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                             <button
                               className="dropdown-item member-action-item"
                               // onClick={() => handleEdit(s)}
-                              onClick={() => {
+                              onClick={async () => {
                                 setMode("edit");
-                                setShow(true);
-                                GetFlatDetailsById(s.flat_id);
+                                await Promise.all([
+                                  getAllBlocks(societyId),
+                                  getAllFloor(societyId),
+                                  GetFlatDetailsById(s.flat_id),
+                                ]);
+                                setShow(true); // ✅
                               }}
                             >
                               Edit Unit

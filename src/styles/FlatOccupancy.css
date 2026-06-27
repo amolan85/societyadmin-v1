@@ -6,21 +6,40 @@
     gap: 16px;
 }
 
+/* Header */
 .occ-header {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
+    text-align: left;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(16, 24, 40, 0.07);
+    margin-bottom: 4px;
+}
+
+.occ-breadcrumb {
+    font-size: 11px;
+    color: var(--muted, #888);
+    margin: 0 0 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
 }
 
 .occ-title {
-    margin: 0 0 2px;
+    margin: 0 0 4px;
     font-weight: 700;
+    font-size: 22px;
+    color: #1f2430;
+    text-align: left;
 }
 
 .occ-subtitle {
     margin: 0;
     font-size: 13px;
-    color: var(--muted);
+    color: var(--muted, #888);
+    text-align: left;
+    max-width: 480px;
 }
 
 /* Segmented tab control */
@@ -228,12 +247,19 @@
 }
 
 @keyframes occ-shimmer {
-    0% { background-position: 100% 50%; }
-    100% { background-position: 0 50%; }
+    0% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0 50%;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .occ-skeleton { animation: none; }
+    .occ-skeleton {
+        animation: none;
+    }
 }
 
 /* Pagination */
@@ -254,7 +280,43 @@
     color: var(--muted);
 }
 
-/* Modal */
+/* Modal Backdrop & Popup */
+.modal-backdrop-custom {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.occ-modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    position: relative;
+    z-index: 1051;
+}
+
+.occ-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+}
+
+.occ-modal-close:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
 .occ-modal-person {
     display: flex;
     gap: 12px;
