@@ -19,11 +19,13 @@ const BillingDashboard = ({ setActive, setBillId }) => {
     const [filterYear,    setFilterYear]    = useState(new Date().getFullYear());
 
     // Bulk generate state
-    const [bulkMonth,   setBulkMonth]   = useState(MONTHS[new Date().getMonth()]);
-    const [bulkYear,    setBulkYear]    = useState(new Date().getFullYear());
-    const [bulkLoading, setBulkLoading] = useState(false);
-    const [bulkResult,  setBulkResult]  = useState(null);
-    const [showBulkDetail, setShowBulkDetail] = useState(false);
+    const [bulkMonth,       setBulkMonth]       = useState(MONTHS[new Date().getMonth()]);
+    const [bulkYear,        setBulkYear]        = useState(new Date().getFullYear());
+    const [bulkLoading,     setBulkLoading]     = useState(false);
+    const [bulkResult,      setBulkResult]      = useState(null);
+    const [showBulkDetail,  setShowBulkDetail]  = useState(false);
+    const [bulkApplyWallet, setBulkApplyWallet] = useState(true);   // default ON
+    const [bulkRegenerate,  setBulkRegenerate]  = useState(false);
 
     const years = Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - i);
 
@@ -48,7 +50,10 @@ const BillingDashboard = ({ setActive, setBillId }) => {
         setBulkLoading(true);
         setBulkResult(null);
         try {
-            const res = await generateBillsForAllApi(bulkMonth, parseInt(bulkYear));
+            const res = await generateBillsForAllApi(bulkMonth, parseInt(bulkYear), {
+                applyWallet: bulkApplyWallet,
+                regenerate:  bulkRegenerate,
+            });
             setBulkResult(res);
             toast.success(
                 `✅ ${res.summary.bills_generated} bills generated — ₹${Number(res.summary.total_billed || 0).toLocaleString("en-IN")}`
@@ -270,6 +275,7 @@ const BillingDashboard = ({ setActive, setBillId }) => {
                     { label: "Record Payment",   icon: "💳", page: "billsList" },
                     { label: "Flat Ledger",      icon: "📒", page: "flatLedger" },
                     { label: "Opening Balances", icon: "📂", page: "openingBalance" },
+                    { label: "Wallet Manager",   icon: "💜", page: "walletManager" },
                 ].map((q) => (
                     <div key={q.page} className="col-6 col-sm-4 col-lg-2">
                         <button

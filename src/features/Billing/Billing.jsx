@@ -1,18 +1,14 @@
 import { useState } from "react";
-import BillingDashboard from "./BillingDashboard";
-import BillsList        from "./BillsList";
-import ViewBill         from "./ViewBill";
-import ChargeHeads      from "./ChargeHeads";
-import FlatCharges      from "./FlatCharges";
+import BillingDashboard  from "./BillingDashboard";
+import BillsList         from "./BillsList";
+import ViewBill          from "./ViewBill";
+import ChargeHeads       from "./ChargeHeads";
+import FlatCharges       from "./FlatCharges";
+import WalletManager     from "./WalletManager";
 import { FlatLedger, BillingSettings, OpeningBalance } from "./BillingSubPages";
 
-/**
- * Billing — top-level container
- * Receives setActive from Dashboard (to navigate back to main nav)
- * Manages internal billing sub-page routing
- */
 const Billing = ({ setActive: setMainActive }) => {
-    const [page, setPage]     = useState("billingDashboard");
+    const [page,   setPage]   = useState("billingDashboard");
     const [billId, setBillId] = useState(null);
 
     const navigate = (p) => setPage(p);
@@ -23,10 +19,11 @@ const Billing = ({ setActive: setMainActive }) => {
         viewBill:         <ViewBill         setActive={navigate} billId={billId} />,
         chargeHeads:      <ChargeHeads      setActive={navigate} />,
         flatCharges:      <FlatCharges      setActive={navigate} />,
+        walletManager:    <WalletManager    setActive={navigate} />,   // ← NEW
         flatLedger:       <FlatLedger       setActive={navigate} />,
         billingSettings:  <BillingSettings  setActive={navigate} />,
         openingBalance:   <OpeningBalance   setActive={navigate} />,
-        generateBill:     <BillsList        setActive={navigate} setBillId={setBillId} />, // reuse BillsList with modal open
+        generateBill:     <BillsList        setActive={navigate} setBillId={setBillId} />,
         recordPayment:    <BillsList        setActive={navigate} setBillId={setBillId} />,
     };
 
