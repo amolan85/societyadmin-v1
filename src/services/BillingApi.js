@@ -332,6 +332,11 @@ export const getBillingSummaryByFYApi = async (fyStart = null, fyEnd = null) =>
     billingPost("GetBillingSummaryByFY", { fy_start: fyStart, fy_end: fyEnd });
 
 // Scheduler progress
+export const recalcFlatBillsApi = async (data) => billingPost("RecalcFlatBills", data);
+
+export const waiveOffApi            = async (data) => billingPost("WaiveOff", data);
+export const getWaiveOffHistoryApi  = async (data={}) => billingPost("GetWaiveOffHistory", data);
+
 export const triggerInterestApi      = async (data={}) => billingPost("TriggerInterest", data);
 export const getInterestHistoryApi   = async (data={}) => billingPost("GetInterestHistory", data);
 
@@ -589,6 +594,9 @@ export const getSchedulerProgressApi = async () =>
 //     }, 60000);
 
 // // ─── Resend receipt email ──────────────────────────────────────────────────────
+// export const getReceiptPdfApi  = async (receiptId) =>
+//     billingPost("GetReceiptPdf", { receipt_id: parseInt(receiptId) });
+
 // export const resendReceiptApi = async (receiptId) =>
 //     billingPost("ResendReceipt", {
 //         receipt_id: parseInt(receiptId),
@@ -669,5 +677,8 @@ export const getSchedulerProgressApi = async () =>
 //     billingPost("GetBillingSummaryByFY", { fy_start: fyStart, fy_end: fyEnd });
 
 // // Scheduler progress
+// export const triggerInterestApi      = async (data={}) => billingPost("TriggerInterest", data);
+// export const getInterestHistoryApi   = async (data={}) => billingPost("GetInterestHistory", data);
+
 // export const getSchedulerProgressApi = async () =>
 //     billingPost("GetSchedulerProgress", {});
