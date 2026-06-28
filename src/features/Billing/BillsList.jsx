@@ -10,6 +10,7 @@ import {
 import { getAllMembersWithoutPaginationApi } from "../../services/AddMemberApi";
 import { GetSessionData } from "../../utils/SessionManagement";
 import "../../styles/Billing.css";
+import ReceiptViewer from "./ReceiptViewer";
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const fmt    = (n) => "₹" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 });
@@ -74,20 +75,19 @@ const PayModal = ({ bill, onClose, onSuccess }) => {
             return;
         }
         setLoading(true);
+        let lastReceipt = null;
         try {
             // Step 1: Apply wallet if selected
             if (useWallet && walletDeduct > 0) {
                 await applyWalletToBillApi(bill.bill_id, walletDeduct);
-                if (willBePaid) {
-                    toast.success(`Bill fully paid from wallet ₹${walletDeduct.toFixed(2)}`);
-                } else {
-                    toast.success(`Wallet ₹${walletDeduct.toFixed(2)} applied`);
-                }
+                toast.success(willBePaid
+                    ? `✅ Bill fully paid from wallet ₹${walletDeduct.toFixed(2)}`
+                    : `💜 Wallet ₹${walletDeduct.toFixed(2)} applied`);
             }
 
             // Step 2: Record remaining cash/bank payment if needed
             if (remainingAmount > 0) {
-                await recordPaymentApi({
+                lastReceipt = await recordPaymentApi({
                     flat_id:          bill.flat_id,
                     bill_id:          bill.bill_id,
                     bill_month:       bill.bill_month,
@@ -100,11 +100,38 @@ const PayModal = ({ bill, onClose, onSuccess }) => {
                     transaction_ref:  payForm.transaction_ref  || null,
                     cheque_no:        payForm.cheque_no        || null,
                     narration:        payForm.narration        || null,
+                    send_email:       false,
                 });
                 toast.success("Payment recorded successfully");
             }
 
-            onSuccess();
+            // Step 3: If only wallet was used (no cash receipt), build a synthetic receipt
+            // so the ReceiptViewer still shows
+            if (!lastReceipt && willBePaid) {
+                lastReceipt = {
+                    receipt_no:        `WALLET-${bill.bill_id}`,
+                    receipt_date:      new Date().toISOString().split("T")[0],
+                    payment_mode:      "wallet",
+                    wallet_applied:    walletDeduct,
+                    principal_amount:  parseFloat(bill.balance_principal || 0),
+                    interest_amount:   parseFloat(bill.balance_interest  || 0),
+                    total_amount:      walletDeduct,
+                    balance_principal: 0,
+                    balance_interest:  0,
+                    flat_id:           bill.flat_id,
+                    flat_number:       bill.flat_number,
+                    block:             bill.block,
+                    floor:             bill.floor,
+                    owner_name:        bill.owner_name,
+                    owner_mobile:      bill.owner_mobile,
+                    owner_email:       bill.owner_email,
+                    bill_month:        bill.bill_month,
+                    bill_year:         bill.bill_year,
+                    bill_no:           bill.bill_no,
+                };
+            }
+
+            onSuccess(lastReceipt);
         } catch (e) {
             toast.error(typeof e === "string" ? e : "Payment failed");
         } finally {
@@ -504,6 +531,7 @@ const BillsList = ({ setActive, setBillId }) => {
 
     const [showGenModal,    setShowGenModal]   = useState(false);
     const [showYearlyModal, setShowYearlyModal]= useState(false);
+    const [viewReceipt,     setViewReceipt]    = useState(null);
     const [payBill,         setPayBill]        = useState(null);
     const [regenerating,    setRegenerating]   = useState(null);
 
@@ -731,7 +759,23 @@ const BillsList = ({ setActive, setBillId }) => {
 
             {showGenModal    && <GenModal    flatOptions={flatOptions} onClose={() => setShowGenModal(false)}    onSuccess={() => { setShowGenModal(false);    loadBills(); }} />}
             {showYearlyModal && <YearlyModal flatOptions={flatOptions} onClose={() => setShowYearlyModal(false)} onSuccess={() => { setShowYearlyModal(false); loadBills(); }} />}
-            {payBill         && <PayModal    bill={payBill}             onClose={() => setPayBill(null)}          onSuccess={() => { setPayBill(null);          loadBills(); }} />}
+            {payBill         && <PayModal
+                bill={payBill}
+                onClose={() => setPayBill(null)}
+                onSuccess={(receiptData) => {
+                    setPayBill(null);
+                    loadBills();
+                    if (receiptData) setViewReceipt({ ...payBill, ...receiptData }); // receiptData last to keep pdf_base64
+                }}
+            />}
+            {viewReceipt && (
+                <ReceiptViewer
+                    receipt={viewReceipt}
+                    bill={viewReceipt}
+                    society={{}}
+                    onClose={() => setViewReceipt(null)}
+                />
+            )}
         </div>
     );
 };

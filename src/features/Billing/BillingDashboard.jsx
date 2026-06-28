@@ -276,6 +276,8 @@ const BillingDashboard = ({ setActive, setBillId }) => {
                     { label: "Flat Ledger",      icon: "📒", page: "flatLedger" },
                     { label: "Opening Balances", icon: "📂", page: "openingBalance" },
                     { label: "Wallet Manager",   icon: "💜", page: "walletManager" },
+                    { label: "Reports",          icon: "📊", page: "reports" },
+                    { label: "Scheduler",        icon: "⏰", page: "scheduler" },
                 ].map((q) => (
                     <div key={q.page} className="col-6 col-sm-4 col-lg-2">
                         <button
