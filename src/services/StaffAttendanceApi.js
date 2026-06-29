@@ -29,6 +29,28 @@ export const getStaffAttendanceApi = async (societyId, page, limit, date, search
     });
 }
 
+
+export const GetAllStaffApi = async (societyId, search, role, isactive) => {
+    const url = UrlData + 'staff/GetAllStaff';
+    const data = {
+        society_id: societyId,
+        search: search || null,
+        role: role || null,
+        is_active: true, 
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors from staff attendance");
+        throw errors;
+    });
+}
 //create staff api
 export const createStaffApi = async (societyId, firstName, lastName, emailId, mobileNo, role, salary, joiningDate) => {
     const url = UrlData + 'staff/CreateStaff';
