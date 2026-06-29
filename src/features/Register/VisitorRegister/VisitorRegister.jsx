@@ -895,16 +895,24 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                 label={
                                                     v.entry_status === "waiting"
                                                         ? "Waiting"
-                                                        : ["complete", "completed"].includes(v.entry_status?.toLowerCase())
-                                                            ? "Completed"
-                                                            : "-"
+                                                        : v.entry_status === "inside"
+                                                            ? "Inside"
+                                                            : ["complete", "completed"].includes(v.entry_status?.toLowerCase())
+                                                                ? "Completed"
+                                                                : v.entry_status === "cancelled"
+                                                                    ? "Cancelled"
+                                                                    : "-"
                                                 }
                                                 c={
                                                     v.entry_status === "waiting"
                                                         ? "orange"
-                                                        : ["complete", "completed"].includes(v.entry_status?.toLowerCase())
-                                                            ? "green"
-                                                            : "grey"
+                                                        : v.entry_status === "inside"
+                                                            ? "blue"
+                                                            : ["complete", "completed"].includes(v.entry_status?.toLowerCase())
+                                                                ? "green"
+                                                                : v.entry_status === "cancelled"
+                                                                    ? "red"
+                                                                    : "grey"
                                                 }
                                             />
                                         </td>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { GetSessionData } from "../../../utils/SessionManagement";
 import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
 import { FiSearch } from 'react-icons/fi';
@@ -7,15 +7,16 @@ import {
     CreateVehicleApi, ListVehiclesApi,
     GetVehicleByIdApi, UpdateVehicleApi, DeleteVehicleApi
 } from '../../../services/VehicleRegisterAPI';
-import { getAllBlocksApi, getAllFlatsApi, getAllUnitsBySearchApi } from '../../../services/UnitRegisterApi';
+import { getAllBlocksApi, getAllUnitsBySearchApi } from '../../../services/UnitRegisterApi';
 import VehicleModal from './VehicleModal';
+import AllocateResidentParkingModal from '../../Parking/AllocateResidentParkingModal'; 
 
 const ListVehicleRegister = ({ setActive, setVehicleId }) => {
 
     // List & pagination
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
+    const [totalCount, setTotalCount] = useState(0); 
     const [search, setSearch] = useState("");
     const [vehicleTypeFilter, setVehicleTypeFilter] = useState("");
     const [vehiclesList, setVehiclesList] = useState([]);
@@ -36,6 +37,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
     const [selectedBlock, setSelectedBlock] = useState("");
     const [selectedFlat, setSelectedFlat] = useState("");
     const [selectedOwnerName, setSelectedOwnerName] = useState("");
+
     // Form fields
     const [vehicleNumber, setVehicleNumber] = useState("");
     const [vehicleType, setVehicleType] = useState("");
@@ -50,7 +52,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
     const [errors, setErrors] = useState({});
     const [errorText, setErrorText] = useState("");
 
-    //for filters
+    // Filters
     const [filterBlock, setFilterBlock] = useState("");
     const [filterFloor, setFilterFloor] = useState("");
     const [filterFlatStatus, setFilterFlatStatus] = useState("");
@@ -59,6 +61,10 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
     // Stats
     const [stats, setStats] = useState({ total: 0, twoWheeler: 0, fourWheeler: 0, other: 0 });
 
+    // ── Allocate Parking Modal state ──
+    const [showParkingModal, setShowParkingModal] = useState(false);
+    const [selectedVehicleForParking, setSelectedVehicleForParking] = useState(null);
+
     useEffect(() => { SessionData(); }, []);
 
     useEffect(() => {
@@ -66,50 +72,36 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
         getVehicles({ sid: societyId, pg: page, searchText: search, vType: vehicleTypeFilter });
     }, [page, vehicleTypeFilter]);
 
-
     const filteredVehicles = vehiclesList.filter(v => {
         if (filterBlock && v.block?.toLowerCase() !== filterBlock.toLowerCase()) return false;
         if (filterFloor && String(v.floor) !== String(filterFloor)) return false;
         if (filterFlatStatus && v.flat_status?.toLowerCase() !== filterFlatStatus.toLowerCase()) return false;
         return true;
     });
+
     const SessionData = async () => {
         try {
             const data = await GetSessionData();
-
             setUserId(data.data.user_id);
-
             const firstFlat = data.data.flats?.[0];
-
             if (firstFlat) {
                 const sid = firstFlat.society_id;
-
                 setSocietyId(sid);
-
-                getVehicles({
-                    sid,
-                    pg: 1,
-                    searchText: "",
-                    vType: ""
-                });
+                getVehicles({ sid, pg: 1, searchText: "", vType: "" });
             }
         } catch (error) {
             console.log(error);
         }
     };
-    // const generateStickerId = (flatNumber) => {
-    //     const random = Math.floor(1000 + Math.random() * 9000); // 4-digit random
-    //     const cleanFlat = (flatNumber || "").replace(/[^A-Za-z0-9]/g, "");
-    //     return `STK-${cleanFlat}-${random}`;
-    // };
+
     const generateStickerId = (flatNumber) => {
         const cleanFlat = (flatNumber || "").replace(/[^A-Za-z0-9]/g, "");
         return `STK-${cleanFlat}`;
     };
+
     const getVehicles = async ({ sid, pg, searchText, vType }) => {
         try {
             setLoading(true);
-
             const response = await ListVehiclesApi({
                 societyId: sid,
                 currentPage: pg,
@@ -119,20 +111,16 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
             console.log("Vehicle API Response:", response);
             const list = response?.vehicles || [];
             const pagination = response?.pagination || {};
-
             setVehiclesList(list);
-
             setTotalCount(pagination.total || 0);
             setTotalPages(pagination.total_pages || 1);
             setPage(pagination.page || pg);
-
             setStats({
                 total: pagination.total || 0,
                 twoWheeler: list.filter(v => v.vehicle_type === "2_wheeler").length,
                 fourWheeler: list.filter(v => v.vehicle_type === "4_wheeler").length,
                 other: list.filter(v => v.vehicle_type === "other").length,
             });
-
         } catch (e) {
             toast.error("Failed to load vehicles");
         } finally {
@@ -144,12 +132,13 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
         setVehicleNumber(""); setVehicleType(""); setVehicleModel("");
         setColor(""); setStickerId(""); setRcDocument(null);
         setFlatId(""); setSelectedBlock(""); setSelectedFlat("");
-        setSelectedOwnerId(null);  // ← add karo
+        setSelectedOwnerId(null);
         setSelectedOwnerName("");
         setErrors({}); setErrorText("");
         setRcDocumentUrl("");
         setIsEdit(false); setEditVehicleId(null);
     };
+
     const handleAdd = async () => {
         resetForm();
         const blockRes = await getAllBlocksApi(societyId);
@@ -170,16 +159,16 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
             const filtered = (res?.flats || []).filter(f => {
                 const sameBlock = String(f.block).toLowerCase() === String(block).toLowerCase();
                 const hasOwner = f.members?.some(m => m.occupancy_type === "owner");
-                return sameBlock && hasOwner; // ✅ only owner flats
+                return sameBlock && hasOwner;
             });
             setAllFlats(filtered);
         }
     };
+
     const handleFlatChange = (flatId) => {
         setSelectedFlat(flatId);
         const flatData = allFlats.find(f => String(f.flat_id) === String(flatId));
         const owner = flatData?.members?.find(m => m.occupancy_type === "owner");
-
         if (!owner) {
             toast.error("This flat has no owner. Cannot add vehicle.");
             setSelectedOwnerId(null);
@@ -187,11 +176,8 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
             setStickerId("");
             return;
         }
-
         setSelectedOwnerId(owner.user_id);
         setSelectedOwnerName(`${owner.first_name || ""} ${owner.last_name || ""}`.trim());
-
-        // ✅ sticker id seedha box me bind
         setStickerId(generateStickerId(flatData?.flat_number));
     };
 
@@ -211,27 +197,23 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
             setIsEdit(true);
             setEditVehicleId(vehicleId);
             setShow(true);
-        } catch (e) {
+        } catch  {
             toast.error("Failed to load vehicle details");
         }
     };
 
     const validateForm = () => {
         let errs = {};
-
         if (!vehicleNumber) errs.vehicleNumber = "required";
         if (!vehicleType) errs.vehicleType = "required";
-
         if (!vehicleModel) errs.vehicleModel = "required";
         if (!color) errs.color = "required";
         if (!stickerId) errs.stickerId = "required";
         if (!rcDocument && !isEdit) errs.rcDocument = "required";
-
         if (!isEdit) {
             if (!selectedFlat) errs.flatId = "required";
             if (!selectedBlock) errs.block = "required";
         }
-
         return errs;
     };
 
@@ -264,6 +246,12 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
         } catch (e) {
             toast.error(e?.message || "Delete failed");
         }
+    };
+
+    // ── open AllocateResidentParkingModal ──
+    const handleAllocateParking = (vehicle) => {
+        setSelectedVehicleForParking(vehicle);
+        setShowParkingModal(true);
     };
 
     const vehicleTypeLabel = (type) => {
@@ -302,10 +290,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                 {/* Toolbar */}
                 <div className="visitor-toolbar mb-4">
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                        <button
-                            className="btn btn-sm btn-primary"
-                            onClick={handleAdd}
-                        >
+                        <button className="btn btn-sm btn-primary" onClick={handleAdd}>
                             + Add Vehicle
                         </button>
                         <div className="d-flex gap-2">
@@ -389,9 +374,9 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                             </thead>
                             <tbody>
                                 {loading ? (
-                                    <tr><td colSpan={7} className="text-center py-4 text-muted">Loading...</td></tr>
+                                    <tr><td colSpan={8} className="text-center py-4 text-muted">Loading...</td></tr>
                                 ) : filteredVehicles.length === 0 ? (
-                                    <tr><td colSpan={7} className="text-center py-4 text-muted">No vehicles found</td></tr>
+                                    <tr><td colSpan={8} className="text-center py-4 text-muted">No vehicles found</td></tr>
                                 ) : filteredVehicles.map((v, i) => (
                                     <tr className="text-start" key={i}>
                                         <td>
@@ -455,6 +440,15 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                                                             Edit Vehicle
                                                         </button>
                                                     </li>
+                                                    {/* ── Allocate Parking option ── */}
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() => handleAllocateParking(v)}
+                                                        >
+                                                            Allocate Parking
+                                                        </button>
+                                                    </li>
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item text-danger"
@@ -475,7 +469,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                 </div>
             </div>
 
-            {/* Add / Edit Modal */}
+            {/* Add / Edit Vehicle Modal */}
             <VehicleModal
                 show={show}
                 setShow={setShow}
@@ -508,6 +502,21 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                 onFlatChange={handleFlatChange}
                 selectedOwnerName={selectedOwnerName}
                 rcDocumentUrl={rcDocumentUrl}
+            />
+
+            {/* ── Allocate Resident Parking Modal (your modal) ── */}
+            <AllocateResidentParkingModal
+                show={showParkingModal}
+                onClose={() => {
+                    setShowParkingModal(false);
+                    setSelectedVehicleForParking(null);
+                }}
+                vehicle={selectedVehicleForParking}
+                societyId={societyId}
+                userId={userId}
+                onSuccess={() =>
+                    getVehicles({ sid: societyId, pg: page, searchText: search, vType: vehicleTypeFilter })
+                }
             />
         </>
     );

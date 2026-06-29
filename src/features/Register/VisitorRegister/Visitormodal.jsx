@@ -1,19 +1,9 @@
-// VisitorModal.jsx
-// Reusable modal for both Add Visitor and Edit Visitor
-// Props:
-//   show, setShow          — open/close
-//   mode                   — "add" | "edit"
-//   flatsList              — array of flat objects (only used in add mode)
-//   errors, setErrors      — validation error map
-//   errorText              — server-side error string
-//   handleSubmit           — submit handler (called on Add/Update click)
-//   All form field value + setter pairs (see prop list below)
+
 
 const Visitormodal = ({
     allBlocks = [],
     allFlats = [],
     selectedBlock = "",
-    setSelectedBlock,
     selectedFlat = "",
     setSelectedFlat,
     onBlockChange,
@@ -21,7 +11,7 @@ const Visitormodal = ({
     setShow,
     flatNumber,
     setFlatNumber,
-    mode = "add",           // "add" | "edit"
+    mode = "add",           
 
     errors = {},
     setErrors,
@@ -36,9 +26,7 @@ const Visitormodal = ({
     mobile,
     setMobile,
 
-    flatId,
     setFlatId,
-    flatsList = [],
 
     vehicleNumber,
     setVehicleNumber,
@@ -67,7 +55,6 @@ const Visitormodal = ({
     parcelDeliveryType,
     setParcelDeliveryType,
 
-    photo,
     setPhoto,
 
     parcelDescription,
@@ -244,7 +231,7 @@ const Visitormodal = ({
                                         <div className="col-6">
                                             <label className="sv-lb">Schedule Start Date</label>
                                             <input
-                                                type="datetime-local"
+                                                type="date"
                                                 className="form-control"
                                                 value={scheduleStartDate}
                                                 onChange={(e) => setScheduleStartDate(e.target.value)}
@@ -254,7 +241,7 @@ const Visitormodal = ({
                                         <div className="col-6">
                                             <label className="sv-lb">Schedule End Date</label>
                                             <input
-                                                type="datetime-local"
+                                                type="date"
                                                 className="form-control"
                                                 value={scheduleEndDate}
                                                 onChange={(e) => setScheduleEndDate(e.target.value)}

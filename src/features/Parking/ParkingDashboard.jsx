@@ -36,9 +36,9 @@ import { violationAlertsApi, createViolationAlertApi } from "../../services/Viol
 import AllocateSlotModal from "./AllocateSlotModal";
 import { visitorParkingApi, getVisitorParkingByIdApi, AllotVisitorParkingApi } from "../../services/VisitorParkingApi";
 import ViolationAlertModal from "./ViolationAlertModal";
-import { ListVehiclesApi,GetVehicleByIdApi } from "../../services/VehicleRegisterAPI";
+import { ListVehiclesApi, GetVehicleByIdApi } from "../../services/VehicleRegisterAPI";
 
-const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setVehicleId}) => {
+const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId, setVehicleId }) => {
     const [societyId, setSocietyId] = useState("");
     const [userId, setUserId] = useState("");
     const [errors, setErrors] = useState({});
@@ -770,7 +770,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setV
                 <div className="row g-3 mt-1">
 
                     {/* Visitor Parking */}
-                    <div className="col-md-6">
+                    <div className="col-md-12">
                         <div className="vpd-card">
                             <div className="vpd-header">
                                 <div className="vpd-title">
@@ -822,10 +822,15 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setV
                                         <div>
                                             <div className="vpd-name text-start">
                                                 {item.vehicle_number}
+                                                {item.vehicle_model && (
+                                                    <span className="text-muted" style={{ fontWeight: 400, fontSize: 12 }}>
+                                                        {" "}• {item.vehicle_model}
+                                                    </span>
+                                                )}
                                             </div>
 
                                             <div className="vpd-subtitle text-start">
-                                                {item.vehicle_type}
+                                                {item.owner_name || "—"} • Unit {item.flat_number || "—"}
                                             </div>
                                         </div>
                                     </div>
@@ -833,6 +838,9 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setV
                                     <div className="text-end">
                                         <div className="vpd-slot">
                                             {item.sticker_id}
+                                        </div>
+                                        <div className="vpd-time text-muted" style={{ fontSize: 11 }}>
+                                            {item.vehicle_type === "2_wheeler" ? "2 Wheeler" : item.vehicle_type === "4_wheeler" ? "4 Wheeler" : item.vehicle_type}
                                         </div>
                                     </div>
                                 </div>
