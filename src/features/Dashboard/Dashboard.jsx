@@ -635,7 +635,7 @@ export default function App() {
     createPoll: <CreatePoll setActive={setActive} pollId={pollId} />,
     addmember: <AddMember setActive={setActive} setMemberId={setMemberId} setFlatId={setFlatId} />,
     memberDetails: <MemberDetails active={active} setActive={setActive} previousTab={previousTab} setPreviousTab={setPreviousTab} memberId={memberId} setFlatId={setFlatId} flatId={flatId} />,
-    viewUnit: <ViewUnit setActive={setActive} flatId={flatId} />,
+    viewUnit: <ViewUnit setActive={setActive} flatId={flatId} setMemberId={setMemberId}/>,
     transfer: <PlaceholderPage label="Transfer Member" />,
     documents: <Documents />,
     flattransfer: <FlatTransfer />,
