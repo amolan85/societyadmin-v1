@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/Complaints.css"
-import createComplaints from './CreateComplaints';
 import { getComplaintsApi, updateComplaintPriorityApi, updateComplaintStatusApi } from '../../services/ComplaintsApi';
 import { GetSessionData } from '../../utils/SessionManagement';
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
-import { CgExport,CgImport  } from "react-icons/cg";
-import ExportModal from "../../components/Common/ExportModal";
-// import * as XLSX from "xlsx";
+import { CgExport } from "react-icons/cg";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
@@ -17,11 +14,12 @@ import {
   FiMapPin,
   FiUser,
   FiClock,
-  FiAlertCircle,FiSearch,
+  FiAlertCircle,
 } from "react-icons/fi";
+import AssignStaffModal from "./AssignStaffModal";   // ← ADDED
 
+const Complaints = ({ setActive, setSelectedComplaintId }) => {
 
-const Complaints = ({ setActive }) => {
   const [tab, setTab] = useState("")
   const [societyId, setSocietyId] = useState("")
   const [page, setPage] = useState(1);
@@ -45,17 +43,10 @@ const Complaints = ({ setActive }) => {
   const [activeTab, setActiveTab] = useState("excel");
   const [allExportcomplaints, setAllExportcomplaints] = useState([]);
   const [selectedRange, setSelectedRange] = useState("all");
-  const [exportModal, setExportModal] = useState(false);
-  // const all = [
-  //   { id: "#C-1042", title: "Lift B not working", unit: "A-201", cat: "Maintenance", pri: "High", st: "Open", sc: "red", time: "2h ago" },
-  //   { id: "#C-1041", title: "Water leakage in corridor", unit: "B-305", cat: "Plumbing", pri: "Medium", st: "In Progress", sc: "orange", time: "5h ago" },
-  //   { id: "#C-1040", title: "Gym AC not functioning", unit: "Common", cat: "Electrical", pri: "Low", st: "Open", sc: "red", time: "1d ago" },
-  //   { id: "#C-1039", title: "Parking slot encroachment", unit: "B-101", cat: "Parking", pri: "Medium", st: "Resolved", sc: "green", time: "2d ago" },
-  //   { id: "#C-1038", title: "Noisy neighbours after 10 PM", unit: "C-402", cat: "Noise", pri: "Medium", st: "Resolved", sc: "green", time: "3d ago" },
-  //   { id: "#C-1037", title: "Broken gym equipment", unit: "Common", cat: "Maintenance", pri: "Low", st: "Open", sc: "red", time: "3d ago" },
-  //   { id: "#C-1036", title: "Leaking water pipe – roof", unit: "D-501", cat: "Plumbing", pri: "High", st: "In Progress", sc: "orange", time: "4d ago" },
-  //   { id: "#C-1035", title: "Gate door hinge broken", unit: "Gate 2", cat: "Maintenance", pri: "Low", st: "Resolved", sc: "green", time: "5d ago" },
-  // ];
+
+  // ── Assign Staff Modal ────────────────────────────────
+  const [showAssignModal, setShowAssignModal] = useState(false);   // ← ADDED
+  const [assignComplaintId, setAssignComplaintId] = useState(null); // ← ADDED
 
   const tabs = [
     { id: "All Items", value: "" },
@@ -65,55 +56,30 @@ const Complaints = ({ setActive }) => {
     { id: "Closed", value: "closed" },
   ];
 
-  // Load session data on component mount for get session data
   useEffect(() => {
     SessionData()
   }, [])
 
-  //fetch get session data
   const SessionData = async () => {
     const data = await GetSessionData()
-    console.log(data.data)
     const flats = data.data.flats[0]
     setSocietyId(flats.society_id)
-
-    //call get complaints function
     getComplaints(flats.society_id)
-
   }
 
-  //function for fetch get complaints api
   const getComplaints = async (societyId) => {
-
     try {
       const data = await getComplaintsApi(societyId)
       setAllComplaints(data.list)
       setTotalOpen(data.status_counts.open)
-      console.log(data.status_counts.open)
       setTotalProgress(data.status_counts.in_progress)
       setTotalResolved(data.status_counts.resolved)
       setAvgResolution(data.avg_resolution_hours)
     } catch (error) {
       console.error("Error fetching complaints:", error)
-
-    } finally {
-
     }
   }
 
-  // Priority modal
-  const openPriorityModal = () => {
-    setModalType("priority");
-    setShowModal(true);
-  };
-
-  // Status modal
-  const openStatusModal = () => {
-    setModalType("status");
-    setShowModal(true);
-  };
-
-  //modal config
   const modalConfig = {
     priority: {
       title: "Update Priority",
@@ -148,258 +114,98 @@ const Complaints = ({ setActive }) => {
     },
   };
 
-  //update priority and status data using api
   const UpdateData = async () => {
-
     if (modalType === "priority") {
-      const data = await updateComplaintPriorityApi(complaintId, priority, comments)
+      await updateComplaintPriorityApi(complaintId, priority, comments)
       getComplaints(societyId)
     }
-
     if (modalType === "status") {
-      const data = await updateComplaintStatusApi(complaintId, status, comments)
+      await updateComplaintStatusApi(complaintId, status, comments)
       getComplaints(societyId)
     }
   }
 
-   const  getAllExportcomplaints= async (sid) => {
-          try {
-              const data = await getComplaintsApi(sid);
-              setAllExportcomplaints(data.list  || []);
-          } catch (error) {
-              console.error("Error fetching export violation alerts:", error);
-          }
-      };
+  const getAllExportcomplaints = async (sid) => {
+    try {
+      const data = await getComplaintsApi(sid);
+      setAllExportcomplaints(data.list || []);
+    } catch (error) {
+      console.error("Error fetching export complaints:", error);
+    }
+  };
 
   const downloadExcel = async () => {
-    // create workbook
     const workbook = new ExcelJS.Workbook();
-
-    // add worksheet
     const worksheet = workbook.addWorksheet("Complaints");
-
-    // add columns dynamically
     if (allComplaints.length > 0) {
-      worksheet.columns = Object.keys(allComplaints[0]).map((key) => ({
-        header: key,
-        key: key,
-        width: 20,
-      }));
-
-      // add rows
-      allComplaints.forEach((item) => {
-        worksheet.addRow(item);
-      });
+      worksheet.columns = Object.keys(allComplaints[0]).map((key) => ({ header: key, key, width: 20 }));
+      allComplaints.forEach((item) => worksheet.addRow(item));
     }
-
-    // header style
-    worksheet.getRow(1).font = {
-      bold: true,
-    };
-
-    // create buffer
+    worksheet.getRow(1).font = { bold: true };
     const buffer = await workbook.xlsx.writeBuffer();
-
-    // download file
-    saveAs(
-      new Blob([buffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      }),
-      "Complaints.xlsx"
-    );
+    saveAs(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), "Complaints.xlsx");
   };
 
   const downloadCSV = async () => {
-
-    // create workbook
     const workbook = new ExcelJS.Workbook();
-
-    // add worksheet
     const worksheet = workbook.addWorksheet("Complaints");
-
-    // add columns dynamically
     if (allComplaints.length > 0) {
-
-      worksheet.columns = Object.keys(allComplaints[0]).map((key) => ({
-        header: key,
-        key: key,
-        width: 20,
-      }));
-
-      // add allComplaints
-      allComplaints.forEach((item) => {
-        worksheet.addRow(item);
-      });
+      worksheet.columns = Object.keys(allComplaints[0]).map((key) => ({ header: key, key, width: 20 }));
+      allComplaints.forEach((item) => worksheet.addRow(item));
     }
-
-    // header style
-    worksheet.getRow(1).font = {
-      bold: true,
-    };
-
-    // generate csv buffer
+    worksheet.getRow(1).font = { bold: true };
     const csvBuffer = await workbook.csv.writeBuffer();
-
-    // create blob
-    const blob = new Blob([csvBuffer], {
-      type: "text/csv;charset=utf-8;",
-    });
-
-    // download file
-    saveAs(blob, "Complaints.csv");
+    saveAs(new Blob([csvBuffer], { type: "text/csv;charset=utf-8;" }), "Complaints.csv");
   };
 
   const downloadPDF = () => {
-
-    // landscape mode
     const doc = new jsPDF("landscape");
-
-    // PDF Heading
     doc.setFontSize(18);
     doc.text("Complaints Report", 14, 15);
-
-    // table columns
-    const tableColumn = [
-      "ID", "Title", "Description", "Unit", "Category", "Priority", "Status", "Time"
-    ];
-
-    // table rows
-    const tableRows = allComplaints.map((item) => [
-      item.complaint_id,
-      item.title,
-      item.description,
-      item.unit,
-      item.category_name,
-      item.priority,
-      item.status,
-      item.created_at
-    ]);
-
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-
-      // table start after heading
-      startY: 25,
-
-      styles: {
-        fontSize: 8,
-        cellPadding: 3,
-      },
-
-      headStyles: {
-        fillColor: [13, 110, 253],
-      },
-
-      theme: "grid",
-    });
-
+    const tableColumn = ["ID", "Title", "Description", "Unit", "Category", "Priority", "Status", "Time"];
+    const tableRows = allComplaints.map((item) => [item.complaint_id, item.title, item.description, item.unit, item.category_name, item.priority, item.status, item.created_at]);
+    autoTable(doc, { head: [tableColumn], body: tableRows, startY: 25, styles: { fontSize: 8, cellPadding: 3 }, headStyles: { fillColor: [13, 110, 253] }, theme: "grid" });
     doc.save("ComplaintsData.pdf");
   };
 
   const handleExport = () => {
-
-    if (activeTab === "excel") {
-      downloadExcel();
-      setShowModal(false)
-    }
-
-    else if (activeTab === "csv") {
-      downloadCSV();
-      setShowModal(false)
-    }
-
-    else
-      if (activeTab === "pdf") {
-        downloadPDF();
-        setShowModal(false)
-      }
+    if (activeTab === "excel") { downloadExcel(); setShowModal(false) }
+    else if (activeTab === "csv") { downloadCSV(); setShowModal(false) }
+    else if (activeTab === "pdf") { downloadPDF(); setShowModal(false) }
   };
 
   const timeAgo = (utcDate) => {
-
-    // UTC date convert
     const past = new Date(utcDate);
-
-    // current UTC time
     const now = new Date();
-
     const seconds = Math.floor((now - past) / 1000);
-
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
-
-    if (days > 0) {
-      return `${days} day${days > 1 ? "s" : ""} ago`;
-    }
-
-    if (hours > 0) {
-      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-    }
-
-    if (minutes > 0) {
-      return `${minutes} min ago`;
-    }
-
+    if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    if (minutes > 0) return `${minutes} min ago`;
     return "Just now";
   };
 
-const filteredData = allComplaints.filter((item) => {
+  const filteredData = allComplaints.filter((item) => {
+    const matchesTab = tab === "" || item.status === tab;
+    const matchesStatus = filterStatus === "" || item.status?.toLowerCase() === filterStatus.toLowerCase();
+    const matchesSearch = !search || item.title?.toLowerCase().includes(search.toLowerCase()) || item.description?.toLowerCase().includes(search.toLowerCase()) || item.unit?.toLowerCase().includes(search.toLowerCase());
+    const complaintDate = item.created_at ? new Date(item.created_at) : null;
+    const matchesStartDate = !startDate || (complaintDate && complaintDate >= new Date(startDate));
+    const matchesEndDate = !endDate || (complaintDate && complaintDate <= new Date(endDate + "T23:59:59"));
+    return matchesTab && matchesStatus && matchesSearch && matchesStartDate && matchesEndDate;
+  });
 
-  // Tab filter
-  const matchesTab =
-    tab === "" || item.status === tab;
-
-  // Status filter
-  const matchesStatus =
-    filterStatus === "" ||
-    item.status?.toLowerCase() === filterStatus.toLowerCase();
-
-  // Search filter
-  const matchesSearch =
-    !search ||
-    item.title?.toLowerCase().includes(search.toLowerCase()) ||
-    item.description?.toLowerCase().includes(search.toLowerCase()) ||
-    item.unit?.toLowerCase().includes(search.toLowerCase());
-
-  // Date filter
-  const complaintDate = item.created_at
-    ? new Date(item.created_at)
-    : null;
-
-  const matchesStartDate =
-    !startDate ||
-    (complaintDate &&
-      complaintDate >= new Date(startDate));
-
-  const matchesEndDate =
-    !endDate ||
-    (complaintDate &&
-      complaintDate <= new Date(endDate + "T23:59:59"));
-
-  return (
-    matchesTab &&
-    matchesStatus &&
-    matchesSearch &&
-    matchesStartDate &&
-    matchesEndDate
-  );
-});
-  //pagination 
   const per = 5;
   const total = Math.ceil(filteredData.length / per);
+  const rows = filteredData.slice((page - 1) * per, page * per);
 
-  const rows = filteredData.slice(
-    (page - 1) * per,
-    page * per
-  );
+  const handleStatusChange = (value) => {
+    setFilterStatus(value);
+    setPage(1);
+  };
 
-  // Single handler for both tabs and dropdown — sets filterStatus and triggers useEffect
-    const handleStatusChange = (value) => {
-        setFilterStatus(value);
-        setPage(1);
-    };
   return (
     <>
       <div className="pg cp-wrap">
@@ -408,25 +214,17 @@ const filteredData = allComplaints.filter((item) => {
         <div className="d-flex justify-content-between align-items-center mb-4 text-start">
           <div>
             <h4 className="cp-title">Complaints</h4>
-            <p className="cp-sub">
-              Manage and track all society complaints
-            </p>
+            <p className="cp-sub">Manage and track all society complaints</p>
           </div>
           <div className='d-flex'>
-            {/* <button className="btn-ol" onClick={() => setShow(true)}>⬇ Export</button> */}
-            <button
-              className="btn-ol ms-2"
-              onClick={() => setShow(true)}
-            >
+            <button className="btn-ol ms-2" onClick={() => setShow(true)}>
               <CgExport /> Export
             </button>
-            <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("createComplaints")}>+ Log Complaint</button>
-
+            <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("createComplaints")}>
+              + Log Complaint
+            </button>
           </div>
-
         </div>
-
-        
 
         {/* Stats */}
         <div className="row g-3 mb-4">
@@ -438,94 +236,58 @@ const filteredData = allComplaints.filter((item) => {
           ].map(([v, l, cls]) => (
             <div className="col-6 col-md-3" key={l}>
               <div className={`tile bg-white ${cls}`}>
-                <div className=" text-start fw-bold">{l}</div>
+                <div className="text-start fw-bold">{l}</div>
                 <div className="tile-val text-start mt-1">{v}</div>
               </div>
             </div>
           ))}
         </div>
 
-             
-
+        {/* Tabs */}
         <div className='row'>
           <div className='col-lg-7'>
-            <div className="NoticeBoardTabs mt-3 bg-white"
-            >
+            <div className="NoticeBoardTabs mt-3 bg-white">
               {tabs.map((t) => (
                 <button
                   key={t.id}
                   onClick={() => { setTab(t.value); setPage(1) }}
                   className={`NoticeBoardTabs-btn ${tab === t.value ? "active" : ""}`}
                 >
-                  {t.icon} {t.id}
+                  {t.id}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-                {/* ── Filter row: Date From + Date To + Search (same row) ── */}
+        {/* Filters */}
         <div className="row g-2 mt-3 mb-3 align-items-center">
- 
-          {/* Date From */}
           <div className="col-md-3">
-            <input
-              type="date"
-              className="form-control"
-              value={startDate}
-              onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
-            />
-          </div>
-
-          {/* Date To */}
-          <div className="col-md-3">
-            <input
-              type="date"
-              className="form-control"
-              value={endDate}
-              onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
-            />
-          </div>
-
-          {/* Search — same row, right side */}
-          <div className="col-md-3">
-            <div className="d-flex gap-2">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search by title, unit..."
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              />
-              {/* <button
-                className="btn btn-primary"
-                onClick={() => setPage(1)}
-              >
-                <FiSearch />
-              </button> */}
-            </div>
+            <input type="date" className="form-control" value={startDate} onChange={(e) => { setStartDate(e.target.value); setPage(1); }} />
           </div>
           <div className="col-md-3">
-           <button
-            className="btn-ol ms-2"
-            onClick={() => setShow(true)}
-            >
-          <CgExport /> Export
-        </button>
+            <input type="date" className="form-control" value={endDate} onChange={(e) => { setEndDate(e.target.value); setPage(1); }} />
+          </div>
+          <div className="col-md-3">
+            <input type="text" className="form-control" placeholder="Search by title, unit..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+          </div>
+          <div className="col-md-3">
+            <button className="btn-ol ms-2" onClick={() => setShow(true)}>
+              <CgExport /> Export
+            </button>
+          </div>
         </div>
-        </div>
-        {/* Table */}
+
+        {/* Table view for resolved/closed */}
         {(tab !== "" && tab !== "open" && tab !== "in_progress") &&
-          <div className="sv-card p-0 overflow-hidden" >
+          <div className="sv-card p-0 overflow-hidden">
             <div className="cp-table-wrap">
               <table className="sv-tbl">
                 <thead>
                   <tr>
-                    {["ID", "Title", "Description", "Unit", "Category", "Priority", "Status", "Time"]
-                      .map(h => <th key={h}>{h}</th>)}
+                    {["ID", "Title", "Description", "Unit", "Category", "Priority", "Status", "Time"].map(h => <th key={h}>{h}</th>)}
                   </tr>
                 </thead>
-
                 <tbody>
                   {rows.map(c => (
                     <tr key={c.complaint_id} className="text-start">
@@ -533,40 +295,12 @@ const filteredData = allComplaints.filter((item) => {
                       <td className="cp-title-cell">{c.title}</td>
                       <td className="cp-title-cell">{c.description}</td>
                       <td className="cp-muted">{c.unit}</td>
+                      <td><Badge label={c.category_name} /></td>
                       <td>
-                        <Badge label={c.category_name} />
+                        <Badge label={c.priority} c={c.priority === "high" ? "red" : c.priority === "medium" ? "orange" : "gray"} />
                       </td>
-                      <td>
-                        <Badge
-                          label={c.priority}
-                          c={
-                            c.priority === "high"
-                              ? "red"
-                              : c.priority === "medium"
-                                ? "orange"
-                                : "gray"
-                          }
-                        />
-                      </td>
-                      <td style={{ cursor: "pointer" }}
-                        onClick={() => {
-                          setSelectedData(c);
-                          setStatus(c.status);       // 👈 yeh already sahi hai
-                          setComments("");           // 👈 optional: reset comments
-                          setModalType("status");
-                          setComplaintId(c.complaint_id)
-                          setShowModal(true);
-                        }}>
-                        <Badge label={c.status}
-                          c={
-                            c.status === "open"
-                              ? "red"
-                              : c.status === "resolved"
-                                ? "green"
-                                : c.status === "in_progress"
-                                  ? "orange"
-                                  : "gray"
-                          } />
+                      <td style={{ cursor: "pointer" }} onClick={() => { setSelectedData(c); setStatus(c.status); setComments(""); setModalType("status"); setComplaintId(c.complaint_id); setShowModal(true); }}>
+                        <Badge label={c.status} c={c.status === "open" ? "red" : c.status === "resolved" ? "green" : c.status === "in_progress" ? "orange" : "gray"} />
                       </td>
                       <td className="cp-muted">{(c.created_at).split("T")[1]}</td>
                     </tr>
@@ -574,386 +308,188 @@ const filteredData = allComplaints.filter((item) => {
                 </tbody>
               </table>
             </div>
-
-            {/* Pagination */}
-            <Pagination
-              page={page}
-              total={total}
-              onChange={(p) => setPage(p)}
-            />
+            <Pagination page={page} total={total} onChange={(p) => setPage(p)} />
           </div>
         }
 
-        {
-          (tab === "" || tab === "open" || tab === "in_progress") &&
-          rows.map((data,index) => {
-            return (
-              <div className="card border-0 shadow-sm rounded-4 p-3 mt-2" key={data.complaint_id}>
+        {/* Card view for all/open/in_progress */}
+        {(tab === "" || tab === "open" || tab === "in_progress") &&
+          rows.map((data) => (
+            <div className="card border-0 shadow-sm rounded-4 p-3 mt-2" key={data.complaint_id}>
 
-                {/* Top Section */}
-                <div className="d-flex justify-content-between align-items-start">
-
-                  <div>
-                    <p className="text-secondary fw-semibold mb-1 text-start">
-                      #CMP-2025-089
-                    </p>
-
-                    <h5 className="fw-bold mb-2">
-                      {data.title}
-                    </h5>
-                  </div>
-
-                  {/* Status */}
-
-                  {/* <Badge label={data.status} /> */}
-                  <Badge label={data.status}
-                    c={
-                      data.status === "open"
-                        ? "red"
-                        : data.status === "resolved"
-                          ? "green"
-                          : data.status === "in_progress"
-                            ? "orange"
-                            : "grey"
-                    } />
+              {/* Top */}
+              <div className="d-flex justify-content-between align-items-start">
+                <div>
+                  <p className="text-secondary fw-semibold mb-1 text-start">
+                    #{data.complaint_id}
+                  </p>
+                  <h5 className="fw-bold mb-2">{data.title}</h5>
                 </div>
-
-                {/* Details Row */}
-                <div className="d-flex flex-wrap gap-4 text-secondary small ">
-
-                  <div className="d-flex align-items-center gap-2">
-                    <FiTag />
-                    <span>{data.category_name}</span>
-                  </div>
-
-                  <div className="d-flex align-items-center gap-2">
-                    <FiMapPin />
-                    <span>{data.unit}</span>
-                  </div>
-
-                  <div className="d-flex align-items-center gap-2">
-                    <FiUser />
-                    <span>Rahul Sharma (A-401)</span>
-                  </div>
-
-                  <div className="d-flex align-items-center gap-2">
-                    <FiClock />
-                    <span>{timeAgo(data.created_at)}</span>
-                  </div>
-
-                  <div className="d-flex align-items-center gap-2 text-danger">
-                    <FiAlertCircle />
-                    <span>{data.priority}</span>
-                  </div>
-                </div>
-
-                <hr style={{ height: "2px" }} />
-
-                {/* Buttons */}
-                <div className="d-flex justify-content-end gap-3 ">
-                  <button className="btn btn-sm btn-ad grey-btn">
-                    View Details
-                  </button>
-
-                  <button className="btn btn-sm btn-ac btn-primary">
-                    Assign Staff
-                  </button>
-
-                </div>
-
+                <Badge
+                  label={data.status}
+                  c={data.status === "open" ? "red" : data.status === "resolved" ? "green" : data.status === "in_progress" ? "orange" : "grey"}
+                />
               </div>
-            )
-          })
 
+              {/* Details */}
+              <div className="d-flex flex-wrap gap-4 text-secondary small">
+                <div className="d-flex align-items-center gap-2"><FiTag /><span>{data.category_name}</span></div>
+                <div className="d-flex align-items-center gap-2"><FiMapPin /><span>{data.unit}</span></div>
+                <div className="d-flex align-items-center gap-2"><FiUser /><span>Rahul Sharma (A-401)</span></div>
+                <div className="d-flex align-items-center gap-2"><FiClock /><span>{timeAgo(data.created_at)}</span></div>
+                <div className="d-flex align-items-center gap-2 text-danger"><FiAlertCircle /><span>{data.priority}</span></div>
+              </div>
+
+              <hr style={{ height: "2px" }} />
+
+              {/* Buttons */}
+              <div className="d-flex justify-content-end gap-3">
+                <button
+                  className="btn btn-sm btn-ad grey-btn"
+                  onClick={() => {
+                    setSelectedComplaintId(data.complaint_id);
+                    setActive("viewComplaintDetails");
+                  }}
+                >
+                  View Details
+                </button>
+
+                {/* ── ASSIGN STAFF BUTTON ── */}
+                <button
+                  className="btn btn-sm btn-ac btn-primary"
+                  onClick={() => {
+                    setAssignComplaintId(data.complaint_id);
+                    setShowAssignModal(true);
+                  }}
+                >
+                  Assign Staff
+                </button>
+              </div>
+
+            </div>
+          ))
         }
-
-
 
       </div>
 
+      {/* ── ASSIGN STAFF MODAL ── */}
+      <AssignStaffModal
+        show={showAssignModal}
+        setShow={setShowAssignModal}
+        complaintId={assignComplaintId}
+        onAssigned={() => getComplaints(societyId)}
+      />
 
+      {/* Status/Priority Modal */}
       {showModal && modalConfig[modalType] && (
         <>
           <div className="modal-backdrop fade show"></div>
-
           <div className="modal show d-block">
             <div className="modal-dialog modal-md">
               <div className="modal-content">
-
-                {/* Header */}
                 <div className="modal-header">
-                  <h5 className="modal-title">
-                    {modalConfig[modalType].title}
-                  </h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setShowModal(false)}
-                  ></button>
+                  <h5 className="modal-title">{modalConfig[modalType].title}</h5>
+                  <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
                 </div>
-
-                {/* Body */}
                 <div className="modal-body">
                   <div className="container-fluid">
-
                     <div className="row align-items-center mb-1">
                       <div className="col-md-3 text-start">
-                        <label className="fw-semibold">
-                          {modalConfig[modalType].label}
-                        </label>
+                        <label className="fw-semibold">{modalConfig[modalType].label}</label>
                       </div>
-
                     </div>
                     <div className='row'>
                       <div className="col-md-12">
                         <div className="d-flex gap-4 flex-wrap">
-
                           {modalConfig[modalType].options.map((opt) => (
-                            <label
-                              key={opt.value}
-                              className="form-check d-flex align-items-center gap-2"
-                            >
-                              <input
-                                className="form-check-input"
-                                type="radio"
-                                name={modalType}
-                                value={opt.value}
-                                checked={modalConfig[modalType].value === opt.value}
-                                onChange={(e) =>
-                                  modalConfig[modalType].setValue(e.target.value)
-                                }
-                              />
+                            <label key={opt.value} className="form-check d-flex align-items-center gap-2">
+                              <input className="form-check-input" type="radio" name={modalType} value={opt.value} checked={modalConfig[modalType].value === opt.value} onChange={(e) => modalConfig[modalType].setValue(e.target.value)} />
                               <span>{opt.label}</span>
                             </label>
                           ))}
-
                         </div>
                       </div>
                     </div>
-
                     <div className="row align-items-center mb-1 mt-3">
                       <div className="col-md-3 text-start">
-                        <label className="fw-semibold">
-                          {modalConfig[modalType].commentLabel}
-                        </label>
+                        <label className="fw-semibold">{modalConfig[modalType].commentLabel}</label>
                       </div>
-
                     </div>
                     <div className='row'>
                       <div className="col-md-12">
-                        <div className="d-flex gap-4 flex-wrap">
-
-                          <textarea
-                            className="form-control"
-                            rows={3}
-                            placeholder="Enter comments..."
-                            value={modalConfig[modalType].commentValue || ""}
-                            onChange={(e) =>
-                              modalConfig[modalType].setCommentValue(e.target.value)
-                            }
-                          />
-                        </div>
+                        <textarea className="form-control" rows={3} placeholder="Enter comments..." value={modalConfig[modalType].commentValue || ""} onChange={(e) => modalConfig[modalType].setCommentValue(e.target.value)} />
                       </div>
                     </div>
-
                   </div>
                 </div>
-
-                {/* Footer */}
                 <div className="modal-footer">
                   <div className="d-flex gap-2 justify-content-end">
-                    <button
-                      className="btn-ol"
-                      onClick={() => setShowModal(false)}
-                    >
-                      Cancel
-                    </button>
-
-                    <button
-                      className="btn-ac px-4"
-                      onClick={() => {
-                        console.log("Updated:", modalConfig[modalType].value);
-                        UpdateData()
-                        setShowModal(false);
-
-                      }}
-                    >
-                      Update
-                    </button>
+                    <button className="btn-ol" onClick={() => setShowModal(false)}>Cancel</button>
+                    <button className="btn-ac px-4" onClick={() => { UpdateData(); setShowModal(false); }}>Update</button>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>
         </>
       )}
 
+      {/* Export Modal */}
       {show && (
         <>
-
           <div className="modal-backdrop fade show"></div>
-
-
           <div className="modal show d-block">
             <div className="modal-dialog modal-md">
               <div className="modal-content">
                 <div className="modal-header">
                   <h1 className="modal-title fs-5">Export Data</h1>
-
-
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setShow(false)}
-                  ></button>
+                  <button type="button" className="btn-close" onClick={() => setShow(false)}></button>
                 </div>
-
-
                 <div className="modal-body">
-                  <h6 className=" text-start" style={{ fontWeight: "bold" }}>Select Format</h6>
+                  <h6 className="text-start" style={{ fontWeight: "bold" }}>Select Format</h6>
                   <div className="row mb-4">
-
-                    {/* Excel */}
-                    <div className="col-md-4">
-                      <div
-                        className={`format-card text-center p-3 rounded-3 ${activeTab === "excel" ? "active-format" : ""
-                          }`}
-                        onClick={() => { setActiveTab("excel") }}
-                      >
-                        <BsFiletypeXls
-                          className={
-                            activeTab === "excel"
-                              ? "text-primary"
-                              : "text-secondary"
-                          }
-                          size={20}
-                        />
-
-                        <p
-                          className={`fw-semibold mb-0 mt-1 ${activeTab === "excel"
-                            ? "text-primary"
-                            : "text-secondary"
-                            }`}
-                        >
-                          Excel
-                        </p>
+                    {[
+                      { key: "excel", Icon: BsFiletypeXls, label: "Excel" },
+                      { key: "csv",   Icon: BsFiletypeCsv, label: "CSV" },
+                      { key: "pdf",   Icon: BsFiletypePdf, label: "PDF" },
+                    ].map(({ key, Icon, label }) => (
+                      <div className="col-md-4" key={key}>
+                        <div className={`format-card text-center p-3 rounded-3 ${activeTab === key ? "active-format" : ""}`} onClick={() => setActiveTab(key)}>
+                          <Icon className={activeTab === key ? "text-primary" : "text-secondary"} size={20} />
+                          <p className={`fw-semibold mb-0 mt-1 ${activeTab === key ? "text-primary" : "text-secondary"}`}>{label}</p>
+                        </div>
                       </div>
-                    </div>
-
-                    {/* CSV */}
-                    <div className="col-md-4">
-                      <div
-                        className={`format-card text-center p-3 rounded-3 ${activeTab === "csv" ? "active-format" : ""
-                          }`}
-                        onClick={() => { setActiveTab("csv") }}
-                      >
-                        <BsFiletypeCsv
-                          className={
-                            activeTab === "csv"
-                              ? "text-primary"
-                              : "text-secondary"
-                          }
-                          size={20}
-                        />
-
-                        <p
-                          className={`fw-semibold mb-0 mt-1 ${activeTab === "csv"
-                            ? "text-primary"
-                            : "text-secondary"
-                            }`}
-                        >
-                          CSV
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* PDF */}
-                    <div className="col-md-4">
-                      <div
-                        className={`format-card text-center p-3 rounded-3 ${activeTab === "pdf" ? "active-format" : ""
-                          }`}
-                        onClick={() => { setActiveTab("pdf") }}
-                      >
-                        <BsFiletypePdf
-                          className={
-                            activeTab === "pdf"
-                              ? "text-primary"
-                              : "text-secondary"
-                          }
-                          size={20}
-                        />
-
-                        <p
-                          className={`fw-semibold mb-0 mt-1 ${activeTab === "pdf"
-                            ? "text-primary"
-                            : "text-secondary"
-                            }`}
-                        >
-                          PDF
-                        </p>
-                      </div>
-                    </div>
-
+                    ))}
                   </div>
-
-
-                  <h6 className=" text-start fw-bold">Data Range</h6>
-
-
+                  <h6 className="text-start fw-bold">Data Range</h6>
                   <div className="range-card active-range d-flex justify-content-between align-items-center mb-3">
                     <div className="d-flex align-items-center gap-3">
-                      <input className="form-check-input" type="radio" checked />
+                      <input className="form-check-input" type="radio" defaultChecked />
                       <h6 className='fw-bold mt-1'>All Data</h6>
                     </div>
-
                     <span className="text-muted mt-1"><h6>{allComplaints.length} records</h6></span>
                   </div>
-
-
                   <div className="range-card d-flex justify-content-between align-items-center mb-3">
                     <div className="d-flex align-items-center gap-3">
                       <input className="form-check-input" type="radio" />
                       <h6 className="fw-bold mt-1">Current Search results</h6>
                     </div>
-
-                    <h6 className="text-muted mt-1">40 records</h6>
+                    <h6 className="text-muted mt-1">{filteredData.length} records</h6>
                   </div>
-
-
-                  <div className="range-card d-flex align-items-center gap-3">
-                    <div className="d-flex align-items-center gap-3">
-                      <input className="form-check-input" type="radio" />
-                      <h6 className="fw-bold mt-1">Custom date range</h6>
-                    </div>
-
-                  </div>
-
                 </div>
-
-
                 <div className="modal-footer">
-
-                  <button className="btn-sm btn btn-outline-secondary" onClick={() => setShow(false)}>
-                    Cancel
-                  </button>
-
+                  <button className="btn-sm btn btn-outline-secondary" onClick={() => setShow(false)}>Cancel</button>
                   <button className="btn btn-sm btn-primary" onClick={handleExport}>
-                    <i className="bi bi-download me-2"></i>
-                    Export Data
+                    <i className="bi bi-download me-2"></i>Export Data
                   </button>
                 </div>
               </div>
             </div>
           </div>
-
-
         </>
       )}
-
     </>
-
   );
 }
 
-export default Complaints
+export default Complaints;

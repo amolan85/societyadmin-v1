@@ -395,8 +395,6 @@
 // }
 
 
-
-
 import { useState, useEffect, useLayoutEffect } from "react";
 import Overview from "../Overview/Overview";
 import CreateBroadcast from "../Broadcast/CreateBroadcast";
@@ -411,7 +409,9 @@ import Register from "../Register/Register";
 import { APP_CSS } from "../../components/Common/GlobalCss";
 import Complaints from "../Complaints/Complaints";
 import Broadcast from "../Broadcast/Broadcast";
-import ViewBroadcastDetails from "../Broadcast/ViewBroadcastDetails"
+import ViewBroadcastDetails from "../Broadcast/ViewBroadcastDetails";
+import ViewComplaintDetails from "../Complaints/ViewComplaintDetails";
+import AssignStaffModal from "../Complaints/AssignStaffModal";
 import { GetSessionData, } from "../../utils/SessionManagement";
 import CreatePoll from "../Polls/CreatePoll";
 import CreateComplaints from "../Complaints/CreateComplaints";
@@ -506,7 +506,7 @@ const PARENT_MAP = {
   parkingHistory: "registers",
   viewUnit: "registers",
 
-  // Visitors ke child pages  
+  // Visitors ke child pages
   visitorDetailsPage: "visitorRegister",
 
   // Communication
@@ -520,6 +520,8 @@ const PARENT_MAP = {
 
   // Operations
   createComplaints: "complaints",
+  viewComplaintDetails: "complaints",       // ← ADDED
+  AssignStaffModal: "complaints", 
   createStaff: "staff",
   rentalsApplication: "rentals",
   parkingList: "parkingDashboard",
@@ -529,9 +531,7 @@ const PARENT_MAP = {
   viewParkingDetails: "parkingDashboard",
   visitorDetails: "parkingDashboard",
 
-  // ↓ yeh do lines change karo
-  vehicleDetailsPage: "vehicleRegister",  // "registers" → "vehicleRegister"
-  // vehicleRegister line hatao — ye khud nav item hai, child nahi
+  vehicleDetailsPage: "vehicleRegister",
 };
 
 const TITLES = {
@@ -559,6 +559,8 @@ const TITLES = {
   rules: ["Administration", "Rules & By-laws"],
   complaints: ["Operations", "Complaints"],
   createComplaints: ["Operations", "Create Complaints"],
+  viewComplaintDetails: ["Operations", "Complaints", "View Complaint"],  // ← ADDED
+  AssignStaffModal:["Operations", "Complaints", "Assign Staff"],  // ← ADDED
   parkingList: ["Operations", "Parking"],
   parkingDashboard: ["Operations", "Parking"],
   visitorParking: ["Operations", "Parking", "Visitor Parking"],
@@ -604,6 +606,9 @@ export default function App() {
   const [selectedSlotData, setSelectedSlotData] = useState(null);
   const [vehicleId, setVehicleId] = useState(null);
   const [societyId, setSocietyId] = useState("");
+  const [selectedComplaintId, setSelectedComplaintId] = useState(null);  // ← ADDED
+  const [selectedStaffId, setSelectedStaffId] = useState(null);
+
   useLayoutEffect(() => {
     if (!document.getElementById("bs-css")) {
       const l = document.createElement("link");
@@ -637,11 +642,13 @@ export default function App() {
     registers: <Register setActive={setActive} />,
     registerHistory: <RegisterHistory setActive={setActive} />,
     rules: <Rules />,
-    complaints: <Complaints setActive={setActive} />,
+    complaints: <Complaints setActive={setActive} setSelectedComplaintId={setSelectedComplaintId} />,  // ← UPDATED
     createComplaints: <CreateComplaints setActive={setActive} />,
+    viewComplaintDetails: <ViewComplaintDetails setActive={setActive} complaintId={selectedComplaintId} />,  // ← ADDED
+    AssignStaffModal: <AssignStaffModal setActive={setActive} selectedStaffId={setSelectedStaffId} />,
     parkingList: <ParkingList setActive={setActive} />,
     parkingDashboard: <ParkingDashboard setActive={setActive} setViolationId={setViolationId} setVisitorParkingId={setVisitorParkingId} setVehicleId={setVehicleId} />,
-    visitorParking: <VisitorParkingList setActive={setActive} setVisitorParkingId={setVisitorParkingId} /* setViolationId={setViolationId} */ />,
+    visitorParking: <VisitorParkingList setActive={setActive} setVisitorParkingId={setVisitorParkingId} />,
     violationAlerts: <ViolationAlertsList setActive={setActive} setViolationId={setViolationId} />,
     parkingRules: <ParkingRules setActive={setActive} />,
     viewParkingDetails: <ViewParkingDetails setActive={setActive} violationId={violationId} setVisitorParkingId={setVisitorParkingId} />,
@@ -660,13 +667,10 @@ export default function App() {
     visitorDetailsPage: <GetVisitorDetails setActive={setActive} visitorId={visitorId} />,
     vehicleRegister: <ListVehicleRegister setActive={setActive} setVehicleId={setVehicleId} />,
     vehicleDetailsPage: <GetVehicleDetails setActive={setActive} vehicleId={vehicleId} />,
-    // ✅ BILLING
     billing: <Billing setActive={setActive} />,
     flatApprovals: <FlatApprovals setActive={setActive} />,
   };
 
-
-  // const [sec, pg] = TITLES[active] || ["", "", "", ""];
   const breadcrumbs = (() => {
     const base = TITLES[active] || [];
     if (active === "parkingHistory" && selectedSlotData?.slot_number) {
@@ -676,24 +680,20 @@ export default function App() {
   })();
   const pg = breadcrumbs[breadcrumbs.length - 1] || "";
 
-  // Load session data on component mount for get session data
   useEffect(() => {
     SessionData()
   }, [])
 
-  //fetch get session data
   const SessionData = async () => {
     const data = await GetSessionData()
     console.log(data.data)
     const flats = data.data.flats[0]
     setSocietyId(flats.society_id)
-    //setSocietyName(flats.society_name)
     setFirstName(data.data.first_name)
     setLastName(data.data.last_name)
     setProfileUrl(data.data.profile_url)
   }
 
-  //log out function
   const LogoutData = async () => {
     try {
       await LogoutApi(societyId);
@@ -702,6 +702,7 @@ export default function App() {
       console.log(error);
     }
   };
+
   return (
     <>
       <div className="app-shell">
@@ -734,11 +735,6 @@ export default function App() {
         <div className="main-area">
           <header className="topbar">
             <button className="tb-toggle" onClick={() => setCollapsed(c => !c)}>☰</button>
-            {/* <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
-              <span style={{ color: "var(--muted)" }}>{sec}</span>
-              <span style={{ color: "var(--muted)" }}>/</span>
-              <span className="tx-blue" style={{ fontWeight: 600, color: "blue" }}>{pg}</span>
-            </div> */}
             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
               {breadcrumbs.map((crumb, i) => (
                 <div key={i}>
@@ -759,14 +755,10 @@ export default function App() {
               })}</span>
 
               <button className="tb-avatar">🔔</button>
-              <button className="tb-avatar" style={{ background: "#e2e8f0", color: "var(--text)" }}><img src={
-                profileUrl ||
-                "../src/assets/profile.png"
-              } alt="Profile" className="img-fluid rounded-circle" /></button>
-              {/* <span className="tb-name">{firstName} {lastName}</span> */}
+              <button className="tb-avatar" style={{ background: "#e2e8f0", color: "var(--text)" }}>
+                <img src={profileUrl || "../src/assets/profile.png"} alt="Profile" className="img-fluid rounded-circle" />
+              </button>
               <div className="dropdown">
-
-                {/* Name */}
                 <span
                   className="tb-name dropdown-toggle"
                   role="button"
@@ -775,10 +767,7 @@ export default function App() {
                 >
                   {firstName} {lastName}
                 </span>
-
-                {/* Dropdown */}
                 <ul className="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-3 ms-2 mr-0">
-
                   <li>
                     <button
                       className="btn btn-sm btn-secondary dropdown-item"
@@ -788,11 +777,8 @@ export default function App() {
                       Logout
                     </button>
                   </li>
-
                 </ul>
-
               </div>
-              {/* <button className="btn btn-secondary"><span className="tb-name" onClick={LogoutData}>Logout</span></button> */}
             </div>
           </header>
 
@@ -801,9 +787,6 @@ export default function App() {
           </main>
         </div>
       </div>
-
     </>
-
-
   );
 }

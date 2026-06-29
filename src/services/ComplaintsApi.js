@@ -51,10 +51,11 @@ export const createComplaintsApi = async (societyId, userId, category, unitId, t
 }
 
 //update complaint status api
-export const updateComplaintStatusApi = async (complaintId, status, comment) => {
+export const updateComplaintStatusApi = async (complaintId,societyId, status, comment) => {
     const url = UrlData + 'complaint/UpdateComplaintStatus';
     const data = {
-        complaint_id: "2",
+        complaint_id: complaintId,
+        society_id: societyId,
         status: status,
         comment: comment,
     }
@@ -73,10 +74,11 @@ export const updateComplaintStatusApi = async (complaintId, status, comment) => 
 }
 
 //update complaint priority api
-export const updateComplaintPriorityApi = async (complaintId, priority, comment) => {
+export const updateComplaintPriorityApi = async (complaintId,societyId, priority, comment) => {
     const url = UrlData + 'complaint/UpdateComplaintStatus';
     const data = {
         complaint_id: complaintId,
+        society_id: societyId,
         priority: priority,
         comment: comment,
     }
