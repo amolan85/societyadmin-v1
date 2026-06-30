@@ -112,16 +112,18 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
     //validation for form
     const validateForm = () => {
-        let errors = {};
-        if (!subject) {
-            errors.subject = "required";
-        }
-        if (!content) {
-            errors.content = "required";
-        }
-        return errors;
-    };
+    const errors = {};
 
+    if (!subject || subject.trim() === "") {
+        errors.subject = "required";
+    }
+
+    if (!content || content.trim() === "") {
+        errors.content = "required";
+    }
+
+    return errors;
+};
     //function for submit broadcast
     const SubmitBroadcast = async (status) => {
         const validationErrors = validateForm();
@@ -175,6 +177,14 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
     };
 
 
+    // ── clears a single field error as soon as user fills it ──
+    const clearError = (field) => {
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: "" }));
+        }
+    };
+
+
     return (
         <div className="pg row g-4 bc-wrap">
             {/* LEFT */}
@@ -207,7 +217,11 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
                     <input className={`sv-in mb-3 ${errors.subject ? "error-input" : ""}`} placeholder="Example: Scheduled Maintenance of Lift B"
                         value={subject}
-                        onChange={(e) => setSubject(e.target.value)} />
+                        onChange={(e) => {
+                            setSubject(e.target.value);
+                            clearError("subject"); 
+                        }
+                        } />
 
                     <div className='d-flex'>
                         <label className="sv-lb">Content <span className='text-danger'>*</span></label>
@@ -227,7 +241,10 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
                             className="sv-ta bc-editor-textarea"
                             placeholder="Type your announcement details here…"
                             value={content}
-                            onChange={(e) => setContent(e.target.value)}
+                            onChange={(e) => {
+                                setContent(e.target.value);
+                             clearError("content"); 
+                            }}
                         />
                     </div>
 

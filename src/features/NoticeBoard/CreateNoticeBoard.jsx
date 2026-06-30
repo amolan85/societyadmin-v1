@@ -171,6 +171,13 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
         }
     };
 
+     // ── clears a single field error as soon as user fills it ──
+    const clearError = (field) => {
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: "" }));
+        }
+    };
+
     //handle change for channel
     const handleChannelChange = (e) => {
         const { name, checked } = e.target;
@@ -216,7 +223,10 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
 
                     <input className={`sv-in mb-3 ${errors.subject ? "error-input" : ""}`} placeholder="Example: Scheduled Maintenance of Lift B"
                         value={subject}
-                        onChange={(e) => setSubject(e.target.value)} />
+                        onChange={(e) => {
+                            setSubject(e.target.value);
+                            clearError("subject");
+                        }} />
 
                     <div className='d-flex'>
                         <label className="sv-lb">Description <span className='text-danger'>*</span></label>
@@ -236,7 +246,10 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
                             className="sv-ta bc-editor-textarea"
                             placeholder="Type your announcement details here…"
                             value={description}
-                            onChange={(e) => setDescription(e.target.value)}
+                            onChange={(e) =>{
+                                 setDescription(e.target.value);
+                                 clearError("description");
+                            }}
                         />
                     </div>
 
@@ -306,8 +319,12 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
                     {errorText && <h6 className='text-danger'>{errorText}</h6>}
                     <div className="d-flex gap-2 justify-content-end">
                         <button className="btn-ol">Preview</button>
-                        <button className="btn-ol" onClick={() => { submitNoticeBoard("draft") }}>Save Draft</button>
-                        <button className="btn-ac" onClick={() => { submitNoticeBoard("published") }}>Publish ✈</button>
+                        <button className="btn-ol" onClick={() => { 
+                            submitNoticeBoard("draft");
+                            clearError("draft"); }}>Save Draft</button>
+                        <button className="btn-ac" onClick={() => { 
+                            submitNoticeBoard("published") ;
+                            clearError("published"); }}>Publish ✈</button>
                     </div>
 
                 </div>

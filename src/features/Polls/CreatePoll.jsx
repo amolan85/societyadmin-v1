@@ -31,6 +31,13 @@ const CreatePoll = ({ setActive, pollId }) => {
         }
     }, [pollId, societyId]);
 
+    
+    // ── clears a single field error as soon as user fills it ──
+    const clearError = (field) => {
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: "" }));
+        }
+    };
 
     //function for session data
     const SessionData = async () => {
@@ -133,6 +140,8 @@ const CreatePoll = ({ setActive, pollId }) => {
                 toast.success("Poll created successfully!")
 
             }
+             // Redirect after success
+            setActive("polls")
 
         } catch (error) {
             toast.error(error);
@@ -163,7 +172,11 @@ const CreatePoll = ({ setActive, pollId }) => {
 
                     <input className={`sv-in mb-3 ${errors.title ? "error-input" : ""}`} placeholder="Example: Scheduled Maintenance of Lift B"
                         value={title}
-                        onChange={(e) => setTitle(e.target.value)} />
+                        onChange={(e) => {
+                            setTitle(e.target.value);
+                            clearError("title");
+                        }
+                        } />
 
                     <div className='d-flex'>
                         <label className="sv-lb" >Description</label>
@@ -198,7 +211,11 @@ const CreatePoll = ({ setActive, pollId }) => {
                                         }`}
                                     placeholder={`Example: Option ${index + 1}`}
                                     value={opt}
-                                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                                    onChange={(e) => {
+                                        handleOptionChange(index, e.target.value);
+                                        clearError(`option_${index}`);
+                                    }
+                                    }
                                 />
                             </div>
                         ))}
@@ -215,7 +232,11 @@ const CreatePoll = ({ setActive, pollId }) => {
                             <input className={`sv-in mb-3 ${errors.startDate ? "error-input" : ""}`} type='date'
 
                                 value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)} />
+                                onChange={(e) => {
+                                    setStartDate(e.target.value);
+                                    clearError("startDate");
+                                    }
+                                } />
                         </div>
                         <div className='col-lg-6'>
                             <div className='d-flex'>
@@ -227,7 +248,11 @@ const CreatePoll = ({ setActive, pollId }) => {
                             <input className={`sv-in mb-3 ${errors.endDate ? "error-input" : ""}`} type='date'
 
                                 value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)} />
+                                onChange={(e) => {
+                                    setEndDate(e.target.value);
+                                    clearError("endDate");
+                                }
+                                } />
                         </div>
                     </div>
 
