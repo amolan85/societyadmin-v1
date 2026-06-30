@@ -1,13 +1,4 @@
 // VehicleModal.jsx
-// Reusable modal for Add Vehicle and Edit Vehicle
-// Props:
-//   show, setShow          — open/close
-//   mode                   — "add" | "edit"
-//   errors, setErrors      — validation error map
-//   errorText              — server-side error string
-//   handleSubmit           — submit handler
-//   All form field value + setter pairs
-
 const VehicleModal = ({
     show,
     setShow,
@@ -16,7 +7,6 @@ const VehicleModal = ({
     setErrors,
     errorText = "",
 
-    // Block / Flat (add mode only)
     allBlocks = [],
     allFlats = [],
     selectedBlock = "",
@@ -25,7 +15,6 @@ const VehicleModal = ({
     setSelectedFlat,
     onBlockChange,
 
-    // Fields
     vehicleNumber,
     setVehicleNumber,
 
@@ -44,7 +33,6 @@ const VehicleModal = ({
     rcDocument,
     setRcDocument,
 
-    // Display only in edit mode
     flatId = "",
 
     handleSubmit,
@@ -62,10 +50,17 @@ const VehicleModal = ({
         onClose && onClose();
     };
 
+    // ── clear a single field error as soon as user fills it ──
+    const clearError = (field) => {
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: "" }));
+        }
+    };
+
     const VEHICLE_TYPES = [
         { value: "2_wheeler", label: "2 Wheeler" },
         { value: "4_wheeler", label: "4 Wheeler" },
-        { value: "other", label: "Other" },
+        { value: "other",     label: "Other" },
     ];
 
     return (
@@ -99,7 +94,10 @@ const VehicleModal = ({
                                                 <select
                                                     className={`form-select ${errors.block ? "error-input" : ""}`}
                                                     value={selectedBlock}
-                                                    onChange={onBlockChange}
+                                                    onChange={(e) => {
+                                                        onBlockChange(e);
+                                                        clearError("block");
+                                                    }}
                                                 >
                                                     <option value="">Select Block</option>
                                                     {allBlocks.map((item, i) => (
@@ -115,8 +113,9 @@ const VehicleModal = ({
                                                 <select
                                                     className={`form-select ${errors.flatId ? "error-input" : ""}`}
                                                     value={selectedFlat}
-                                                    onChange={e => {
+                                                    onChange={(e) => {
                                                         onFlatChange ? onFlatChange(e.target.value) : setSelectedFlat(e.target.value);
+                                                        clearError("flatId");
                                                     }}
                                                 >
                                                     <option value="">Select Flat</option>
@@ -124,7 +123,6 @@ const VehicleModal = ({
                                                         <option key={f.flat_id} value={f.flat_id}>{f.flat_number}</option>
                                                     ))}
                                                 </select>
-
                                                 {selectedFlat && selectedOwnerName && (
                                                     <small className="d-block mt-1">
                                                         Owner: <span className="fw-bold">{selectedOwnerName}</span>
@@ -134,21 +132,7 @@ const VehicleModal = ({
                                         </div>
                                     )}
 
-                                    {/* In edit mode: show flat as disabled */}
-                                    {/* {isEdit && (
-                                        <div className="row g-3 mb-3">
-                                            <div className="col-6">
-                                                <label className="sv-lb">Flat / Unit</label>
-                                                <input
-                                                    className="sv-in"
-                                                    value={flatId}
-                                                    disabled
-                                                    style={{ background: "#f8fafc", color: "#64748b" }}
-                                                />
-                                            </div>
-                                        </div>
-                                    )} */}
-  {/* In edit mode: show flat as disabled */}
+                                    {/* Edit mode: flat + owner display */}
                                     {isEdit && (
                                         <div className="row g-3 mb-3">
                                             <div className="col-6">
@@ -171,6 +155,7 @@ const VehicleModal = ({
                                             </div>
                                         </div>
                                     )}
+
                                     {/* Vehicle Number + Type */}
                                     <div className="row g-3 mb-3">
                                         <div className="col-6">
@@ -182,7 +167,10 @@ const VehicleModal = ({
                                                 className={`sv-in ${errors.vehicleNumber ? "error-input" : ""}`}
                                                 placeholder="Eg. MH12AB1234"
                                                 value={vehicleNumber}
-                                                onChange={e => setVehicleNumber(e.target.value.toUpperCase())}
+                                                onChange={(e) => {
+                                                    setVehicleNumber(e.target.value.toUpperCase());
+                                                    clearError("vehicleNumber");
+                                                }}
                                             />
                                         </div>
                                         <div className="col-6">
@@ -193,7 +181,10 @@ const VehicleModal = ({
                                             <select
                                                 className={`form-select ${errors.vehicleType ? "error-input" : ""}`}
                                                 value={vehicleType}
-                                                onChange={e => setVehicleType(e.target.value)}
+                                                onChange={(e) => {
+                                                    setVehicleType(e.target.value);
+                                                    clearError("vehicleType");
+                                                }}
                                             >
                                                 <option value="">Select type</option>
                                                 {VEHICLE_TYPES.map(t => (
@@ -206,7 +197,7 @@ const VehicleModal = ({
                                     {/* Model + Color */}
                                     <div className="row g-3 mb-3">
                                         <div className="col-6">
-                                            <div className="d-flex">  {/* ← d-flex wrapper add karo */}
+                                            <div className="d-flex">
                                                 <label className="sv-lb">Vehicle Model <span className="text-danger">*</span></label>
                                                 {errors.vehicleModel && <span className="text-danger mx-2">{errors.vehicleModel}</span>}
                                             </div>
@@ -214,11 +205,14 @@ const VehicleModal = ({
                                                 className={`sv-in ${errors.vehicleModel ? "error-input" : ""}`}
                                                 placeholder="Eg. Honda City"
                                                 value={vehicleModel}
-                                                onChange={e => setVehicleModel(e.target.value)}
+                                                onChange={(e) => {
+                                                    setVehicleModel(e.target.value);
+                                                    clearError("vehicleModel");
+                                                }}
                                             />
                                         </div>
                                         <div className="col-6">
-                                            <div className="d-flex">  {/* ← d-flex wrapper add karo */}
+                                            <div className="d-flex">
                                                 <label className="sv-lb">Color <span className="text-danger">*</span></label>
                                                 {errors.color && <span className="text-danger mx-2">{errors.color}</span>}
                                             </div>
@@ -226,7 +220,10 @@ const VehicleModal = ({
                                                 className={`sv-in ${errors.color ? "error-input" : ""}`}
                                                 placeholder="Eg. White"
                                                 value={color}
-                                                onChange={e => setColor(e.target.value)}
+                                                onChange={(e) => {
+                                                    setColor(e.target.value);
+                                                    clearError("color");
+                                                }}
                                             />
                                         </div>
                                     </div>
@@ -235,15 +232,18 @@ const VehicleModal = ({
                                     <div className="row g-3 mb-3">
                                         <div className="col-6">
                                             <div className="d-flex">
-                                                <label className="sv-lb">Sticker ID <span className="text-danger">*</span></label>
-                                                {errors.stickerId && <span className="text-danger mx-2">{errors.stickerId}</span>}
+                                                <label className="sv-lb">Sticker ID  </label>
+                                                 
                                             </div>
                                             <input
                                                 className={`sv-in ${errors.stickerId ? "error-input" : ""}`}
                                                 placeholder="Auto-generated"
                                                 value={stickerId}
                                                 readOnly={!isEdit}
-                                                onChange={e => setStickerId(e.target.value)}
+                                                onChange={(e) => {
+                                                    setStickerId(e.target.value);
+                                                    clearError("stickerId");
+                                                }}
                                                 style={!isEdit ? { background: "#f8fafc", color: "#64748b" } : {}}
                                             />
                                         </div>
@@ -254,7 +254,7 @@ const VehicleModal = ({
                                         <div className="col-12">
                                             <div className="d-flex">
                                                 <label className="sv-lb">
-                                                    RC Document{!isEdit && <span className="text-danger">*</span>}
+                                                    RC Document {!isEdit && <span className="text-danger">*</span>}
                                                 </label>
                                                 {errors.rcDocument && (
                                                     <span className="text-danger mx-2">{errors.rcDocument}</span>
@@ -271,9 +271,12 @@ const VehicleModal = ({
 
                                             <input
                                                 type="file"
-                                                className="form-control"
+                                                className={`form-control ${errors.rcDocument ? "error-input" : ""}`}
                                                 accept="image/*,.pdf"
-                                                onChange={e => setRcDocument && setRcDocument(e.target.files[0])}
+                                                onChange={(e) => {
+                                                    setRcDocument && setRcDocument(e.target.files[0]);
+                                                    clearError("rcDocument");
+                                                }}
                                             />
 
                                             {isEdit && (
@@ -283,8 +286,6 @@ const VehicleModal = ({
                                             )}
                                         </div>
                                     </div>
-
-                                  
 
                                     {errorText && <h6 className="text-danger mt-2">{errorText}</h6>}
                                 </div>

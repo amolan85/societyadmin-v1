@@ -1,13 +1,5 @@
 // VisitorModal.jsx
 // Reusable modal for both Add Visitor and Edit Visitor
-// Props:
-//   show, setShow          — open/close
-//   mode                   — "add" | "edit"
-//   flatsList              — array of flat objects (only used in add mode)
-//   errors, setErrors      — validation error map
-//   errorText              — server-side error string
-//   handleSubmit           — submit handler (called on Add/Update click)
-//   All form field value + setter pairs (see prop list below)
 
 const Visitormodal = ({
     allBlocks = [],
@@ -80,7 +72,7 @@ const Visitormodal = ({
     setScheduleStartDate,
 
     scheduleEndDate,
-    setScheduleEndDate,// optional extra callback when modal is closed/cancelled
+    setScheduleEndDate,
 }) => {
     if (!show) return null;
 
@@ -89,6 +81,13 @@ const Visitormodal = ({
     const handleClose = () => {
         setShow(false);
         onClose && onClose();
+    };
+
+    // ── clears a single field error as soon as user fills it ──
+    const clearError = (field) => {
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: "" }));
+        }
     };
 
     return (
@@ -119,7 +118,6 @@ const Visitormodal = ({
                                         <div style={{
                                             background: "#f1f5f9", borderRadius: "30px",
                                             padding: "4px", display: "flex", width: "100%", marginTop: "6px",
-                                            // disable toggle in edit mode — type cannot change after creation
                                             opacity: isEdit ? 0.6 : 1,
                                             pointerEvents: isEdit ? "none" : "auto",
                                         }}>
@@ -152,7 +150,10 @@ const Visitormodal = ({
                                                 className={`sv-in ${errors.visitorName ? "error-input" : ""}`}
                                                 placeholder="Enter visitor name"
                                                 value={visitorName}
-                                                onChange={e => setVisitorName(e.target.value)}
+                                                onChange={e => {
+                                                    setVisitorName(e.target.value);
+                                                    clearError("visitorName");
+                                                }}
                                             />
                                         </div>
                                         <div className="col-6">
@@ -170,7 +171,10 @@ const Visitormodal = ({
                                                     className={`sv-in ${errors.mobile ? "error-input" : ""}`}
                                                     placeholder="98765 43210"
                                                     value={mobile}
-                                                    onChange={e => setMobile(e.target.value)}
+                                                    onChange={e => {
+                                                        setMobile(e.target.value);
+                                                        clearError("mobile");
+                                                    }}
                                                     maxLength={10}
                                                 />
                                             </div>
@@ -188,8 +192,14 @@ const Visitormodal = ({
                                                 <input className="sv-in" value={selectedBlock} disabled
                                                     style={{ background: "#f8fafc", color: "#64748b" }} />
                                             ) : (
-                                                <select className={`form-select ${errors.block ? "error-input" : ""}`}
-                                                    value={selectedBlock} onChange={onBlockChange}>
+                                                <select
+                                                    className={`form-select ${errors.block ? "error-input" : ""}`}
+                                                    value={selectedBlock}
+                                                    onChange={(e) => {
+                                                        onBlockChange(e);
+                                                        clearError("block");
+                                                    }}
+                                                >
                                                     <option value="">Select Block</option>
                                                     {allBlocks.map((item, index) => (
                                                         <option key={index} value={item.block}>{item.block}</option>
@@ -216,12 +226,12 @@ const Visitormodal = ({
                                                     onChange={e => {
                                                         setSelectedFlat(e.target.value);
                                                         setFlatId(e.target.value);
+                                                        clearError("flatId");
                                                         const flat = allFlats.find(f => String(f.flat_id) === e.target.value);
                                                         if (flat && setFlatNumber) setFlatNumber(flat.flat_number);
                                                     }}
                                                 >
                                                     <option value="">Select Flat</option>
-
                                                     {allFlats.map(f => (
                                                         <option key={f.flat_id} value={f.flat_id}>
                                                             {f.flat_number}
@@ -240,6 +250,7 @@ const Visitormodal = ({
                                                 value={vehicleNumber} onChange={e => setVehicleNumber(e.target.value)} />
                                         </div>
                                     </div>
+
                                     <div className="row g-3 mb-3">
                                         <div className="col-6">
                                             <label className="sv-lb">Schedule Start Date</label>
@@ -261,6 +272,7 @@ const Visitormodal = ({
                                             />
                                         </div>
                                     </div>
+
                                     {/* ── Guest-only Fields ── */}
                                     {visitorType === "guest" && (
                                         <>
@@ -312,7 +324,10 @@ const Visitormodal = ({
                                                         className={`sv-in ${errors.purpose ? "error-input" : ""}`}
                                                         placeholder="Eg. Birthday celebration"
                                                         value={purpose}
-                                                        onChange={e => setPurpose(e.target.value)}
+                                                        onChange={e => {
+                                                            setPurpose(e.target.value);
+                                                            clearError("purpose");
+                                                        }}
                                                     />
                                                 </div>
                                             </div>
@@ -326,7 +341,10 @@ const Visitormodal = ({
                                                     <select
                                                         className={`form-select ${errors.idType ? "error-input" : ""}`}
                                                         value={idType}
-                                                        onChange={e => setIdType(e.target.value)}
+                                                        onChange={e => {
+                                                            setIdType(e.target.value);
+                                                            clearError("idType");
+                                                        }}
                                                         disabled={isEdit}
                                                         style={isEdit ? { background: "#f8fafc", color: "#64748b" } : {}}
                                                     >
@@ -345,7 +363,10 @@ const Visitormodal = ({
                                                         className={`sv-in ${errors.idNumber ? "error-input" : ""}`}
                                                         placeholder="Eg. 1234-5678-9012"
                                                         value={idNumber}
-                                                        onChange={e => setIdNumber(e.target.value)}
+                                                        onChange={e => {
+                                                            setIdNumber(e.target.value);
+                                                            clearError("idNumber");
+                                                        }}
                                                         disabled={isEdit}
                                                         style={isEdit ? { background: "#f8fafc", color: "#64748b" } : {}}
                                                     />
@@ -379,7 +400,10 @@ const Visitormodal = ({
                                                         className={`sv-in ${errors.parcelCompany ? "error-input" : ""}`}
                                                         placeholder="Eg. Swiggy, Amazon"
                                                         value={parcelCompany}
-                                                        onChange={e => setParcelCompany(e.target.value)}
+                                                        onChange={e => {
+                                                            setParcelCompany(e.target.value);
+                                                            clearError("parcelCompany");
+                                                        }}
                                                     />
                                                 </div>
                                                 <div className="col-6">
@@ -390,7 +414,10 @@ const Visitormodal = ({
                                                     <select
                                                         className={`form-select ${errors.parcelDeliveryType ? "error-input" : ""}`}
                                                         value={parcelDeliveryType}
-                                                        onChange={e => setParcelDeliveryType(e.target.value)}
+                                                        onChange={e => {
+                                                            setParcelDeliveryType(e.target.value);
+                                                            clearError("parcelDeliveryType");
+                                                        }}
                                                     >
                                                         <option value="">Select type</option>
                                                         {["Door", "Lobby", "Security"].map(t => <option key={t}>{t}</option>)}

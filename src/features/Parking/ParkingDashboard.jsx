@@ -93,19 +93,23 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setV
 
     // ✅ vehicleType is now a separate state
     const [vehicleType, setVehicleType] = useState(null);
-
-    const [firstName, setFirstName] = useState("");       // used for penalty_amount
-    const [lastName, setLastName] = useState("");         // used for description
+ 
+    const [firstName, setFirstName] = useState("");        
+    const [lastName, setLastName] = useState("");       
     const [mobileNo, setMobileNo] = useState("");
     const [emailId, setEmailId] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [mode, setMode] = useState("add");
-    const [penaltyAmount, setPenaltyAmount] = useState("");
+    const [penaltyamount, setPenaltyAmount] = useState("");
     const [description, setDescription] = useState("");
     const [allSlots, setAllSlots] = useState([]);
     const [slot, setSlot] = useState(null);
     const [vehicleNo, setVehicleNo] = useState("");
+
+    
+   
+
 
     const getViolationIcon = (violationType) => {
         const icons = {
@@ -347,7 +351,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setV
         parkingDashboard(flats.society_id);
         visitorParking(flats.society_id);
         violationAlerts(flats.society_id);
-        //getParkingSlots(flats.society_id);
+        getParkingSlots(flats.society_id);
         getVisitors(flats.society_id);
         getVehicles(flats.society_id);
     };
@@ -382,19 +386,19 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setV
         }
     };
 
-    // const getParkingSlots = async (societyId) => {
-    //     try {
-    //         console.log("Fetching slots for society:", societyId);
-    //         const data = await ListParkingSlotsApi(societyId);
-    //         const slotOptions = (data?.slots || []).map((item) => ({
-    //             value: item.id,
-    //             label: item.slot_number,
-    //         }));
-    //         setAllSlots(slotOptions);
-    //     } catch (error) {
-    //         console.error("Error fetching slots:", error);
-    //     }
-    // };
+    const getParkingSlots = async (societyId) => {
+        try {
+            console.log("Fetching slots for society:", societyId);
+            const data = await ListParkingSlotsApi(societyId);
+            const slotOptions = (data?.slots || []).map((item) => ({
+                value: item.id,
+                label: item.slot_number,
+            }));
+            setAllSlots(slotOptions);
+        } catch (error) {
+            console.error("Error fetching slots:", error);
+        }
+    };
     const getViolationDetails = (violationId) => {
         setActive("viewParkingDetails");
         setViolationId(violationId);
@@ -402,6 +406,13 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setV
 
     const handlePageChange = (value) => {
         setPage(value);
+    };
+
+     // ── MOVED INSIDE the component so it can access errors + setErrors ──
+    const clearError = (field) => {
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: "" }));
+        }
     };
 
     const handleDelete = async (memberId) => {
@@ -427,7 +438,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setV
         setViolationType(null);   // ✅ reset violation type
         setVehicleType(null);     // ✅ reset vehicle type
         setVehicleNo("");
-        setFirstName("");
+        setPenaltyAmount("");
         setLastName("");
         setEmailId("");
         setMobileNo("");
@@ -446,12 +457,8 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setV
         if (!vehicleNo.trim()) newErrors.vehicleNo = "Required";
         if (!violationType) newErrors.violationType = "Required";
         if (!vehicleType) newErrors.vehicleType = "Required";
-        if (!firstName.trim()) newErrors.firstName = "Required";
-
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
+        if (!penaltyamount.trim()) newErrors.penaltyamount = "Required";
+        if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
         try {
             await createViolationAlertApi(
@@ -462,7 +469,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setV
                 violationType?.value,   // ✅ violation_type (was sending vehicle_type here before)
                 lastName,               // description
                 null,                   // photo_url
-                firstName               // penalty_amount
+                penaltyamount               // penalty_amount
             );
 
             toast.success("Violation Alert Added Successfully");
@@ -960,8 +967,9 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setV
                 // ✅ vehicleType for vehicle_type field (separate)
                 vehicleType={vehicleType}
                 setVehicleType={setVehicleType}
-                firstName={firstName}
-                setFirstName={setFirstName}
+                
+                penaltyamount={penaltyamount}
+                setPenaltyAmount={setPenaltyAmount}
                 lastName={lastName}
                 setLastName={setLastName}
                 mobileNo={mobileNo}
@@ -973,6 +981,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId ,setV
                 endDate={endDate}
                 setEndDate={setEndDate}
                 errors={errors}
+                setErrors={setErrors}
                 errorText={errorText}
                 handleBlockChange={handleBlockChange}
                 handleSubmit={handleViolationSubmit}

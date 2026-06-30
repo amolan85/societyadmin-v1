@@ -147,6 +147,12 @@ const CreateComplaints = ({ setActive }) => {
         return errors;
     };
 
+     // ── clear a single field error as soon as user fills it ──
+    const clearError = (field) => {
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: "" }));
+        }
+    };
     //create complaint function and fetch create complaint api
     const CreateComplaint = async () => {
         try {
@@ -214,7 +220,10 @@ const CreateComplaints = ({ setActive }) => {
 
                         <input className={`sv-in mb-3 ${errors.title ? "error-input" : ""}`} placeholder="Example: Scheduled Maintenance of Lift B"
                             value={title}
-                            onChange={(e) => setTitle(e.target.value)} />
+                            onChange={(e) =>{ setTitle(e.target.value);
+                                clearError("title");
+                            }
+                            } />
 
                         <div className='d-flex'>
                             <label className="sv-lb"> Unit <span className='text-danger'>*</span></label>
@@ -227,7 +236,11 @@ const CreateComplaints = ({ setActive }) => {
                         <Select
                             options={allunits}
                             value={unit}                  // 👈 poora object
-                            onChange={(selectedOption) => setUnit(selectedOption)} // 👈 direct object
+                            onChange={(selectedOption) => {
+                                setUnit(selectedOption);
+                                 clearError("unit");
+
+                             } } // 👈 direct object
                         />
 
                         <div className='d-flex mt-3'>
@@ -243,7 +256,11 @@ const CreateComplaints = ({ setActive }) => {
                                 className="sv-ta bc-editor-textarea"
                                 placeholder="Type your announcement details here…"
                                 value={description}
-                                onChange={(e) => setDescription(e.target.value)}
+                                onChange={(e) => {
+                                    setDescription(e.target.value);
+                                     clearError("description");
+                                }
+                                }
                             />
                         </div>
 
@@ -279,7 +296,11 @@ const CreateComplaints = ({ setActive }) => {
                             {priorityTabs.map((t) => (
                                 <button
                                     key={t.id}
-                                    onClick={() => setPriority(t.value)}
+                                    onClick={() => {
+                                        setPriority(t.value);
+                                        clearError("priority");
+                                    }
+                                    }
                                     className={`priorityTab-btn ${priority === t.value ? "active" : ""}`}
                                 >
                                     {t.icon} {t.id}

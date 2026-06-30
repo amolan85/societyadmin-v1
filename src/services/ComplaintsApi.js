@@ -96,6 +96,27 @@ export const updateComplaintPriorityApi = async (complaintId,societyId, priority
     });
 }
 
+
+export const deleteComplaintApi = async (complaintId, societyId) =>{
+    const url = UrlData + 'complaint/DeleteComplaint';
+    const data = {
+        complaint_id: complaintId,
+        society_id: societyId,
+       
+}
+return await apiClient({
+        method: 'post',
+        url: url,
+        data: data
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors get flatd and category");
+        throw errors;
+    });
+}
 //get flats and categories api
 export const getFlatsAndCategoryApi = async (societyId) => {
     const url = UrlData + 'complaint/GetFlatsAndCategories';

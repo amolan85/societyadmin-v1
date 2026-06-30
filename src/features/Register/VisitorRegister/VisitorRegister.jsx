@@ -17,16 +17,15 @@ import AllotVisitorParkingModal from '../../Parking/AllotVisitorParkingModal';
 import VisitorModal from "./VisitorModal";
 import { ListParkingSlotsApi } from "../../../services/ParkingApi";
 import { AllotVisitorParkingApi } from '../../../services/VisitorParkingApi';
+
 const VisitorRegister = ({ setActive, setVisitorId }) => {
 
-    // Pagination & list
     const [page, setPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [search, setSearch] = useState("");
     const [societyId, setSocietyId] = useState("");
     const [visitorsList, setVisitorsList] = useState([]);
-    //const [flatsList, setFlatsList] = useState([]);
     const [isEdit, setIsEdit] = useState(false);
     const [editVisitorId, setEditVisitorId] = useState(null);
     const [userId, setUserId] = useState(null);
@@ -36,28 +35,21 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [visitorSelectedBlock, setVisitorSelectedBlock] = useState("");
     const [visitorSelectedFlat, setVisitorSelectedFlat] = useState("");
     const [flatNumber, setFlatNumber] = useState("");
-    // Stats
     const [stats, setStats] = useState({ total: 0, today: 0, pending: 0, checkedOut: 0 });
 
-    // Modals
     const [show, setShow] = useState(false);
     const [exportModal, setExportModal] = useState(false);
     const [approvalModal, setApprovalModal] = useState(false);
     const [photo, setPhoto] = useState(null);
 
-    // Export
     const [activeTab, setActiveTab] = useState("excel");
 
-    // Misc
     const [errors, setErrors] = useState({});
     const [errorText, setErrorText] = useState("");
-    //const [selectedVisitor, setSelectedVisitor] = useState(null);
     const [rejectionReason, setRejectionReason] = useState("");
 
-    // Visitor type toggle
     const [visitorType, setVisitorType] = useState("guest");
 
-    // Guest fields
     const [visitorName, setVisitorName] = useState("");
     const [mobile, setMobile] = useState("");
     const [email, setEmail] = useState("");
@@ -77,7 +69,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [flatIdFilter, setFlatIdFilter] = useState("");
     const [scheduleDate, setScheduleDate] = useState("");
     const [entryStatus, setEntryStatus] = useState("");
-    //allot parking
+
     const [showAllotParking, setShowAllotParking] = useState(false);
     const [allVisitors, setAllVisitors] = useState([]);
     const [allSlots, setAllSlots] = useState([]);
@@ -85,16 +77,17 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [selectedVehicleType, setSelectedVehicleType] = useState(null);
     const [remarks, setRemarks] = useState("");
-    // Delivery fields
+
     const [parcelDescription, setParcelDescription] = useState("");
     const [parcelCompany, setParcelCompany] = useState("");
     const [parcelDeliveryType, setParcelDeliveryType] = useState("");
-    // temp states
+
     const [tempVisitorType, setTempVisitorType] = useState("");
     const [tempEntryStatus, setTempEntryStatus] = useState("");
     const [tempFlatId, setTempFlatId] = useState("");
     const [tempScheduleDate, setTempScheduleDate] = useState("");
     const [showMoreFilters, setShowMoreFilters] = useState(false);
+
     useEffect(() => { SessionData(); }, []);
 
     const SessionData = async () => {
@@ -103,8 +96,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         const allFlats = data.data.flats;
         const firstFlat = allFlats[0];
         setSocietyId(firstFlat.society_id);
-        // setFlatsList(allFlats);
-        // Pass directly, don't rely on state
         getVisitors({
             sid: firstFlat.society_id,
             pg: 1,
@@ -118,7 +109,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             scheduleDate: ""
         });
     };
-    // Auto re-fetch when filters change (except search)
+
     useEffect(() => {
         if (!societyId) return;
 
@@ -146,15 +137,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         dateTo
     ]);
 
-    // const getVisitors = async (sId, pg,) => {
-    //     try {
-    //         const data = await ListVisitorsApi(sId, pg);
-    //         setVisitorsList(data.visitors || []);
-    //         setTotalCount(data.total || 0);
-    //         setTotalPages(data.total_pages || 1);
-    //         setPage(data.page || pg);
-    //     } catch (error) { console.error("Error fetching visitors:", error); }
-    // };
     const getVisitors = async ({
         sid,
         pg,
@@ -206,33 +188,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             setLoading(false);
         }
     };
-    // Search fires only on button click
-    // const handleSearch = () => {
-    //     setPage(1);
-    //     getVisitors({
-    //         sid: societyId,
-    //         pg: 1,
-    //         searchText: search,
-    //         status: approvalStatus,
-    //         fromDate: dateFrom,
-    //         toDate: dateTo
-    //     });
-    // };
 
-    // const handlePageChange = (value) => {
-    //     setPage(value);
-    //     // useEffect [page] will fire automatically
-    // };
-    // const handleSearch = () => {
-    //     getVisitors(
-    //         societyId,
-    //         1,
-    //         search,
-    //         approvalStatus,
-    //         dateFrom,
-    //         dateTo
-    //     );
-    // };
     const GetVisitorDetailsById = async (id) => {
         try {
             const data = await GetVisitorApi(id, societyId);
@@ -279,18 +235,17 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         }
     };
 
-    // const handlePageChange = (value) => {
-    //     setPage(value);
-    //     getVisitors(societyId, value);
-    // };
     const handlePageChange = (value) => {
         setPage(value);
     };
+
     const handleVisitorBlockChange = async (e) => {
         const block = e.target.value;
         setVisitorSelectedBlock(block);
         setVisitorSelectedFlat("");
         setVisitorAllFlats([]);
+        // ── clear block error here too, as a guaranteed backup ──
+        setErrors(prev => ({ ...prev, block: "" }));
         if (block) {
             const res = await getAllFlatsApi(societyId, block);
             setVisitorAllFlats(res?.flats || []);
@@ -308,6 +263,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         setVisitorAllBlocks(blockRes?.blocks || []);
         setShow(true);
     };
+
     const resetForm = () => {
         setVisitorName(""); setMobile(""); setEmail(""); setGender("");
         setComingFrom(""); setVehicleNumber(""); setPurpose("");
@@ -319,14 +275,12 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         setEditVisitorId(null);
         setScheduleStartDate("");
         setScheduleEndDate("");
-
     };
 
     const validateForm = () => {
         let errs = {};
         if (!visitorName) errs.visitorName = "required";
         if (!mobile) errs.mobile = "required";
-        //if (!isEdit && !flatNumber) errs.flatNumber = "required";
         if (!isEdit && !flatId) errs.flatId = "required";
         if (visitorType === "guest") {
             if (!purpose) errs.purpose = "required";
@@ -338,10 +292,12 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         }
         return errs;
     };
+
     const formatDateTime = (date) => {
         if (!date) return "";
         return date.replace("T", " ") + ":00";
     };
+
     const handleSubmit = async () => {
         try {
             const validationErrors = validateForm();
@@ -350,6 +306,9 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 setErrors(validationErrors);
                 return;
             }
+
+            // ── clear all errors right before submitting, guaranteed ──
+            setErrors({});
 
             if (isEdit) {
                 await UpdateVisitorApi({
@@ -396,7 +355,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             setDateFrom("");
             setDateTo("");
 
-
             getVisitors({
                 sid: societyId,
                 pg: 1,
@@ -416,6 +374,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             setErrorText(error?.response?.data?.message || error?.message || "Error occurred");
         }
     };
+
     const handleDelete = async (visitorId) => {
         if (!window.confirm("Are you sure you want to delete this visitor?")) return;
         try {
@@ -433,6 +392,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             getVisitors({ sid: societyId, pg: page, searchText: search, status: approvalStatus, fromDate: dateFrom, toDate: dateTo });
         } catch (e) { toast.error(e?.message || "Checkout failed"); }
     };
+
     const getParkingSlots = async () => {
         try {
             const data = await ListParkingSlotsApi(
@@ -455,8 +415,8 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             console.log(error);
         }
     };
-    const handleOpenAllotParking = async (visitor) => {
 
+    const handleOpenAllotParking = async (visitor) => {
         await getParkingSlots();
 
         setSelectedVisitor({
@@ -466,9 +426,9 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         setVehicleNumber(visitor.vehicle_number || "");
         setShowAllotParking(true);
     };
+
     const handleVisitorParkingSubmit = async () => {
         try {
-
             const payload = {
                 society_id: Number(societyId),
                 visitor_entry_id: selectedVisitor?.value,
@@ -493,6 +453,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             toast.error(error?.message || "Failed to allot parking");
         }
     };
+
     const handleApproval = async (status) => {
         try {
             if (status === "approved") {
@@ -550,36 +511,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 </div>
 
                 {/* Toolbar */}
-                {/* <div className="d-flex justify-content-between align-items-center mb-4 text-start">
-                    <div className="col-12 col-md-4 col-lg-3 position-relative">
-                        <span style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)", color: "#aaa" }}>
-                            <FiSearch size={16} />
-                        </span>
-                        <input
-                            type="text"
-                            className="form-control rounded-pill"
-                            placeholder="Search by name, unit or mobile..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            style={{ paddingLeft: "35px" }}
-                        />
-                    </div>
-                    <div className='d-flex'>
-                        <button className="btn-ol ms-2" data-bs-toggle="dropdown">
-                            <FiFilter size={14} /> Filter
-                        </button>
-                        <button className="btn-ol ms-2" onClick={() => setExportModal(true)}>
-                            <BiExport /> Export
-                        </button>
-                        <button
-                            className="btn btn-sm btn-ac ms-2 btn-primary"
-                            onClick={() => { resetForm(); setShow(true); }}
-                        >
-                            + Add Visitor
-                        </button>
-                    </div>
-                </div> */}
-                {/* Toolbar */}
                 <div className="visitor-toolbar mb-4">
 
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
@@ -598,12 +529,10 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                 <button
                                     className={`btn btn-sm btn-ac btn-primary ${showMoreFilters ? "active" : ""}`}
                                     onClick={() => {
-
                                         setTempVisitorType(visitorTypeFilter);
                                         setTempEntryStatus(entryStatus);
                                         setTempFlatId(flatIdFilter);
                                         setTempScheduleDate(scheduleDate);
-
                                         setShowMoreFilters(v => !v);
                                     }}
                                 >
@@ -611,7 +540,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                 </button>
 
                                 {showMoreFilters && (
-
                                     <div
                                         className="shadow border rounded-3 bg-white p-3 position-absolute start-0 mt-1"
                                         style={{
@@ -622,25 +550,17 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                             overflowY: "auto"
                                         }}
                                     >
-
-                                        {/* Visitor Type */}
-
                                         <p className="text-muted fw-semibold mb-1 text-start"
-                                            style={{
-                                                fontSize: 11,
-                                                textTransform: "uppercase"
-                                            }}>
+                                            style={{ fontSize: 11, textTransform: "uppercase" }}>
                                             Visitor Type
                                         </p>
 
                                         <div className="d-flex gap-2 flex-wrap mb-3">
-
                                             {[
                                                 ["", "All"],
                                                 ["guest", "Guest"],
                                                 ["delivery", "Delivery"]
                                             ].map(([value, label]) => (
-
                                                 <button
                                                     key={value}
                                                     className={`btn btn-sm rounded-pill ${tempVisitorType === value ? "btn-primary" : "btn-outline-secondary"}`}
@@ -648,12 +568,8 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                 >
                                                     {label}
                                                 </button>
-
                                             ))}
-
                                         </div>
-
-                                        {/* Entry Status */}
 
                                         <label className="form-label fw-semibold text-start d-block mb-1">
                                             Entry Status
@@ -669,9 +585,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                             <option value="completed">Complete</option>
                                         </select>
 
-
-                                        {/* Schedule Date */}
-
                                         <label className="form-label fw-semibold text-start d-block mb-1">
                                             Schedule Date
                                         </label>
@@ -680,22 +593,17 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                             type="date"
                                             className="form-control mb-3"
                                             value={tempScheduleDate}
-                                            onChange={(e) =>
-                                                setTempScheduleDate(e.target.value)
-                                            }
+                                            onChange={(e) => setTempScheduleDate(e.target.value)}
                                         />
 
                                         <div className="d-flex justify-content-between">
-
                                             <button
                                                 className="btn btn-outline-secondary btn-sm"
                                                 onClick={() => {
-
                                                     setTempVisitorType("");
                                                     setTempEntryStatus("");
                                                     setTempFlatId("");
                                                     setTempScheduleDate("");
-
                                                 }}
                                             >
                                                 Clear All
@@ -704,35 +612,23 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                             <button
                                                 className="btn btn-primary btn-sm"
                                                 onClick={() => {
-
                                                     setVisitorTypeFilter(tempVisitorType);
                                                     setEntryStatus(tempEntryStatus);
                                                     setFlatIdFilter(tempFlatId);
                                                     setScheduleDate(tempScheduleDate);
-
                                                     setPage(1);
-
                                                     setShowMoreFilters(false);
-
                                                 }}
                                             >
                                                 Apply Filters
                                             </button>
-
                                         </div>
-
                                     </div>
-
                                 )}
-
                             </div>
-
                         </div>
 
-                        {/* SEARCH */}
-
                         <div className="d-flex gap-2">
-
                             <input
                                 type="text"
                                 className="form-control visitor-search"
@@ -744,9 +640,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                             <button
                                 className="btn btn-primary"
                                 onClick={() => {
-
                                     setPage(1);
-
                                     getVisitors({
                                         sid: societyId,
                                         pg: 1,
@@ -759,77 +653,57 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                         toDate: dateTo,
                                         scheduleDate
                                     });
-
                                 }}
                             >
                                 <FiSearch />
                             </button>
-
                         </div>
-
                     </div>
 
                     {/* Bottom Row */}
-
                     <div className="row g-2">
-
                         <div className="col-md-4">
-
                             <select
                                 className="form-select"
                                 value={approvalStatus}
                                 onChange={(e) => {
-
                                     setApprovalStatus(e.target.value);
                                     setPage(1);
-
                                 }}
                             >
-
                                 <option value="">All Status</option>
                                 <option value="pending">Pending</option>
                                 <option value="approved">Approved</option>
                                 <option value="rejected">Rejected</option>
-
                             </select>
-
                         </div>
 
                         <div className="col-md-4">
-
                             <input
                                 type="date"
                                 className="form-control"
                                 value={dateFrom}
                                 onChange={(e) => {
-
                                     setDateFrom(e.target.value);
                                     setPage(1);
-
                                 }}
                             />
-
                         </div>
 
                         <div className="col-md-4">
-
                             <input
                                 type="date"
                                 className="form-control"
                                 value={dateTo}
                                 onChange={(e) => {
-
                                     setDateTo(e.target.value);
                                     setPage(1);
-
                                 }}
                             />
-
                         </div>
-
                     </div>
-
                 </div>
+
                 {/* Table */}
                 <div className="sv-card p-0">
                     <div className="sa-table-wrap">
@@ -935,7 +809,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                 <button className="member-action-btn" type="button" data-bs-toggle="dropdown">⋮</button>
                                                 <ul className="dropdown-menu member-action-menu dropdown-menu-end">
 
-                                                    {/* View Details - hamesha enabled */}
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
@@ -948,7 +821,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                         </button>
                                                     </li>
 
-                                                    {/* Edit - sirf pending mein enabled */}
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
@@ -966,7 +838,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                         </button>
                                                     </li>
 
-                                                    {/* Approve/Reject - sirf pending mein enabled */}
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
@@ -981,7 +852,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                         </button>
                                                     </li>
 
-                                                    {/* Checkout - sirf checked_in mein enabled */}
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
@@ -995,7 +865,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                         </button>
                                                     </li>
 
-                                                    {/* Allot Parking - checkout nahi hua to enabled */}
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item"
@@ -1064,7 +933,6 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 setFlatNumber={setFlatNumber}
                 photo={photo}
                 setPhoto={setPhoto}
-                // flatsList={flatsList}
                 allBlocks={visitorAllBlocks}
                 allFlats={visitorAllFlats}
                 selectedBlock={visitorSelectedBlock}

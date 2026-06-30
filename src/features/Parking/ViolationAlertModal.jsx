@@ -14,19 +14,27 @@ const ViolationAlertModal = ({
     setStatus = () => {},
     vehicleNo = "",
     setVehicleNo = () => {},
-    firstName = "",
-    setFirstName = () => {},
-    lastName = "",
-    setLastName = () => {},
+    penaltyamount = "",
+    setPenaltyAmount = () => {},
+    descrioption = "",
+    setDescrioption = () => {},
     uploadPhoto = null,
     setUploadPhoto = () => {},
     existingPhotoUrl = null,
     errors = {},
+    setErrors = () => {},   // ← make sure this is received as a prop
     resetForm = () => {},
     handleSubmit = () => {},
     mode,
 }) => {
     if (!showViolationAlert) return null;
+
+    // ── MOVED INSIDE the component so it can access errors + setErrors ──
+    const clearError = (field) => {
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: "" }));
+        }
+    };
 
     const violationTypeOptions = [
         { value: "unauthorized_parking", label: "Unauthorized Parking" },
@@ -76,10 +84,19 @@ const ViolationAlertModal = ({
                                             <Select
                                                 options={allSlots}
                                                 value={slot}
-                                                onChange={(v) => setSlot(v)}
+                                                onChange={(v) => {
+                                                    setSlot(v);
+                                                    clearError("slot");
+                                                }}
                                                 placeholder="Select Slot"
                                                 isClearable
-                                                styles={{ control: (b) => ({ ...b, borderColor: errors.slot ? "red" : b.borderColor, boxShadow: "none" }) }}
+                                                styles={{
+                                                    control: (b) => ({
+                                                        ...b,
+                                                        borderColor: errors.slot ? "red" : b.borderColor,
+                                                        boxShadow: "none",
+                                                    }),
+                                                }}
                                             />
                                         </div>
 
@@ -93,7 +110,10 @@ const ViolationAlertModal = ({
                                                 className={`sv-in ${errors.vehicleNo ? "error-input" : ""}`}
                                                 placeholder="Enter Vehicle Number"
                                                 value={vehicleNo}
-                                                onChange={(e) => setVehicleNo(e.target.value.toUpperCase())}
+                                                onChange={(e) => {
+                                                    setVehicleNo(e.target.value.toUpperCase());
+                                                    clearError("vehicleNo");
+                                                }}
                                             />
                                         </div>
                                     </div>
@@ -108,10 +128,19 @@ const ViolationAlertModal = ({
                                             <Select
                                                 options={violationTypeOptions}
                                                 value={violationType}
-                                                onChange={(v) => setViolationType(v)}
+                                                onChange={(v) => {
+                                                    setViolationType(v);
+                                                    clearError("violationType");
+                                                }}
                                                 placeholder="Select Type"
                                                 isClearable
-                                                styles={{ control: (b) => ({ ...b, borderColor: errors.violationType ? "red" : b.borderColor, boxShadow: "none" }) }}
+                                                styles={{
+                                                    control: (b) => ({
+                                                        ...b,
+                                                        borderColor: errors.violationType ? "red" : b.borderColor,
+                                                        boxShadow: "none",
+                                                    }),
+                                                }}
                                             />
                                         </div>
 
@@ -123,33 +152,22 @@ const ViolationAlertModal = ({
                                             <Select
                                                 options={vehicleTypeOptions}
                                                 value={vehicleType}
-                                                onChange={(v) => setVehicleType(v)}
+                                                onChange={(v) => {
+                                                    setVehicleType(v);
+                                                    clearError("vehicleType");
+                                                }}
                                                 placeholder="Select Type"
                                                 isClearable
-                                                styles={{ control: (b) => ({ ...b, borderColor: errors.vehicleType ? "red" : b.borderColor, boxShadow: "none" }) }}
+                                                styles={{
+                                                    control: (b) => ({
+                                                        ...b,
+                                                        borderColor: errors.vehicleType ? "red" : b.borderColor,
+                                                        boxShadow: "none",
+                                                    }),
+                                                }}
                                             />
                                         </div>
                                     </div>
-
-                                    {/* Row 3 — Status (edit mode only)
-                                    {mode === "edit" && (
-                                        <div className="row g-3 mb-3">
-                                            <div className="col-12">
-                                                <div className="d-flex">
-                                                    <label className="sv-lb">Status <span className="text-danger">*</span></label>
-                                                    {errors.status && <span className="text-danger mx-2">{errors.status}</span>}
-                                                </div>
-                                                <Select
-                                                    options={statusOptions}
-                                                    value={status}
-                                                    onChange={(v) => setStatus(v)}
-                                                    placeholder="Select Status"
-                                                    isClearable
-                                                    styles={{ control: (b) => ({ ...b, borderColor: errors.status ? "red" : b.borderColor, boxShadow: "none" }) }}
-                                                />
-                                            </div>
-                                        </div>
-                                    )} */}
 
                                     {/* Row 4 — Upload Photo */}
                                     <div className="row g-3 mb-3">
@@ -159,7 +177,6 @@ const ViolationAlertModal = ({
                                                 {errors.uploadPhoto && <span className="text-danger mx-2">{errors.uploadPhoto}</span>}
                                             </div>
 
-                                            {/* Show existing photo in edit mode */}
                                             {mode === "edit" && existingPhotoUrl && !uploadPhoto && (
                                                 <div className="mb-2">
                                                     <img
@@ -173,7 +190,6 @@ const ViolationAlertModal = ({
                                                 </div>
                                             )}
 
-                                            {/* Show new file name if selected */}
                                             {uploadPhoto && (
                                                 <div className="mb-2" style={{ fontSize: 12, color: "#555" }}>
                                                     New file: <strong>{uploadPhoto.name}</strong>
@@ -191,7 +207,10 @@ const ViolationAlertModal = ({
                                                 className={`sv-in ${errors.uploadPhoto ? "error-input" : ""}`}
                                                 type="file"
                                                 accept="image/*"
-                                                onChange={(e) => setUploadPhoto(e.target.files[0] || null)}
+                                                onChange={(e) => {
+                                                    setUploadPhoto(e.target.files[0] || null);
+                                                    clearError("uploadPhoto");
+                                                }}
                                             />
                                         </div>
                                     </div>
@@ -201,14 +220,17 @@ const ViolationAlertModal = ({
                                         <div className="col-12">
                                             <div className="d-flex">
                                                 <label className="sv-lb">Penalty Amount <span className="text-danger">*</span></label>
-                                                {errors.firstName && <span className="text-danger mx-2">{errors.firstName}</span>}
+                                                {errors.penaltyamount && <span className="text-danger mx-2">{errors.penaltyamount}</span>}
                                             </div>
                                             <input
                                                 type="number"
-                                                className={`sv-in ${errors.firstName ? "error-input" : ""}`}
+                                                className={`sv-in ${errors.penaltyamount ? "error-input" : ""}`}
                                                 placeholder="Enter penalty amount"
-                                                value={firstName}
-                                                onChange={(e) => setFirstName(e.target.value)}
+                                                value={penaltyamount}
+                                                onChange={(e) => {
+                                                    setPenaltyAmount(e.target.value);
+                                                    clearError("penaltyamount");
+                                                }}
                                             />
                                         </div>
                                     </div>
@@ -221,8 +243,8 @@ const ViolationAlertModal = ({
                                                 className="form-control"
                                                 rows={3}
                                                 placeholder="Enter description"
-                                                value={lastName}
-                                                onChange={(e) => setLastName(e.target.value)}
+                                                value={descrioption}
+                                                onChange={(e) => setDescrioption(e.target.value)}
                                             />
                                         </div>
                                     </div>

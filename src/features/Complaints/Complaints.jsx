@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/Complaints.css"
-import { getComplaintsApi, updateComplaintPriorityApi, updateComplaintStatusApi } from '../../services/ComplaintsApi';
+import { getComplaintsApi, updateComplaintPriorityApi, updateComplaintStatusApi, deleteComplaintApi } from '../../services/ComplaintsApi';
 import { GetSessionData } from '../../utils/SessionManagement';
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
@@ -43,6 +43,8 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
   const [activeTab, setActiveTab] = useState("excel");
   const [allExportcomplaints, setAllExportcomplaints] = useState([]);
   const [selectedRange, setSelectedRange] = useState("all");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteComplaintId, setDeleteComplaintId] = useState(null);
 
   // ── Assign Staff Modal ────────────────────────────────
   const [showAssignModal, setShowAssignModal] = useState(false);   // ← ADDED
@@ -79,6 +81,19 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
       console.error("Error fetching complaints:", error)
     }
   }
+
+  const confirmDelete = async () => {
+    try {
+      await deleteComplaintApi(deleteComplaintId, societyId);
+      toast.success("Complaint deleted successfully");
+      setShowDeleteModal(false);
+      getComplaints(societyId);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to delete complaint");
+    }
+  };
+
 
   const modalConfig = {
     priority: {
@@ -343,7 +358,7 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
               <hr style={{ height: "2px" }} />
 
               {/* Buttons */}
-              <div className="d-flex justify-content-end gap-3">
+              <div className="d-flex justify-content-end align-items-center gap-3">
                 <button
                   className="btn btn-sm btn-ad grey-btn"
                   onClick={() => {
@@ -354,7 +369,6 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
                   View Details
                 </button>
 
-                {/* ── ASSIGN STAFF BUTTON ── */}
                 <button
                   className="btn btn-sm btn-ac btn-primary"
                   onClick={() => {
@@ -364,6 +378,85 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
                 >
                   Assign Staff
                 </button>
+
+                {/* ── 3-DOT DROPDOWN ── */}
+                <div
+                  className="member-action-dropdown dropdown flex-shrink-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    className="member-action-btn"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    ⋮
+                  </button>
+                  <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                    <li>
+                      <button
+                        className="dropdown-item member-action-item"
+                        onClick={() => {
+                          setSelectedComplaintId(data.complaint_id);
+                          setActive("viewComplaintDetails");
+                        }}
+                      >
+                        View Details
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        className="dropdown-item member-action-item"
+                        onClick={() => {
+                          setAssignComplaintId(data.complaint_id);
+                          setShowAssignModal(true);
+                        }}
+                      >
+                        Assign Staff
+                      </button>
+                    </li>
+                    {/* <li>
+                      <button
+                        className="dropdown-item member-action-item"
+                        onClick={() => {
+                          setStatus(data.status);
+                          setComments("");
+                          setModalType("status");
+                          setComplaintId(data.complaint_id);
+                          setShowModal(true);
+                        }}
+                      >
+                        Update Status
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        className="dropdown-item member-action-item"
+                        onClick={() => {
+                          setPriority(data.priority);
+                          setComments("");
+                          setModalType("priority");
+                          setComplaintId(data.complaint_id);
+                          setShowModal(true);
+                        }}
+                      >
+                        Update Priority
+                      </button>
+                    </li> */}
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <button
+                        className="dropdown-item member-action-item member-action-delete"
+                        onClick={() => {
+                          setDeleteComplaintId(data.complaint_id);
+                          setShowDeleteModal(true);
+                        }}
+                      >
+                        Delete Complaint
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </div>
 
             </div>
@@ -450,8 +543,8 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
                   <div className="row mb-4">
                     {[
                       { key: "excel", Icon: BsFiletypeXls, label: "Excel" },
-                      { key: "csv",   Icon: BsFiletypeCsv, label: "CSV" },
-                      { key: "pdf",   Icon: BsFiletypePdf, label: "PDF" },
+                      { key: "csv", Icon: BsFiletypeCsv, label: "CSV" },
+                      { key: "pdf", Icon: BsFiletypePdf, label: "PDF" },
                     ].map(({ key, Icon, label }) => (
                       <div className="col-md-4" key={key}>
                         <div className={`format-card text-center p-3 rounded-3 ${activeTab === key ? "active-format" : ""}`} onClick={() => setActiveTab(key)}>
@@ -481,6 +574,48 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
                   <button className="btn-sm btn btn-outline-secondary" onClick={() => setShow(false)}>Cancel</button>
                   <button className="btn btn-sm btn-primary" onClick={handleExport}>
                     <i className="bi bi-download me-2"></i>Export Data
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* ── DELETE CONFIRM MODAL ── */}
+          <div
+            className={`modal fade ${showDeleteModal ? "show d-block" : ""}`}
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header bg-danger text-white">
+                  <h5 className="modal-title">Confirm Delete</h5>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setShowDeleteModal(false)}
+                  />
+                </div>
+                <div className="modal-body text-start">
+                  <p className="mb-1">
+                    Are you sure you want to delete complaint{" "}
+                    <strong>#{deleteComplaintId}</strong>?
+                  </p>
+                  <p className="text-muted small mb-0">This action cannot be undone.</p>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowDeleteModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={confirmDelete}
+                  >
+                    Delete
                   </button>
                 </div>
               </div>

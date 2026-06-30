@@ -54,8 +54,8 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
     const [vehicleNo, setVehicleNo] = useState("");
     const [violationType, setViolationType] = useState(null);
     const [vehicleType, setVehicleType] = useState(null);
-    const [firstName, setFirstName] = useState("");   // penalty_amount
-    const [lastName, setLastName] = useState("");     // description
+    const [penaltyamount, setPenaltyAmount] = useState("");   // penalty_amount
+    const [descrioption, setDescrioption] = useState("");     // description
     const [uploadPhoto, setUploadPhoto] = useState(null);
     const [status, setStatus] = useState(null);
     const [editingViolationId, setEditingViolationId] = useState(null);
@@ -182,8 +182,8 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
         setVehicleNo("");
         setViolationType(null);
         setVehicleType(null);
-        setFirstName("");
-        setLastName("");
+        setPenaltyAmount("");
+        setDescrioption("");
         setStatus(null);
         setUploadPhoto(null);
         setEditingViolationId(null);
@@ -196,7 +196,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
         if (!vehicleNo.trim())  newErrors.vehicleNo     = "Required";
         if (!violationType)     newErrors.violationType = "Required";
         if (!vehicleType)       newErrors.vehicleType   = "Required";
-        if (!firstName.trim())  newErrors.firstName     = "Required";
+        if (!penaltyamount.trim())  newErrors.penaltyamount     = "Required";
         if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
         try {
@@ -206,8 +206,8 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                 slot,          // slotId — API extracts .value internally
                 vehicleNo,     // vehicle_number
                 violationType, // violation_type — API extracts .value internally
-                lastName,      // description
-                firstName,     // penalty_amount
+                descrioption,      // description
+                penaltyamount,     // penalty_amount
                 uploadPhoto    // photo file
             );
             toast.success("Violation Alert Added Successfully");
@@ -227,7 +227,7 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
         if (!vehicleNo.trim())  newErrors.vehicleNo     = "Required";
         if (!violationType)     newErrors.violationType = "Required";
         if (!vehicleType)       newErrors.vehicleType   = "Required";
-        if (!firstName.trim())  newErrors.firstName     = "Required";
+        if (!penaltyamount.trim())  newErrors.penaltyamount     = "Required";
         if (!status)            newErrors.status        = "Required";
         if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
@@ -238,8 +238,8 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                 slot,               // slotId — API extracts .value internally
                 vehicleNo,          // vehicle_number
                 violationType,      // violation_type — API extracts .value internally
-                lastName,           // description
-                firstName,          // penalty_amount
+                descrioption,           // description
+                penaltyamount,          // penalty_amount
                 vehicleType,        // vehicle_type — API extracts .value internally
                 status,             // status — API extracts .value internally
                 uploadPhoto,        // photo file
@@ -288,8 +288,8 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
             const matchedVehicleType = vehicleTypeOptions.find((v) => v.value === data.vehicle_type);
             setVehicleType(matchedVehicleType || null);
 
-            setFirstName(data.penalty_amount != null ? String(data.penalty_amount) : "");
-            setLastName(data.description || "");
+            setPenaltyAmount(data.penalty_amount != null ? String(data.penalty_amount) : "");
+            setDescrioption(data.description || "");
 
             const matchedStatus = statusOptions.find((s) => s.value === data.status);
             setStatus(matchedStatus || null);
@@ -521,13 +521,14 @@ const ViolationAlertsList = ({ setActive, setMemberId, setFlatId, setViolationId
                 setVehicleType={setVehicleType}
                 uploadPhoto={uploadPhoto}
                 setUploadPhoto={setUploadPhoto}
-                firstName={firstName}
-                setFirstName={setFirstName}
-                lastName={lastName}
-                setLastName={setLastName}
+                penaltyamount={penaltyamount}
+                setPenaltyAmount={setPenaltyAmount}
+                descrioption={descrioption}
+                setDescrioption={setDescrioption}
                 status={status}
                 setStatus={setStatus}
                 errors={errors}
+                setErrors={setErrors}
                 handleSubmit={handleViolationSubmit}
                 resetForm={resetForm}
                 mode={mode}

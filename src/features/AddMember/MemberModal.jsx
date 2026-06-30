@@ -68,10 +68,20 @@ const MemberModal = ({
   errors = {},
   errorText = "",
   handleBlockChange = () => { },
+  setErrors = () => {},
   handleSubmit = () => { },
   mode,
 }) => {
   if (!show) return null;
+
+   // ── clears a single field error as soon as user fills it ──
+    const clearError = (field) => {
+    setErrors(prev => {
+        const updated = { ...prev };
+        delete updated[field];
+        return updated;
+    });
+};
 
   return (
     <>
@@ -124,7 +134,10 @@ const MemberModal = ({
                         }}
                         options={allBlocks}
                         value={blocks}
-                        onChange={handleBlockChange}
+                        onChange={(selected) => {
+    handleBlockChange(selected);
+    clearError("blocks");
+}}
                       />
                     </div>
 
@@ -158,7 +171,10 @@ const MemberModal = ({
                         }}
                         options={allFlats}
                         value={flat}
-                        onChange={(selectedOption) => setFlat(selectedOption)}
+                        onChange={(selectedOption) => {
+    setFlat(selectedOption);
+    clearError("flat");
+}}
                       />
                     </div>
                   </div>
@@ -182,6 +198,7 @@ const MemberModal = ({
                         key={t.value}
                         onClick={() => {
                           setMemType(t.value);
+                          clearError("memType");
                           resetForm();
                         }}
                         className={`am-type-btn ${memType === t.value ? "active" : ""
@@ -208,7 +225,10 @@ const MemberModal = ({
                         className={`sv-in ${errors.firstName ? "error-input" : ""}`}
                         placeholder="Enter First Name"
                         value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
+                        onChange={(e)=>{
+    setFirstName(e.target.value);
+    clearError("firstName");
+}}
                       />
                     </div>
 
@@ -227,7 +247,10 @@ const MemberModal = ({
                         className={`sv-in ${errors.lastName ? "error-input" : ""}`}
                         placeholder="Enter Last Name"
                         value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
+                        onChange={(e)=>{
+    setLastName(e.target.value);
+    clearError("lastName");
+}}
                       />
                     </div>
                   </div>
@@ -258,9 +281,10 @@ const MemberModal = ({
                           maxLength={10}
                           placeholder="98765 43210"
                           value={mobileNo}
-                          onChange={(e) =>
-                            setMobileNo(e.target.value.replace(/\D/g, ""))
-                          }
+                          onChange={(e)=>{
+    setMobileNo(e.target.value.replace(/\D/g,""));
+    clearError("mobileNo");
+}}
                         />
                       </div>
                     </div>
@@ -280,7 +304,10 @@ const MemberModal = ({
                         className={`sv-in ${errors.emailId ? "error-input" : ""}`}
                         placeholder="Enter Email Address"
                         value={emailId}
-                        onChange={(e) => setEmailId(e.target.value)}
+                        onChange={(e)=>{
+    setEmailId(e.target.value);
+    clearError("emailId");
+}}
                       />
                     </div>
                   </div>
@@ -304,7 +331,10 @@ const MemberModal = ({
                             className={`sv-in ${errors.moveInDate ? "error-input" : ""}`}
                             type="date"
                             value={moveInDate}
-                            onChange={(e) => setMoveInDate(e.target.value)}
+                            onChange={(e)=>{
+    setMoveInDate(e.target.value);
+    clearError("moveInDate");
+}}
                           />
                         </div>
 
@@ -324,7 +354,10 @@ const MemberModal = ({
                             className={`sv-in ${errors.moveOutDate ? "error-input" : ""}`}
                             type="date"
                             value={moveOutDate}
-                            onChange={(e) => setMoveOutDate(e.target.value)}
+                            onChange={(e)=>{
+    setMoveOutDate(e.target.value);
+    clearError("moveOutDate");
+}}
                           />
                         </div>
                       </div>
@@ -345,9 +378,10 @@ const MemberModal = ({
                           <input
                             className={`sv-in ${errors.rentAgreement ? "error-input" : ""}`}
                             type="file"
-                            onChange={(e) =>
-                              setRentAgreement(e.target.files[0])
-                            }
+                            onChange={(e)=>{
+    setRentAgreement(e.target.files[0]);
+    clearError("rentAgreement");
+}}
                           />
                         </div>
 
@@ -365,7 +399,10 @@ const MemberModal = ({
                           <input
                             className={`sv-in ${errors.policeNoc ? "error-input" : ""}`}
                             type="file"
-                            onChange={(e) => setPoliceNoc(e.target.files[0])}
+                            onChange={(e)=>{
+    setPoliceNoc(e.target.files[0]);
+    clearError("policeNoc");
+}}
                           />
                         </div>
                       </div>
@@ -391,7 +428,10 @@ const MemberModal = ({
                             className={`sv-in ${errors.moveInDate ? "error-input" : ""}`}
                             type="date"
                             value={moveInDate}
-                            onChange={(e) => setMoveInDate(e.target.value)}
+                             onChange={(e)=>{
+    setMoveInDate(e.target.value);
+    clearError("moveInDate");
+}}
                           />
                         </div>
                       </div>
@@ -411,7 +451,10 @@ const MemberModal = ({
                           <input
                             className={`sv-in ${errors.idProof ? "error-input" : ""}`}
                             type="file"
-                            onChange={(e) => setIdProof(e.target.files[0])}
+                            onChange={(e)=>{
+    setIdProof(e.target.files[0]);
+    clearError("idProof");
+}}
                           />
                         </div>
 
@@ -429,7 +472,10 @@ const MemberModal = ({
                           <input
                             className={`sv-in ${errors.agreement ? "error-input" : ""}`}
                             type="file"
-                            onChange={(e) => setAgreement(e.target.files[0])}
+                            onChange={(e)=>{
+    setAgreement(e.target.files[0]);
+    clearError("agreement");
+}}
                           />
                         </div>
                       </div>
@@ -450,9 +496,10 @@ const MemberModal = ({
                           <input
                             className={`sv-in ${errors.maintenanceReceipt ? "error-input" : ""}`}
                             type="file"
-                            onChange={(e) =>
-                              setMaintenanceReceipt(e.target.files[0])
-                            }
+                            onChange={(e)=>{
+    setMaintenanceReceipt(e.target.files[0]);
+    clearError("maintenanceReceipt");
+}}
                           />
                         </div>
 
@@ -471,9 +518,10 @@ const MemberModal = ({
                           <input
                             className={`sv-in ${errors.nominationDetails ? "error-input" : ""}`}
                             type="file"
-                            onChange={(e) =>
-                              setNominationDetails(e.target.files[0])
-                            }
+                           onChange={(e)=>{
+    setNominationDetails(e.target.files[0]);
+    clearError("nominationDetails");
+}}
                           />
                         </div>
                       </div>
@@ -494,7 +542,10 @@ const MemberModal = ({
                           <input
                             className={`sv-in ${errors.familyPhoto ? "error-input" : ""}`}
                             type="file"
-                            onChange={(e) => setFamilyPhoto(e.target.files[0])}
+                            onChange={(e)=>{
+    setFamilyPhoto(e.target.files[0]);
+    clearError("familyPhoto");
+}}
                           />
                         </div>
 
@@ -512,9 +563,10 @@ const MemberModal = ({
                           <input
                             className={`sv-in ${errors.ownershipDocuments ? "error-input" : ""}`}
                             type="file"
-                            onChange={(e) =>
-                              setOwnershipDocuments(e.target.files[0])
-                            }
+                            onChange={(e)=>{
+    setOwnershipDocuments(e.target.files[0]);
+    clearError("ownershipDocuments");
+}}
                           />
                         </div>
                       </div>
@@ -592,7 +644,10 @@ const MemberModal = ({
                               id="owner_relative"
                               value="owner_relative"
                               checked={familyType === "owner_relative"}
-                              onChange={(e) => setFamilyType(e.target.value)}
+                              onChange={(e)=>{
+    setFamilyType(e.target.value);
+    clearError("familyType");
+}}
                             />
 
                             <label

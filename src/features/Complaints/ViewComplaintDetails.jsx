@@ -46,13 +46,13 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
     };
 
     useEffect(() => {
-    console.log("complaintId =", complaintId);
-    console.log("societyId =", societyId);
+        console.log("complaintId =", complaintId);
+        console.log("societyId =", societyId);
 
-    if (complaintId && societyId) {
-        getComplaintById();
-    }
-}, [complaintId, societyId]);
+        if (complaintId && societyId) {
+            getComplaintById();
+        }
+    }, [complaintId, societyId]);
 
     // =====================================================
     // FETCH COMPLAINT BY ID
@@ -60,7 +60,7 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
 
     const getComplaintById = async () => {
         try {
-             
+
             const data = await getComplaintsApi(societyId);
             const list = data?.list || [];
             const found = list.find(
@@ -75,7 +75,7 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
             console.log(error, "Error fetching complaint details");
             setComplaintDetails({});
         } finally {
-             
+
         }
     };
 
@@ -86,10 +86,10 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
     const UpdateData = async () => {
         try {
             if (modalType === "priority") {
-                await updateComplaintPriorityApi(complaintId,societyId, priority, comments);
+                await updateComplaintPriorityApi(complaintId, societyId, priority, comments);
             }
             if (modalType === "status") {
-                await updateComplaintStatusApi(complaintId,societyId, status, comments);
+                await updateComplaintStatusApi(complaintId, societyId, status, comments);
             }
             setComments("");
             setShowModal(false);
@@ -120,25 +120,25 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
         const minutes = Math.floor(seconds / 60);
         const hours = Math.floor(minutes / 60);
         const days = Math.floor(hours / 24);
-        if (days > 0)    return `${days} day${days > 1 ? "s" : ""} ago`;
-        if (hours > 0)   return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+        if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
+        if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
         if (minutes > 0) return `${minutes} min ago`;
         return "Just now";
     };
 
     const getStatusColor = (s) => {
-        if (s === "open")        return "red";
+        if (s === "open") return "red";
         if (s === "in_progress") return "orange";
-        if (s === "resolved")    return "green";
-        if (s === "closed")      return "blue";
+        if (s === "resolved") return "green";
+        if (s === "closed") return "blue";
         return "gray";
     };
 
     const getPriorityColor = (p) => {
-        if (p === "high")   return "red";
+        if (p === "high") return "red";
         if (p === "urgent") return "red";
         if (p === "medium") return "orange";
-        if (p === "low")    return "gray";
+        if (p === "low") return "gray";
         return "gray";
     };
 
@@ -149,9 +149,9 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
             value: priority,
             setValue: setPriority,
             options: [
-                { label: "High",   value: "high" },
+                { label: "High", value: "high" },
                 { label: "Medium", value: "medium" },
-                { label: "Low",    value: "low" },
+                { label: "Low", value: "low" },
                 { label: "Urgent", value: "urgent" },
             ],
         },
@@ -161,11 +161,11 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
             value: status,
             setValue: setStatus,
             options: [
-                { label: "Open",        value: "open" },
+                { label: "Open", value: "open" },
                 { label: "In Progress", value: "in_progress" },
-                { label: "Resolved",    value: "resolved" },
-                { label: "Closed",      value: "closed" },
-                { label: "Rejected",    value: "rejected" },
+                { label: "Resolved", value: "resolved" },
+                { label: "Closed", value: "closed" },
+                { label: "Rejected", value: "rejected" },
             ],
         },
     };
@@ -224,6 +224,7 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
                             <button
                                 className="btn btn-sm btn-primary"
                                 onClick={() => { setModalType("status"); setShowModal(true); }}
+                                disabled={complaintDetails.status === "resolved" || complaintDetails.status === "closed"}
                             >
                                 <FiCheckCircle /> Update Status
                             </button>
@@ -272,6 +273,7 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
                                             className="btn btn-link btn-sm p-0 mt-1"
                                             style={{ fontSize: 12 }}
                                             onClick={() => { setModalType("priority"); setShowModal(true); }}
+                                            disabled={complaintDetails.status === "resolved" || complaintDetails.status === "closed"}
                                         >
                                             Change Priority
                                         </button>
@@ -369,31 +371,32 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
                                     [
                                         <FiMessageSquare size={18} color="#ca8a04" />,
                                         "Send Notification to Resident",
-                                        () => {},
+                                        () => { },
                                         "#fef9c3",
+                                        false,  // never disabled
                                     ],
                                     [
                                         <FiFileText size={18} color="#2563eb" />,
                                         "Update Status",
                                         () => { setModalType("status"); setShowModal(true); },
                                         "#dbeafe",
+                                        complaintDetails.status === "resolved" || complaintDetails.status === "closed",
                                     ],
                                     [
                                         <FiCheckCircle size={18} color="#16a34a" />,
                                         "Mark as Resolved",
-                                        async () => {
-                                            setStatus("resolved");
-                                            setModalType("status");
-                                            setShowModal(true);
-                                        },
+                                        async () => { setStatus("resolved"); setModalType("status"); setShowModal(true); },
                                         "#dcfce7",
+                                        complaintDetails.status === "resolved" || complaintDetails.status === "closed",
                                     ],
-                                ].map(([ic, lb, onClick, bgColor]) => (
+                                ].map(([ic, lb, onClick, bgColor, isDisabled]) => (
                                     <button
                                         key={lb}
                                         className="qa mb-2"
                                         onClick={onClick}
                                         type="button"
+                                        disabled={isDisabled}
+                                        style={isDisabled ? { opacity: 0.5, cursor: "not-allowed" } : {}}
                                     >
                                         <div
                                             className="qa-ico rounded-2"
@@ -438,12 +441,12 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
                                         <h6 className="mb-1">
                                             {complaintDetails.status === "resolved" ? "Resolved"
                                                 : complaintDetails.status === "closed" ? "Closed"
-                                                : "Pending Action"}
+                                                    : "Pending Action"}
                                         </h6>
                                         <small className="text-muted">
-                                            {complaintDetails.status === "open"        ? "Awaiting action..."
+                                            {complaintDetails.status === "open" ? "Awaiting action..."
                                                 : complaintDetails.status === "in_progress" ? "In progress..."
-                                                : complaintDetails.status || ""}
+                                                    : complaintDetails.status || ""}
                                         </small>
                                     </div>
 

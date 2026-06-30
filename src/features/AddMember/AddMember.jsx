@@ -268,6 +268,8 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
         return;
       }
 
+      
+
       if (mode === "edit") {
         await UpdateMemberApi(
           societyId,
@@ -959,6 +961,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
         ownershipDocuments={ownershipDocuments}
         setOwnershipDocuments={setOwnershipDocuments}
         errors={errors}
+        setErrors={setErrors} 
         errorText={errorText}
         handleSubmit={handleSubmit}
       />
