@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { listChargeHeadsApi, upsertChargeHeadApi, deleteChargeHeadApi } from "../../services/BillingApi";
+import { listChargeHeadsApi, upsertChargeHeadApi, deleteChargeHeadApi, autoApplyChargeHeadApi } from "../../services/BillingApi";
 
 const GST_RULES = [
     { value:"exempt",           label:"🟢 Exempt (0%)",              cgst:0,  sgst:0,  desc:"Water, Sinking Fund, Property Tax, Repair Fund" },
@@ -34,6 +34,7 @@ const ChargeHeads = ({ setActive }) => {
     const [form,      setForm]      = useState(EMPTY_FORM);
     const [saving,    setSaving]    = useState(false);
     const [deleting,  setDeleting]  = useState(null);
+    const [applying,  setApplying]  = useState(null); // head id being auto-applied
     const [tab,       setTab]       = useState("basic"); // basic | percentage | gst
 
     useEffect(() => { loadHeads(); }, []);
@@ -50,21 +51,39 @@ const ChargeHeads = ({ setActive }) => {
     };
     const openEdit = (h) => {
         setEditing(h);
+        // Determine charge_basis from DB — fallback chain
+        const cb = h.charge_basis && ["fixed","per_sqft","percentage"].includes(h.charge_basis)
+            ? h.charge_basis
+            : (h.charge_type === "per_sqft" ? "per_sqft" : "fixed");
+
         setForm({
-            ...EMPTY_FORM, ...h,
-            charge_basis:        h.charge_basis        || "fixed",
+            // Start clean — only pick specific fields to avoid stale data bleeding in
+            head_code:           h.head_code    || "",
+            head_name:           h.head_name    || "",
+            head_group:          h.head_group   || "",
+            charge_type:         h.charge_type  || "fixed",
+            charge_scope:        h.charge_scope || "centralised",
+            charge_basis:        cb,
+            centralised_amount:  (h.centralised_amount != null && h.centralised_amount !== "" && h.centralised_amount !== 0)
+                                    ? String(h.centralised_amount) : "",
+            centralised_rate:    (h.centralised_rate != null && h.centralised_rate !== "")
+                                    ? String(h.centralised_rate)   : "",
+            percentage_rate:     (h.percentage_rate != null && h.percentage_rate > 0)
+                                    ? String(h.percentage_rate)    : "",
             percentage_of_heads: h.percentage_of_heads
                 ? String(h.percentage_of_heads).split(",").map(s=>s.trim()).filter(Boolean)
                 : [],
             applies_to_types: h.applies_to_types
-                ? h.applies_to_types.split(",").map(s=>s.trim())
+                ? h.applies_to_types.split(",").map(s=>s.trim()).filter(Boolean)
                 : ["residential_flat","commercial_shop","commercial_office"],
-            gst_rule:  h.gst_rule  || "exempt",
-            cgst_rate: h.cgst_rate || 0,
-            sgst_rate: h.sgst_rate || 0,
-            igst_rate: h.igst_rate || 0,
-            sac_code:  h.sac_code  || "",
-            gst_notes: h.gst_notes || "",
+            is_active:    h.is_active  != null ? h.is_active  : 1,
+            sort_order:   h.sort_order != null ? String(h.sort_order) : "",
+            gst_rule:     h.gst_rule   || "exempt",
+            cgst_rate:    parseFloat(h.cgst_rate || 0),
+            sgst_rate:    parseFloat(h.sgst_rate || 0),
+            igst_rate:    parseFloat(h.igst_rate || 0),
+            sac_code:     h.sac_code   || "",
+            gst_notes:    h.gst_notes  || "",
         });
         setTab("basic"); setShowModal(true);
     };
@@ -96,8 +115,14 @@ const ChargeHeads = ({ setActive }) => {
     const handleSave = async () => {
         if (!form.head_code.trim()) { toast.error("Head Code is required"); return; }
         if (!form.head_name.trim()) { toast.error("Head Name is required"); return; }
+        if (form.charge_basis === "fixed" && (!form.centralised_amount || parseFloat(form.centralised_amount) < 0))
+            { toast.error("Fixed amount is required"); return; }
+        if (form.charge_basis === "per_sqft" && (!form.centralised_rate || parseFloat(form.centralised_rate) <= 0))
+            { toast.error("Rate per sqft is required"); return; }
         if (form.charge_basis === "percentage" && (!form.percentage_rate || parseFloat(form.percentage_rate) <= 0))
             { toast.error("Percentage rate is required"); return; }
+        if (form.charge_basis === "percentage" && (form.percentage_of_heads||[]).length === 0)
+            { toast.error("Select at least one base charge head"); setTab("percentage"); return; }
         setSaving(true);
         try {
             await upsertChargeHeadApi({
@@ -108,8 +133,12 @@ const ChargeHeads = ({ setActive }) => {
                 charge_type:         form.charge_type,
                 charge_scope:        form.charge_scope,
                 charge_basis:        form.charge_basis,
-                centralised_amount:  form.charge_basis === "fixed"      ? parseFloat(form.centralised_amount)||0 : null,
-                centralised_rate:    form.charge_basis === "per_sqft"   ? parseFloat(form.centralised_rate)||0  : null,
+                centralised_amount:  form.charge_basis === "fixed"
+                    ? (form.centralised_amount !== "" ? parseFloat(form.centralised_amount) : 0)
+                    : null,
+                centralised_rate:    form.charge_basis === "per_sqft"
+                    ? (form.centralised_rate !== "" ? parseFloat(form.centralised_rate) : 0)
+                    : null,
                 percentage_rate:     form.charge_basis === "percentage" ? parseFloat(form.percentage_rate)||0   : null,
                 percentage_of_heads: form.charge_basis === "percentage" ? form.percentage_of_heads.join(",")    : null,
                 applies_to_types:    form.applies_to_types.join(","),
@@ -138,6 +167,31 @@ const ChargeHeads = ({ setActive }) => {
         finally { setDeleting(null); }
     };
 
+    const handleAutoApply = async (h) => {
+        if (!window.confirm(
+            `Apply "${h.head_name}" to all eligible flats?
+
+` +
+            `• NEW flats (not yet configured) will be added
+` +
+            `• EXISTING non-override rows will be updated
+` +
+            `• Manual overrides are preserved`
+        )) return;
+        setApplying(h.id);
+        try {
+            const r = await autoApplyChargeHeadApi(h.id);
+            const inserted = r?.rows_inserted || 0;
+            const updated  = r?.rows_updated  || r?.rows_updated || 0;
+            toast.success(`✅ ${h.head_name} applied — ${inserted} new + ${updated} updated flats`);
+            loadHeads();
+        } catch(e) {
+            toast.error(typeof e === "string" ? e : "Auto-apply failed");
+        } finally {
+            setApplying(null);
+        }
+    };
+
     // Heads eligible for percentage reference (fixed/per_sqft only, not percentage)
     const eligibleBases = heads.filter(h => (h.charge_basis||"fixed") !== "percentage" && h.id !== editing?.id);
 
@@ -151,8 +205,32 @@ const ChargeHeads = ({ setActive }) => {
                     <h4 style={{ fontWeight:700, margin:0 }}>🧾 Charge Heads</h4>
                     <p style={{ color:"#6b7280", fontSize:13, margin:0 }}>Dynamic billing charge heads with GST + percentage support</p>
                 </div>
-                <div className="d-flex gap-2">
-                    <button className="billing-btn billing-btn-outline" onClick={() => setActive("billingDashboard")}>← Dashboard</button>
+                <div className="d-flex gap-2 flex-wrap">
+                    <button className="billing-btn billing-btn-outline"
+                        onClick={() => setActive("billingDashboard")}>← Dashboard</button>
+                    <button
+                        title="Apply ALL centralised heads to all flats at once"
+                        disabled={!!applying}
+                        onClick={async () => {
+                            const centralised = heads.filter(h => h.charge_scope === "centralised");
+                            if (!centralised.length) { toast.info("No centralised heads to apply"); return; }
+                            if (!window.confirm(`Apply all ${centralised.length} centralised charge heads to all flats?`)) return;
+                            let ok = 0, fail = 0;
+                            for (const h of centralised) {
+                                setApplying(h.id);
+                                try {
+                                    await autoApplyChargeHeadApi(h.id);
+                                    ok++;
+                                } catch(_) { fail++; }
+                            }
+                            setApplying(null);
+                            toast.success(`✅ Applied ${ok} heads to all flats${fail > 0 ? ` (${fail} failed)` : ""}`);
+                            loadHeads();
+                        }}
+                        style={{ padding:"8px 14px", borderRadius:8, border:"1px solid #2563eb",
+                            background:"#eff6ff", color:"#2563eb", cursor:"pointer", fontSize:13, fontWeight:600 }}>
+                        {applying ? "⏳ Applying..." : "🏠 Apply All to Flats"}
+                    </button>
                     <button className="billing-btn billing-btn-primary" onClick={openAdd}>+ Add Charge Head</button>
                 </div>
             </div>
@@ -219,8 +297,21 @@ const ChargeHeads = ({ setActive }) => {
                                         </span>
                                     </td>
                                     <td>
-                                        <div className="d-flex gap-1">
-                                            <button className="billing-btn billing-btn-outline billing-btn-sm" onClick={() => openEdit(h)}>✏️</button>
+                                        <div className="d-flex gap-1 flex-wrap">
+                                            <button className="billing-btn billing-btn-outline billing-btn-sm"
+                                                title="Edit charge head"
+                                                onClick={() => openEdit(h)}>✏️</button>
+                                            {h.charge_scope === "centralised" && (
+                                                <button
+                                                    title="Apply to all eligible flats"
+                                                    disabled={applying === h.id}
+                                                    onClick={() => handleAutoApply(h)}
+                                                    style={{ padding:"3px 8px", borderRadius:6, fontSize:11,
+                                                        border:"1px solid #2563eb", background: applying===h.id?"#dbeafe":"#eff6ff",
+                                                        color:"#2563eb", cursor:"pointer", fontWeight:600, whiteSpace:"nowrap" }}>
+                                                    {applying === h.id ? "⏳..." : "🏠 Apply to Flats"}
+                                                </button>
+                                            )}
                                             <button className="billing-btn billing-btn-sm"
                                                 style={{ background:"#fee2e2", color:"#dc2626", border:"1px solid #fecaca" }}
                                                 onClick={() => handleDelete(h)} disabled={deleting===h.id}>
@@ -589,6 +680,9 @@ const ChargeHeads = ({ setActive }) => {
 };
 
 export default ChargeHeads;
+
+
+
 
 // import { useState, useEffect } from "react";
 // import { toast } from "react-toastify";
