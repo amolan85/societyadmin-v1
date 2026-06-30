@@ -349,7 +349,6 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
 
                     {/* ── LEFT COLUMN ── */}
                     <div className="sv-card">
-                        <div className="sv-card">
 
                             {/* FILTERS */}
                             <div className="row g-2">
@@ -579,7 +578,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                                 </div>
                             )}
 
-                        </div>
+                       
                     </div>
 
                     {/* ── RIGHT COLUMN ── */}

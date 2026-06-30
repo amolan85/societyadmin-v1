@@ -470,33 +470,40 @@ const NAV = [
     ]
   },
   {
-    sec: "Member Masters", items: [
+    sec: "Visitors & Parking", items: [
+      { id: "visitorRegister", icon: "🚶", lbl: "Visitors" },
+      { id: "vehicleRegister", icon: "🚘", lbl: "Vehicles" },
+      { id: "parkingDashboard", icon: "🚗", lbl: "Parking" },
+    ]
+  },
+  {
+    sec: "Operations", items: [
+      { id: "complaints", icon: "🚨", lbl: "Complaints" },
+      { id: "staff", icon: "👥", lbl: "Staff Attendance" },
+      { id: "billing", icon: "💰", lbl: "Billing" },
+    ]
+  },
+  {
+    sec: "Residents", items: [
       { id: "addmember", icon: "👤", lbl: "Members" },
-      { id: "transfer", icon: "🔄", lbl: "Transfer Member" },
+      { id: "flatApprovals", icon: "🏘️", lbl: "Flat Approvals" },
+      { id: "rentals", icon: "🏢", lbl: "Rentals & Tenants" },
+    ]
+  },
+  {
+    sec: "Transfers", items: [
+      { id: "transfer", icon: "🔄", lbl: "Member Transfer" },
+      { id: "flattransfer", icon: "🏠", lbl: "Flat Transfer" },
     ]
   },
   {
     sec: "Administration", items: [
       { id: "documents", icon: "📄", lbl: "Documents & NOC" },
-      { id: "flattransfer", icon: "🏠", lbl: "Flat Transfer" },
       { id: "registers", icon: "📔", lbl: "Registers" },
       { id: "rules", icon: "⚖️", lbl: "Rules & By-laws" },
-      { id: "visitorRegister", icon: "🚶", lbl: "Visitors" },
-    ]
-  },
-  {
-    sec: "Operations", items: [
-      { id: "flatApprovals", icon: "🏘️", lbl: "Flat Approvals" },
-      { id: "complaints", icon: "🚨", lbl: "Complaints" },
-      { id: "parkingDashboard", icon: "🚗", lbl: "Parking" },
-      { id: "rentals", icon: "🏢", lbl: "Rentals & Tenants" },
-      { id: "staff", icon: "👥", lbl: "Staff Attendance" },
-      { id: "vehicleRegister", icon: "🚘", lbl: "Vehicles" },
-      { id: "billing", icon: "💰", lbl: "Billing" },
     ]
   },
 ];
-
 const PARENT_MAP = {
   // Registers ke child pages
   registerHistory: "registers",
@@ -521,7 +528,7 @@ const PARENT_MAP = {
   // Operations
   createComplaints: "complaints",
   viewComplaintDetails: "complaints",       // ← ADDED
-  AssignStaffModal: "complaints", 
+  AssignStaffModal: "complaints",
   createStaff: "staff",
   rentalsApplication: "rentals",
   parkingList: "parkingDashboard",
@@ -560,7 +567,7 @@ const TITLES = {
   complaints: ["Operations", "Complaints"],
   createComplaints: ["Operations", "Create Complaints"],
   viewComplaintDetails: ["Operations", "Complaints", "View Complaint"],  // ← ADDED
-  AssignStaffModal:["Operations", "Complaints", "Assign Staff"],  // ← ADDED
+  AssignStaffModal: ["Operations", "Complaints", "Assign Staff"],  // ← ADDED
   parkingList: ["Operations", "Parking"],
   parkingDashboard: ["Operations", "Parking"],
   visitorParking: ["Operations", "Parking", "Visitor Parking"],
@@ -635,7 +642,7 @@ export default function App() {
     createPoll: <CreatePoll setActive={setActive} pollId={pollId} />,
     addmember: <AddMember setActive={setActive} setMemberId={setMemberId} setFlatId={setFlatId} />,
     memberDetails: <MemberDetails active={active} setActive={setActive} previousTab={previousTab} setPreviousTab={setPreviousTab} memberId={memberId} setFlatId={setFlatId} flatId={flatId} />,
-    viewUnit: <ViewUnit setActive={setActive} flatId={flatId} setMemberId={setMemberId}/>,
+    viewUnit: <ViewUnit setActive={setActive} flatId={flatId} setMemberId={setMemberId} />,
     transfer: <PlaceholderPage label="Transfer Member" />,
     documents: <Documents />,
     flattransfer: <FlatTransfer />,
