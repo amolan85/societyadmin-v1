@@ -445,7 +445,8 @@ import ListVehicleRegister from "../Register/VehicleRegister/ListVehicleRegister
 import GetVehicleDetails from "../Register/VehicleRegister/GetVehicleDetails";
 import FlatApprovals from "../FlatOccupancy/FlatApprovals";
 import Billing from "../Billing/Billing";
-
+import PollAnalytics from "../Polls/PollAnalytics";
+import UpcomingEvents from "../Events/UpcomingEvents";
 
 /* ══ OVERVIEW ══════════════════════════════════ */
 
@@ -521,7 +522,7 @@ const PARENT_MAP = {
   viewbroadcastdetails: "broadcasting",
   createNoticeBoard: "noticeboard",
   createPoll: "polls",
-
+  upcomingEvents: "polls",
   // Member Masters
   memberDetails: "addmember",
 
@@ -539,6 +540,7 @@ const PARENT_MAP = {
   visitorDetails: "parkingDashboard",
 
   vehicleDetailsPage: "vehicleRegister",
+  pollAnalytics: "polls",
 };
 
 const TITLES = {
@@ -550,6 +552,7 @@ const TITLES = {
   createNoticeBoard: ["Communication", "Create Notice Board"],
   createPoll: ["Communication", "Create Poll"],
   polls: ["Communication", "Polls & Voting"],
+  upcomingEvents: ["Communication", "Polls & Voting", "Upcoming Events"],
   addmember: ["Member Masters", "Members"],
   memberDetails: ["Member Masters", "Member Details"],
   viewUnit: ["Administration", "Registers", "View Register", "View Unit"],
@@ -584,6 +587,7 @@ const TITLES = {
   vehicleDetailsPage: ["Administration", "Registers", "Vehicle Register", "Vehicle Details"],
   billing: ["Operations", "Billing"],
   flatApprovals: ["Operations", "Flat Approvals"],
+  pollAnalytics: ["Communication", "Polls & Voting", "Analytics"],
 };
 
 /* ══ ROOT APP ══════════════════════════════════ */
@@ -676,6 +680,8 @@ export default function App() {
     vehicleDetailsPage: <GetVehicleDetails setActive={setActive} vehicleId={vehicleId} />,
     billing: <Billing setActive={setActive} />,
     flatApprovals: <FlatApprovals setActive={setActive} />,
+    pollAnalytics: <PollAnalytics setActive={setActive} pollId={pollId} />,
+    upcomingEvents: <UpcomingEvents setActive={setActive} />,
   };
 
   const breadcrumbs = (() => {
