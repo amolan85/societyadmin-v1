@@ -60,17 +60,27 @@ export const getBillingSettingsApi = async () => billingPost("GetBillingSettings
 // ── Charge Heads ──────────────────────────────────────────────────────────────
 export const upsertChargeHeadApi = async (data) =>
     billingPost("UpsertChargeHead", {
-        head_id:            data.head_id            ? parseInt(data.head_id)                      : null,
-        head_code:          data.head_code          || null,
-        head_name:          data.head_name          || null,
-        head_group:         data.head_group         || null,
-        charge_type:        data.charge_type        || "fixed",
-        charge_scope:       data.charge_scope       || "centralised",
-        centralised_amount: data.centralised_amount != null ? parseFloat(data.centralised_amount) : null,
-        centralised_rate:   data.centralised_rate   != null ? parseFloat(data.centralised_rate)   : null,
-        applies_to_types:   data.applies_to_types   || null,
-        is_active:          data.is_active          != null ? parseInt(data.is_active)            : null,
-        sort_order:         data.sort_order         != null ? parseInt(data.sort_order)           : null,
+        head_id:              data.head_id              ? parseInt(data.head_id)                        : null,
+        head_code:            data.head_code            || null,
+        head_name:            data.head_name            || null,
+        head_group:           data.head_group           || null,
+        charge_type:          data.charge_type          || "fixed",
+        charge_scope:         data.charge_scope         || "centralised",
+        charge_basis:         data.charge_basis         || "fixed",
+        centralised_amount:   data.centralised_amount   != null ? parseFloat(data.centralised_amount)   : null,
+        centralised_rate:     data.centralised_rate     != null ? parseFloat(data.centralised_rate)     : null,
+        percentage_rate:      data.percentage_rate      != null ? parseFloat(data.percentage_rate)      : null,
+        percentage_of_heads:  data.percentage_of_heads  || null,
+        applies_to_types:     data.applies_to_types     || null,
+        is_active:            data.is_active            != null ? parseInt(data.is_active)              : null,
+        sort_order:           data.sort_order           != null ? parseInt(data.sort_order)             : null,
+        // GST
+        gst_rule:             data.gst_rule             || "exempt",
+        cgst_rate:            data.cgst_rate            != null ? parseFloat(data.cgst_rate)            : 0,
+        sgst_rate:            data.sgst_rate            != null ? parseFloat(data.sgst_rate)            : 0,
+        igst_rate:            data.igst_rate            != null ? parseFloat(data.igst_rate)            : 0,
+        sac_code:             data.sac_code             || null,
+        gst_notes:            data.gst_notes            || null,
     });
 
 export const deleteChargeHeadApi    = async (headId)     => billingPost("DeleteChargeHead",    { head_id: parseInt(headId) });
@@ -342,6 +352,7 @@ export const getInterestHistoryApi   = async (data={}) => billingPost("GetIntere
 
 export const getSchedulerProgressApi = async () =>
     billingPost("GetSchedulerProgress", {});
+
 
 // import apiClient from "./ApiClient";
 // import ErrorHandler from "../utils/ErrorHandler";

@@ -7,7 +7,8 @@ import { Badge } from '../../../components/Common/ReusableFunction';
 import { toast } from "react-toastify";
 import { FiMapPin } from 'react-icons/fi';
 import VehicleModal from './VehicleModal';
-
+import { DeallocateParkingSlotApi } from '../../../services/ParkingApi'
+import AllocateResidentParkingModal from '../../Parking/AllocateResidentParkingModal';
 const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
 
     const [vehicle, setVehicle] = useState(null);
@@ -30,7 +31,7 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
     const [stickerId, setStickerId] = useState("");
     const [rcDocument, setRcDocument] = useState(null);
     const [flatId, setFlatId] = useState("");
-
+    const [showParkingModal, setShowParkingModal] = useState(false);
     useEffect(() => { SessionData(); }, []);
 
     useEffect(() => {
@@ -61,7 +62,20 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
             fetchVehicle(sid);
         }
     };
-
+    const handleDeallocateParking = async () => {
+        if (!vehicle?.allocation_id) {
+            toast.error("No active parking allocation found");
+            return;
+        }
+        if (!window.confirm("Are you sure you want to deallocate this parking slot?")) return;
+        try {
+            await DeallocateParkingSlotApi(societyId, vehicle.allocation_id);
+            toast.success("Parking slot deallocated successfully");
+            fetchVehicle(societyId);
+        } catch (e) {
+            toast.error(e?.message || "Deallocation failed");
+        }
+    };
     const fetchVehicle = async (sid) => {
         try {
             setLoading(true);
@@ -73,7 +87,7 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
 
             setVehicle(res?.data || res);
             console.log("Full vehicle response:", res?.data || res);
-        } catch (e) {
+        } catch {
             toast.error("Could not load vehicle details");
         } finally {
             setLoading(false);
@@ -151,10 +165,6 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
         return "grey";
     };
 
-    const initials = (name) => {
-        if (!name) return "V";
-        return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
-    };
 
     if (loading) return <div className="text-center py-5 text-muted">Loading...</div>;
     if (!vehicle) return null;
@@ -220,6 +230,23 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
                             >
                                 Edit Vehicle
                             </button>
+                            {vehicle?.allocation_id ? (
+                                <button
+                                    className="btn btn-sm btn-warning"
+                                    onClick={handleDeallocateParking}
+                                    style={{ borderRadius: 8 }}
+                                >
+                                    Deallocate Parking
+                                </button>
+                            ) : (
+                                <button
+                                    className="btn btn-sm btn-primary"
+                                    onClick={() => setShowParkingModal(true)}
+                                    style={{ borderRadius: 8 }}
+                                >
+                                    Allocate Parking
+                                </button>
+                            )}
                             <button
                                 className="btn btn-sm btn-danger"
                                 onClick={handleDelete}
@@ -452,6 +479,19 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
                 handleSubmit={handleUpdate}
                 selectedOwnerName={selectedOwnerName}
                 rcDocumentUrl={rcDocumentUrl}
+            />
+
+            {/* Allocate Resident Parking Modal */}
+            <AllocateResidentParkingModal
+                show={showParkingModal}
+                onClose={() => setShowParkingModal(false)}
+                vehicle={vehicle}
+                societyId={societyId}
+                userId={userId}
+                onSuccess={() => {
+                    setShowParkingModal(false);
+                    fetchVehicle(societyId);
+                }}
             />
         </>
     );

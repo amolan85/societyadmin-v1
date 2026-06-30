@@ -65,8 +65,10 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   const [search, setSearch] = useState("");
   const [mId, setMId] = useState("");
   const [selectedRange, setSelectedRange] = useState("all");
-  // const { loading, setLoading } = useLoader();
-  const { loading: globalLoading, setLoading } = useLoader(); // rename karo
+
+  //loader
+  const { setLoading } = useLoader(); 
+
 
   const addMemberType = [
     { id: "Owner", value: "owner" },
@@ -99,12 +101,6 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   };
 
 
-  // const filteredMembers = allMembers.filter((m) => {
-  //   const matchType = !filterStatus || m.occupancy_type === filterStatus;
-  //   const matchFrom = !filterDateFrom || new Date(m.start_date) >= new Date(filterDateFrom);
-  //   const matchTo = !filterDateTo || new Date(m.start_date) <= new Date(filterDateTo);
-  //   return matchType && matchFrom && matchTo;
-  // });
   const getAllMembersWithoutPagination = async (societyId, search) => {
     try {
       const data = await getAllMembersWithoutPaginationApi(societyId, search);
@@ -145,7 +141,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
       const data = await getAllFlatsApi(societyId, block);
       console.log(data, "All flats response");
 
-      // ✅ data se flats extract karo
+      // ✅ To get flats from data
       const flats = data?.flats || data?.data?.flats || [];
 
       setAllFlats(
@@ -160,6 +156,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
       console.error("Error fetching flats:", error);
     }
   };
+
   const getMembersById = async (memberId, flatId) => {
     setMemberId(memberId);
     setFlatId(flatId);
@@ -188,18 +185,13 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     } else if (!/\S+@\S+\.\S+/.test(emailId)) {
       errors.emailId = "Invalid email";
     }
-    // else {
-    //     errors.emailId = ""
-    // }
+  
     if (!mobileNo) {
       errors.mobileNo = "required";
     } else if (!/^[0-9]{10}$/.test(mobileNo)) {
       errors.mobileNo = "Invalid mobile no.";
     }
-    // else {
-    //     errors.mobileNo = ""
-    // }
-
+  
     if (!blocks) {
       errors.blocks = "required";
     }
@@ -379,7 +371,6 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
         setMoveOutDate(occupancy?.end_date || "");
       }
 
-      // ✅ documents flatDetails ke andar hain
       flatDetails?.documents?.forEach((doc) => {
         switch (doc.document_type) {
           case "id_proof": setIdProof(doc.url); break;
@@ -397,22 +388,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
       console.log(error);
     }
   };
-  // const handleDelete = async (memberId) => {
-  //   try {
-  //     const data = await deleteMembersApi(memberId);
-
-  //     console.log(data, "Delete response");
-
-  //     toast.success("Member deleted successfully");
-  //     getMembers(societyId, page);
-  //     // Refresh member list if needed
-  //     // GetAllMembers();
-  //   } catch (error) {
-  //     console.error("Delete Error:", error);
-
-  //     toast.error(error);
-  //   }
-  // };
+  
   const handleDelete = async (memberId, societyId) => {
     const confirmed = window.confirm("Are you sure you want to delete this member?");
 
@@ -436,8 +412,8 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     setLastName("");
     setEmailId("");
     setMobileNo("");
-    setBlocks("");
-    setFlat("");
+    //setBlocks("");
+    //setFlat("");
     setMoveInDate("");
     setMoveOutDate("");
     setFamilyType("");
@@ -489,6 +465,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
       setTableLoading(false); // ✅ local
     }
   };
+  
   const downloadExcel = async () => {
     exportFile({
       data: exportData,
@@ -744,22 +721,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
           </div>
 
         </div>
-        {/* <div className='row'>
-                    <div className='col-lg-7'>
-                        <div className="NoticeBoardTabs mt-3 bg-white"
-                        >
-                            {memberType.map((t) => (
-                                <button
-                                    key={t.id}
-                                    onClick={() => setMemberTypeTab(t.value)}
-                                    className={`NoticeBoardTabs-btn ${memberTypeTab === t.value ? "active" : ""}`}
-                                >
-                                    {t.icon} {t.id}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div> */}
+        
 
         <div className="sv-card p-0 overflow-hidden">
           <div className="sa-table-wrap">
@@ -767,7 +729,6 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
               <thead>
                 <tr>
                   {
-                    // ["First Name", "Last Name", "Mobile No.", "Email Id", "Wing", "Flat", "Membership Type", "Residency Status", "Date"]
                     [
                       "MEMBER NAME",
                       "UNIT NO.",
@@ -915,6 +876,8 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
           <Pagination page={page} total={total} onChange={handlePageChange} />
         </div>
       </div>
+
+      {/* member modal */}
       <MemberModal
         show={show}
         setShow={setShow}
@@ -965,6 +928,8 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
         errorText={errorText}
         handleSubmit={handleSubmit}
       />
+
+      {/* export modal */}
       <ExportModal
         show={exportModal}
         onClose={() => setExportModal(false)}
@@ -976,192 +941,6 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
         totalRecords={allMembersWithoutPagination.length}
         currentRecords={allMembers.length}
       />
-      {/* {exportModal && (
-        <>
-          <div className="modal-backdrop fade show"></div>
-          <div className="modal show d-block">
-            <div className="modal-dialog modal-md">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h1 className="modal-title fs-5">Export Data</h1>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setExportModal(false)}
-                  ></button>
-                </div>
-
-                <div className="modal-body">
-                  <h6 className=" text-start" style={{ fontWeight: "bold" }}>
-                    Select Format
-                  </h6>
-                  <div className="row mb-4">
-                   
-                    <div className="col-md-4">
-                      <div
-                        className={`format-card text-center p-3 rounded-3 ${activeTab === "excel" ? "active-format" : ""
-                          }`}
-                        onClick={() => {
-                          setActiveTab("excel");
-                        }}
-                      >
-                        <BsFiletypeXls
-                          className={
-                            activeTab === "excel"
-                              ? "text-primary"
-                              : "text-secondary"
-                          }
-                          size={20}
-                        />
-
-                        <p
-                          className={`fw-semibold mb-0 mt-1 ${activeTab === "excel"
-                            ? "text-primary"
-                            : "text-secondary"
-                            }`}
-                        >
-                          Excel
-                        </p>
-                      </div>
-                    </div>
-
-                  
-                    <div className="col-md-4">
-                      <div
-                        className={`format-card text-center p-3 rounded-3 ${activeTab === "csv" ? "active-format" : ""
-                          }`}
-                        onClick={() => {
-                          setActiveTab("csv");
-                        }}
-                      >
-                        <BsFiletypeCsv
-                          className={
-                            activeTab === "csv"
-                              ? "text-primary"
-                              : "text-secondary"
-                          }
-                          size={20}
-                        />
-
-                        <p
-                          className={`fw-semibold mb-0 mt-1 ${activeTab === "csv"
-                            ? "text-primary"
-                            : "text-secondary"
-                            }`}
-                        >
-                          CSV
-                        </p>
-                      </div>
-                    </div>
-
-                    
-                    <div className="col-md-4">
-                      <div
-                        className={`format-card text-center p-3 rounded-3 ${activeTab === "pdf" ? "active-format" : ""
-                          }`}
-                        onClick={() => {
-                          setActiveTab("pdf");
-                        }}
-                      >
-                        <BsFiletypePdf
-                          className={
-                            activeTab === "pdf"
-                              ? "text-primary"
-                              : "text-secondary"
-                          }
-                          size={20}
-                        />
-
-                        <p
-                          className={`fw-semibold mb-0 mt-1 ${activeTab === "pdf"
-                            ? "text-primary"
-                            : "text-secondary"
-                            }`}
-                        >
-                          PDF
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <h6 className=" text-start fw-bold">Data Range</h6>
-
-                  <div
-                    className={`range-card d-flex justify-content-between align-items-center mb-3 ${selectedRange === "all" ? "active-range" : ""
-                      }`}
-                  >
-                    <div className="d-flex align-items-center gap-3">
-                      <input
-                        className="form-check-input"
-                        type="radio"
-                        name="exportRange"
-                        checked={selectedRange === "all"}
-                        onChange={() => setSelectedRange("all")}
-                      />
-                      <h6 className="fw-bold mt-1">All Data</h6>
-                    </div>
-
-                    <h6 className="text-muted mt-1">
-                      {allMembersWithoutPagination.length} records
-                    </h6>
-                  </div>
-
-                  <div
-                    className={`range-card d-flex justify-content-between align-items-center mb-3 ${selectedRange === "search" ? "active-range" : ""
-                      }`}
-                  >
-                    <div className="d-flex align-items-center gap-3">
-                      <input
-                        className="form-check-input"
-                        type="radio"
-                        name="exportRange"
-                        checked={selectedRange === "search"}
-                        onChange={() => setSelectedRange("search")}
-                      />
-                      <h6 className="fw-bold mt-1">Current Search Results</h6>
-                    </div>
-
-                    <h6 className="text-muted mt-1">{allMembers.length} records</h6>
-                  </div>
-
-                  <div
-                    className={`range-card d-flex align-items-center gap-3 ${selectedRange === "custom" ? "active-range" : ""
-                      }`}
-                  >
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="exportRange"
-                      checked={selectedRange === "custom"}
-                      onChange={() => setSelectedRange("custom")}
-                    />
-                    <h6 className="fw-bold mt-1">Custom Date Range</h6>
-                  </div>
-                </div>
-
-                <div className="modal-footer">
-                  <button
-                    className="btn-sm btn btn-outline-secondary"
-                    onClick={() => {
-                      setExportModal(false);
-                    }}
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    className="btn btn-sm btn-primary"
-                    onClick={handleExport}
-                  >
-                    <i className="bi bi-download me-2"></i>
-                    Export Data
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )} */}
     </>
 
   );

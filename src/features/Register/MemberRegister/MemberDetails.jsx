@@ -59,6 +59,9 @@ const MemberDetails = ({
   const [errors, setErrors] = useState({})
   const [errorText, setErrorText] = useState("");
   const [pageLoading, setPageLoading] = useState(true);
+  const [vehicles, setVehicles] = useState([]);
+  const [parkingSlots, setParkingSlots] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
 
   const addMemberType = [
     { id: "Owner", value: "owner" },
@@ -74,7 +77,17 @@ const MemberDetails = ({
   useEffect(() => {
     SessionData();
   }, []);
-
+  const timeAgo = (dateStr) => {
+    if (!dateStr) return "";
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins} min ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs} hour${hrs > 1 ? "s" : ""} ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days} day${days > 1 ? "s" : ""} ago`;
+  };
   const SessionData = async () => {
     try {
       const data = await GetSessionData();
@@ -173,7 +186,25 @@ const MemberDetails = ({
         setMoveInDate(flat.occupancy?.start_date || "");
 
         setMoveOutDate(flat.occupancy?.end_date || "");
+        setVehicles(flat.vehicles || []);
+        setParkingSlots(flat.parking || []);
+        const vehicleEvents = (flat.vehicles || []).map((v) => ({
+          title: `${v.vehicle_model} (${v.vehicle_number}) Added`,
+          date: v.registered_at,
+          type: "vehicle",
+        }));
 
+        const parkingEvents = (flat.parking || []).map((p) => ({
+          title: `Slot ${p.slot_number} Allocated`,
+          date: p.allocated_at,
+          type: "parking",
+        }));
+
+        const merged = [...vehicleEvents, ...parkingEvents]
+          .filter((e) => e.date)
+          .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        setRecentActivity(merged);
         flat.documents?.forEach((doc) => {
           switch (doc.document_type) {
 
@@ -602,25 +633,30 @@ const MemberDetails = ({
                 Registered Vehicles
               </div>
 
-              <div className="list-group list-group-flush ">
-                <div className="list-group-item">
-                  <div className="fw-semibold ">
-                    <FaCar color="blue" className="me-2" />
-                    Tesla Model Y
-                  </div>
-
-                  <small className="text-muted">ABC-1234 • Slot P-404</small>
-                </div>
-
-                <div className="list-group-item">
-                  <div className="fw-semibold">
-                    {/* <i className="bi bi-bicycle me-2"></i> */}
-                    <FaCar color="blue" className="me-2" />
-                    Trek Bicycle
-                  </div>
-
-                  <small className="text-muted">Unregistered • Bike Rack</small>
-                </div>
+              <div className="list-group list-group-flush">
+                {vehicles.length === 0 ? (
+                  <div className="list-group-item text-muted">No vehicles registered</div>
+                ) : (
+                  vehicles.map((v) => {
+                    const slot = parkingSlots.find(
+                      (p) => p.slot_vehicle_type === v.vehicle_type
+                    );
+                    return (
+                      <div className="list-group-item" key={v.vehicle_id}>
+                        <div className="fw-semibold">
+                          <FaCar color="blue" className="me-2" />
+                          {v.vehicle_model} ({v.vehicle_number})
+                        </div>
+                        <small className="text-muted">
+                          {v.vehicle_number}
+                          {slot
+                            ? ` • Slot ${slot.slot_number}`
+                            : " • Unregistered • No Slot"}
+                        </small>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
 
@@ -630,21 +666,24 @@ const MemberDetails = ({
               </div>
 
               <div className="list-group list-group-flush">
-                <div className="list-group-item d-flex align-items-start gap-3">
-                  <div
-                    className="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center"
-                    // style="width:40px;height:40px;"
-                    style={{ width: "40px", height: "40px" }}
-                  >
-                    <i className="bi bi-check-lg"></i>
-                  </div>
-
-                  <div>
-                    <div className="fw-semibold">Tesla Model Y Added</div>
-
-                    <small className="text-muted">2 hours ago</small>
-                  </div>
-                </div>
+                {recentActivity.length === 0 ? (
+                  <div className="list-group-item text-muted">No recent activity</div>
+                ) : (
+                  recentActivity.slice(0, 4).map((act, idx) => (
+                    <div className="list-group-item d-flex align-items-start gap-3" key={idx}>
+                      <div
+                        className="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center"
+                        style={{ width: "40px", height: "40px" }}
+                      >
+                        <i className="bi bi-check-lg"></i>
+                      </div>
+                      <div>
+                        <div className="fw-semibold">{act.title}</div>
+                        <small className="text-muted">{timeAgo(act.date)}</small>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
