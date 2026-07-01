@@ -8,9 +8,16 @@ import {
     FiCheckCircle,
     FiClock,
     FiXCircle,
+    FiCalendar,
+    FiUsers,
+    FiSearch,
+    FiPlus,
 } from "react-icons/fi";
-import { FaBalanceScale, FaSwimmingPool, FaUsers } from 'react-icons/fa';
-import { BiPieChartAlt2 } from 'react-icons/bi';
+import { FaBalanceScale, FaUsers, FaChartBar } from 'react-icons/fa';
+import { BiTime } from 'react-icons/bi';
+import { MdOutlineHowToVote } from 'react-icons/md';
+import { HiOutlineLightningBolt } from 'react-icons/hi';
+import { BsCalendarEvent } from 'react-icons/bs';
 
 const Polls = ({ setActive, setPollId }) => {
     const [tab, setTab] = useState("");
@@ -27,6 +34,7 @@ const Polls = ({ setActive, setPollId }) => {
         { id: "Expired", value: "EXPIRED" },
     ];
 
+    // status -> icon / colors (matches green/red/orange pill icons in design)
     const getPollStatusIcon = (status) => {
         switch (status) {
             case "ACTIVE":
@@ -54,6 +62,21 @@ const Polls = ({ setActive, setPollId }) => {
                 };
         }
     };
+
+    // badge color per status (Active = green, Upcoming = orange, Expired = red)
+    const getStatusBadgeColor = (status) => {
+        switch (status) {
+            case "ACTIVE":
+                return "green";
+            case "UPCOMING":
+                return "orange";
+            case "EXPIRED":
+                return "red";
+            default:
+                return "gray";
+        }
+    };
+
     // Load session data on component mount for get session data
     useEffect(() => {
         SessionData()
@@ -73,8 +96,12 @@ const Polls = ({ setActive, setPollId }) => {
     //function for get polls data
     const GetPollsData = async (societyId, userId) => {
         try {
-            const data = await getPollApi(societyId, userId)
-            setAllPolls(data)
+            const res = await getPollApi(societyId, userId)
+            console.log("GetPollsData raw response:", res)
+            // Handle both cases: service returns raw API json { data: [...] }
+            // OR service already unwraps and returns the array directly.
+            const polls = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+            setAllPolls(polls)
         } catch (error) {
             console.error("Error fetching polls:", error)
         }
@@ -82,34 +109,40 @@ const Polls = ({ setActive, setPollId }) => {
 
     //get polls overview function
     const GetPollsOverview = async (societyId) => {
-        const data = await getPollOverviewApi(societyId)
-        setPollsOverview(data)
+        try {
+            const res = await getPollOverviewApi(societyId)
+            // Handle both cases: service returns raw API json { data: {...} }
+            // OR service already unwraps and returns the object directly.
+            const overview = res?.active_polls !== undefined ? res : (res?.data || {});
+            setPollsOverview(overview)
+        } catch (error) {
+            console.error("Error fetching poll overview:", error)
+        }
     }
 
-    //statusdata for count
-    const statsData = [
-        [pollsOverview.active_polls || "", "Active Polls", ""],
-        [`${Math.round(pollsOverview.avg_turnout_percent || " " * 100)}%`, "Avg Turnout", ""],
-        [pollsOverview.total_polls || "", "Total Polls (YTD)", ""],
-        [`${Math.round(pollsOverview.digital_adoption_percent)}%` | "", "Digital Adoption", "tx-success"]
-    ];
+    //statsData for count — order matches design: Active Polls, Avg Participation, Total Participants, Expired Polls
+    // API overview only returns active_polls, avg_turnout_percent, digital_adoption_percent, total_polls
+    // so total_participants & expired_polls are derived from the polls list itself
+    const totalParticipants = Array.isArray(allPolls)
+        ? allPolls.reduce((sum, p) => sum + (p.total_votes || 0), 0)
+        : 0;
 
+    const expiredPollsCount = Array.isArray(allPolls)
+        ? allPolls.filter((p) => p.status === "EXPIRED").length
+        : 0;
+
+    const statsData = [
+        [pollsOverview.active_polls ?? 0, "Active Polls", "tx-primary"],
+        [`${Math.round((pollsOverview.avg_turnout_percent || 0) * 100)}%`, "Avg Participation", "tx-pink"],
+        [totalParticipants, "Total Participants", "tx-warning"],
+        [expiredPollsCount, "Expired Polls", "tx-success"],
+    ];
 
     const getPollById = (pollId) => {
         setActive("createPoll")
         setPollId(pollId)
     }
 
-    // const deletePoll = async (pollId) => {
-    //     try {
-    //         const data = await deletePollApi(pollId)
-    //         console.log(data)
-    //         toast.success("Poll deleted successfully!")
-    //         GetPollsData(societyId, userId)
-    //     } catch (error) {
-    //         console.log(error)
-    //     }
-    // }
     const deletePoll = async (pollId) => {
         const confirmed = window.confirm("Are you sure you want to delete this poll?");
 
@@ -125,32 +158,28 @@ const Polls = ({ setActive, setPollId }) => {
         }
     };
 
-    const totalUsers = 300; // ⚠️ replace with API value if available
-
     // 👉 total votes from options
     const getTotalVotes = (options) => {
         return options.reduce((sum, o) => sum + o.votes, 0);
     };
 
-    const getTimeAgo = (dateString) => {
+    // "Ends in X Days" style label used in design header row
+    const getEndsInLabel = (dateString) => {
+        if (!dateString) return "";
         const now = new Date();
-        const startDate = new Date(dateString);
+        const end = new Date(dateString);
+        const diffDays = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
 
-        const diffMs = now - startDate;
+        if (diffDays > 1) return `Ends in ${diffDays} Days`;
+        if (diffDays === 1) return `Ends in 1 Day`;
+        if (diffDays === 0) return `Ends Today`;
+        return `Expired on ${end.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+    };
 
-        const minutes = Math.floor(diffMs / (1000 * 60));
-        const hours = Math.floor(diffMs / (1000 * 60 * 60));
-        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-        if (days > 0) {
-            return `${days} day${days > 1 ? "s" : ""} ago`;
-        }
-
-        if (hours > 0) {
-            return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-        }
-
-        return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    const formatDate = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
     };
 
     // Filter by status + search title
@@ -166,277 +195,267 @@ const Polls = ({ setActive, setPollId }) => {
             return statusMatch && searchMatch;
         })
         : [];
+
     return (
-        <div className="pg row g-4 pl-wrap">
+        <div className="pg pl-wrap">
 
-            {/* LEFT */}
-            <div className="col-12 col-lg-8">
+            {/* HEADER */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <MdOutlineHowToVote size={22} />
+                <h4 className="mb-0" style={{ fontWeight: 600, fontSize: 22 }}>Public Voting</h4>
+            </div>
+            <p className="tx-muted" style={{ margin: "0 0 20px 0", textAlign: "left" }}>
+                Create and manage polls. View voting results and participation.
+            </p>
 
-                <div className="d-flex gap-2 flex-wrap mb-3 align-items-center ">
-                    <div className="PollsTabs"
+            <div className="row g-4">
+
+                {/* LEFT */}
+                <div className="col-12 col-lg-8">
+
+                    <div
+                        style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: 8,
+                            marginBottom: 12,
+                            alignItems: "center",
+                        }}
                     >
-                        {tabs.map((t) => (
-                            <button
-                                key={t.id}
-                                onClick={() => setTab(t.value)}
-                                className={`PollsTabs-btn ${tab === t.value ? "active" : ""}`}
-                            >
-                                {t.id}
-
-                            </button>
-                        ))}
-                    </div>
-                    <input className="sv-in ms-auto pl-search" placeholder="Search polls…" value={search}
-                        onChange={(e) => setSearch(e.target.value)} />
-
-                    <button className="btn-ac" onClick={() => setActive("createPoll")}>+ Create Poll</button>
-                </div>
-                {filteredData.length === 0 && (
-                    <div className="sv-card p-4 text-center">
-                        <p className="tx-muted mb-0">No polls Added Here.</p>
-                    </div>
-                )}
-                {filteredData.map((p, i) => {
-
-                    const totalVotes = getTotalVotes(p.options);
-                    let expiryLabel = "";
-
-                    if (p.expiry_datetime) {
-                        const date = new Date(p.expiry_datetime);
-
-                        const options = { month: "short", day: "numeric" };
-                        const formattedDate = date.toLocaleDateString("en-US", options);
-
-                        const now = new Date();
-                        const isExpired = date < now;
-
-                        expiryLabel = isExpired
-                            ? `Ended ${formattedDate}`
-                            : `Ends ${formattedDate}`;
-
-
-                    }
-                    const startedAgo = p.start_datetime
-                        ? getTimeAgo(p.start_datetime)
-                        : "";
-                    const pollStatus = getPollStatusIcon(p.status);
-                    return (
-                        <div key={i} className="sv-card mb-3 p-3">
-
-                            <div className="d-flex gap-3 align-items-start text-start">
-
-                                <div
-                                    className="pl-icon"
-                                    style={{ background: pollStatus.bg }}
+                        <div className="PollsTabs">
+                            {tabs.map((t) => (
+                                <button
+                                    key={t.id}
+                                    onClick={() => setTab(t.value)}
+                                    className={`PollsTabs-btn ${tab === t.value ? "active" : ""}`}
                                 >
-                                    {pollStatus.icon}
-                                </div>
+                                    {t.id}
+                                </button>
+                            ))}
+                        </div>
 
-                                <div className="flex-grow-1">
+                        <div style={{ position: "relative", marginLeft: "auto" }}>
+                            <FiSearch
+                                size={15}
+                                style={{
+                                    position: "absolute",
+                                    left: 12,
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    color: "#9ca3af",
+                                    pointerEvents: "none",
+                                }}
+                            />
+                            <input
+                                className="sv-in"
+                                placeholder="Search polls..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                style={{ paddingLeft: 34, minWidth: 220 }}
+                            />
+                        </div>
 
-                                    <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                        <span className="pl-title">{p.question}</span>
-                                        <Badge label={`● ${p.status}`}
-                                            c={p.status === "ACTIVE" ? "green"
-                                                : p.status === "UPCOMING" ? "orange"
-                                                    : p.status === "EXPIRED" ? "red"
-                                                        : "gray"}
-                                        />
+                        <button
+                            className="btn-ac"
+                            onClick={() => setActive("createPoll")}
+                            style={{ display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}
+                        >
+                            <FiPlus size={16} /> Create Poll
+                        </button>
+                    </div>
+
+                    {filteredData.length === 0 && (
+                        <div className="sv-card p-4 text-center">
+                            <p className="tx-muted mb-0">No polls Added Here.</p>
+                        </div>
+                    )}
+
+                    {filteredData.map((p, i) => {
+
+                        const totalVotes = p.total_votes || 0;
+                        const pollStatus = getPollStatusIcon(p.status);
+                        const endsLabel = getEndsInLabel(p.expiry_datetime);
+                        const optionsCount = p.options?.length || 0;
+
+                        return (
+                            <div key={i} className="sv-card mb-3 p-3 pl-card">
+
+                                <div className="d-flex gap-3 align-items-start text-start">
+
+                                    <div className="pl-icon" style={{ background: pollStatus.bg }}>
+                                        {pollStatus.icon}
                                     </div>
-                                    <div className="pl-meta">
-                                        #POLL-2024-004 • Started: {startedAgo}
-                                        {expiryLabel && (
-                                            <> • <span className={`pl-ends ${"true" ? "red" : ""}`}>{expiryLabel}</span></>
+
+                                    <div className="flex-grow-1">
+
+                                        <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                            <span className="pl-title">{p.question}</span>
+                                            <Badge
+                                                label={p.status === "ACTIVE" ? "Active" : p.status === "UPCOMING" ? "Upcoming" : p.status === "EXPIRED" ? "Expired" : p.status}
+                                                c={getStatusBadgeColor(p.status)}
+                                            />
+                                        </div>
+
+                                        <div className="pl-meta d-flex align-items-center flex-wrap gap-3 mb-2">
+                                            <span className="d-flex align-items-center gap-1">
+                                                <FiCalendar size={13} /> {formatDate(p.start_datetime)}
+                                            </span>
+                                            {endsLabel && (
+                                                <span className={`d-flex align-items-center gap-1 ${p.status === "EXPIRED" ? "tx-danger" : "tx-muted"}`}>
+                                                    <FiClock size={13} /> {endsLabel}
+                                                </span>
+                                            )}
+                                            <span className="d-flex align-items-center gap-1">
+                                                <FiUsers size={13} /> {totalVotes} Participants
+                                            </span>
+                                        </div>
+
+                                        {p.status !== "ACTIVE" && (
+                                            <div className="pl-result mb-1">
+                                                Result:{" "}
+                                                {p.options.map((t, index) => (
+                                                    <span key={index} className={`pl-result-val ${index === 0 ? "tx-success" : "tx-muted"}`}>
+                                                        {t.text} ({t.votes}%){index < p.options.length - 1 ? " | " : ""}
+                                                    </span>
+                                                ))}
+                                            </div>
                                         )}
                                     </div>
 
-                                    <div className="d-flex gap-1 flex-wrap mb-2">
-                                        {p.options.map(t => (
-                                            <span key={t.id} className="pl-tag">{t.text}</span>
-                                        ))}
+                                    <div className="d-flex flex-column align-items-end gap-2 flex-shrink-0">
+                                        <div className="d-flex align-items-center gap-2">
+                                            <button
+                                                className="btn-ol py-1 px-3 pl-btn-sm"
+                                                onClick={() => {
+                                                    setPollId(p.poll_id);
+                                                    setActive("pollAnalytics");
+                                                }}
+                                            >
+                                                {p.status === "EXPIRED" ? "View Report" : "Analyze"}
+                                            </button>
+
+                                            <div className="member-action-dropdown dropdown">
+                                                <button
+                                                    className="member-action-btn"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                >
+                                                    ⋮
+                                                </button>
+
+                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() => getPollById(p.poll_id)}
+                                                        >
+                                                            Edit Poll
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <hr className="dropdown-divider" />
+                                                    </li>
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item member-action-delete"
+                                                            onClick={() => deletePoll(p.poll_id)}
+                                                        >
+                                                            Delete Poll
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        {p.status === "ACTIVE" && (
+                                            <span className="pl-options-count">{optionsCount}/5 Options</span>
+                                        )}
                                     </div>
 
-                                    {p.status === "ACTIVE" && (
-                                        <>
-                                            <div className="d-flex justify-content-between mb-1 pl-progress-text">
-                                                <span className="pl-pct">{totalVotes}% Participation</span>
-                                                <span className="tx-muted">{totalVotes}/ {p.total_votes} Votes</span>
-                                            </div>
-                                            <Prog pct={p.total_votes} color={totalVotes > 50 ? "var(--success)" : "var(--accent)"} />
-                                        </>
-                                    )}
-                                    {p.status !== "ACTIVE" && (
-                                        <>
-                                            <div className="pl-result">
-                                                {/* Result: <span className="tx-success pl-result-val">Yes (65%)</span> vs No (35%) */}
-                                                Result:{" "}
-
-                                                <span className="tx-success pl-result-val">
-                                                    {p.options.map((t, index) => (
-                                                        <span key={index}>
-                                                            {t.text} ({t.votes}%)
-                                                        </span>
-                                                    ))}
-                                                </span>
-
-                                                &nbsp;
-
-                                                <span className="tx-muted">
-                                                    {p.totalVotes}
-                                                </span>
-                                            </div>
-
-                                            <Prog
-                                                pct={p.totalVotes || 0}
-                                                color="var(--accent)"
-                                            />
-                                        </>
-                                    )}
-
                                 </div>
-
-                                <div className="d-flex gap-2 align-items-center flex-shrink-0">
-
-                                    {p.status !== "Scheduled" && (
-                                        <button className="btn-ol py-1 px-3 pl-btn-sm">
-                                            {p.status === "EXPIRED" ? "View Report" : "Analytics"}
-                                        </button>
-                                    )}
-
-                                    {p.status === "Scheduled" && (
-                                        <button className="btn-ol py-1 px-3 pl-btn-sm">
-                                            Edit
-                                        </button>
-                                    )}
-
-                                    {/* <span className="tx-muted pl-menu">⋮</span> */}
-
-                                    <div className="member-action-dropdown dropdown">
-                                        <button
-                                            className="member-action-btn"
-                                            type="button"
-                                            data-bs-toggle="dropdown"
-                                            aria-expanded="false"
-                                        >
-                                            ⋮
-                                        </button>
-
-                                        <ul className="dropdown-menu member-action-menu dropdown-menu-end">
-                                            <li>
-                                                <button
-                                                    className="dropdown-item member-action-item"
-                                                    onClick={() => {
-                                                        getPollById(p.poll_id);
-                                                    }}
-                                                >
-                                                    Edit Poll
-                                                </button>
-                                            </li>
-
-                                            <li>
-                                                <hr className="dropdown-divider" />
-                                            </li>
-
-                                            <li>
-                                                <button
-                                                    className="dropdown-item member-action-item member-action-delete"
-                                                    onClick={() => deletePoll(p.poll_id)}
-                                                >
-                                                    Delete Poll
-                                                </button>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-
                             </div>
-                        </div>
-                    )
-                })}
+                        )
+                    })}
 
-            </div>
-
-            {/* RIGHT */}
-            <div className="col-12 col-lg-4">
-
-                {/* Voting Overview */}
-                {/* <div className="pl-overview-card mb-3">
-                    <h6 className="pl-side-title text-start">🗳 Voting Overview</h6>
-
-                    <div className="row g-0 text-center">
-                        {statsData.map(([v, l, cls], i) => (
-                            <div
-                                key={l}
-                                className={`col-6 py-3 pl-stat ${cls} ${i < 2 ? "pl-bb" : ""} ${i % 2 === 0 ? "pl-br" : ""}`}
-                            >
-                                <div className="pl-stat-val">{v}</div>
-                                <div className="pl-stat-label">{l}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div> */}
-                <div className="pl-overview-card mb-3">
-                    <h6 className="pl-side-title text-start">
-                        <BiPieChartAlt2 className="me-2 text-primary" />
-                        Voting Overview
-                    </h6>
-
-                    <div className="row g-0 text-center">
-                        {statsData.map(([v, l, cls], i) => (
-                            <div
-                                key={l}
-                                className={`col-6 py-3 pl-stat ${cls}
-        ${i < 2 ? "pl-bb" : ""}
-        ${i % 2 === 0 ? "pl-br" : ""}`}
-                            >
-                                <div className="pl-stat-val">{v}</div>
-                                <div className="pl-stat-label">{l}</div>
-                            </div>
-                        ))}
-                    </div>
                 </div>
-                {/* Quick Create */}
-                <div className=" mb-3">
-                    <h6 className="pl-side-title text-start">⚡ Quick Create</h6>
 
-                    {[[<FaUsers className='text-primary' />, "AGM Voting", "One vote per flat"], [<FaSwimmingPool className='text-success' />, "Swimming Pool Rules", "Financial approval"], [<FaBalanceScale style={{ color: "orange" }} />, "Rule Change", "Amend by-laws"]]
-                        .map(([ic, lb, sub]) => (
-                            <button key={lb} className="qa mb-2">
+                {/* RIGHT */}
+                <div className="col-12 col-lg-4">
 
+                    {/* Voting Overview */}
+                    <div className="pl-overview-card mb-3">
+                        <h6 className="pl-side-title text-start">
+                            <BiTime className="me-2 text-primary" size={18} />
+                            Voting Overview
+                        </h6>
+
+                        <div className="row g-0 text-center">
+                            {statsData.map(([v, l, cls], i) => (
+                                <div
+                                    key={l}
+                                    className={`col-6 py-3 pl-stat ${cls} ${i < 2 ? "pl-bb" : ""} ${i % 2 === 0 ? "pl-br" : ""}`}
+                                >
+                                    <div className="pl-stat-val">{v}</div>
+                                    <div className="pl-stat-label">{l}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div className="sv-card mb-3">
+                        <h6 className="pl-side-title text-start">
+                            <HiOutlineLightningBolt className="me-2 text-warning" size={18} />
+                            Quick Actions
+                        </h6>
+
+                        {[
+                            [<FaUsers className="text-primary" />, "Add New Poll", "Create a new public poll", () => setActive("createPoll")],
+                            [<FaChartBar className="text-success" />, "View Voting Reports", "Check results & analytics", null],
+                            [<FaBalanceScale style={{ color: "orange" }} />, "Poll Settings", "Manage poll preferences", null],
+                        ].map(([ic, lb, sub, onClick]) => (
+                            <button key={lb} className="qa mb-2" onClick={onClick || undefined}>
                                 <div className="qa-ico pl-qa-ico rounded-circle">{ic}</div>
-
                                 <div>
                                     <div className="pl-qa-title">{lb}</div>
                                     <div className="pl-qa-sub">{sub}</div>
                                 </div>
-
                             </button>
                         ))}
-                </div>
+                    </div>
 
-                {/* Events */}
-                <div className="sv-card">
-                    <h6 className="pl-side-title text-start">🗓 Upcoming Events</h6>
+                    {/* Events */}
+                    <div className="sv-card">
+                        <h6 className="pl-side-title text-start">
+                            <BsCalendarEvent className="me-2 text-primary" size={16} />
+                            Upcoming Events
+                        </h6>
 
-                    {[["15", "Nov", "Committee Election", "Nominations close in 2 days"], ["01", "Dec", "Vendor Contract Renewal", "Security & Housekeeping"]]
-                        .map(([d, m, t, s]) => (
+                        {[
+                            ["02", "Jul", "Quarterly Feedback Poll", "Starts on 02 Jul 2026"],
+                            ["05", "Jul", "New Club Committee Approval", "Starts on 05 Jul 2026"],
+                        ].map(([d, m, t, s]) => (
                             <div key={t} className="d-flex gap-3 align-items-center mb-3">
-
                                 <div className="pl-date">
                                     {d}<br />{m}
                                 </div>
-
                                 <div className="text-start">
                                     <div className="pl-event-title">{t}</div>
                                     <div className="pl-event-sub">{s}</div>
                                 </div>
-
                             </div>
                         ))}
 
-                    <button className="btn-dk w-100">Show all upcoming events</button>
-                </div>
+                        <button
+                            className="btn-dk w-100"
+                            onClick={() => setActive("upcomingEvents")}
+                        >
+                            Show all upcoming events
+                        </button>
+                    </div>
 
+                </div>
             </div>
         </div>
     );

@@ -108,42 +108,58 @@ const ChargeModal = ({ mode, config, heads, flats, onSave, onClose }) => {
     const isEdit = mode === "edit";
     const [form, setForm] = useState({
         flat_id:        isEdit ? config?.flat_id        : "",
-        head_id:        isEdit ? config?.head_id        : "",
-        charge_type:    isEdit ? (config?.charge_type   || "fixed") : "fixed",
-        amount:         isEdit ? (config?.amount        || "")      : "",
-        rate_per_sqft:  isEdit ? (config?.rate_per_sqft || "")      : "",
+        head_id:        isEdit ? String(config?.head_id || "") : "",
+        charge_type:    isEdit ? (config?.charge_basis || config?.charge_type || "fixed") : "fixed",
+        amount:         isEdit ? (config?.amount        || "") : "",
+        rate_per_sqft:  isEdit ? (config?.rate_per_sqft || "") : "",
+        percentage_rate:     "",
+        percentage_of_heads: "",
         effective_from: "",
         effective_to:   "",
     });
     const [saving, setSaving] = useState(false);
 
+    // When head changes, auto-fill amount/rate from charge head config
     const handleHeadChange = (headId) => {
         const head = heads.find((h) => String(h.id) === String(headId));
-        setForm((prev) => ({
+        if (!head) { setForm(f => ({...f, head_id: headId})); return; }
+        const basis = head.charge_basis || head.charge_type || "fixed";
+        setForm(prev => ({
             ...prev,
-            head_id:       headId,
-            charge_type:   head?.charge_type || "fixed",
-            amount:        head?.charge_scope === "centralised" && head?.charge_type === "fixed"
-                           ? (head?.centralised_amount || "") : prev.amount,
-            rate_per_sqft: head?.charge_scope === "centralised" && head?.charge_type === "per_sqft"
-                           ? (head?.centralised_rate || "") : prev.rate_per_sqft,
+            head_id:             headId,
+            charge_type:         basis,
+            percentage_rate:     basis === "percentage" ? String(head.percentage_rate || "") : "",
+            percentage_of_heads: basis === "percentage" ? String(head.percentage_of_heads || "") : "",
+            // Auto-fill centralised defaults
+            amount:        basis === "fixed"
+                               ? String(head.centralised_amount || prev.amount || "")
+                               : basis === "percentage" ? "0" : prev.amount,
+            rate_per_sqft: basis === "per_sqft"
+                               ? String(head.centralised_rate || prev.rate_per_sqft || "")
+                               : prev.rate_per_sqft,
         }));
     };
 
     const handleSave = async () => {
-        if (!form.flat_id) { toast.error("Select a flat");         return; }
-        if (!form.head_id) { toast.error("Select a charge head");  return; }
-        if (form.charge_type === "fixed"    && !form.amount)       { toast.error("Amount is required");        return; }
-        if (form.charge_type === "per_sqft" && !form.rate_per_sqft){ toast.error("Rate per sqft is required"); return; }
+        if (!form.flat_id) { toast.error("Select a flat"); return; }
+        if (!form.head_id) { toast.error("Select a charge head"); return; }
+        if (form.charge_type === "fixed"    && (!form.amount || parseFloat(form.amount) < 0))
+            { toast.error("Enter a valid amount"); return; }
+        if (form.charge_type === "per_sqft" && !form.rate_per_sqft)
+            { toast.error("Rate per sqft is required"); return; }
+        // percentage: computed at bill generation — no amount needed
 
         setSaving(true);
         try {
             await onSave({
-                flat_id:        parseInt(form.flat_id),
-                head_id:        parseInt(form.head_id),
-                charge_type:    form.charge_type,
-                amount:         form.charge_type === "fixed"    ? parseFloat(form.amount)        : null,
-                rate_per_sqft:  form.charge_type === "per_sqft" ? parseFloat(form.rate_per_sqft) : null,
+                flat_id:       parseInt(form.flat_id),
+                head_id:       parseInt(form.head_id),
+                charge_type:   form.charge_type,
+                charge_basis:  form.charge_type,
+                amount:        form.charge_type === "fixed"
+                                   ? parseFloat(form.amount)
+                                   : form.charge_type === "percentage" ? 0 : null,
+                rate_per_sqft: form.charge_type === "per_sqft" ? parseFloat(form.rate_per_sqft) : null,
                 effective_from: form.effective_from || null,
                 effective_to:   form.effective_to   || null,
             });
@@ -157,6 +173,18 @@ const ChargeModal = ({ mode, config, heads, flats, onSave, onClose }) => {
 
     const selectedFlat = flats.find((f) => String(f.flat_id) === String(form.flat_id));
     const selectedHead = heads.find((h) => String(h.id)      === String(form.head_id));
+    const basis        = form.charge_type;
+
+    // For percentage: compute preview
+    const pctHeadIds = (form.percentage_of_heads || "").split(",").filter(Boolean);
+    const pctBaseHeads = heads.filter(h => pctHeadIds.includes(String(h.id)));
+    const pctBaseSum   = pctBaseHeads.reduce((s,h) => s + parseFloat(h.centralised_amount||0), 0);
+    const pctPreview   = pctBaseSum > 0 ? (pctBaseSum * parseFloat(form.percentage_rate||0) / 100).toFixed(2) : null;
+
+    // For per_sqft: compute preview
+    const sqftPreview  = selectedFlat?.area_sqft && form.rate_per_sqft
+        ? (parseFloat(form.rate_per_sqft) * parseFloat(selectedFlat.area_sqft)).toFixed(2)
+        : null;
 
     return (
         <div className="modal show d-block" style={{ background: "rgba(0,0,0,0.45)" }}>
@@ -168,6 +196,8 @@ const ChargeModal = ({ mode, config, heads, flats, onSave, onClose }) => {
                     </div>
                     <div style={{ padding: 20 }}>
                         <div className="row g-3">
+
+                            {/* Flat */}
                             <div className="col-12">
                                 <label className="billing-form-label">Flat *</label>
                                 <select className="billing-form-input"
@@ -178,16 +208,13 @@ const ChargeModal = ({ mode, config, heads, flats, onSave, onClose }) => {
                                     {flats.map((f) => (
                                         <option key={f.flat_id} value={f.flat_id}>
                                             {f.flat_number}{f.block ? ` / ${f.block}` : ""}
+                                            {f.area_sqft ? ` (${f.area_sqft} sqft)` : ""}
                                         </option>
                                     ))}
                                 </select>
-                                {selectedFlat?.area_sqft && (
-                                    <div style={{ fontSize: 11, color: "#6b7280", marginTop: 3 }}>
-                                        Area: {selectedFlat.area_sqft} sqft
-                                    </div>
-                                )}
                             </div>
 
+                            {/* Charge Head */}
                             <div className="col-12">
                                 <label className="billing-form-label">Charge Head *</label>
                                 <select className="billing-form-input"
@@ -198,49 +225,91 @@ const ChargeModal = ({ mode, config, heads, flats, onSave, onClose }) => {
                                     {heads.map((h) => (
                                         <option key={h.id} value={h.id}>
                                             {h.head_name} ({h.head_code})
+                                            {h.charge_basis === "percentage" ? ` — ${h.percentage_rate}% based` :
+                                             h.charge_basis === "per_sqft"   ? ` — ₹${h.centralised_rate}/sqft` :
+                                             h.centralised_amount             ? ` — ₹${h.centralised_amount}` : ""}
                                         </option>
                                     ))}
                                 </select>
                             </div>
 
-                            <div className="col-12">
-                                <label className="billing-form-label">Charge Type</label>
-                                <div className="d-flex gap-3">
-                                    {["fixed", "per_sqft"].map((t) => (
-                                        <label key={t} className="d-flex align-items-center gap-2"
-                                            style={{ cursor: "pointer", fontSize: 13 }}>
-                                            <input type="radio" name="charge_type"
-                                                checked={form.charge_type === t}
-                                                onChange={() => setForm({ ...form, charge_type: t })} />
-                                            {t === "fixed" ? "Fixed Amount" : "Per SqFt"}
-                                        </label>
-                                    ))}
+                            {/* Amount section based on charge basis */}
+                            {basis === "percentage" ? (
+                                <div className="col-12">
+                                    <div style={{ background:"#f5f3ff", border:"1px solid #ddd6fe",
+                                        borderRadius:8, padding:"12px 14px" }}>
+                                        <div style={{ fontWeight:700, color:"#7c3aed", marginBottom:4, fontSize:13 }}>
+                                            ⚙️ Percentage-Based — Auto Calculated
+                                        </div>
+                                        <div style={{ fontSize:12, color:"#6b7280", marginBottom:6 }}>
+                                            {form.percentage_rate}% of {pctBaseHeads.length > 0
+                                                ? pctBaseHeads.map(h=>h.head_name).join(" + ")
+                                                : "selected base charges"}
+                                        </div>
+                                        {pctPreview && (
+                                            <div style={{ fontSize:14, fontWeight:700, color:"#7c3aed" }}>
+                                                Estimated: ₹{pctPreview}
+                                                <span style={{ fontSize:11, color:"#9ca3af", marginLeft:8 }}>
+                                                    (exact amount computed at bill generation)
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-
-                            {form.charge_type === "fixed" ? (
+                            ) : basis === "per_sqft" ? (
+                                <>
+                                    <div className="col-12">
+                                        <label className="billing-form-label">Rate Per SqFt (₹) *</label>
+                                        <input type="number" className="billing-form-input"
+                                            min="0" step="0.001" value={form.rate_per_sqft}
+                                            onChange={(e) => setForm({ ...form, rate_per_sqft: e.target.value })}
+                                            placeholder="e.g. 2.50" />
+                                        {sqftPreview && (
+                                            <div style={{ fontSize:12, color:"#059669", marginTop:4 }}>
+                                                = ₹{sqftPreview} for {selectedFlat.area_sqft} sqft
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
                                 <div className="col-12">
                                     <label className="billing-form-label">Amount (₹) *</label>
                                     <input type="number" className="billing-form-input"
                                         min="0" step="0.01" value={form.amount}
                                         onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                                        placeholder="0.00" />
-                                </div>
-                            ) : (
-                                <div className="col-12">
-                                    <label className="billing-form-label">Rate Per SqFt (₹) *</label>
-                                    <input type="number" className="billing-form-input"
-                                        min="0" step="0.001" value={form.rate_per_sqft}
-                                        onChange={(e) => setForm({ ...form, rate_per_sqft: e.target.value })}
-                                        placeholder="0.03" />
-                                    {selectedFlat?.area_sqft && form.rate_per_sqft && (
-                                        <div style={{ fontSize: 12, color: "#059669", marginTop: 4 }}>
-                                            = {fmt(parseFloat(form.rate_per_sqft) * parseFloat(selectedFlat.area_sqft))} / month
+                                        placeholder="0.00"
+                                        style={{ fontSize:16, fontWeight:700 }} />
+                                    {selectedHead?.charge_scope === "centralised" && selectedHead.centralised_amount && (
+                                        <div style={{ fontSize:11, color:"#6b7280", marginTop:3 }}>
+                                            Centralised default: ₹{selectedHead.centralised_amount}
                                         </div>
                                     )}
                                 </div>
                             )}
 
+                            {/* Charge Type radio — only for non-percentage manual override */}
+                            {basis !== "percentage" && (
+                                <div className="col-12">
+                                    <label className="billing-form-label">Charge Type</label>
+                                    <div className="d-flex gap-3">
+                                        {[["fixed","₹ Fixed Amount"],["per_sqft","₹/SqFt"]].map(([t,l]) => (
+                                            <label key={t} className="d-flex align-items-center gap-2"
+                                                style={{ cursor:"pointer", fontSize:13 }}>
+                                                <input type="radio" name="charge_type"
+                                                    checked={form.charge_type === t}
+                                                    onChange={() => setForm(f => ({
+                                                        ...f, charge_type:t,
+                                                        amount: t==="fixed" ? f.amount : "",
+                                                        rate_per_sqft: t==="per_sqft" ? f.rate_per_sqft : "",
+                                                    }))} />
+                                                {l}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Date range */}
                             <div className="col-6">
                                 <label className="billing-form-label">Effective From</label>
                                 <input type="date" className="billing-form-input"
@@ -254,19 +323,17 @@ const ChargeModal = ({ mode, config, heads, flats, onSave, onClose }) => {
                                     onChange={(e) => setForm({ ...form, effective_to: e.target.value })} />
                             </div>
 
-                            {selectedHead && (
+                            {/* Head info box */}
+                            {selectedHead && basis !== "percentage" && (
                                 <div className="col-12">
-                                    <div style={{
-                                        background: "#f0f9ff", border: "1px solid #bae6fd",
-                                        borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#0369a1"
-                                    }}>
-                                        <strong>{selectedHead.head_name}</strong> ·
+                                    <div style={{ background:"#f0f9ff", border:"1px solid #bae6fd",
+                                        borderRadius:8, padding:"8px 12px", fontSize:12, color:"#0369a1" }}>
+                                        <b>{selectedHead.head_name}</b> ·{" "}
                                         {selectedHead.charge_scope === "centralised"
-                                            ? ` Centralised default: ${selectedHead.charge_type === "fixed"
-                                                ? fmt(selectedHead.centralised_amount)
-                                                : `₹${selectedHead.centralised_rate}/sqft`}`
-                                            : " Per Flat charge"
-                                        }
+                                            ? `Default: ${basis === "per_sqft"
+                                                ? `₹${selectedHead.centralised_rate}/sqft`
+                                                : `₹${selectedHead.centralised_amount}`}`
+                                            : "Per Flat charge"}
                                     </div>
                                 </div>
                             )}
@@ -284,6 +351,7 @@ const ChargeModal = ({ mode, config, heads, flats, onSave, onClose }) => {
         </div>
     );
 };
+
 
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -431,13 +499,18 @@ const FlatCharges = ({ setActive }) => {
 
     const handleRemove = async (config) => {
         if (!window.confirm(
-            `Remove ${config.head_name} from Flat ${config.flat_number}?`
+            `Remove ${config.head_name} from Flat ${config.flat_number}?
+
+This removes the charge configuration for this flat.`
         )) return;
-        const key = `remove_${config.flat_id}_${config.head_id}`;
+        // fcc row id — SP returns it as 'id' (fcc.id aliased)
+        const fccId = config.id || config.fcc_id;
+        if (!fccId) { toast.error("Cannot remove: charge config ID not found"); return; }
+        const key = `remove_${fccId}`;
         setActionKey(key);
         try {
-            await removeFlatChargeApi(config.flat_id, config.head_id);
-            toast.success("Charge removed");
+            await removeFlatChargeApi(fccId);
+            toast.success(`${config.head_name} removed from Flat ${config.flat_number}`);
             refresh();
         } catch (e) {
             toast.error(typeof e === "string" ? e : "Remove failed");
@@ -628,7 +701,7 @@ const FlatCharges = ({ setActive }) => {
                                                 fontSize: 10, padding: "2px 6px",
                                                 background: "#f3f4f6", borderRadius: 6
                                             }}>
-                                                {(c.property_type || "").replace(/_/g, " ")}
+                                                {(c.unit_type || c.property_type || "—").replace(/_/g, " ")}
                                             </span>
                                         </td>
                                         <td style={{ color: "#6b7280", fontSize: 12 }}>
@@ -648,13 +721,25 @@ const FlatCharges = ({ setActive }) => {
                                             </span>
                                         </td>
                                         <td>
-                                            <span className={`scope-badge ${c.charge_type}`}>
-                                                {c.charge_type === "per_sqft"
-                                                    ? `₹${c.rate_per_sqft}/sqft`
-                                                    : "Fixed"}
+                                            <span style={{ fontSize:11, padding:"2px 6px", borderRadius:6,
+                                                background: (c.charge_basis||c.charge_type)==="percentage"?"#f5f3ff":
+                                                            (c.charge_basis||c.charge_type)==="per_sqft" ?"#dbeafe":"#f3f4f6",
+                                                color:      (c.charge_basis||c.charge_type)==="percentage"?"#7c3aed":
+                                                            (c.charge_basis||c.charge_type)==="per_sqft" ?"#2563eb":"#374151" }}>
+                                                {(c.charge_basis||c.charge_type) === "percentage"
+                                                    ? `${c.percentage_rate}% based`
+                                                    : (c.charge_basis||c.charge_type) === "per_sqft"
+                                                        ? `₹${c.rate_per_sqft}/sqft`
+                                                        : "Fixed"}
                                             </span>
                                         </td>
-                                        <td className="text-end amount-display">{fmt(c.amount)}</td>
+                                        <td className="text-end amount-display">
+                                            {(c.charge_basis||c.charge_type) === "percentage"
+                                                ? <span style={{ color:"#7c3aed", fontWeight:600, fontSize:12 }}>
+                                                    {c.display_amount || `${c.percentage_rate}% of bases`}
+                                                  </span>
+                                                : fmt(c.amount)}
+                                        </td>
                                         <td>
                                             {c.is_override
                                                 ? <span className="override-badge">🔧 Override</span>
