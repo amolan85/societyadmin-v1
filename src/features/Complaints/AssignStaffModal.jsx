@@ -163,7 +163,7 @@ const AssignStaffModal = ({ show, setShow, complaintId, onAssigned }) => {
                                     />
                                 </div>
 
-                                {/* Complaint ref */}
+                                {/* Complaint ref
                                 <div className="col-md-6">
                                     <label className="form-label fw-semibold">Complaint Ref.</label>
                                     <input
@@ -173,7 +173,7 @@ const AssignStaffModal = ({ show, setShow, complaintId, onAssigned }) => {
                                         readOnly
                                         style={{ background: "#f9fafb" }}
                                     />
-                                </div>
+                                </div> */}
 
                             </div>
 

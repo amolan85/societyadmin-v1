@@ -104,15 +104,15 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
 
     //fetch get notice board by id api
     useEffect(() => {
-        if (selectedNoticeData) {
+        if (selectedNoticeData && societyId) {
             GetNoticeBoardById();
         }
-    }, [selectedNoticeData]);
+    }, [selectedNoticeData, societyId]);
 
     //fetch get notice board by id
     const GetNoticeBoardById = async () => {
         try {
-            const data = await getNoticeBoardByIdApi(selectedNoticeData);
+            const data = await getNoticeBoardByIdApi(selectedNoticeData, societyId);
             console.log(data);
             setSubject(data.title)
             setDescription(data.description)
@@ -153,7 +153,13 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
 
             if (noticeId) {
                 response = await updateNoticeApi(
-                    noticeId, subject, description, noticeType, priority, status
+                    noticeId,
+                    societyId,
+                    subject,
+                    description,
+                    noticeType,
+                    priority,
+                    status
                 );
                 toast.success("Notice updated successfully!")
 
@@ -171,7 +177,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
         }
     };
 
-     // ── clears a single field error as soon as user fills it ──
+    // ── clears a single field error as soon as user fills it ──
     const clearError = (field) => {
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: "" }));
@@ -246,9 +252,9 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
                             className="sv-ta bc-editor-textarea"
                             placeholder="Type your announcement details here…"
                             value={description}
-                            onChange={(e) =>{
-                                 setDescription(e.target.value);
-                                 clearError("description");
+                            onChange={(e) => {
+                                setDescription(e.target.value);
+                                clearError("description");
                             }}
                         />
                     </div>
@@ -319,12 +325,14 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
                     {errorText && <h6 className='text-danger'>{errorText}</h6>}
                     <div className="d-flex gap-2 justify-content-end">
                         <button className="btn-ol">Preview</button>
-                        <button className="btn-ol" onClick={() => { 
+                        <button className="btn-ol" onClick={() => {
                             submitNoticeBoard("draft");
-                            clearError("draft"); }}>Save Draft</button>
-                        <button className="btn-ac" onClick={() => { 
-                            submitNoticeBoard("published") ;
-                            clearError("published"); }}>Publish ✈</button>
+                            clearError("draft");
+                        }}>Save Draft</button>
+                        <button className="btn-ac" onClick={() => {
+                            submitNoticeBoard("published");
+                            clearError("published");
+                        }}>Publish ✈</button>
                     </div>
 
                 </div>
@@ -333,59 +341,138 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
             {/* RIGHT */}
             <div className="col-12 col-lg-4">
 
-                {/* Notifications */}
+                {/* Notice Information */}
                 <div className="sv-card mb-3">
-                    <h6 className="bc-side-title text-start">Notifications</h6>
+                    <h6 className="bc-side-title text-start">Notice Information</h6>
 
-                    {[
-                        { lbl: "Committee Meeting", time: "Today, 08:00 PM", dot: "dot-org" },
-                        { lbl: "New user registered.", time: "59 minutes ago", dot: "dot-blu" },
-                        { lbl: "Mr. Roy Sing update notice board", time: "1 hour ago", dot: "dot-org" },
-                        { lbl: "Complaint by Riya Mittal", time: "Today, 10:59 AM", dot: "dot-red" },
-                    ].map((n, i) => (
-                        <div key={i} className="bc-notify-item">
-                            <span className={`dot ${n.dot}`} />
-                            <div className="text-start">
-                                <div className="bc-notify-label">{n.lbl}</div>
-                                <div className="bc-notify-time">{n.time}</div>
+                    <div className="mb-3 text-start">
+                        <small className="text-muted">Status</small>
+                        <div>
+                            <Badge
+                                label={noticeId ? "Draft" : "New"}
+                                c={noticeId ? "orange" : "blue"}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mb-3 text-start">
+                        <small className="text-muted">Type</small>
+                        <div className="fw-semibold text-capitalize">
+                            {noticeType}
+                        </div>
+                    </div>
+
+                    <div className="mb-3 text-start">
+                        <small className="text-muted">Priority</small>
+                        <div>
+                            <Badge
+                                label={priority || "Not Selected"}
+                                c={
+                                    priority === "urgent"
+                                        ? "red"
+                                        : priority === "high"
+                                            ? "orange"
+                                            : priority === "normal"
+                                                ? "blue"
+                                                : priority === "low"
+                                                    ? "gray"
+                                                    : "gray"
+                                }
+                            />
+                        </div>
+                    </div>
+                    {/* 
+                    {noticeId && (
+                        <div className="text-start">
+                            <small className="text-muted">Notice ID</small>
+                            <div className="fw-semibold">
+                                #{noticeId}
                             </div>
                         </div>
-                    ))}
-
-                    <button className="btn-dk w-100 mt-2">Show all notifications</button>
+                    )} */}
                 </div>
 
                 {/* Quick Actions */}
                 <div className="sv-card mb-3">
-                    <h6 className="bc-side-title text-start">Quick Actions</h6>
 
-                    {[["➕", "New Notice", "#dbeafe"], ["📊", "Create Poll", "#ffedd5"], ["📄", "Issue NOC", "#ede9fe"]].map(([ic, lb, bg]) => (
-                        <button key={lb} className="qa mb-2">
-                            <div className="qa-ico" style={{ background: bg }}>{ic}</div>
-                            <span className="bc-qa-text">{lb}</span>
+                    <h6 className="bc-side-title text-start">
+                        Quick Actions
+                    </h6>
+
+                    <button
+                        className="qa mb-2"
+                        onClick={() => submitNoticeBoard("draft")}
+                    >
+                        <div className="qa-ico" style={{ background: "#fff7ed" }}>
+                            💾
+                        </div>
+
+                        <span className="bc-qa-text">
+                            Save Draft
+                        </span>
+                    </button>
+
+                    <button
+                        className="qa mb-2"
+                        onClick={() => submitNoticeBoard("published")}
+                    >
+                        <div className="qa-ico" style={{ background: "#dcfce7" }}>
+                            🚀
+                        </div>
+
+                        <span className="bc-qa-text">
+                            Publish Notice
+                        </span>
+                    </button>
+
+                    {noticeId && (
+                        <button
+                            className="qa"
+                            onClick={() => setActive("noticeboard")}
+                        >
+                            <div className="qa-ico" style={{ background: "#dbeafe" }}>
+                                📋
+                            </div>
+
+                            <span className="bc-qa-text">
+                                Back to Notice List
+                            </span>
                         </button>
-                    ))}
+                    )}
+
                 </div>
 
-                {/* Recent Communications */}
+                {/* Publishing Guidelines */}
                 <div className="sv-card">
-                    <h6 className="bc-side-title text-start">Recent Communications</h6>
 
-                    {[
-                        { title: "Water Supply Cut", time: "Today, 10:30 AM", type: "Alert", s: "Sent", sc: "green" },
-                        { title: "New Year Event", time: "Dec 31, 08:00 PM", type: "Invitation", s: "Scheduled", sc: "blue" },
-                        { title: "Parking Lot Resurfacing", time: "Edited 2h ago", type: "Announcement", s: "Draft", sc: "gray" },
-                    ].map((r, i, arr) => (
-                        <div key={i} className={`bc-rc-item ${i < arr.length - 1 ? "bordered" : ""}`}>
-                            <div className="text-start">
-                                <div className="bc-rc-title">{r.title}</div>
-                                <div className="bc-rc-sub">{r.time} • {r.type}</div>
-                            </div>
-                            <Badge label={r.s} c={r.sc} />
+                    <h6 className="bc-side-title text-start">
+                        Publishing Guidelines
+                    </h6>
+
+                    <div className="text-start mb-3">
+
+                        <div className="mb-2">
+                            ✅ Keep the title short and descriptive.
                         </div>
-                    ))}
 
-                    <button className="btn-dk w-100 mt-3">Show all communication</button>
+                        <div className="mb-2">
+                            📅 Mention important dates and timings.
+                        </div>
+
+                        <div className="mb-2">
+                            ⚠️ Use "Urgent" only for emergency notices.
+                        </div>
+
+                        <div className="mb-2">
+                            📌 Pin only important announcements.
+                        </div>
+
+                        <div className="mb-2">
+                            👥 Proofread before publishing.
+                        </div>
+
+                    </div>
+
                 </div>
 
             </div>

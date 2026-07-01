@@ -51,10 +51,11 @@ export const createNoticeApi = async (societyId, userId, title, description, not
 }
 
 //get notice board by id api
-export const getNoticeBoardByIdApi = async (noticeId) => {
+export const getNoticeBoardByIdApi = async (noticeId, societyId) => {
     const url = UrlData + 'notice/GetNoticebyId';
     const data = {
         notice_id: noticeId,
+        society_id: societyId
     }
     return await apiClient({
         method: 'post',
@@ -71,10 +72,11 @@ export const getNoticeBoardByIdApi = async (noticeId) => {
 }
 
 //update notice api
-export const updateNoticeApi = async (noticeId, title, description, noticeType, priority, status) => {
+export const updateNoticeApi = async (noticeId,societyId, title, description, noticeType, priority, status) => {
     const url = UrlData + 'notice/UpdateNotice';
     const data = {
         notice_id: noticeId,
+        society_id:societyId,
         title: title,
         description: description,
         notice_type: noticeType,
