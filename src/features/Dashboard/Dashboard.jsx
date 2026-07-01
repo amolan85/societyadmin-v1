@@ -487,6 +487,7 @@ const NAV = [
   {
     sec: "Residents", items: [
       { id: "addmember", icon: "👤", lbl: "Members" },
+      { id: "unitRegister", icon: "🏠", lbl: "Add Unit" },
       { id: "flatApprovals", icon: "🏘️", lbl: "Flat Approvals" },
       { id: "rentals", icon: "🏢", lbl: "Rentals & Tenants" },
     ]
@@ -508,7 +509,7 @@ const NAV = [
 const PARENT_MAP = {
   // Registers ke child pages
   registerHistory: "registers",
-  unitRegister: "registers",
+  // unitRegister: "registers",
   parkingRegister: "registers",
   parkingDetails: "registers",
   parkingHistory: "registers",

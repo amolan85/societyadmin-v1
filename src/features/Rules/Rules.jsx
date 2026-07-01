@@ -1,26 +1,242 @@
 import React, { useState, useEffect } from 'react'
 import "../../styles/Rules.css"
 import { Badge } from '../../components/Common/ReusableFunction';
-import { getRulesApi } from '../../services/RulesApi';
+import { GetSessionData } from '../../utils/SessionManagement';
+import { toast } from 'react-toastify';
+import {
+  listParkingRulesApi,
+  createParkingRuleApi,
+  updateParkingRuleStatusApi, // add this to RulesApi.js — snippet shared separately
+} from '../../services/RulesApi';
+
+const APPLIES_TO_OPTIONS = ["all", "owner", "tenant", "visitor"];
 
 const Rules = () => {
-  const [allRules, setAllRules] = useState([])
-  const rules = [
-    { title: "Quiet Hours Policy", sub: "10:00 PM to 6:00 AM daily", scope: "Entire Society", penalty: "₹500 / Offense", type: "BY-LAW" },
-    { title: "Visitor Parking Limit", sub: "Max 4 hours without permit", scope: "Visitor Lot A & B", penalty: "Tow + ₹1500", type: "RULE" },
-    { title: "Balcony Guidelines", sub: "No hanging clothes, BBQ grills", scope: "Block C, Wing 1", penalty: "Warning", type: "BY-LAW" },
-    { title: "Pet Clean-up Policy", sub: "Immediate removal required", scope: "Entire Society", penalty: "₹150 Fine", type: "BY-LAW" },
-    { title: "Renovation Hours", sub: "Mon-Fri 9AM-5PM only", scope: "Entire Society", penalty: "Stop Work Order", type: "RULE" },
-  ];
+  const [societyId, setSocietyId] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [allRules, setAllRules] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [togglingId, setTogglingId] = useState(null); // rule currently being updated
+
+  // list filters (map 1:1 to ListParkingRules request body)
+  const [search, setSearch] = useState("");
+  const [appliesToFilter, setAppliesToFilter] = useState("");
+  const [violationTypeFilter, setViolationTypeFilter] = useState("");
+  const [isActiveFilter, setIsActiveFilter] = useState(""); // "" | "1" | "0"
+  const [showFilters, setShowFilters] = useState(false);
+
+  // pagination (from ListParkingRules response)
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Create By-law modal
+  const [show, setShow] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [ruleTitle, setRuleTitle] = useState("");
+  const [ruleDescription, setRuleDescription] = useState("");
+  const [appliesTo, setAppliesTo] = useState("all");
+  const [violationType, setViolationType] = useState("");
+  const [penaltyAmount, setPenaltyAmount] = useState("");
+  const [penaltyDescription, setPenaltyDescription] = useState("");
+  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
-    getRules()
-  }, [])
+    SessionData();
+  }, []);
+
+  const SessionData = async () => {
+    try {
+      const data = await GetSessionData();
+      const flats = data.data.flats[0];
+      setSocietyId(flats.society_id);
+
+      // TODO: confirm the real field name by checking `console.log(data.data)`
+      // and adjust this fallback chain to match your session payload.
+      const currentUserId =
+        data.data.user_id ??
+        data.data.id ??
+        data.data.user?.id ??
+        null;
+      setUserId(currentUserId);
+
+      if (!currentUserId) {
+        console.warn(
+          "Could not resolve logged-in user id from session data — check GetSessionData() response shape.",
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (!societyId) return;
+    getRules();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [societyId, page]);
+
+  // reset to page 1 and refetch whenever a filter changes (debounced for search)
+  useEffect(() => {
+    if (!societyId) return;
+    const timer = setTimeout(() => {
+      if (page === 1) {
+        getRules();
+      } else {
+        setPage(1);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, appliesToFilter, violationTypeFilter, isActiveFilter]);
 
   const getRules = async () => {
-    const data = await getRulesApi()
-    setAllRules(data)
-  }
+    try {
+      setLoading(true);
+      const res = await listParkingRulesApi(
+        societyId,
+        page,
+        limit,
+        search,
+        appliesToFilter,
+        violationTypeFilter,
+        isActiveFilter === "" ? null : isActiveFilter === "1",
+      );
+      // listParkingRulesApi already returns response.data.data,
+      // i.e. { limit, page, rules, total, total_pages } directly — no extra unwrap needed.
+      const payload = res || {};
+      setAllRules(payload.rules ?? []);
+      setTotal(payload.total ?? 0);
+      setTotalPages(payload.total_pages ?? 1);
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearFilters = () => {
+    setSearch("");
+    setAppliesToFilter("");
+    setViolationTypeFilter("");
+    setIsActiveFilter("");
+  };
+
+  // Builds a compact page list like: 1 … 4 5 6 … 12
+  const getPageNumbers = () => {
+    const pages = [];
+    const windowSize = 1;
+
+    for (let p = 1; p <= totalPages; p++) {
+      const isEdge = p === 1 || p === totalPages;
+      const isNearCurrent = Math.abs(p - page) <= windowSize;
+      if (isEdge || isNearCurrent) {
+        pages.push(p);
+      } else if (pages[pages.length - 1] !== "…") {
+        pages.push("…");
+      }
+    }
+    return pages;
+  };
+
+  const resetForm = () => {
+    setRuleTitle("");
+    setRuleDescription("");
+    setAppliesTo("all");
+    setViolationType("");
+    setPenaltyAmount("");
+    setPenaltyDescription("");
+    setIsActive(true);
+    setErrors({});
+  };
+
+  const openAddModal = () => {
+    resetForm();
+    setShow(true);
+  };
+
+  const validateForm = () => {
+    let err = {};
+    if (!ruleTitle) err.ruleTitle = "required";
+    if (!appliesTo) err.appliesTo = "required";
+    if (!penaltyAmount) err.penaltyAmount = "required";
+    return err;
+  };
+
+  const handleSubmit = async () => {
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    if (!userId) {
+      toast.error("Could not identify the logged-in user. Please re-login and try again.");
+      return;
+    }
+
+    try {
+      await createParkingRuleApi(
+        societyId,
+        ruleTitle,
+        ruleDescription,
+        appliesTo,
+        "society_policy",
+        "active",
+        violationType,
+        penaltyAmount,
+        penaltyDescription,
+        isActive,
+        userId,
+      );
+      toast.success("Rule created successfully!");
+      setShow(false);
+      getRules();
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  };
+
+  // ---- toggle a rule's active/inactive status ----
+  // Hits POST /api/parking_violation/UpdateParkingRule with { rule_id, is_active }
+  const handleToggleStatus = async (rule) => {
+    const nextStatus = !rule.is_active;
+    setTogglingId(rule.id);
+
+    // optimistic update so the UI feels instant
+    setAllRules((prev) =>
+      prev.map((r) => (r.id === rule.id ? { ...r, is_active: nextStatus } : r)),
+    );
+
+    try {
+      await updateParkingRuleStatusApi(societyId, rule.id, nextStatus);
+      toast.success(`Rule marked as ${nextStatus ? "active" : "inactive"}.`);
+    } catch (error) {
+      console.log(error);
+      // revert on failure
+      setAllRules((prev) =>
+        prev.map((r) => (r.id === rule.id ? { ...r, is_active: rule.is_active } : r)),
+      );
+      toast.error(error);
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  // Infer BY-LAW vs FINE badge for the TYPE column.
+  // Adjust this to read an actual `rule_type` field from the API once available.
+  const getRuleTypeLabel = (r) => (r.violation_type ? "FINE" : "BY-LAW");
+
+  // ---- derived stats (Total Rules from API total; rest from currently loaded page) ----
+  const activeRules = allRules.filter((r) => r.is_active).length;
+  const violationRules = allRules.filter((r) => !!r.violation_type).length;
+  const totalPenaltyValue = allRules.reduce(
+    (sum, r) => sum + (Number(r.penalty_amount) || 0),
+    0,
+  );
 
   return (
 
@@ -32,15 +248,63 @@ const Rules = () => {
         {/* Stats */}
         <div className="row g-3 mb-4">
           {[
-            ["Total Slots", "512", "↑ 2 added this month", "tx-success"],
-            ["Violation Notices", "18", "Pending review: 5", "tx-danger"],
-            ["Penalty Collection", "₹21,250", "Avg. penalty: ₹500", "tx-muted"]
-          ].map(([l, v, m, mc]) => (
+            ["👥", "#dbeafe", "Total Rules", total, `${activeRules} active on this page`],
+            ["⚠️", "#fee2e2", "Violation Instances", violationRules, "Pending review"],
+            ["💰", "#dcfce7", "Penalty Collection", `₹${totalPenaltyValue}`, "Avg. penalty across rules"],
+          ].map(([ic, bg, l, v, m]) => (
             <div className="col-4" key={l}>
-              <div className="stat-card">
-                <div className="s-label">{l}</div>
-                <div className="s-val">{v}</div>
-                <div className={`rl-meta ${mc}`}>{m}</div>
+              <div
+                className="sv-card"
+                style={{
+                  position: "relative",
+                  padding: "18px 20px",
+                  minHeight: 100,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  textAlign: "left",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 16,
+                    right: 16,
+                    width: 34,
+                    height: 34,
+                    borderRadius: 8,
+                    background: bg,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 15,
+                    flexShrink: 0,
+                  }}
+                >
+                  {ic}
+                </div>
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: "#6B7280",
+                    marginBottom: 8,
+                    paddingRight: 40,
+                  }}
+                >
+                  {l}
+                </div>
+                <div
+                  style={{
+                    fontSize: 26,
+                    fontWeight: 700,
+                    color: "#1B3358",
+                    lineHeight: 1.15,
+                    marginBottom: 6,
+                  }}
+                >
+                  {v}
+                </div>
+                <div style={{ fontSize: 12, color: "#8A94A6" }}>{m}</div>
               </div>
             </div>
           ))}
@@ -53,10 +317,61 @@ const Rules = () => {
             <h6 className="rl-title">Active Rules & By-laws</h6>
 
             <div className="d-flex gap-2">
-              <button className="btn-ol rl-btn">🔽 Filter</button>
-              <button className="btn-ol rl-btn">⬇ Export</button>
+              <button className="btn-ol rl-btn" onClick={() => setShowFilters((s) => !s)}>
+                ▾ Filter
+              </button>
+              <button className="btn-ol rl-btn">⬆ Report</button>
             </div>
           </div>
+
+          {showFilters && (
+            <div className="px-4 pb-3 d-flex flex-wrap gap-2">
+              <input
+                type="text"
+                className="form-control form-control-sm"
+                placeholder="Search rules..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{ maxWidth: 180 }}
+              />
+
+              <select
+                className="form-select form-select-sm"
+                value={appliesToFilter}
+                onChange={(e) => setAppliesToFilter(e.target.value)}
+                style={{ maxWidth: 140 }}
+              >
+                <option value="">All scopes</option>
+                {APPLIES_TO_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+
+              <input
+                type="text"
+                className="form-control form-control-sm"
+                placeholder="Violation type..."
+                value={violationTypeFilter}
+                onChange={(e) => setViolationTypeFilter(e.target.value)}
+                style={{ maxWidth: 160 }}
+              />
+
+              <select
+                className="form-select form-select-sm"
+                value={isActiveFilter}
+                onChange={(e) => setIsActiveFilter(e.target.value)}
+                style={{ maxWidth: 130 }}
+              >
+                <option value="">All status</option>
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </select>
+
+              <button className="btn btn-sm btn-ad grey-btn" onClick={clearFilters}>
+                Clear
+              </button>
+            </div>
+          )}
 
           <div className="rl-table-wrap">
             <table className="sv-tbl">
@@ -66,43 +381,136 @@ const Rules = () => {
                   <th>APPLICABILITY</th>
                   <th>PENALTY</th>
                   <th>TYPE</th>
+                  <th>STATUS</th>
                 </tr>
               </thead>
 
               <tbody>
-                {rules.map((r, i) => (
-                  <tr key={i}>
-
-                    <td>
-                      <div className="rl-rule-title">{r.title}</div>
-                      <div className="rl-sub">{r.sub}</div>
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-4 text-muted">
+                      Loading rules...
                     </td>
-
-                    <td className="rl-muted">
-                      📍 {r.scope}
-                    </td>
-
-                    <td className="rl-penalty">
-                      {r.penalty}
-                    </td>
-
-                    <td>
-                      <Badge
-                        label={r.type}
-                        c={r.type === "BY-LAW" ? "blue" : "gray"}
-                      />
-                    </td>
-
                   </tr>
-                ))}
+                ) : allRules.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-4 text-muted">
+                      No rules found
+                    </td>
+                  </tr>
+                ) : (
+                  allRules.map((r) => (
+                    <tr key={r.id}>
+
+                      <td>
+                        <div className="rl-rule-title">{r.rule_title}</div>
+                        <div className="rl-sub">{r.rule_description}</div>
+                      </td>
+
+                      <td className="rl-muted">
+                        🔒 {r.applies_to}
+                      </td>
+
+                      <td className="rl-penalty" title={r.penalty_description || ""}>
+                        {r.penalty_description || `₹${r.penalty_amount}`}
+                      </td>
+
+                      <td>
+                        <Badge
+                          label={getRuleTypeLabel(r)}
+                          c={getRuleTypeLabel(r) === "FINE" ? "orange" : "blue"}
+                        />
+                      </td>
+
+                      <td>
+                        <button
+                          type="button"
+                          className="rl-status-toggle"
+                          disabled={togglingId === r.id}
+                          onClick={() => handleToggleStatus(r)}
+                          style={{
+                            border: "none",
+                            background: "none",
+                            padding: 0,
+                            cursor: togglingId === r.id ? "wait" : "pointer",
+                            opacity: togglingId === r.id ? 0.6 : 1,
+                          }}
+                          title="Click to toggle active/inactive"
+                        >
+                          <Badge
+                            label={r.is_active ? "ACTIVE" : "INACTIVE"}
+                            c={r.is_active ? "blue" : "gray"}
+                          />
+                        </button>
+                      </td>
+
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
 
-          <div className="rl-footer">
-            <a href="#!" className="rl-link">
-              View All Rules →
-            </a>
+          <div className="rl-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span className="rl-sub">
+              Page {page} of {totalPages || 1} • {total} total rules
+            </span>
+
+            <div className="d-flex align-items-center gap-1">
+              <button
+                className="rl-link"
+                style={{
+                  border: "none",
+                  background: "none",
+                  opacity: page <= 1 ? 0.4 : 1,
+                  cursor: page <= 1 ? "not-allowed" : "pointer",
+                }}
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                ← Prev
+              </button>
+
+              {getPageNumbers().map((p, idx) =>
+                p === "…" ? (
+                  <span key={`ellipsis-${idx}`} className="rl-sub" style={{ padding: "0 4px" }}>
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    style={{
+                      minWidth: 28,
+                      height: 28,
+                      borderRadius: 6,
+                      border: p === page ? "none" : "1px solid #E3E6EC",
+                      background: p === page ? "#1B3358" : "transparent",
+                      color: p === page ? "#fff" : "#1B3358",
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {p}
+                  </button>
+                ),
+              )}
+
+              <button
+                className="rl-link"
+                style={{
+                  border: "none",
+                  background: "none",
+                  opacity: page >= totalPages ? 0.4 : 1,
+                  cursor: page >= totalPages ? "not-allowed" : "pointer",
+                }}
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next →
+              </button>
+            </div>
           </div>
 
         </div>
@@ -116,11 +524,11 @@ const Rules = () => {
           <h6 className="rl-side-title text-start">Management Actions</h6>
 
           {[
-            ["➕", "#dbeafe", "Create By-law", "Draft new regulation"],
-            ["🗺", "#dcfce7", "Attach to Block/Wing", "Assign rules to areas"],
-            ["⚠️", "#fee2e2", "Define Penalties", "Set fines & consequences"]
-          ].map(([ic, bg, lb, sub]) => (
-            <button key={lb} className="qa mb-2">
+            ["➕", "#dbeafe", "Create By-law", "Draft new regulation", openAddModal],
+            ["🗺", "#dcfce7", "Attach to Block/Wing", "Assign rules to areas", null],
+            ["⚠️", "#fee2e2", "Define Penalties", "Set fines & consequences", null]
+          ].map(([ic, bg, lb, sub, onClickFn]) => (
+            <button key={lb} className="qa mb-2" onClick={onClickFn || undefined}>
 
               <div className="qa-ico rl-qa-ico" style={{ background: bg }}>
                 {ic}
@@ -163,6 +571,147 @@ const Rules = () => {
         </div>
 
       </div>
+
+      {/* CREATE BY-LAW MODAL */}
+      {show && (
+        <>
+          <div className="modal-backdrop fade show"></div>
+
+          <div className="modal show d-block">
+            <div className="modal-dialog modal-md">
+              <div className="modal-content">
+                <div className="modal-header bg-light">
+                  <h5 className="modal-title fw-semibold">Create By-law</h5>
+
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShow(false)}
+                  ></button>
+                </div>
+
+                <div className="modal-body text-start">
+                  <div className="mb-3">
+                    <div className="d-flex">
+                      <label className="sv-lb">
+                        Rule Title <span className="text-danger">*</span>
+                      </label>
+                      {errors.ruleTitle && (
+                        <span className="text-danger mx-2">{errors.ruleTitle}</span>
+                      )}
+                    </div>
+                    <input
+                      className="sv-in"
+                      placeholder="e.g., No Unauthorized Parking"
+                      value={ruleTitle}
+                      onChange={(e) => setRuleTitle(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="sv-lb">Rule Description</label>
+                    <textarea
+                      className="sv-in"
+                      rows={2}
+                      placeholder="Describe the rule"
+                      value={ruleDescription}
+                      onChange={(e) => setRuleDescription(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="row g-3 mb-3">
+                    <div className="col-6">
+                      <div className="d-flex">
+                        <label className="sv-lb">
+                          Applies To <span className="text-danger">*</span>
+                        </label>
+                        {errors.appliesTo && (
+                          <span className="text-danger mx-2">{errors.appliesTo}</span>
+                        )}
+                      </div>
+                      <select
+                        className="form-select form-control"
+                        value={appliesTo}
+                        onChange={(e) => setAppliesTo(e.target.value)}
+                      >
+                        {APPLIES_TO_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="col-6">
+                      <label className="sv-lb">Violation Type</label>
+                      <input
+                        className="sv-in"
+                        placeholder="e.g., unauthorized_parking"
+                        value={violationType}
+                        onChange={(e) => setViolationType(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="row g-3 mb-3">
+                    <div className="col-6">
+                      <div className="d-flex">
+                        <label className="sv-lb">
+                          Penalty Amount <span className="text-danger">*</span>
+                        </label>
+                        {errors.penaltyAmount && (
+                          <span className="text-danger mx-2">{errors.penaltyAmount}</span>
+                        )}
+                      </div>
+                      <input
+                        className="sv-in"
+                        type="number"
+                        placeholder="e.g., 500"
+                        value={penaltyAmount}
+                        onChange={(e) => setPenaltyAmount(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="col-6">
+                      <label className="sv-lb">Status</label>
+                      <select
+                        className="form-select form-control"
+                        value={isActive ? "active" : "inactive"}
+                        onChange={(e) => setIsActive(e.target.value === "active")}
+                      >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mb-1">
+                    <label className="sv-lb">Penalty Description</label>
+                    <textarea
+                      className="sv-in"
+                      rows={2}
+                      placeholder="e.g., Rs.500 fine for first offence. Rs.1000 for repeat within 30 days."
+                      value={penaltyDescription}
+                      onChange={(e) => setPenaltyDescription(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="modal-footer bg-light">
+                  <button
+                    className="btn btn-sm btn-ad grey-btn"
+                    onClick={() => setShow(false)}
+                  >
+                    Cancel
+                  </button>
+
+                  <button className="btn-ac px-4" onClick={handleSubmit}>
+                    Add Rule
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

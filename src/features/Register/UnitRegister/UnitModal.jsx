@@ -5,6 +5,7 @@ const UnitModal = ({
     show,
     setShow,
     mode,
+    isAssigningOwner,
     errors,
     errorText,
 
@@ -27,6 +28,9 @@ const UnitModal = ({
 
     currentStatus,
     setCurrentStatus,
+
+    addOwner,
+    setAddOwner,
 
     fullName,
     setFullName,
@@ -52,9 +56,11 @@ const UnitModal = ({
                         <div className="modal-header bg-light">
                             <h5 className="modal-title fw-semibold">
                                 <strong>
-                                    {mode === "edit"
-                                        ? "Edit Unit"
-                                        : "Add New Unit"}
+                                    {isAssigningOwner
+                                        ? "Assign Owner"
+                                        : mode === "edit"
+                                            ? "Edit Unit"
+                                            : "Add New Unit"}
                                 </strong>
                             </h5>
 
@@ -281,117 +287,137 @@ const UnitModal = ({
                                         </div>
                                     </div>
 
-                                    <label className="fw-semibold">
-                                        <FiUser className="text-primary" />
-                                        {" "}Primary Owner
-                                    </label>
-
-                                    <div className="row g-3 mb-3 mt-1">
-                                        <div className="col-12">
-                                            <div className="d-flex">
-                                                <label className="sv-lb">
-                                                    Full Name
-                                                    <span className="text-danger">
-                                                        *
-                                                    </span>
-                                                </label>
-
-                                                {errors.fullName && (
-                                                    <span className="text-danger mx-2">
-                                                        {errors.fullName}
-                                                    </span>
-                                                )}
-                                            </div>
-
+                                    {/* Owner toggle checkbox */}
+                                    <div className="d-flex align-items-center justify-content-between mb-3 p-2 owner-toggle-box">
+                                        <label
+                                            htmlFor="addOwnerCheck"
+                                            className="d-flex align-items-center gap-2 mb-0"
+                                            style={{ cursor: "pointer" }}
+                                        >
                                             <input
-                                                className={`sv-in ${errors.fullName
-                                                        ? "error-input"
-                                                        : ""
-                                                    }`}
-                                                placeholder="Enter Owner Name"
-                                                value={fullName}
+                                                id="addOwnerCheck"
+                                                type="checkbox"
+                                                checked={addOwner}
                                                 onChange={(e) =>
-                                                    setFullName(e.target.value)
+                                                    setAddOwner(e.target.checked)
                                                 }
                                             />
-                                        </div>
+                                            <span>Add owner details now</span>
+                                        </label>
+
+                                        <span className="text-muted small">
+                                            Optional
+                                        </span>
                                     </div>
 
-                                    <div className="row g-3 mb-3">
-                                        <div className="col-6">
-                                            <div className="d-flex">
-                                                <label className="sv-lb">
-                                                    Email Address
-                                                    <span className="text-danger">
-                                                        *
-                                                    </span>
-                                                </label>
+                                    {/* Primary Owner section - only shown when addOwner is checked */}
+                                    {addOwner && (
+                                        <>
+                                            <label className="fw-semibold">
+                                                <FiUser className="text-primary" />
+                                                {" "}Primary Owner
+                                            </label>
 
-                                                {errors.emailId && (
-                                                    <span className="text-danger mx-2">
-                                                        {errors.emailId}
-                                                    </span>
-                                                )}
+                                            <div className="row g-3 mb-3 mt-1">
+                                                <div className="col-12">
+                                                    <div className="d-flex">
+                                                        <label className="sv-lb">
+                                                            Full Name
+                                                            <span className="text-danger">
+                                                                *
+                                                            </span>
+                                                        </label>
+
+                                                        {errors.fullName && (
+                                                            <span className="text-danger mx-2">
+                                                                {errors.fullName}
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    <input
+                                                        className={`sv-in ${errors.fullName
+                                                                ? "error-input"
+                                                                : ""
+                                                            }`}
+                                                        placeholder="Enter Owner Name"
+                                                        value={fullName}
+                                                        onChange={(e) =>
+                                                            setFullName(e.target.value)
+                                                        }
+                                                    />
+                                                </div>
                                             </div>
 
-                                            <input
-                                                className={`sv-in ${errors.emailId
-                                                        ? "error-input"
-                                                        : ""
-                                                    }`}
-                                                placeholder="name@example.com"
-                                                value={emailId}
-                                                onChange={handleEmailChange}
-                                            />
-                                        </div>
+                                            <div className="row g-3 mb-3">
+                                                <div className="col-6">
+                                                    <div className="d-flex">
+                                                        <label className="sv-lb">
+                                                            Email Address
+                                                            <span className="text-danger">
+                                                                *
+                                                            </span>
+                                                        </label>
 
-                                        <div className="col-6">
-                                            <div className="d-flex">
-                                                <label className="sv-lb">
-                                                    Phone No.
-                                                    <span className="text-danger">
-                                                        *
-                                                    </span>
-                                                </label>
+                                                        {errors.emailId && (
+                                                            <span className="text-danger mx-2">
+                                                                {errors.emailId}
+                                                            </span>
+                                                        )}
+                                                    </div>
 
-                                                {errors.mobileNo && (
-                                                    <span className="text-danger mx-2">
-                                                        {errors.mobileNo}
-                                                    </span>
-                                                )}
+                                                    <input
+                                                        className={`sv-in ${errors.emailId
+                                                                ? "error-input"
+                                                                : ""
+                                                            }`}
+                                                        placeholder="name@example.com"
+                                                        value={emailId}
+                                                        onChange={handleEmailChange}
+                                                    />
+                                                </div>
+
+                                                <div className="col-6">
+                                                    <div className="d-flex">
+                                                        <label className="sv-lb">
+                                                            Phone No.
+                                                            <span className="text-danger">
+                                                                *
+                                                            </span>
+                                                        </label>
+
+                                                        {errors.mobileNo && (
+                                                            <span className="text-danger mx-2">
+                                                                {errors.mobileNo}
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="d-flex">
+                                                        <span
+                                                            className={`am-code ${errors.mobileNo
+                                                                    ? "error-input"
+                                                                    : ""
+                                                                }`}
+                                                        >
+                                                            +91
+                                                        </span>
+
+                                                        <input
+                                                            className={`sv-in am-phone ${errors.mobileNo
+                                                                    ? "error-input"
+                                                                    : ""
+                                                                }`}
+                                                            maxLength={10}
+                                                            placeholder="9876543210"
+                                                            value={mobileNo}
+                                                            onChange={handleMobileChange}
+                                                        />
+                                                    </div>
+                                                </div>
                                             </div>
-
-                                            <div className="d-flex">
-                                                <span
-                                                    className={`am-code ${errors.mobileNo
-                                                            ? "error-input"
-                                                            : ""
-                                                        }`}
-                                                >
-                                                    +91
-                                                </span>
-
-                                                <input
-                                                    className={`sv-in am-phone ${errors.mobileNo
-                                                            ? "error-input"
-                                                            : ""
-                                                        }`}
-                                                    maxLength={10}
-                                                    placeholder="9876543210"
-                                                    value={mobileNo}
-                                                    // onChange={(e) =>
-                                                    //     setMobileNo(
-                                                    //         e.target.value.replace(
-                                                    //             /\D/g,
-                                                    //             ""
-                                                    //         )
-                                                    //     )
-                                                    // }
-                                                    onChange={handleMobileChange}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
+                                        </>
+                                    )}
 
                                     {errorText && (
                                         <h6 className="text-danger">
@@ -415,9 +441,13 @@ const UnitModal = ({
                                     className="btn-ac px-4"
                                     onClick={handleSubmit}
                                 >
-                                    {mode === "edit"
-                                        ? "Update Unit"
-                                        : "Add Unit"}
+                                    {isAssigningOwner
+                                        ? "Assign Owner"
+                                        : mode === "edit"
+                                            ? "Update Unit"
+                                            : addOwner
+                                                ? "Add Unit & Owner"
+                                                : "Add Unit"}
                                 </button>
                             </div>
                         </div>

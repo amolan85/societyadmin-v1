@@ -42,6 +42,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
   const [area, setArea] = useState("");
   const [unitType, setUnitType] = useState("");
   const [currentStatus, setCurrentStatus] = useState("");
+  const [addOwner, setAddOwner] = useState(false);
   const [fullName, setFullName] = useState("");
   const [emailId, setEmailId] = useState("");
   const [mobileNo, setMobileNo] = useState("");
@@ -52,6 +53,7 @@ const UnitRegister = ({ setActive, setFlatId }) => {
   const [unitId, setUnitId] = useState("");
   const [selectedRange, setSelectedRange] = useState("all");
   const [tableLoading, setTableLoading] = useState(true);
+  const [isAssigningOwner, setIsAssigningOwner] = useState(false); // true when modal opened via "Assign Owner"
 
   useEffect(() => {
     SessionData();
@@ -161,11 +163,14 @@ const UnitRegister = ({ setActive, setFlatId }) => {
       );
 
       if (ownerMember) {
+        setAddOwner(true);
         setFullName(
           `${ownerMember.first_name || ""} ${ownerMember.last_name || ""}`.trim(),
         );
         setEmailId(ownerMember.email || "");
         setMobileNo(ownerMember.mobile || "");
+      } else {
+        setAddOwner(false);
       }
     } catch (error) {
       console.log(error);
@@ -246,22 +251,24 @@ const UnitRegister = ({ setActive, setFlatId }) => {
     if (!currentStatus) {
       errors.currentStatus = "required";
     }
-    if (!fullName) {
-      errors.fullName = "required";
+
+    // Owner fields are only required when "Add owner details now" is checked
+    if (addOwner) {
+      if (!fullName) {
+        errors.fullName = "required";
+      }
+      if (!emailId) {
+        errors.emailId = "required";
+      } else if (!/\S+@\S+\.\S+/.test(emailId)) {
+        errors.emailId = "Invalid email";
+      }
+      if (!mobileNo) {
+        errors.mobileNo = "required";
+      } else if (!/^[0-9]{10}$/.test(mobileNo)) {
+        errors.mobileNo = "Invalid mobile no.";
+      }
     }
-    if (!emailId) {
-      errors.emailId = "required";
-    } else if (!/\S+@\S+\.\S+/.test(emailId)) {
-      errors.emailId = "Invalid email";
-    }
-    // else {
-    //     errors.emailId = ""
-    // }
-    if (!mobileNo) {
-      errors.mobileNo = "required";
-    } else if (!/^[0-9]{10}$/.test(mobileNo)) {
-      errors.mobileNo = "Invalid mobile no.";
-    }
+
     return errors;
   };
 
@@ -275,6 +282,11 @@ const UnitRegister = ({ setActive, setFlatId }) => {
         return;
       }
 
+      // Only send owner details when the checkbox is checked, otherwise send empty values
+      const ownerFullName = addOwner ? fullName : "";
+      const ownerEmailId = addOwner ? emailId : "";
+      const ownerMobileNo = addOwner ? mobileNo : "";
+
       if (mode === "edit") {
         await UpdateUnitsApi(
           unitId,
@@ -285,13 +297,16 @@ const UnitRegister = ({ setActive, setFlatId }) => {
           area,
           unitType,
           currentStatus,
-          fullName,
-          emailId,
-          mobileNo,
+          ownerFullName,
+          ownerEmailId,
+          ownerMobileNo,
         );
 
-        toast.success("Unit updated successfully!");
+        toast.success(
+          isAssigningOwner ? "Owner assigned successfully!" : "Unit updated successfully!",
+        );
         setShow(false);
+        setIsAssigningOwner(false);
         getAllUnits(societyId, page);
       } else {
         await AddUnitsApi(
@@ -302,9 +317,9 @@ const UnitRegister = ({ setActive, setFlatId }) => {
           area,
           unitType,
           currentStatus,
-          fullName,
-          emailId,
-          mobileNo,
+          ownerFullName,
+          ownerEmailId,
+          ownerMobileNo,
         );
 
         toast.success("Unit created successfully!");
@@ -439,12 +454,33 @@ const UnitRegister = ({ setActive, setFlatId }) => {
     setArea("");
     setUnitType("");
     setCurrentStatus("");
+    setAddOwner(false);
     setFullName("");
     setEmailId("");
     setMobileNo("");
     setErrors({});
     setErrorText("");
   }
+
+  // A unit has no owner assigned yet if none of its members has occupancy_type "owner"
+  const hasOwner = (unit) =>
+    !!unit?.members?.find((m) => m.occupancy_type === "owner");
+
+  // Opens the same Edit Unit modal, pre-loads the unit's existing details,
+  // and pre-checks "Add owner details now" so the person only has to fill
+  // in the owner's name / email / mobile.
+  const handleAssignOwner = async (s) => {
+    setMode("edit");
+    resetForm();
+    await Promise.all([
+      getAllBlocks(societyId),
+      getAllFloor(societyId),
+      GetFlatDetailsById(s.flat_id),
+    ]);
+    setAddOwner(true); // owner section opens automatically
+    setIsAssigningOwner(true);
+    setShow(true);
+  };
 
   return (
     <>
@@ -694,6 +730,17 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                             </button>
                           </li>
 
+                          {!hasOwner(s) && (
+                            <li>
+                              <button
+                                className="dropdown-item member-action-item"
+                                onClick={() => handleAssignOwner(s)}
+                              >
+                                Assign Owner
+                              </button>
+                            </li>
+                          )}
+
                           <li>
                             <hr className="dropdown-divider" />
                           </li>
@@ -722,8 +769,12 @@ const UnitRegister = ({ setActive, setFlatId }) => {
 
       <UnitModal
         show={show}
-        setShow={setShow}
+        setShow={(val) => {
+          setShow(val);
+          if (!val) setIsAssigningOwner(false);
+        }}
         mode={mode}
+        isAssigningOwner={isAssigningOwner}
         errors={errors}
         errorText={errorText}
         flatNo={flatNo}
@@ -740,6 +791,8 @@ const UnitRegister = ({ setActive, setFlatId }) => {
         setArea={setArea}
         currentStatus={currentStatus}
         setCurrentStatus={setCurrentStatus}
+        addOwner={addOwner}
+        setAddOwner={setAddOwner}
         fullName={fullName}
         setFullName={setFullName}
         emailId={emailId}
