@@ -225,16 +225,28 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
     const handleApproval = async (status) => {
         try {
             if (status === "approved") {
-                await ApproveVisitorApi(selectedVisitor.id, societyId, userId);
+                await ApproveVisitorApi(visitor.id, societyId, userId);
             } else {
-                await RejectVisitorApi(selectedVisitor.id, societyId, userId, rejectionReason);
+                await RejectVisitorApi(
+                    visitor.id,
+                    societyId,
+                    userId,
+                    rejectionReason
+                );
             }
-            toast.success(`Visitor ${status === "approved" ? "approved" : "rejected"} successfully`);
+
+            toast.success(
+                `Visitor ${status === "approved" ? "approved" : "rejected"} successfully`
+            );
+
             setApprovalModal(false);
-            setSelectedVisitor(null);
             setRejectionReason("");
-            getVisitors({ sid: societyId, pg: page, searchText: search, status: approvalStatus, fromDate: dateFrom, toDate: dateTo });
-        } catch (e) { toast.error(e?.message || "Action failed"); }
+
+            fetchVisitor(societyId);
+
+        } catch (e) {
+            toast.error(e?.message || "Action failed");
+        }
     };
 
     const handleDelete = async () => {

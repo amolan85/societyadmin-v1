@@ -72,7 +72,12 @@ const UnitRegister = ({ setActive, setFlatId }) => {
     if (!societyId) return;
     getAllUnits(societyId, page);
   }, [societyId, page]);
+  useEffect(() => {
+    if (!societyId) return;
 
+    getAllBlocks(societyId);
+    getAllFloor(societyId);
+  }, [societyId]);
   //function for get members
   const getAllUnits = async (societyId, page) => {
     try {
@@ -557,14 +562,10 @@ const UnitRegister = ({ setActive, setFlatId }) => {
             </button>
             <button
               className="btn btn-sm btn-ac ms-2 btn-primary"
-              onClick={async () => {
+              onClick={() => {
                 setMode("add");
                 resetForm();
-                await Promise.all([
-                  getAllBlocks(societyId),
-                  getAllFloor(societyId),
-                ]);
-                setShow(true); // ✅ load hone ke baad open
+                setShow(true);
               }}
             >
               + Add Unit
@@ -718,12 +719,8 @@ const UnitRegister = ({ setActive, setFlatId }) => {
                               // onClick={() => handleEdit(s)}
                               onClick={async () => {
                                 setMode("edit");
-                                await Promise.all([
-                                  getAllBlocks(societyId),
-                                  getAllFloor(societyId),
-                                  GetFlatDetailsById(s.flat_id),
-                                ]);
-                                setShow(true); // ✅
+                                await GetFlatDetailsById(s.flat_id);
+                                setShow(true);
                               }}
                             >
                               Edit Unit

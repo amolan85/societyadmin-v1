@@ -40,6 +40,9 @@ const ViewUnit = ({ setActive, flatId, setMemberId }) => {
   const [emailId, setEmailId] = useState("");
   const [mobileNo, setMobileNo] = useState("");
   const [pageLoading, setPageLoading] = useState(true);
+  const [vehicles, setVehicles] = useState([]);
+  const [parkingSlots, setParkingSlots] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
 
   useEffect(() => {
     SessionData();
@@ -97,6 +100,9 @@ const ViewUnit = ({ setActive, flatId, setMemberId }) => {
         );
         setEmailId(ownerMember.email || "");
         setMobileNo(ownerMember.mobile || "");
+        setVehicles(data.vehicles || []);
+        setParkingSlots(data.parking_slots || []);
+        setRecentActivity(data.recent_activity || []);
       }
     } catch (error) {
       console.log(error);
@@ -376,44 +382,45 @@ const ViewUnit = ({ setActive, flatId, setMemberId }) => {
               </div>
 
               <div className="card-body">
-                {members
-                  ?.filter((m) => m.occupancy_type === "owner")
-                  .map((m, index) => (
-                    <div
-                      key={index}
-                      className="d-flex justify-content-between align-items-center mb-3"
-                    >
-                      {/* Left Section */}
-                      <div className="d-flex align-items-center gap-3">
-                        <img
-                          // src="https://i.pravatar.cc/60?img=12"
-                          src={m.profile_url || "../src/assets/profile.png"}
-                          alt="profile"
-                          className="rounded-circle object-fit-cover"
-                          width="55"
-                          height="55"
-                        />
+                {members?.filter((m) => m.occupancy_type === "owner").length === 0 ? (
+                  <div className="text-center text-muted py-4">
+                    No primary owner registered
+                  </div>
+                ) : (
+                  members
+                    .filter((m) => m.occupancy_type === "owner")
+                    .map((m, index) => (
+                      <div
+                        key={index}
+                        className="d-flex justify-content-between align-items-center mb-3"
+                      >
+                        <div className="d-flex align-items-center gap-3">
+                          <img
+                            src={m.profile_url || "../src/assets/profile.png"}
+                            alt="profile"
+                            className="rounded-circle object-fit-cover"
+                            width="55"
+                            height="55"
+                          />
 
-                        <div>
-                          <h6 className="text-start mb-1 fw-semibold">
-                            {m.first_name} {m.last_name}
-                          </h6>
+                          <div>
+                            <h6 className="text-start mb-1 fw-semibold">
+                              {m.first_name} {m.last_name}
+                            </h6>
 
-                          <small className="text-start text-muted d-flex align-items-center gap-1">
-                            <i className="bi bi-envelope"></i>
-                            {m.occupancy_type}
-                          </small>
+                            <small className="text-muted">
+                              {m.occupancy_type}
+                            </small>
+                          </div>
+                        </div>
+
+                        <div className="text-end">
+                          <small className="text-muted d-block">Moved In</small>
+                          <div className="fw-bold">{m.start_date || "-"}</div>
                         </div>
                       </div>
-
-                      {/* Right Section */}
-                      <div className="text-end">
-                        <small className="text-muted d-block">Moved In</small>
-
-                        <div className="fw-bold">{m.start_date}</div>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                )}
               </div>
             </div>
           </div>
@@ -421,45 +428,42 @@ const ViewUnit = ({ setActive, flatId, setMemberId }) => {
           <div className="col-lg-4">
             <div className="card border-0 shadow-sm mb-4">
               <div className="card-header bg-white fw-semibold">
-                Registered Residents
+                Register  Residents
               </div>
 
               <div className="list-group list-group-flush">
-                {members
-                  ?.filter((m) => m.occupancy_type !== "owner")
-                  .map((m, index) => (
-                    <div
-                      key={index}
-                      className="list-group-item d-flex align-items-center gap-3"
-                    >
-                      <img
-                        // src={`https://i.pravatar.cc/50?img=${index + 12}`}
-                        src={m.profile_url || "../src/assets/profile.png"}
-                        className="rounded-circle"
-                        width="45"
-                        height="45"
-                        alt=""
-                      />
+                <div className="list-group-item d-flex align-items-center gap-3">
+                  <img
+                    src="../src/assets/profile.png"
+                    className="rounded-circle"
+                    width="45"
+                    height="45"
+                    alt=""
+                  />
 
-                      <div>
-                        <div className="fw-semibold">
-                          {m.first_name} {m.last_name}
-                        </div>
+                  <div>
+                    {/* <div className="fw-semibold">David Jenkins</div>
+                                        <small className="text-muted">Spouse</small> */}
+                    -
+                  </div>
+                </div>
 
-                        <small className="text-muted">
-                          {m.occupancy_type === "tenant_relative"
-                            ? "Tenant Family"
-                            : m.occupancy_type === "owner_relative"
-                              ? "Owner Family"
-                              : m.occupancy_type
-                                ?.replaceAll("_", " ")
-                                .replace(/\b\w/g, (char) =>
-                                  char.toUpperCase(),
-                                )}
-                        </small>
-                      </div>
-                    </div>
-                  ))}
+                <div className="list-group-item d-flex align-items-center gap-3">
+                  <img
+                    // src="https://i.pravatar.cc/50?img=18"
+                    src="../src/assets/profile.png"
+                    className="rounded-circle"
+                    width="45"
+                    height="45"
+                    alt=""
+                  />
+
+                  <div>
+                    {/* <div className="fw-semibold">Lily Jenkins</div>
+                                        <small className="text-muted">Daughter</small> */}
+                    -
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -468,25 +472,28 @@ const ViewUnit = ({ setActive, flatId, setMemberId }) => {
                 Registered Vehicles
               </div>
 
-              <div className="list-group list-group-flush ">
-                <div className="list-group-item">
-                  <div className="fw-semibold ">
-                    <FaCar color="blue" className="me-2" />
-                    Tesla Model Y
-                  </div>
-
-                  <small className="text-muted">ABC-1234 • Slot P-404</small>
-                </div>
-
-                <div className="list-group-item">
-                  <div className="fw-semibold">
-                    {/* <i className="bi bi-bicycle me-2"></i> */}
-                    <FaCar color="blue" className="me-2" />
-                    Trek Bicycle
-                  </div>
-
-                  <small className="text-muted">Unregistered • Bike Rack</small>
-                </div>
+              <div className="list-group list-group-flush">
+                {vehicles.length === 0 ? (
+                  <div className="list-group-item text-muted">No vehicles registered</div>
+                ) : (
+                  vehicles.map((v) => {
+                    const slot = parkingSlots.find(
+                      (p) => p.slot_vehicle_type === v.vehicle_type
+                    );
+                    return (
+                      <div className="list-group-item" key={v.vehicle_id}>
+                        <div className="fw-semibold">
+                          <FaCar color="blue" className="me-2" />
+                          {v.vehicle_model} ({v.vehicle_number})
+                        </div>
+                        <small className="text-muted">
+                          {v.vehicle_type}
+                          {slot ? ` • Slot ${slot.slot_number}` : " • Not Registered"}
+                        </small>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
 
@@ -496,21 +503,24 @@ const ViewUnit = ({ setActive, flatId, setMemberId }) => {
               </div>
 
               <div className="list-group list-group-flush">
-                <div className="list-group-item d-flex align-items-start gap-3">
-                  <div
-                    className="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center"
-                    // style="width:40px;height:40px;"
-                    style={{ width: "40px", height: "40px" }}
-                  >
-                    <i className="bi bi-check-lg"></i>
-                  </div>
-
-                  <div>
-                    <div className="fw-semibold">Tesla Model Y Added</div>
-
-                    <small className="text-muted">2 hours ago</small>
-                  </div>
-                </div>
+                {recentActivity.length === 0 ? (
+                  <div className="list-group-item text-muted">No recent activity</div>
+                ) : (
+                  recentActivity.slice(0, 4).map((act, idx) => (
+                    <div className="list-group-item d-flex align-items-start gap-3" key={idx}>
+                      <div
+                        className="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                        style={{ width: "40px", height: "40px" }}
+                      >
+                        <FaCheck size={14} />
+                      </div>
+                      <div>
+                        <div className="fw-semibold">{act.title}</div>
+                        <small className="text-muted">{timeAgo(act.date)}</small>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
