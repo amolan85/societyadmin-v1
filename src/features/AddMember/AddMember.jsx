@@ -66,6 +66,11 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   const [mId, setMId] = useState("");
   const [selectedRange, setSelectedRange] = useState("all");
 
+  // ── true all-time stats (not page-scoped) ──
+  const [statsOwners, setStatsOwners] = useState(0);
+  const [statsTenants, setStatsTenants] = useState(0);
+  const [statsFamily, setStatsFamily] = useState(0);
+
   //loader
   const { setLoading } = useLoader(); 
 
@@ -93,10 +98,36 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     try {
       await Promise.all([
         getMembers(flats.society_id),
+        fetchMemberStats(flats.society_id),
         // getAllBlocks(flats.society_id),
       ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ── all-time Owner/Tenant/Family counts, computed from the FULL member
+  // list (not just the current page) via the no-pagination endpoint ──
+  const fetchMemberStats = async (sid) => {
+    try {
+      const data = await getAllMembersWithoutPaginationApi(sid, "");
+      const members = data?.members || [];
+
+      setStatsOwners(
+        members.filter((m) => m.occupancy_type?.toLowerCase() === "owner").length
+      );
+      setStatsTenants(
+        members.filter((m) => m.occupancy_type?.toLowerCase() === "tenant").length
+      );
+      setStatsFamily(
+        members.filter(
+          (m) =>
+            m.occupancy_type === "owner_relative" ||
+            m.occupancy_type === "tenant_relative"
+        ).length
+      );
+    } catch (error) {
+      console.error("Error fetching member stats:", error);
     }
   };
 
@@ -289,6 +320,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
         toast.success("Member updated successfully!");
         resetForm();
         getMembers(societyId, page);
+        fetchMemberStats(societyId);
       } else {
         await AddMemberApi(
           societyId,
@@ -316,6 +348,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
         toast.success("Member created successfully!");
         resetForm();
         getMembers(societyId, page);
+        fetchMemberStats(societyId);
       }
 
       setShow(false);
@@ -400,6 +433,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
       await deleteMembersApi(memberId, societyId);
       toast.success("Member deleted successfully");
       await getMembers(societyId, page);
+      await fetchMemberStats(societyId);
 
     } catch (error) {
       toast.error(error);
@@ -516,20 +550,6 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     }
   };
 
-  const totalOwners = allMembers.filter(
-    (item) => item.occupancy_type?.toLowerCase() === "owner",
-  ).length;
-
-  const totalTenant = allMembers.filter(
-    (item) => item.occupancy_type?.toLowerCase() === "tenant",
-  ).length;
-
-  const totalFamilyMember = allMembers.filter(item =>
-    item.occupancy_type === "owner_relative" ||
-    item.occupancy_type === "tenant_relative"
-  ).length;
-
-
   const handleSearch = async (e) => {
     const value = e.target.value;
     setSearch(value);
@@ -567,9 +587,9 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
         <div className="row g-3 mb-4">
           {[
             [totalCount, "Total Members"],
-            [totalOwners, "Owners"],
-            [totalTenant, "Tenants"],
-            [totalFamilyMember, "New This Week", "tile-grn"],
+            [statsOwners, "Owners"],
+            [statsTenants, "Tenants"],
+            [statsFamily, "Family Members", "tile-grn"],
           ].map(([v, l, cls]) => (
             <div className="col-6 col-md-3" key={l}>
               <div className={`tile bg-white ${cls}`}>

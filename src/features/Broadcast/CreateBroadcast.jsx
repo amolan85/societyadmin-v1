@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Badge } from '../../components/Common/ReusableFunction';
 import "../../styles/Broadcast.css"
 import { GetSessionData } from '../../utils/SessionManagement';
-import { CreateBroadcastApi, getBroadcastByIdApi, UpdateBroadcastApi } from '../../services/BroadcastApi';
+import { CreateBroadcastApi, getBroadcastByIdApi, UpdateBroadcastApi, getBroadcastListApi } from '../../services/BroadcastApi';
 import { toast } from "react-toastify";
 
 const CreateBroadcast = ({ setActive, broadcastId }) => {
@@ -18,6 +18,10 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
     const [bId, setBId] = useState("")
     const [errorText, setErrorText] = useState("")
 
+    // ── sidebar data (real, not static) ──
+    const [recentBroadcasts, setRecentBroadcasts] = useState([]);
+    const [notifications, setNotifications] = useState([]);
+    const [sidebarLoading, setSidebarLoading] = useState(false);
 
     const tabs = [
         { id: "Announcement", icon: "📢", value: "announcement" },
@@ -41,6 +45,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         console.log("Session Society Id:", flats.society_id);
 
         setSocietyId(flats.society_id);
+        fetchSidebarData(flats.society_id);
     } catch (error) {
         console.log(error);
     }
@@ -87,6 +92,77 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         console.log(error);
     }
 };
+
+    //shared time-ago helper for sidebar
+    const timeAgo = (utcDate) => {
+        if (!utcDate) return "";
+        const past = new Date(utcDate);
+        const now = new Date();
+        const seconds = Math.floor((now - past) / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
+        if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+        if (minutes > 0) return `${minutes} min ago`;
+        return "Just now";
+    };
+
+    const statusToBadgeColor = (s) => {
+        switch (s) {
+            case "sent": return "green";
+            case "scheduled": return "blue";
+            case "draft": return "gray";
+            case "failed": return "red";
+            default: return "gray";
+        }
+    };
+
+    const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+
+    //fetch real data for Notifications + Recent Communications side cards
+    const fetchSidebarData = async (sid) => {
+        setSidebarLoading(true);
+        try {
+            const apiData = await getBroadcastListApi({
+                society_id: sid,
+                currentPage: 1,
+                limit: 5,
+                currentSearch: "",
+                currentType: "",
+                currentStatus: "",
+                currentStartDate: "",
+                currentEndDate: "",
+            });
+            const records = apiData?.records || [];
+
+            setRecentBroadcasts(records.slice(0, 3));
+
+            const notifs = records.slice(0, 4).map((r) => {
+                let lbl;
+                let dot;
+                if (r.status === "scheduled") {
+                    lbl = `"${r.title}" scheduled for ${r.scheduled_at ? new Date(r.scheduled_at).toLocaleString() : "later"}`;
+                    dot = "dot-blu";
+                } else if (r.status === "draft") {
+                    lbl = `Draft "${r.title}" not sent yet`;
+                    dot = "dot-red";
+                } else if (r.status === "failed") {
+                    lbl = `"${r.title}" failed to send`;
+                    dot = "dot-red";
+                } else {
+                    lbl = `"${r.title}" was sent`;
+                    dot = "dot-org";
+                }
+                return { lbl, time: timeAgo(r.sent_at || r.created_at), dot };
+            });
+            setNotifications(notifs);
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setSidebarLoading(false);
+        }
+    };
 
     //handle change for file attachment
     const handleFileChange = (e) => {
@@ -273,10 +349,6 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
                     <label className="sv-lb">Broadcasting Channels</label>
 
-                    {/* <div className="d-flex gap-2 mb-4">
-                        <span className="bx bx-blue">☑ App Notification</span>
-                        <span className="bx bx-gray">⊕ Add Channel</span>
-                    </div> */}
                     <div className="d-flex gap-3 mb-4">
 
                         <label className="bx">
@@ -375,59 +447,146 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
             {/* RIGHT */}
             <div className="col-12 col-lg-4">
 
-                {/* Notifications */}
+                {/* Notifications — real, derived from recent broadcast activity */}
                 <div className="sv-card mb-3">
                     <h6 className="bc-side-title text-start">Notifications</h6>
 
-                    {[
-                        { lbl: "Committee Meeting", time: "Today, 08:00 PM", dot: "dot-org" },
-                        { lbl: "New user registered.", time: "59 minutes ago", dot: "dot-blu" },
-                        { lbl: "Mr. Roy Sing update notice board", time: "1 hour ago", dot: "dot-org" },
-                        { lbl: "Complaint by Riya Mittal", time: "Today, 10:59 AM", dot: "dot-red" },
-                    ].map((n, i) => (
-                        <div key={i} className="bc-notify-item">
-                            <span className={`dot ${n.dot}`} />
-                            <div className="text-start">
-                                <div className="bc-notify-label">{n.lbl}</div>
-                                <div className="bc-notify-time">{n.time}</div>
+                    {sidebarLoading ? (
+                        <div className="text-muted small text-start">Loading…</div>
+                    ) : notifications.length === 0 ? (
+                        <div className="text-muted small text-start">No recent activity</div>
+                    ) : (
+                        notifications.map((n, i) => (
+                            <div key={i} className="bc-notify-item">
+                                <span className={`dot ${n.dot}`} />
+                                <div className="text-start">
+                                    <div className="bc-notify-label">{n.lbl}</div>
+                                    <div className="bc-notify-time">{n.time}</div>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
 
-                    <button className="btn-dk w-100 mt-2">Show all notifications</button>
+                    <button className="btn-dk w-100 mt-2" onClick={() => setActive("broadcasting")}>
+                        Show all broadcasts
+                    </button>
                 </div>
+{/* Quick Actions */}
+<div className="sv-card mb-3">
+    <h6 className="bc-side-title text-start">Quick Actions</h6>
 
-                {/* Quick Actions */}
-                <div className="sv-card mb-3">
-                    <h6 className="bc-side-title text-start">Quick Actions</h6>
+    {/* Send Broadcast */}
+    <button
+        className="qa mb-2"
+        onClick={() => {
+            if (subject && content) {
+                SubmitBroadcast(scheduleDateTime ? "scheduled" : "sent");
+            } else {
+                toast.warning("Please enter Subject and Content.");
+            }
+        }}
+    >
+        <div
+            className="qa-ico"
+            style={{ background: "#d1fae5" }}
+        >
+            🚀
+        </div>
+        <span className="bc-qa-text">
+            Send Broadcast
+        </span>
+    </button>
 
-                    {[["➕", "New Notice", "#dbeafe"], ["📊", "Create Poll", "#ffedd5"], ["📄", "Issue NOC", "#ede9fe"]].map(([ic, lb, bg]) => (
-                        <button key={lb} className="qa mb-2">
-                            <div className="qa-ico" style={{ background: bg }}>{ic}</div>
-                            <span className="bc-qa-text">{lb}</span>
-                        </button>
-                    ))}
-                </div>
+    {/* Save Draft */}
+    <button
+        className="qa mb-2"
+        onClick={() => {
+            if (subject || content) {
+                SubmitBroadcast("draft");
+            } else {
+                toast.warning("Enter broadcast details first.");
+            }
+        }}
+    >
+        <div
+            className="qa-ico"
+            style={{ background: "#fef3c7" }}
+        >
+            💾
+        </div>
+        <span className="bc-qa-text">
+            Save Draft
+        </span>
+    </button>
 
-                {/* Recent Communications */}
+    {/* Clear Form */}
+    <button
+        className="qa mb-2"
+        onClick={() => {
+            setSubject("");
+            setContent("");
+            setAttchment(null);
+            setChannel("");
+            setSchedule("sendNow");
+            setScheduleDateTime("");
+            setTab("announcement");
+            setErrors({});
+            setErrorText("");
+        }}
+    >
+        <div
+            className="qa-ico"
+            style={{ background: "#fee2e2" }}
+        >
+            🗑️
+        </div>
+        <span className="bc-qa-text">
+            Clear Form
+        </span>
+    </button>
+
+    {/* Go Back */}
+    <button
+        className="qa"
+        onClick={() => setActive("broadcasting")}
+    >
+        <div
+            className="qa-ico"
+            style={{ background: "#dbeafe" }}
+        >
+            📡
+        </div>
+        <span className="bc-qa-text">
+            Broadcast List
+        </span>
+    </button>
+</div>
+
+                {/* Recent Communications — real, last 3 broadcasts */}
                 <div className="sv-card">
                     <h6 className="bc-side-title text-start">Recent Communications</h6>
 
-                    {[
-                        { title: "Water Supply Cut", time: "Today, 10:30 AM", type: "Alert", s: "Sent", sc: "green" },
-                        { title: "New Year Event", time: "Dec 31, 08:00 PM", type: "Invitation", s: "Scheduled", sc: "blue" },
-                        { title: "Parking Lot Resurfacing", time: "Edited 2h ago", type: "Announcement", s: "Draft", sc: "gray" },
-                    ].map((r, i, arr) => (
-                        <div key={i} className={`bc-rc-item ${i < arr.length - 1 ? "bordered" : ""}`}>
-                            <div className="text-start">
-                                <div className="bc-rc-title">{r.title}</div>
-                                <div className="bc-rc-sub">{r.time} • {r.type}</div>
+                    {sidebarLoading ? (
+                        <div className="text-muted small text-start">Loading…</div>
+                    ) : recentBroadcasts.length === 0 ? (
+                        <div className="text-muted small text-start">No broadcasts yet</div>
+                    ) : (
+                        recentBroadcasts.map((r, i, arr) => (
+                            <div key={r.id} className={`bc-rc-item ${i < arr.length - 1 ? "bordered" : ""}`}>
+                                <div className="text-start">
+                                    <div className="bc-rc-title">{r.title}</div>
+                                    <div className="bc-rc-sub">
+                                        {timeAgo(r.sent_at || r.created_at)} • {capitalize(r.type)}
+                                    </div>
+                                </div>
+                                <Badge label={capitalize(r.status)} c={statusToBadgeColor(r.status)} />
                             </div>
-                            <Badge label={r.s} c={r.sc} />
-                        </div>
-                    ))}
+                        ))
+                    )}
 
-                    <button className="btn-dk w-100 mt-3">Show all communication</button>
+                    <button className="btn-dk w-100 mt-3" onClick={() => setActive("broadcasting")}>
+                        Show all communication
+                    </button>
                 </div>
 
             </div>

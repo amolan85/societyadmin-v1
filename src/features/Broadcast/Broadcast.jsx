@@ -28,7 +28,7 @@ import { GetSessionData } from "../../utils/SessionManagement";
 const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
 
     // =====================================================
-    // STATES (unchanged)
+    // STATES
     // =====================================================
 
     const [page, setPage] = useState(1);
@@ -47,6 +47,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
 
+    // These now hold TRUE all-time totals (independent of current page/filters)
     const [statsTotal, setStatsTotal] = useState(0);
     const [statsSent, setStatsSent] = useState(0);
     const [statsScheduled, setStatsScheduled] = useState(0);
@@ -77,7 +78,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
     ];
 
     // =====================================================
-    // LOAD SESSION (unchanged)
+    // LOAD SESSION
     // =====================================================
 
     useEffect(() => {
@@ -101,28 +102,45 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                 currentStartDate: "",
                 currentEndDate: "",
             });
-            //fetchStats(sid);
+            fetchStats(sid);
         } catch (error) {
             console.log(error);
         }
     };
 
-    // const fetchStats = async (sid) => {
-    //     try {
-    //         const [all, sent, scheduled, draft] = await Promise.all([
-    //             getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "", currentStartDate: "", currentEndDate: "" }),
-    //             getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "sent", currentStartDate: "", currentEndDate: "" }),
-    //             getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "scheduled", currentStartDate: "", currentEndDate: "" }),
-    //             getBroadcastListApi({ society_id: sid, currentPage: 1, limit: 1, currentSearch: "", currentType: "", currentStatus: "draft", currentStartDate: "", currentEndDate: "" }),
-    //         ]);
-    //         setStatsTotal(all?.total_records || 0);
-    //         setStatsSent(sent?.total_records || 0);
-    //         setStatsScheduled(scheduled?.total_records || 0);
-    //         setStatsDraft(draft?.total_records || 0);
-    //     } catch (error) {
-    //         console.error("Error fetching broadcast stats:", error);
-    //     }
-    // };
+    // =====================================================
+    // STATS (all-time totals, independent of pagination/filters)
+    // =====================================================
+
+    // =====================================================
+    // STATS — computed client-side from the full dataset,
+    // because the backend's status filter is currently broken
+    // (it returns unfiltered records regardless of `status` sent).
+    // =====================================================
+
+    const fetchStats = async (sid) => {
+        try {
+            const apiData = await getBroadcastListApi({
+                society_id: sid,
+                currentPage: 1,
+                limit: 1000, // high ceiling as a fallback in case get_all is ignored
+                currentSearch: "",
+                currentType: "",
+                currentStatus: "",
+                currentStartDate: "",
+                currentEndDate: "",
+                getAll: true,
+            });
+            const records = apiData?.records || [];
+
+            setStatsTotal(records.length);
+            setStatsSent(records.filter((r) => r.status === "sent").length);
+            setStatsScheduled(records.filter((r) => r.status === "scheduled").length);
+            setStatsDraft(records.filter((r) => r.status === "draft").length);
+        } catch (error) {
+            console.error("Error fetching broadcast stats:", error);
+        }
+    };
 
     const getBroadcast = async ({ sid, currentPage, currentSearch, currentType, currentStatus, currentStartDate, currentEndDate }) => {
         try {
@@ -131,33 +149,10 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
             const records = apiData?.records || [];
 
             setAllBroadcast(records);
-
             setTotalPages(apiData?.total_pages || 1);
-
             setTotalRecords(apiData?.total_records || 0);
 
-            // Cards
-            setStatsTotal(apiData?.total_records || records.length);
-
-            setStatsSent(
-                records.filter(x => x.status === "sent").length
-            );
-
-            setStatsScheduled(
-                records.filter(x => x.status === "scheduled").length
-            );
-
-            setStatsDraft(
-                records.filter(x => x.status === "draft").length
-            );
-
-            // Type count
-            setTypeCounts({
-                announcement: records.filter(x => x.type === "announcement").length,
-                emergency: records.filter(x => x.type === "emergency").length,
-                circular: records.filter(x => x.type === "circular").length,
-                event: records.filter(x => x.type === "event").length,
-            });
+            // Type count (page-level breakdown for the type tabs, not used for stat tiles)
             const counts = { announcement: 0, emergency: 0, circular: 0, event: 0 };
             records.forEach((r) => { if (counts[r.type] !== undefined) counts[r.type]++; });
             setTypeCounts(counts);
@@ -190,7 +185,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
             toast.success("Broadcast deleted successfully");
             setShowDeleteModal(false);
             getBroadcast({ sid: societyIdRef.current, currentPage: page, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: startDate, currentEndDate: endDate });
-            //fetchStats(societyIdRef.current);
+            fetchStats(societyIdRef.current);
         } catch (error) {
             console.log(error);
             toast.error("Failed to delete broadcast");
@@ -293,26 +288,34 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                 </div>
 
                 {/* ── STAT TILES ── */}
+
                 <div className="row g-3 mb-4">
+
                     {[
-                        { v: statsTotal, l: "Total Broadcasts", sub: "All time broadcasts", icon: <FiVolume2 size={18} color="#2563eb" />, topCls: "bc-tile-top-blue", iconCls: "bc-tile-icon-blue" },
-                        { v: statsSent, l: "Sent", sub: "Successfully sent", icon: <FiSend size={18} color="#059669" />, topCls: "bc-tile-top-green", iconCls: "bc-tile-icon-green" },
-                        { v: statsScheduled, l: "Scheduled", sub: "Pending schedule", icon: <FiClock size={18} color="#d97706" />, topCls: "bc-tile-top-amber", iconCls: "bc-tile-icon-amber" },
-                        { v: statsDraft, l: "Draft", sub: "Saved as draft", icon: <FiFile size={18} color="#dc2626" />, topCls: "bc-tile-top-red", iconCls: "bc-tile-icon-red" },
-                    ].map((s, i) => (
-                        <div className="col-6 col-md-3" key={i}>
-                            <div className={`bc-tile ${s.topCls}`}>
-                                <div className="d-flex justify-content-between align-items-start">
-                                    <div className="text-start">
-                                        <div className="bc-tile-label">{s.l}</div>
-                                        <div className="bc-tile-value">{s.v}</div>
-                                        <div className="bc-tile-sub">{s.sub}</div>
-                                    </div>
-                                    <div className={`bc-tile-icon ${s.iconCls}`}>{s.icon}</div>
+                        [statsTotal, "Total Broadcasts", "tile-blu"],
+                        [statsSent, "Sent", "tile-grn"],
+                        [statsScheduled, "Scheduled", "tile-yel"],
+                        [statsDraft, "Draft", "tile-red"],
+                    ].map(([value, label, cls]) => (
+
+                        <div className="col-6 col-md-3" key={label}>
+
+                            <div className={`tile bg-white ${cls}`}>
+
+                                <div className="text-start text-muted">
+                                    {label}
                                 </div>
+
+                                <div className="tile-val text-start mt-1">
+                                    {value}
+                                </div>
+
                             </div>
+
                         </div>
+
                     ))}
+
                 </div>
 
                 {/* ── FILTER BAR ── */}
@@ -490,7 +493,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                 </div>
             </div>
 
-            {/* ── DELETE MODAL (unchanged) ── */}
+            {/* ── DELETE MODAL ── */}
             <div className={`modal fade ${showDeleteModal ? "show d-block" : ""}`} tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
                 <div className="modal-dialog modal-dialog-centered">
                     <div className="modal-content">

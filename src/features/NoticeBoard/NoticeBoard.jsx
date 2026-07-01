@@ -263,7 +263,7 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
                     </button>
                 </div>
 
-                {/* ── STAT TILES (same pattern as ViolationAlertsList) ── */}
+                {/* ── STAT TILES   ── */}
                 <div className="row g-3 mb-4">
                     {[
                         [statsTotal, "Total Notices", "tile-blu"],
