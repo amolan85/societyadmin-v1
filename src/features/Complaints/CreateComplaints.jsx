@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react'
 import Select from 'react-select'
 import { Badge } from '../../components/Common/ReusableFunction';
@@ -6,7 +5,12 @@ import "../../styles/Broadcast.css"
 import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi } from '../../services/BroadcastApi';
 import { CreatePollApi } from '../../services/PollApi';
-import { createComplaintsApi, getFlatsAndCategoryApi } from '../../services/ComplaintsApi';
+import {
+    createComplaintsApi,
+    getFlatsAndCategoryApi,
+    CreateComplaintCategoryApi,
+    GetComplaintCategoriesApi,
+} from '../../services/ComplaintsApi';
 import { toast } from "react-toastify";
 
 const CreateComplaints = ({ setActive }) => {
@@ -25,6 +29,15 @@ const CreateComplaints = ({ setActive }) => {
     const [options, setOptions] = useState(new Array(4).fill(""));
     const [errors, setErrors] = useState({})
     const [errorText, setErrorText] = useState("")
+
+    // ── Create Category modal state ──
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [categoryName, setCategoryName] = useState("");
+    const [categoryDescription, setCategoryDescription] = useState("");
+    const [categoryList, setCategoryList] = useState([]);
+    const [categoryLoading, setCategoryLoading] = useState(false);
+    const [categorySubmitting, setCategorySubmitting] = useState(false);
+    const [categoryErrors, setCategoryErrors] = useState({});
 
     const priorityTabs = [
         {
@@ -102,6 +115,55 @@ const CreateComplaints = ({ setActive }) => {
         }
     }
 
+    // ── fetch category list for the Create Category modal ──
+    const fetchCategoryList = async (sid) => {
+        try {
+            setCategoryLoading(true);
+            const data = await GetComplaintCategoriesApi(sid);
+            setCategoryList(data?.categories || data || []);
+        } catch (error) {
+            console.error("Error fetching categories:", error);
+            toast.error("Failed to load categories");
+        } finally {
+            setCategoryLoading(false);
+        }
+    };
+
+    const openCategoryModal = () => {
+        setShowCategoryModal(true);
+        fetchCategoryList(societyId);
+    };
+
+    const closeCategoryModal = () => {
+        setShowCategoryModal(false);
+        setCategoryName("");
+        setCategoryDescription("");
+        setCategoryErrors({});
+    };
+
+    const handleCreateCategory = async () => {
+        if (!categoryName.trim()) {
+            setCategoryErrors({ name: "required" });
+            return;
+        }
+
+        try {
+            setCategorySubmitting(true);
+            await CreateComplaintCategoryApi(societyId, categoryName.trim(), categoryDescription.trim());
+            toast.success("Category created successfully!");
+            setCategoryName("");
+            setCategoryDescription("");
+            setCategoryErrors({});
+            fetchCategoryList(societyId);   // refresh list inside modal
+            GetFlatsAndCategory(societyId); // refresh category tabs on the main form
+        } catch (error) {
+            console.log(error);
+            toast.error(error);
+        } finally {
+            setCategorySubmitting(false);
+        }
+    };
+
     //handle change for file
     const handleFileChange = (e) => {
         const selected = e.target.files[0];
@@ -147,12 +209,24 @@ const CreateComplaints = ({ setActive }) => {
         return errors;
     };
 
-     // ── clear a single field error as soon as user fills it ──
+    // ── clear a single field error as soon as user fills it ──
     const clearError = (field) => {
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: "" }));
         }
     };
+
+    // ── clear a single category field error as soon as user fills it ──
+    const clearCategoryError = (field) => {
+        if (categoryErrors[field]) {
+            setCategoryErrors(prev => ({ ...prev, [field]: "" }));
+        }
+    };
+
+    const categoryOptions = allCategory.map((item) => ({
+        value: item.category_id,
+        label: item.name,
+    }));
     //create complaint function and fetch create complaint api
     const CreateComplaint = async () => {
         try {
@@ -195,23 +269,36 @@ const CreateComplaints = ({ setActive }) => {
                     <div className="sv-card text-start">
                         <div className="d-flex justify-content-between align-items-center">
                             <h5 className="bc-title">Create Complaints</h5>
-                            <button
-                                className="btn btn-sm btn-ac ms-2 btn-primary"
-                                onClick={() => setActive("complaints")}
-                            >
-                                Back
-                            </button>
-                        </div>
-                        <div className="broadcastTabs mt-2">
-                            {allCategory.map((t) => (
+                            <div className="d-flex gap-2">
                                 <button
-                                    key={t.category_id}
-                                    onClick={() => setCategory(t.category_id)}
-                                    className={`broadcastTab-btn ${category === t.category_id ? "active" : ""}`}
+                                    className="btn btn-sm btn-outline-primary"
+                                    onClick={openCategoryModal}
                                 >
-                                    {t.icon} {t.name}
+                                    Create Category
                                 </button>
-                            ))}
+                                <button
+                                    className="btn btn-sm btn-ac ms-2 btn-primary"
+                                    onClick={() => setActive("complaints")}
+                                >
+                                    Back
+                                </button>
+                            </div>
+                        </div>
+                        <div className="mb-3 text-start">
+                            <label className="sv-lb">
+                                Complaint Category <span className="text-danger">*</span>
+                            </label>
+
+                            <Select
+                                options={categoryOptions}
+                                placeholder="Select Complaint Category"
+                                value={categoryOptions.find(
+                                    (item) => item.value === category
+                                )}
+                                onChange={(selectedOption) => {
+                                    setCategory(selectedOption.value);
+                                }}
+                            />
                         </div>
                         <div className='d-flex'>
                             <label className="sv-lb"> Title <span className='text-danger'>*</span></label>
@@ -220,7 +307,8 @@ const CreateComplaints = ({ setActive }) => {
 
                         <input className={`sv-in mb-3 ${errors.title ? "error-input" : ""}`} placeholder="Example: Scheduled Maintenance of Lift B"
                             value={title}
-                            onChange={(e) =>{ setTitle(e.target.value);
+                            onChange={(e) => {
+                                setTitle(e.target.value);
                                 clearError("title");
                             }
                             } />
@@ -238,9 +326,9 @@ const CreateComplaints = ({ setActive }) => {
                             value={unit}                  // 👈 poora object
                             onChange={(selectedOption) => {
                                 setUnit(selectedOption);
-                                 clearError("unit");
+                                clearError("unit");
 
-                             } } // 👈 direct object
+                            }} // 👈 direct object
                         />
 
                         <div className='d-flex mt-3'>
@@ -258,7 +346,7 @@ const CreateComplaints = ({ setActive }) => {
                                 value={description}
                                 onChange={(e) => {
                                     setDescription(e.target.value);
-                                     clearError("description");
+                                    clearError("description");
                                 }
                                 }
                             />
@@ -307,42 +395,6 @@ const CreateComplaints = ({ setActive }) => {
                                 </button>
                             ))}
                         </div>
-                        {/* <div className="d-flex gap-3 mb-4">
-
-                            <label className="bx">
-                                <input
-
-                                    type="radio"
-                                    name="priority"
-                                    value="high"
-                                    checked={priority === "high"}
-                                    onChange={(e) => setPriority(e.target.value)}
-                                />
-                                &nbsp; High
-                            </label>
-
-                            <label className="bx">
-                                <input
-                                    type="radio"
-                                    name="priority"
-                                    value="medium"
-                                    checked={priority === "medium"}
-                                    onChange={(e) => setPriority(e.target.value)}
-                                />
-                                &nbsp; Medium
-                            </label>
-
-                            <label className="bx">
-                                <input
-                                    type="radio"
-                                    name="priority"
-                                    value="low"
-                                    checked={priority === "low"}
-                                    onChange={(e) => setPriority(e.target.value)}
-                                />
-                                &nbsp; Low
-                            </label>
-                        </div> */}
                         {errorText && <h6 className='text-danger'>{errorText}</h6>}
                         <div className="d-flex gap-2 justify-content-end">
                             <button className="btn-ac" onClick={CreateComplaint}>Create Complaints</button>
@@ -409,6 +461,87 @@ const CreateComplaints = ({ setActive }) => {
                         <button className="btn-dk w-100 mt-3">Show all communication</button>
                     </div>
 
+                </div>
+            </div>
+
+            {/* ── CREATE CATEGORY MODAL ── */}
+            <div
+                className={`modal fade ${showCategoryModal ? "show d-block" : ""}`}
+                tabIndex="-1"
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+            >
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Complaint Categories</h5>
+                            <button type="button" className="btn-close" onClick={closeCategoryModal} />
+                        </div>
+                        <div className="modal-body text-start">
+
+                            <div className='d-flex'>
+                                <label className="sv-lb">Category Name <span className='text-danger'>*</span></label>
+                                {categoryErrors.name && <span className='text-danger mx-2'>{categoryErrors.name}</span>}
+                            </div>
+                            <input
+                                className={`sv-in mb-3 ${categoryErrors.name ? "error-input" : ""}`}
+                                placeholder="Example: Parking"
+                                value={categoryName}
+                                onChange={(e) => {
+                                    setCategoryName(e.target.value);
+                                    clearCategoryError("name");
+                                }}
+                            />
+
+                            <label className="sv-lb">Description</label>
+                            <textarea
+                                className="sv-ta bc-editor-textarea mb-3"
+                                placeholder="Example: Related to parking area"
+                                value={categoryDescription}
+                                onChange={(e) => setCategoryDescription(e.target.value)}
+                            />
+
+                            <div className="d-flex justify-content-end mb-4">
+                                <button
+                                    className="btn-ac"
+                                    onClick={handleCreateCategory}
+                                    disabled={categorySubmitting}
+                                >
+                                    {categorySubmitting ? "Adding..." : "Add Category"}
+                                </button>
+                            </div>
+
+                            <hr />
+
+                            <h6 className="bc-side-title mb-2">Existing Categories</h6>
+
+                            {categoryLoading ? (
+                                <div className="text-muted small">Loading categories...</div>
+                            ) : categoryList.length === 0 ? (
+                                <div className="text-muted small">No categories yet</div>
+                            ) : (
+                                <div style={{ maxHeight: 220, overflowY: "auto" }}>
+                                    {categoryList.map((c, i) => (
+                                        <div
+                                            key={c.category_id || i}
+                                            className="d-flex justify-content-between align-items-start py-2"
+                                            style={{ borderBottom: i < categoryList.length - 1 ? "1px solid #f1f1f1" : "none" }}
+                                        >
+                                            <div>
+                                                <div className="fw-semibold" style={{ fontSize: 14 }}>{c.name}</div>
+                                                {c.description && (
+                                                    <div className="text-muted" style={{ fontSize: 12 }}>{c.description}</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" onClick={closeCategoryModal}>Close</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 

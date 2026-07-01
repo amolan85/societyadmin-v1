@@ -136,3 +136,49 @@ export const getFlatsAndCategoryApi = async (societyId) => {
         throw errors;
     });
 }
+
+//api function for create complaint category
+export const CreateComplaintCategoryApi = async (societyId, name, description) => {
+    const url = UrlData + 'complaint/CreateComplaintCategory'; // ← confirm actual endpoint path
+
+    const payload = {
+        society_id: societyId,
+        name: name,
+        description: description,
+    };
+
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: payload
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors create complaint category");
+        throw errors;
+    });
+}
+
+//api function for get complaint categories
+export const GetComplaintCategoriesApi = async (societyId) => {
+    const url = UrlData + 'complaint/GetComplaintCategories'; // ← confirm actual endpoint path
+
+    const payload = {
+        society_id: societyId,
+    };
+
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: payload
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors get complaint categories");
+        throw errors;
+    });
+}
