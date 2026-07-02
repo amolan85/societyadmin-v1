@@ -18,6 +18,8 @@ const CreatePoll = ({ setActive, pollId }) => {
     const [options, setOptions] = useState(new Array(4).fill(""));
     const [errors, setErrors] = useState({})
     const [errorText, setErrorText] = useState("")
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmType, setConfirmType] = useState("");
 
 
     // Load session data on component mount for get session data
@@ -31,7 +33,7 @@ const CreatePoll = ({ setActive, pollId }) => {
         }
     }, [pollId, societyId]);
 
-    
+
     // ── clears a single field error as soon as user fills it ──
     const clearError = (field) => {
         if (errors[field]) {
@@ -39,6 +41,61 @@ const CreatePoll = ({ setActive, pollId }) => {
         }
     };
 
+    const handleSubmitClick = () => {
+
+        const validationErrors = validateForm();
+
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+
+        if (pId) {
+            setConfirmType("update");
+        } else {
+            setConfirmType("create");
+        }
+
+        setShowConfirmModal(true);
+    };
+
+    const handleConfirmProceed = () => {
+
+        setShowConfirmModal(false);
+
+        SubmitPoll();
+
+    };
+
+    const confirmModalContent = {
+
+        create: {
+
+            title: "Confirm Create Poll",
+
+            message: `Are you sure you want to create the poll "${title}"?`,
+
+            confirmLabel: "Yes, Create",
+
+            confirmClass: "btn-ac",
+
+        },
+
+        update: {
+
+            title: "Confirm Update Poll",
+
+            message: `Are you sure you want to update the poll "${title}"? This will overwrite the existing poll.`,
+
+            confirmLabel: "Yes, Update",
+
+            confirmClass: "btn-ac",
+
+        }
+
+    };
+
+    const activeConfirm = confirmModalContent[confirmType] || {};
     //function for session data
     const SessionData = async () => {
         const data = await GetSessionData()
@@ -140,7 +197,7 @@ const CreatePoll = ({ setActive, pollId }) => {
                 toast.success("Poll created successfully!")
 
             }
-             // Redirect after success
+            // Redirect after success
             setActive("polls")
 
         } catch (error) {
@@ -235,7 +292,7 @@ const CreatePoll = ({ setActive, pollId }) => {
                                 onChange={(e) => {
                                     setStartDate(e.target.value);
                                     clearError("startDate");
-                                    }
+                                }
                                 } />
                         </div>
                         <div className='col-lg-6'>
@@ -258,7 +315,12 @@ const CreatePoll = ({ setActive, pollId }) => {
 
                     {errorText && <h6 className='text-danger'>{errorText}</h6>}
                     <div className="d-flex gap-2 justify-content-end">
-                        <button className="btn-ac" onClick={SubmitPoll}>{pId ? "Update" : "Create"} Poll</button>
+                        <button
+                            className="btn-ac"
+                            onClick={handleSubmitClick}
+                        >
+                            {pId ? "Update" : "Create"} Poll
+                        </button>
                     </div>
 
                 </div>
@@ -374,6 +436,59 @@ const CreatePoll = ({ setActive, pollId }) => {
                 </div>
 
 
+            </div>
+            <div
+                className={`modal fade ${showConfirmModal ? "show d-block" : ""}`}
+                tabIndex="-1"
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+            >
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+
+                        <div className="modal-header">
+
+                            <h5 className="modal-title">
+                                {activeConfirm.title}
+                            </h5>
+
+                            <button
+                                type="button"
+                                className="btn-close"
+                                onClick={() => setShowConfirmModal(false)}
+                            />
+
+                        </div>
+
+                        <div className="modal-body text-start">
+
+                            <p className="mb-0">
+                                {activeConfirm.message}
+                            </p>
+
+                        </div>
+
+                        <div className="modal-footer">
+
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => setShowConfirmModal(false)}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                className={activeConfirm.confirmClass}
+                                onClick={handleConfirmProceed}
+                            >
+                                {activeConfirm.confirmLabel}
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </div>
     );

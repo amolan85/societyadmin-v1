@@ -30,6 +30,8 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
     const [scheduleDateTime, setScheduleDateTime] = useState("");
     const [noticeId, setNoticeId] = useState("")
     const [errorText, setErrorText] = useState("")
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmType, setConfirmType] = useState("");
 
     const tabs = [
         {
@@ -194,6 +196,102 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
         }));
     };
 
+    const handlePublishClick = (status) => {
+
+        const validationErrors = validateForm();
+
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+
+        if (noticeId) {
+
+            setConfirmType("update");
+
+        } else {
+
+            if (status === "draft") {
+
+                setConfirmType("draft");
+
+            } else {
+
+                setConfirmType("create");
+
+            }
+
+        }
+
+        setShowConfirmModal(true);
+
+    };
+
+    const handleConfirmProceed = () => {
+
+        setShowConfirmModal(false);
+
+        if (confirmType === "draft") {
+
+            submitNoticeBoard("draft");
+
+        }
+
+        else if (confirmType === "create") {
+
+            submitNoticeBoard("published");
+
+        }
+
+        else if (confirmType === "update") {
+
+            submitNoticeBoard("published");
+
+        }
+
+    };
+
+    const confirmModalContent = {
+
+        create: {
+
+            title: "Confirm Publish Notice",
+
+            message: `Are you sure you want to publish "${subject}"?`,
+
+            confirmLabel: "Yes, Publish",
+
+            confirmClass: "btn-ac",
+
+        },
+
+        draft: {
+
+            title: "Confirm Save Draft",
+
+            message: `Are you sure you want to save "${subject}" as draft?`,
+
+            confirmLabel: "Yes, Save Draft",
+
+            confirmClass: "btn-ac",
+
+        },
+
+        update: {
+
+            title: "Confirm Update Notice",
+
+            message: `Are you sure you want to update "${subject}"? This will overwrite the existing notice.`,
+
+            confirmLabel: "Yes, Update",
+
+            confirmClass: "btn-ac",
+
+        }
+
+    };
+
+    const activeConfirm = confirmModalContent[confirmType] || {};
 
     return (
         <div className="pg row g-4 bc-wrap">
@@ -262,53 +360,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
 
                     <label className="sv-lb">Priority <span className='text-danger'>*</span></label>
 
-                    {/* <div className="d-flex gap-3 mb-4">
-
-                        <label className="bx">
-                            <input
-                                type="radio"
-                                name="priority"
-                                value="high"
-                                checked={priority === "high"}
-                                onChange={(e) => setPriority(e.target.value)}
-                            />
-                            &nbsp; High
-                        </label>
-
-                        <label className="bx">
-                            <input
-                                type="radio"
-                                name="priority"
-                                value="normal"
-                                checked={priority === "normal"}
-                                onChange={(e) => setPriority(e.target.value)}
-                            />
-                            &nbsp; Normal
-                        </label>
-
-                        <label className="bx">
-                            <input
-                                type="radio"
-                                name="priority"
-                                value="urgent"
-                                checked={priority === "urgent"}
-                                onChange={(e) => setPriority(e.target.value)}
-                            />
-                            &nbsp; Urgent
-                        </label>
-
-                        <label className="bx">
-                            <input
-                                type="radio"
-                                name="priority"
-                                value="low"
-                                checked={priority === "low"}
-                                onChange={(e) => setPriority(e.target.value)}
-                            />
-                            &nbsp; Low
-                        </label>
-                        
-                    </div> */}
+                     
 
                     <div className="priorityTab mt-2">
                         {priorityTabs.map((t) => (
@@ -325,14 +377,18 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
                     {errorText && <h6 className='text-danger'>{errorText}</h6>}
                     <div className="d-flex gap-2 justify-content-end">
                         <button className="btn-ol">Preview</button>
-                        <button className="btn-ol" onClick={() => {
-                            submitNoticeBoard("draft");
-                            clearError("draft");
-                        }}>Save Draft</button>
-                        <button className="btn-ac" onClick={() => {
-                            submitNoticeBoard("published");
-                            clearError("published");
-                        }}>Publish ✈</button>
+                        <button
+                            className="btn-ol"
+                            onClick={() => handlePublishClick("draft")}
+                        >
+                            Save Draft
+                        </button>
+                        <button
+                            className="btn-ac"
+                            onClick={() => handlePublishClick("published")}
+                        >
+                            Publish ✈
+                        </button>
                     </div>
 
                 </div>
@@ -341,108 +397,7 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
             {/* RIGHT */}
             <div className="col-12 col-lg-4">
 
-                {/* Notice Information */}
-                <div className="sv-card mb-3">
-                    <h6 className="bc-side-title text-start">Notice Information</h6>
-
-                    <div className="mb-3 text-start">
-                        <small className="text-muted">Status</small>
-                        <div>
-                            <Badge
-                                label={noticeId ? "Draft" : "New"}
-                                c={noticeId ? "orange" : "blue"}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mb-3 text-start">
-                        <small className="text-muted">Type</small>
-                        <div className="fw-semibold text-capitalize">
-                            {noticeType}
-                        </div>
-                    </div>
-
-                    <div className="mb-3 text-start">
-                        <small className="text-muted">Priority</small>
-                        <div>
-                            <Badge
-                                label={priority || "Not Selected"}
-                                c={
-                                    priority === "urgent"
-                                        ? "red"
-                                        : priority === "high"
-                                            ? "orange"
-                                            : priority === "normal"
-                                                ? "blue"
-                                                : priority === "low"
-                                                    ? "gray"
-                                                    : "gray"
-                                }
-                            />
-                        </div>
-                    </div>
-                    {/* 
-                    {noticeId && (
-                        <div className="text-start">
-                            <small className="text-muted">Notice ID</small>
-                            <div className="fw-semibold">
-                                #{noticeId}
-                            </div>
-                        </div>
-                    )} */}
-                </div>
-
-                {/* Quick Actions */}
-                <div className="sv-card mb-3">
-
-                    <h6 className="bc-side-title text-start">
-                        Quick Actions
-                    </h6>
-
-                    <button
-                        className="qa mb-2"
-                        onClick={() => submitNoticeBoard("draft")}
-                    >
-                        <div className="qa-ico" style={{ background: "#fff7ed" }}>
-                            💾
-                        </div>
-
-                        <span className="bc-qa-text">
-                            Save Draft
-                        </span>
-                    </button>
-
-                    <button
-                        className="qa mb-2"
-                        onClick={() => submitNoticeBoard("published")}
-                    >
-                        <div className="qa-ico" style={{ background: "#dcfce7" }}>
-                            🚀
-                        </div>
-
-                        <span className="bc-qa-text">
-                            Publish Notice
-                        </span>
-                    </button>
-
-                    {noticeId && (
-                        <button
-                            className="qa"
-                            onClick={() => setActive("noticeboard")}
-                        >
-                            <div className="qa-ico" style={{ background: "#dbeafe" }}>
-                                📋
-                            </div>
-
-                            <span className="bc-qa-text">
-                                Back to Notice List
-                            </span>
-                        </button>
-                    )}
-
-                </div>
-
-                {/* Publishing Guidelines */}
+                 {/* Publishing Guidelines */}
                 <div className="sv-card">
 
                     <h6 className="bc-side-title text-start">
@@ -475,6 +430,115 @@ const CreateNoticeBoard = ({ setActive, selectedNoticeData }) => {
 
                 </div>
 
+
+                {/* Quick Actions */}
+                <div className="sv-card mb-3">
+
+                    <h6 className="bc-side-title text-start">
+                        Quick Actions
+                    </h6>
+
+                    {/* Go to Notice Board */}
+                    <button
+                        className="qa mb-2"
+                        onClick={() => setActive("broadcasting")}
+                    >
+                        <div
+                            className="qa-ico"
+                            style={{ background: "#ede9fe" }}
+                        >
+                            📋
+                        </div>
+                        <span className="bc-qa-text">
+                            Go to Broadcasting
+                        </span>
+                    </button>
+
+                    {/* Go to Polls & Voting */}
+                    <button
+                        className="qa mb-2"
+                        onClick={() => setActive("polls")}
+                    >
+                        <div
+                            className="qa-ico"
+                            style={{ background: "#ffedd5" }}
+                        >
+                            🗳️
+                        </div>
+                        <span className="bc-qa-text">
+                            Go to Polls & Voting
+                        </span>
+                    </button>
+
+
+                    {noticeId && (
+                        <button
+                            className="qa"
+                            onClick={() => setActive("noticeboard")}
+                        >
+                            <div className="qa-ico" style={{ background: "#dbeafe" }}>
+                                📋
+                            </div>
+
+                            <span className="bc-qa-text">
+                                Back to Notice List
+                            </span>
+                        </button>
+                    )}
+
+                </div>
+
+              
+            </div>
+
+            <div
+                className={`modal fade ${showConfirmModal ? "show d-block" : ""}`}
+                tabIndex="-1"
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+            >
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+
+                        <div className="modal-header">
+                            <h5 className="modal-title">
+                                {activeConfirm.title}
+                            </h5>
+
+                            <button
+                                type="button"
+                                className="btn-close"
+                                onClick={() => setShowConfirmModal(false)}
+                            />
+                        </div>
+
+                        <div className="modal-body text-start">
+                            <p className="mb-0">
+                                {activeConfirm.message}
+                            </p>
+                        </div>
+
+                        <div className="modal-footer">
+
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => setShowConfirmModal(false)}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                className={activeConfirm.confirmClass}
+                                onClick={handleConfirmProceed}
+                            >
+                                {activeConfirm.confirmLabel}
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </div>
     );

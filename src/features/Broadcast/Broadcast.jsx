@@ -62,6 +62,8 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedBroadcastId, setSelectedBroadcastId] = useState(null);
+    const [selectedBroadcastTitle, setSelectedBroadcastTitle] = useState("");
+    const [deleting, setDeleting] = useState(false);
 
     const [sortBy, setSortBy] = useState("latest");
 
@@ -107,10 +109,6 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
             console.log(error);
         }
     };
-
-    // =====================================================
-    // STATS (all-time totals, independent of pagination/filters)
-    // =====================================================
 
     // =====================================================
     // STATS — computed client-side from the full dataset,
@@ -174,13 +172,15 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
         getBroadcast({ sid: societyIdRef.current, currentPage: newPage, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: startDate, currentEndDate: endDate });
     };
 
-    const deleteBroadcast = (broadcastId) => {
+    const deleteBroadcast = (broadcastId, broadcastTitle) => {
         setSelectedBroadcastId(broadcastId);
+        setSelectedBroadcastTitle(broadcastTitle || "");
         setShowDeleteModal(true);
     };
 
     const confirmDeleteBroadcast = async () => {
         try {
+            setDeleting(true);
             await deleteBroadcastApi(selectedBroadcastId, societyIdRef.current);
             toast.success("Broadcast deleted successfully");
             setShowDeleteModal(false);
@@ -189,6 +189,8 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
         } catch (error) {
             console.log(error);
             toast.error("Failed to delete broadcast");
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -471,7 +473,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                                                 <li><button className="dropdown-item" onClick={() => handleViewDetails(p)}>View Details</button></li>
                                                 <li><button className="dropdown-item" onClick={() => handleEditClick(p.id)}>Edit Broadcast</button></li>
                                                 <li><hr className="dropdown-divider" /></li>
-                                                <li><button className="dropdown-item text-danger" onClick={() => deleteBroadcast(p.id)}>Delete Broadcast</button></li>
+                                                <li><button className="dropdown-item text-danger" onClick={() => deleteBroadcast(p.id, p.title)}>Delete Broadcast</button></li>
                                             </ul>
                                         </div>
 
@@ -493,20 +495,43 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                 </div>
             </div>
 
-            {/* ── DELETE MODAL ── */}
+            {/* ── DELETE MODAL — header now plain white instead of red ── */}
             <div className={`modal fade ${showDeleteModal ? "show d-block" : ""}`} tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
                 <div className="modal-dialog modal-dialog-centered">
                     <div className="modal-content">
-                        <div className="modal-header bg-danger text-white">
+                        <div className="modal-header">
                             <h5 className="modal-title">Confirm Delete</h5>
-                            <button type="button" className="btn-close btn-close-white" onClick={() => setShowDeleteModal(false)} />
+                            <button
+                                type="button"
+                                className="btn-close"
+                                onClick={() => setShowDeleteModal(false)}
+                                disabled={deleting}
+                            />
                         </div>
-                        <div className="modal-body">
-                            <p>Are you sure you want to delete this broadcast?</p>
+                        <div className="modal-body text-start">
+                            <p className="mb-1">
+                                Are you sure you want to delete{" "}
+                                <strong>{selectedBroadcastTitle ? `"${selectedBroadcastTitle}"` : "this broadcast"}</strong>?
+                            </p>
+                             
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                            <button type="button" className="btn btn-danger" onClick={confirmDeleteBroadcast}>Delete</button>
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => setShowDeleteModal(false)}
+                                disabled={deleting}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-danger"
+                                onClick={confirmDeleteBroadcast}
+                                disabled={deleting}
+                            >
+                                {deleting ? "Deleting..." : "Delete"}
+                            </button>
                         </div>
                     </div>
                 </div>

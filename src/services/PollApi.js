@@ -128,11 +128,12 @@ export const UpdatePollApi = async (
     }
 };
 
-export const deletePollApi = async ( pollId) => {
+export const deletePollApi = async ( pollId,societyId) => {
     const url = UrlData + 'poll/DeletePoll';
     const data = {
        
         poll_id: pollId,
+        society_id:societyId,
     }
     return await apiClient({
         method: 'post',

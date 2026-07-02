@@ -327,138 +327,91 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
           </div>
         }
 
-        {/* Card view for all/open/in_progress */}
+        {/* Card view for all/open/in_progress — compact, Broadcast-style row */}
         {(tab === "" || tab === "open" || tab === "in_progress") &&
           rows.map((data) => (
-            <div className="card border-0 shadow-sm rounded-4 p-3 mt-2" key={data.complaint_id}>
+            <div
+              key={data.complaint_id}
+              className="card border-0 shadow-sm rounded-3"
+              style={{ padding: "10px 14px", marginTop: 8 }}
+            >
+              <div className="d-flex justify-content-between align-items-start gap-2">
 
-              {/* Top */}
-              <div className="d-flex justify-content-between align-items-start">
-                <div>
-                  <p className="text-secondary fw-semibold mb-1 text-start">
-                    #{data.complaint_id}
-                  </p>
-                  <h5 className="fw-bold mb-2">{data.title}</h5>
+                {/* LEFT: id + title + meta, all compact */}
+                <div className="text-start flex-grow-2 min-w-0">
+                  <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                    {/* <span className="tx-muted" style={{ fontSize: 16 }}>#{data.complaint_id}</span> */}
+                    <span style={{ fontSize: 16, fontWeight: 600 }}>{data.title}</span>
+                  </div>
+
+                  <div className="d-flex flex-wrap align-items-center gap-3 text-secondary" style={{ fontSize: 16 }}>
+                    <div className="d-flex align-items-center gap-1"><FiTag size={12} /><span>{data.category_name}</span></div>
+                    <div className="d-flex align-items-center gap-1"><FiMapPin size={12} /><span>{data.unit}</span></div>
+                    <div className="d-flex align-items-center gap-1"><FiUser size={12} /><span>Rahul Sharma (A-401)</span></div>
+                    <div className="d-flex align-items-center gap-1"><FiClock size={12} /><span>{timeAgo(data.created_at)}</span></div>
+                    <div className="d-flex align-items-center gap-1 text-danger"><FiAlertCircle size={12} /><span>{data.priority}</span></div>
+                  </div>
                 </div>
-                <Badge
-                  label={data.status}
-                  c={data.status === "open" ? "red" : data.status === "resolved" ? "green" : data.status === "in_progress" ? "orange" : "grey"}
-                />
-              </div>
 
-              {/* Details */}
-              <div className="d-flex flex-wrap gap-4 text-secondary small">
-                <div className="d-flex align-items-center gap-2"><FiTag /><span>{data.category_name}</span></div>
-                <div className="d-flex align-items-center gap-2"><FiMapPin /><span>{data.unit}</span></div>
-                <div className="d-flex align-items-center gap-2"><FiUser /><span>Rahul Sharma (A-401)</span></div>
-                <div className="d-flex align-items-center gap-2"><FiClock /><span>{timeAgo(data.created_at)}</span></div>
-                <div className="d-flex align-items-center gap-2 text-danger"><FiAlertCircle /><span>{data.priority}</span></div>
-              </div>
+                {/* RIGHT: status badge + 3-dot menu */}
+                <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                  <Badge
+                    label={data.status}
+                    c={data.status === "open" ? "red" : data.status === "resolved" ? "green" : data.status === "in_progress" ? "orange" : "grey"}
+                  />
 
-              <hr style={{ height: "2px" }} />
-
-              {/* Buttons */}
-              <div className="d-flex justify-content-end align-items-center gap-3">
-                <button
-                  className="btn btn-sm btn-ad grey-btn"
-                  onClick={() => {
-                    setSelectedComplaintId(data.complaint_id);
-                    setActive("viewComplaintDetails");
-                  }}
-                >
-                  View Details
-                </button>
-
-                <button
-                  className="btn btn-sm btn-ac btn-primary"
-                  onClick={() => {
-                    setAssignComplaintId(data.complaint_id);
-                    setShowAssignModal(true);
-                  }}
-                >
-                  Assign Staff
-                </button>
-
-                {/* ── 3-DOT DROPDOWN ── */}
-                <div
-                  className="member-action-dropdown dropdown flex-shrink-0"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    className="member-action-btn"
-                    type="button"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
+                  <div
+                    className="member-action-dropdown dropdown flex-shrink-0"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    ⋮
-                  </button>
-                  <ul className="dropdown-menu member-action-menu dropdown-menu-end">
-                    <li>
-                      <button
-                        className="dropdown-item member-action-item"
-                        onClick={() => {
-                          setSelectedComplaintId(data.complaint_id);
-                          setActive("viewComplaintDetails");
-                        }}
-                      >
-                        View Details
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        className="dropdown-item member-action-item"
-                        onClick={() => {
-                          setAssignComplaintId(data.complaint_id);
-                          setShowAssignModal(true);
-                        }}
-                      >
-                        Assign Staff
-                      </button>
-                    </li>
-                    {/* <li>
-                      <button
-                        className="dropdown-item member-action-item"
-                        onClick={() => {
-                          setStatus(data.status);
-                          setComments("");
-                          setModalType("status");
-                          setComplaintId(data.complaint_id);
-                          setShowModal(true);
-                        }}
-                      >
-                        Update Status
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        className="dropdown-item member-action-item"
-                        onClick={() => {
-                          setPriority(data.priority);
-                          setComments("");
-                          setModalType("priority");
-                          setComplaintId(data.complaint_id);
-                          setShowModal(true);
-                        }}
-                      >
-                        Update Priority
-                      </button>
-                    </li> */}
-                    <li><hr className="dropdown-divider" /></li>
-                    <li>
-                      <button
-                        className="dropdown-item member-action-item member-action-delete"
-                        onClick={() => {
-                          setDeleteComplaintId(data.complaint_id);
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        Delete Complaint
-                      </button>
-                    </li>
-                  </ul>
+                    <button
+                      className="member-action-btn"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      ⋮
+                    </button>
+                    <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                      <li>
+                        <button
+                          className="dropdown-item member-action-item"
+                          onClick={() => {
+                            setSelectedComplaintId(data.complaint_id);
+                            setActive("viewComplaintDetails");
+                          }}
+                        >
+                          View Details
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          className="dropdown-item member-action-item"
+                          onClick={() => {
+                            setAssignComplaintId(data.complaint_id);
+                            setShowAssignModal(true);
+                          }}
+                        >
+                          Assign Staff
+                        </button>
+                      </li>
+                      <li><hr className="dropdown-divider" /></li>
+                      <li>
+                        <button
+                          className="dropdown-item member-action-item member-action-delete"
+                          onClick={() => {
+                            setDeleteComplaintId(data.complaint_id);
+                            setShowDeleteModal(true);
+                          }}
+                        >
+                          Delete Complaint
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-              </div>
 
+              </div>
             </div>
           ))
         }

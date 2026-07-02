@@ -639,19 +639,6 @@ const Rules = () => {
                         ))}
                       </select>
                     </div>
-
-                    <div className="col-6">
-                      <label className="sv-lb">Violation Type</label>
-                      <input
-                        className="sv-in"
-                        placeholder="e.g., unauthorized_parking"
-                        value={violationType}
-                        onChange={(e) => setViolationType(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="row g-3 mb-3">
                     <div className="col-6">
                       <div className="d-flex">
                         <label className="sv-lb">
@@ -669,20 +656,9 @@ const Rules = () => {
                         onChange={(e) => setPenaltyAmount(e.target.value)}
                       />
                     </div>
-
-                    <div className="col-6">
-                      <label className="sv-lb">Status</label>
-                      <select
-                        className="form-select form-control"
-                        value={isActive ? "active" : "inactive"}
-                        onChange={(e) => setIsActive(e.target.value === "active")}
-                      >
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                      </select>
-                    </div>
+                     
                   </div>
-
+ 
                   <div className="mb-1">
                     <label className="sv-lb">Penalty Description</label>
                     <textarea

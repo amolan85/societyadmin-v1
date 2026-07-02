@@ -4,6 +4,14 @@ import "../../styles/Broadcast.css"
 import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi, getBroadcastByIdApi, UpdateBroadcastApi, getBroadcastListApi } from '../../services/BroadcastApi';
 import { toast } from "react-toastify";
+import {
+    FiVolume2,
+    FiAlertTriangle,
+    FiFileText,
+    FiCalendar,
+    FiMail,
+    FiMessageSquare,
+} from "react-icons/fi";
 
 const CreateBroadcast = ({ setActive, broadcastId }) => {
     const [tab, setTab] = useState("announcement");
@@ -17,6 +25,13 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
     const [scheduleDateTime, setScheduleDateTime] = useState("");
     const [bId, setBId] = useState("")
     const [errorText, setErrorText] = useState("")
+
+    // ── preview modal ──
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
+
+    // ── confirmation modal (create/update) ──
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmType, setConfirmType] = useState(""); // "createSent" | "createScheduled" | "update"
 
     // ── sidebar data (real, not static) ──
     const [recentBroadcasts, setRecentBroadcasts] = useState([]);
@@ -37,61 +52,61 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
     //fetch get session data 
     const SessionData = async () => {
-    try {
-        const data = await GetSessionData();
+        try {
+            const data = await GetSessionData();
 
-        const flats = data.data.flats[0];
+            const flats = data.data.flats[0];
 
-        console.log("Session Society Id:", flats.society_id);
+            console.log("Session Society Id:", flats.society_id);
 
-        setSocietyId(flats.society_id);
-        fetchSidebarData(flats.society_id);
-    } catch (error) {
-        console.log(error);
-    }
-};
+            setSocietyId(flats.society_id);
+            fetchSidebarData(flats.society_id);
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     //load getbroadcast by id data on component mount
     useEffect(() => {
-    if (broadcastId && societyId) {
-        GetBroadCastById();
-    }
-}, [broadcastId, societyId]);
+        if (broadcastId && societyId) {
+            GetBroadCastById();
+        }
+    }, [broadcastId, societyId]);
 
     //function for fetch get broadcast by id api
     const GetBroadCastById = async () => {
-    try {
-        const data = await getBroadcastByIdApi(broadcastId, societyId);
+        try {
+            const data = await getBroadcastByIdApi(broadcastId, societyId);
 
-        console.log("Broadcast Data:", data);
+            console.log("Broadcast Data:", data);
 
-        setSubject(data.title || "");
-        setContent(data.message || "");
-        setTab(data.type || "announcement");
-        setChannel(data.channel || "");
-        setBId(data.broadcast_id || "");
+            setSubject(data.title || "");
+            setContent(data.message || "");
+            setTab(data.type || "announcement");
+            setChannel(data.channel || "");
+            setBId(data.broadcast_id || "");
 
-        if (data.scheduled_at) {
-            setSchedule("scheduleLater");
+            if (data.scheduled_at) {
+                setSchedule("scheduleLater");
 
-            const dt = new Date(data.scheduled_at);
-            const formatted =
-                dt.getFullYear() +
-                "-" +
-                String(dt.getMonth() + 1).padStart(2, "0") +
-                "-" +
-                String(dt.getDate()).padStart(2, "0") +
-                "T" +
-                String(dt.getHours()).padStart(2, "0") +
-                ":" +
-                String(dt.getMinutes()).padStart(2, "0");
+                const dt = new Date(data.scheduled_at);
+                const formatted =
+                    dt.getFullYear() +
+                    "-" +
+                    String(dt.getMonth() + 1).padStart(2, "0") +
+                    "-" +
+                    String(dt.getDate()).padStart(2, "0") +
+                    "T" +
+                    String(dt.getHours()).padStart(2, "0") +
+                    ":" +
+                    String(dt.getMinutes()).padStart(2, "0");
 
-            setScheduleDateTime(formatted);
+                setScheduleDateTime(formatted);
+            }
+        } catch (error) {
+            console.log(error);
         }
-    } catch (error) {
-        console.log(error);
-    }
-};
+    };
 
     //shared time-ago helper for sidebar
     const timeAgo = (utcDate) => {
@@ -188,18 +203,18 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
     //validation for form
     const validateForm = () => {
-    const errors = {};
+        const errors = {};
 
-    if (!subject || subject.trim() === "") {
-        errors.subject = "required";
-    }
+        if (!subject || subject.trim() === "") {
+            errors.subject = "required";
+        }
 
-    if (!content || content.trim() === "") {
-        errors.content = "required";
-    }
+        if (!content || content.trim() === "") {
+            errors.content = "required";
+        }
 
-    return errors;
-};
+        return errors;
+    };
     //function for submit broadcast
     const SubmitBroadcast = async (status) => {
         const validationErrors = validateForm();
@@ -208,10 +223,10 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
             return;
         }
         try {
-          
+
             if (bId) {
-               await UpdateBroadcastApi(
-                 societyId,
+                await UpdateBroadcastApi(
+                    societyId,
                     bId,
                     subject,
                     content,
@@ -252,6 +267,29 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
         }));
     };
 
+    //clear form back to blank state
+    const handleClearForm = () => {
+        setSubject("");
+        setContent("");
+        setAttchment(null);
+        setChannel("");
+        setSchedule("sendNow");
+        setScheduleDateTime("");
+        setTab("announcement");
+        setErrors({});
+        setErrorText("");
+    };
+
+    //open preview — validate first so preview always reflects a submittable form
+    const handlePreview = () => {
+        const validationErrors = validateForm();
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            toast.warning("Please fill Subject and Content before previewing.");
+            return;
+        }
+        setShowPreviewModal(true);
+    };
 
     // ── clears a single field error as soon as user fills it ──
     const clearError = (field) => {
@@ -259,6 +297,80 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
             setErrors(prev => ({ ...prev, [field]: "" }));
         }
     };
+
+    //preview helpers — same icon/style mapping as Broadcast.jsx list
+    const getPreviewIcon = (type) => {
+        switch (type) {
+            case "announcement": return { icon: <FiVolume2 size={18} color="#f59e0b" />, cls: "bc-icon-bg-announcement" };
+            case "circular": return { icon: <FiFileText size={18} color="#7c3aed" />, cls: "bc-icon-bg-circular" };
+            case "emergency": return { icon: <FiAlertTriangle size={18} color="#ef4444" />, cls: "bc-icon-bg-emergency" };
+            case "event": return { icon: <FiCalendar size={18} color="#10b981" />, cls: "bc-icon-bg-event" };
+            default: return { icon: <FiCalendar size={18} color="#6b7280" />, cls: "bc-icon-bg-default" };
+        }
+    };
+
+    const getPreviewChannelIcon = (ch) => {
+        switch (ch) {
+            case "email": return <FiMail size={11} />;
+            case "sms": return <FiMessageSquare size={11} />;
+            case "whatsapp": return <span style={{ fontSize: 11 }}>💬</span>;
+            default: return null;
+        }
+    };
+
+    const previewIconData = getPreviewIcon(tab);
+
+    // ── OPEN confirmation for Publish button (handles both create + update) ──
+    const handlePublishClick = () => {
+        const validationErrors = validateForm();
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+        if (bId) {
+            setConfirmType("update");
+        } else {
+            setConfirmType(scheduleDateTime ? "createScheduled" : "createSent");
+        }
+        setShowConfirmModal(true);
+    };
+
+    // ── runs the actual action once the user confirms in the modal ──
+    const handleConfirmProceed = async () => {
+        setShowConfirmModal(false);
+
+        if (confirmType === "createSent") {
+            SubmitBroadcast("sent");
+        } else if (confirmType === "createScheduled") {
+            SubmitBroadcast("scheduled");
+        } else if (confirmType === "update") {
+            SubmitBroadcast(scheduleDateTime ? "scheduled" : "sent");
+        }
+    };
+
+    // ── content shown inside the confirm modal, based on confirmType ──
+    const confirmModalContent = {
+        createSent: {
+            title: "Confirm Send Broadcast",
+            message: `Are you sure you want to send "${subject}" now? It will be delivered immediately.`,
+            confirmLabel: "Yes, Send Now",
+            confirmClass: "btn-ac",
+        },
+        createScheduled: {
+            title: "Confirm Schedule Broadcast",
+            message: `Are you sure you want to schedule "${subject}" for ${scheduleDateTime ? new Date(scheduleDateTime).toLocaleString() : "the selected time"}?`,
+            confirmLabel: "Yes, Schedule It",
+            confirmClass: "btn-ac",
+        },
+        update: {
+            title: "Confirm Update Broadcast",
+            message: `Are you sure you want to update "${subject}"? This will overwrite the existing broadcast.`,
+            confirmLabel: "Yes, Update",
+            confirmClass: "btn-ac",
+        },
+    };
+
+    const activeConfirm = confirmModalContent[confirmType] || {};
 
 
     return (
@@ -295,7 +407,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
                         value={subject}
                         onChange={(e) => {
                             setSubject(e.target.value);
-                            clearError("subject"); 
+                            clearError("subject");
                         }
                         } />
 
@@ -319,7 +431,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
                             value={content}
                             onChange={(e) => {
                                 setContent(e.target.value);
-                             clearError("content"); 
+                                clearError("content");
                             }}
                         />
                     </div>
@@ -436,9 +548,10 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
 
                     {errorText && <h6 className='text-danger'>{errorText}</h6>}
                     <div className="d-flex gap-2 justify-content-end">
-                        <button className="btn-ol">Preview</button>
+                        <button className="btn-ol" onClick={handleClearForm}>Clear Form</button>
+                        <button className="btn-ol" onClick={handlePreview}>Preview</button>
                         <button className="btn-ol" onClick={() => { SubmitBroadcast("draft") }}>Save Draft</button>
-                        <button className="btn-ac" onClick={() => { scheduleDateTime ? SubmitBroadcast("scheduled") : SubmitBroadcast("sent") }}>Publish ✈</button>
+                        <button className="btn-ac" onClick={handlePublishClick}>Publish ✈</button>
                     </div>
 
                 </div>
@@ -447,7 +560,7 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
             {/* RIGHT */}
             <div className="col-12 col-lg-4">
 
-                {/* Notifications — real, derived from recent broadcast activity */}
+                {/* Notifications — real, derived from recent broadcast activity
                 <div className="sv-card mb-3">
                     <h6 className="bc-side-title text-start">Notifications</h6>
 
@@ -470,99 +583,62 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
                     <button className="btn-dk w-100 mt-2" onClick={() => setActive("broadcasting")}>
                         Show all broadcasts
                     </button>
+                </div> */}
+
+                {/* Quick Actions */}
+                <div className="sv-card mb-3">
+                    <h6 className="bc-side-title text-start">Quick Actions</h6>
+
+                    {/* Go to Notice Board */}
+                    <button
+                        className="qa mb-2"
+                        onClick={() => setActive("noticeboard")}
+                    >
+                        <div
+                            className="qa-ico"
+                            style={{ background: "#ede9fe" }}
+                        >
+                            📋
+                        </div>
+                        <span className="bc-qa-text">
+                            Notice Board
+                        </span>
+                    </button>
+
+                    {/* Go to Polls & Voting */}
+                    <button
+                        className="qa mb-2"
+                        onClick={() => setActive("polls")}
+                    >
+                        <div
+                            className="qa-ico"
+                            style={{ background: "#ffedd5" }}
+                        >
+                            🗳️
+                        </div>
+                        <span className="bc-qa-text">
+                            Polls & Voting
+                        </span>
+                    </button>
+
+                    {/* Go Back */}
+                    <button
+                        className="qa"
+                        onClick={() => setActive("broadcasting")}
+                    >
+                        <div
+                            className="qa-ico"
+                            style={{ background: "#dbeafe" }}
+                        >
+                            📡
+                        </div>
+                        <span className="bc-qa-text">
+                            Broadcast List
+                        </span>
+                    </button>
                 </div>
-{/* Quick Actions */}
-<div className="sv-card mb-3">
-    <h6 className="bc-side-title text-start">Quick Actions</h6>
 
-    {/* Send Broadcast */}
-    <button
-        className="qa mb-2"
-        onClick={() => {
-            if (subject && content) {
-                SubmitBroadcast(scheduleDateTime ? "scheduled" : "sent");
-            } else {
-                toast.warning("Please enter Subject and Content.");
-            }
-        }}
-    >
-        <div
-            className="qa-ico"
-            style={{ background: "#d1fae5" }}
-        >
-            🚀
-        </div>
-        <span className="bc-qa-text">
-            Send Broadcast
-        </span>
-    </button>
-
-    {/* Save Draft */}
-    <button
-        className="qa mb-2"
-        onClick={() => {
-            if (subject || content) {
-                SubmitBroadcast("draft");
-            } else {
-                toast.warning("Enter broadcast details first.");
-            }
-        }}
-    >
-        <div
-            className="qa-ico"
-            style={{ background: "#fef3c7" }}
-        >
-            💾
-        </div>
-        <span className="bc-qa-text">
-            Save Draft
-        </span>
-    </button>
-
-    {/* Clear Form */}
-    <button
-        className="qa mb-2"
-        onClick={() => {
-            setSubject("");
-            setContent("");
-            setAttchment(null);
-            setChannel("");
-            setSchedule("sendNow");
-            setScheduleDateTime("");
-            setTab("announcement");
-            setErrors({});
-            setErrorText("");
-        }}
-    >
-        <div
-            className="qa-ico"
-            style={{ background: "#fee2e2" }}
-        >
-            🗑️
-        </div>
-        <span className="bc-qa-text">
-            Clear Form
-        </span>
-    </button>
-
-    {/* Go Back */}
-    <button
-        className="qa"
-        onClick={() => setActive("broadcasting")}
-    >
-        <div
-            className="qa-ico"
-            style={{ background: "#dbeafe" }}
-        >
-            📡
-        </div>
-        <span className="bc-qa-text">
-            Broadcast List
-        </span>
-    </button>
-</div>
-
-                {/* Recent Communications — real, last 3 broadcasts */}
+                {/* Recent Communications — real, last 3 broadcasts
                 <div className="sv-card">
                     <h6 className="bc-side-title text-start">Recent Communications</h6>
 
@@ -587,8 +663,125 @@ const CreateBroadcast = ({ setActive, broadcastId }) => {
                     <button className="btn-dk w-100 mt-3" onClick={() => setActive("broadcasting")}>
                         Show all communication
                     </button>
-                </div>
+                </div> */}
 
+            </div>
+
+            {/* ── PREVIEW MODAL ── */}
+            <div
+                className={`modal fade ${showPreviewModal ? "show d-block" : ""}`}
+                tabIndex="-1"
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+            >
+                <div className="modal-dialog modal-dialog-centered modal-lg">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Broadcast Preview</h5>
+                            <button type="button" className="btn-close" onClick={() => setShowPreviewModal(false)} />
+                        </div>
+                        <div className="modal-body text-start">
+
+                            {/* Mimics the exact card style from the Broadcast list */}
+                            <div className="bc-item" style={{ border: "1px solid #eee", borderRadius: 8, padding: 12 }}>
+                                <div className="d-flex gap-3 align-items-start">
+                                    <div className={`bc-item-icon ${previewIconData.cls}`}>
+                                        {previewIconData.icon}
+                                    </div>
+                                    <div className="flex-grow-1 min-w-0">
+                                        <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                            <span className="bc-item-title">{subject || "(No subject entered)"}</span>
+                                            <span className={`bc-pill bc-pill-type-${tab}`}>{tab}</span>
+                                            {channel && (
+                                                <span className="bc-pill bc-pill-channel">
+                                                    {getPreviewChannelIcon(channel)} {channel}
+                                                </span>
+                                            )}
+                                            <span className="bc-pill bc-pill-strong bc-pill-status-draft">
+                                                {schedule === "scheduleLater" ? "scheduled" : "sent"}
+                                            </span>
+                                        </div>
+                                        <p className="bc-item-message" style={{ whiteSpace: "pre-wrap" }}>
+                                            {content || "(No content entered)"}
+                                        </p>
+                                        <div className="bc-item-meta">
+                                            <span>You</span>
+                                            <span>•</span>
+                                            <span>Just now</span>
+                                            {schedule === "scheduleLater" && scheduleDateTime && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span>Scheduled for {new Date(scheduleDateTime).toLocaleString()}</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {attchment && (
+                                <div className="mt-3">
+                                    <label className="sv-lb">Attachment</label>
+                                    <div className="text-muted" style={{ fontSize: 13 }}>{attchment.name}</div>
+                                </div>
+                            )}
+
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowPreviewModal(false)}>
+                                Close
+                            </button>
+                            <button
+                                type="button"
+                                className="btn-ac"
+                                onClick={() => {
+                                    setShowPreviewModal(false);
+                                    handlePublishClick();
+                                }}
+                            >
+                                Looks Good, Publish ✈
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ── CONFIRMATION MODAL (create / update) ── */}
+            <div
+                className={`modal fade ${showConfirmModal ? "show d-block" : ""}`}
+                tabIndex="-1"
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+            >
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">{activeConfirm.title}</h5>
+                            <button
+                                type="button"
+                                className="btn-close"
+                                onClick={() => setShowConfirmModal(false)}
+                            />
+                        </div>
+                        <div className="modal-body text-start">
+                            <p className="mb-0">{activeConfirm.message}</p>
+                        </div>
+                        <div className="modal-footer">
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => setShowConfirmModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                className={activeConfirm.confirmClass}
+                                onClick={handleConfirmProceed}
+                            >
+                                {activeConfirm.confirmLabel}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

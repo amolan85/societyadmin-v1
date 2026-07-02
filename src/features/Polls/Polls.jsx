@@ -26,6 +26,10 @@ const Polls = ({ setActive, setPollId }) => {
     const [allPolls, setAllPolls] = useState([])
     const [pollsOverview, setPollsOverview] = useState({})
     const [search, setSearch] = useState("");
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [selectedPollId, setSelectedPollId] = useState(null);
+const [selectedPollTitle, setSelectedPollTitle] = useState("");
+const [deleting, setDeleting] = useState(false);
 
     const tabs = [
         { id: "All", value: "" },
@@ -143,21 +147,32 @@ const Polls = ({ setActive, setPollId }) => {
         setPollId(pollId)
     }
 
-    const deletePoll = async (pollId) => {
-        const confirmed = window.confirm("Are you sure you want to delete this poll?");
+    const deletePoll = (pollId, pollTitle) => {
+    setSelectedPollId(pollId);
+    setSelectedPollTitle(pollTitle || "");
+    setShowDeleteModal(true);
+};
 
-        if (!confirmed) return;
+const confirmDeletePoll = async () => {
+    try {
+        setDeleting(true);
 
-        try {
-            const data = await deletePollApi(pollId);
-            console.log(data);
-            toast.success("Poll deleted successfully!");
-            GetPollsData(societyId, userId);
-        } catch (error) {
-            console.log(error);
-        }
-    };
+        await deletePollApi(selectedPollId,societyId);
 
+        toast.success("Poll deleted successfully!");
+
+        setShowDeleteModal(false);
+
+        GetPollsData(societyId, userId);
+        GetPollsOverview(societyId);
+
+    } catch (error) {
+        console.log(error);
+        toast.error("Failed to delete poll");
+    } finally {
+        setDeleting(false);
+    }
+};
     // 👉 total votes from options
     const getTotalVotes = (options) => {
         return options.reduce((sum, o) => sum + o.votes, 0);
@@ -182,6 +197,16 @@ const Polls = ({ setActive, setPollId }) => {
         return date.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
     };
 
+    const upcomingPolls = allPolls
+    .filter((p) => p.status === "UPCOMING")
+    .sort(
+        (a, b) =>
+            new Date(a.start_datetime) -
+            new Date(b.start_datetime)
+    )
+    .slice(0, 5);
+
+    
     // Filter by status + search title
     const filteredData = Array.isArray(allPolls)
         ? allPolls.filter((item) => {
@@ -359,7 +384,7 @@ const Polls = ({ setActive, setPollId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item member-action-delete"
-                                                            onClick={() => deletePoll(p.poll_id)}
+                                                            onClick={() => deletePoll(p.poll_id, p.question)}
                                                         >
                                                             Delete Poll
                                                         </button>
@@ -411,10 +436,37 @@ const Polls = ({ setActive, setPollId }) => {
                         </h6>
 
                         {[
-                            [<FaUsers className="text-primary" />, "Add New Poll", "Create a new public poll", () => setActive("createPoll")],
-                            [<FaChartBar className="text-success" />, "View Voting Reports", "Check results & analytics", null],
-                            [<FaBalanceScale style={{ color: "orange" }} />, "Poll Settings", "Manage poll preferences", null],
-                        ].map(([ic, lb, sub, onClick]) => (
+    [
+        <FaUsers className="text-primary" />,
+        "Add New Poll",
+        "Create a new public poll",
+        () => {
+            setPollId("");
+            setActive("createPoll");
+        },
+    ],
+
+    [
+        <FaChartBar className="text-success" />,
+        "Voting Reports",
+        "View poll analytics",
+        () => {
+    if (allPolls.length > 0) {
+        setPollId(allPolls[0].poll_id);
+        setActive("pollAnalytics");
+    }
+}
+    ],
+
+    [
+        <FaBalanceScale style={{ color: "orange" }} />,
+        "Upcoming Polls",
+        "View scheduled polls",
+        () => {
+            setTab("UPCOMING");
+        },
+    ],
+].map(([ic, lb, sub, onClick]) => (
                             <button key={lb} className="qa mb-2" onClick={onClick || undefined}>
                                 <div className="qa-ico pl-qa-ico rounded-circle">{ic}</div>
                                 <div>
@@ -425,37 +477,136 @@ const Polls = ({ setActive, setPollId }) => {
                         ))}
                     </div>
 
-                    {/* Events */}
-                    <div className="sv-card">
-                        <h6 className="pl-side-title text-start">
-                            <BsCalendarEvent className="me-2 text-primary" size={16} />
-                            Upcoming Events
-                        </h6>
+                   <div className="sv-card">
 
-                        {[
-                            ["02", "Jul", "Quarterly Feedback Poll", "Starts on 02 Jul 2026"],
-                            ["05", "Jul", "New Club Committee Approval", "Starts on 05 Jul 2026"],
-                        ].map(([d, m, t, s]) => (
-                            <div key={t} className="d-flex gap-3 align-items-center mb-3">
-                                <div className="pl-date">
-                                    {d}<br />{m}
-                                </div>
-                                <div className="text-start">
-                                    <div className="pl-event-title">{t}</div>
-                                    <div className="pl-event-sub">{s}</div>
-                                </div>
-                            </div>
-                        ))}
+    <h6 className="pl-side-title text-start">
+        <BsCalendarEvent className="me-2 text-primary" size={16} />
+        Upcoming Polls
+    </h6>
 
-                        <button
-                            className="btn-dk w-100"
-                            onClick={() => setActive("upcomingEvents")}
-                        >
-                            Show all upcoming events
-                        </button>
+    {upcomingPolls.length === 0 ? (
+
+        <div className="text-center py-3 text-muted">
+            No Upcoming Polls
+        </div>
+
+    ) : (
+
+        upcomingPolls.map((poll) => {
+
+            const date = new Date(poll.start_datetime);
+
+            return (
+
+                <div
+                    key={poll.poll_id}
+                    className="d-flex gap-3 align-items-center mb-3"
+                >
+
+                    <div className="pl-date">
+                        {date.toLocaleDateString("en-US", {
+                            day: "2-digit",
+                        })}
+                        <br />
+                        {date.toLocaleDateString("en-US", {
+                            month: "short",
+                        })}
                     </div>
 
+                    <div className="text-start flex-grow-1">
+
+                        <div className="pl-event-title">
+                            {poll.question}
+                        </div>
+
+                        <div className="pl-event-sub">
+                            Starts on {formatDate(poll.start_datetime)}
+                        </div>
+
+                    </div>
+
+                    <Badge
+                        label="Upcoming"
+                        c="orange"
+                    />
+
                 </div>
+
+            );
+        })
+
+    )}
+
+    <button
+        className="btn-dk w-100"
+        onClick={() => setActive("upcomingEvents")}
+    >
+        Show All Upcoming Polls
+    </button>
+
+</div>
+
+                </div>
+                <div
+    className={`modal fade ${showDeleteModal ? "show d-block" : ""}`}
+    tabIndex="-1"
+    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+>
+    <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content">
+
+            <div className="modal-header">
+                <h5 className="modal-title">
+                    Confirm Delete
+                </h5>
+
+                <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowDeleteModal(false)}
+                    disabled={deleting}
+                />
+            </div>
+
+            <div className="modal-body text-start">
+
+                <p className="mb-0">
+                    Are you sure you want to delete{" "}
+                    <strong>
+                        {selectedPollTitle
+                            ? `"${selectedPollTitle}"`
+                            : "this poll"}
+                    </strong>
+                    ?
+                </p>
+
+            </div>
+
+            <div className="modal-footer">
+
+                <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowDeleteModal(false)}
+                    disabled={deleting}
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={confirmDeletePoll}
+                    disabled={deleting}
+                >
+                    {deleting ? "Deleting..." : "Delete"}
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
             </div>
         </div>
     );
