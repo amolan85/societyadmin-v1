@@ -9,14 +9,14 @@ import {
 } from '../../../services/VehicleRegisterAPI';
 import { getAllBlocksApi, getAllUnitsBySearchApi } from '../../../services/UnitRegisterApi';
 import VehicleModal from './VehicleModal';
-import AllocateResidentParkingModal from '../../Parking/AllocateResidentParkingModal'; 
+import AllocateResidentParkingModal from '../../Parking/AllocateResidentParkingModal';
 
 const ListVehicleRegister = ({ setActive, setVehicleId }) => {
 
     // List & pagination
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [totalCount, setTotalCount] = useState(0); 
+    const [totalCount, setTotalCount] = useState(0);
     const [search, setSearch] = useState("");
     const [vehicleTypeFilter, setVehicleTypeFilter] = useState("");
     const [vehiclesList, setVehiclesList] = useState([]);
@@ -64,6 +64,12 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
     // ── Allocate Parking Modal state ──
     const [showParkingModal, setShowParkingModal] = useState(false);
     const [selectedVehicleForParking, setSelectedVehicleForParking] = useState(null);
+    // Delete Confirmation Modal
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedVehicleId, setSelectedVehicleId] = useState(null);
+    const [selectedVehicleNumber, setSelectedVehicleNumber] = useState("");
+    const [deleting, setDeleting] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     useEffect(() => { SessionData(); }, []);
 
@@ -197,7 +203,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
             setIsEdit(true);
             setEditVehicleId(vehicleId);
             setShow(true);
-        } catch  {
+        } catch {
             toast.error("Failed to load vehicle details");
         }
     };
@@ -217,37 +223,109 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
         return errs;
     };
 
-    const handleSubmit = async () => {
+
+
+    const handleSubmit = async (validateOnly = false) => {
+
         const errs = validateForm();
-        if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+
+        if (Object.keys(errs).length > 0) {
+            setErrors(errs);
+
+            if (validateOnly) return false;
+
+            return;
+        }
+
+        if (validateOnly) return true;
+
         try {
+
             if (isEdit) {
-                await UpdateVehicleApi(editVehicleId, societyId, vehicleNumber, vehicleType, vehicleModel, color, stickerId, rcDocument);
+
+                await UpdateVehicleApi(
+                    editVehicleId,
+                    societyId,
+                    vehicleNumber,
+                    vehicleType,
+                    vehicleModel,
+                    color,
+                    stickerId,
+                    rcDocument
+                );
+
                 toast.success("Vehicle updated successfully!");
+
             } else {
-                await CreateVehicleApi(societyId, selectedOwnerId, selectedFlat, vehicleNumber, vehicleType, vehicleModel, color, stickerId, rcDocument);
+
+                await CreateVehicleApi(
+                    societyId,
+                    selectedOwnerId,
+                    selectedFlat,
+                    vehicleNumber,
+                    vehicleType,
+                    vehicleModel,
+                    color,
+                    stickerId,
+                    rcDocument
+                );
+
                 toast.success("Vehicle added successfully!");
             }
+
             setShow(false);
             resetForm();
-            getVehicles({ sid: societyId, pg: 1, searchText: "", vType: "" });
+
+            getVehicles({
+                sid: societyId,
+                pg: 1,
+                searchText: "",
+                vType: ""
+            });
+
         } catch (e) {
             toast.error(e?.message || "Something went wrong");
             setErrorText(e?.message || "Error occurred");
         }
     };
 
-    const handleDelete = async (vehicleId) => {
-        if (!window.confirm("Are you sure you want to delete this vehicle?")) return;
+    const handleDelete = (vehicleId, vehicleNumber) => {
+        setSelectedVehicleId(vehicleId);
+        setSelectedVehicleNumber(vehicleNumber);
+        setShowDeleteModal(true);
+    };
+    const confirmDeleteVehicle = async () => {
         try {
-            await DeleteVehicleApi(vehicleId, societyId);
+            setDeleting(true);
+
+            await DeleteVehicleApi(selectedVehicleId, societyId);
+
             toast.success("Vehicle deleted successfully");
-            getVehicles({ sid: societyId, pg: page, searchText: search, vType: vehicleTypeFilter });
+
+            setShowDeleteModal(false);
+
+            getVehicles({
+                sid: societyId,
+                pg: page,
+                searchText: search,
+                vType: vehicleTypeFilter
+            });
+
         } catch (e) {
             toast.error(e?.message || "Delete failed");
+        } finally {
+            setDeleting(false);
         }
     };
 
+    const handleConfirmSubmit = () => {
+        if (handleSubmit) {
+            const valid = handleSubmit(true); // validation only
+            if (valid === false) return;
+        }
+
+        setShowConfirmModal(true);
+    };
     // ── open AllocateResidentParkingModal ──
     const handleAllocateParking = (vehicle) => {
         setSelectedVehicleForParking(vehicle);
@@ -452,7 +530,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item text-danger"
-                                                            onClick={() => handleDelete(v.vehicle_id)}
+                                                            onClick={() => handleDelete(v.vehicle_id, v.vehicle_number)}
                                                         >
                                                             Delete Vehicle
                                                         </button>
@@ -518,6 +596,59 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                     getVehicles({ sid: societyId, pg: page, searchText: search, vType: vehicleTypeFilter })
                 }
             />
+            <div
+                className={`modal fade ${showDeleteModal ? "show d-block" : ""}`}
+                tabIndex="-1"
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+            >
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+
+                        <div className="modal-header">
+                            <h5 className="modal-title">
+                                Confirm Delete
+                            </h5>
+
+                            <button
+                                type="button"
+                                className="btn-close"
+                                onClick={() => setShowDeleteModal(false)}
+                                disabled={deleting}
+                            />
+                        </div>
+
+                        <div className="modal-body text-start">
+
+                            <p className="mb-0">
+                                Are you sure you want to delete vehicle{" "}
+                                <strong>"{selectedVehicleNumber}"</strong>?
+                            </p>
+
+                        </div>
+
+                        <div className="modal-footer">
+
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => setShowDeleteModal(false)}
+                                disabled={deleting}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                className="btn btn-danger"
+                                onClick={confirmDeleteVehicle}
+                                disabled={deleting}
+                            >
+                                {deleting ? "Deleting..." : "Delete"}
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
         </>
     );
 };
