@@ -26,7 +26,7 @@ import {
     FaFileUpload,
     FaCheckCircle,
     FaExclamationTriangle,
-    FaClock,
+    FaClock,FaCar,
 } from "react-icons/fa";
 
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
@@ -93,9 +93,9 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId, setV
 
     // ✅ vehicleType is now a separate state
     const [vehicleType, setVehicleType] = useState(null);
- 
-    const [firstName, setFirstName] = useState("");        
-    const [lastName, setLastName] = useState("");       
+
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
     const [mobileNo, setMobileNo] = useState("");
     const [emailId, setEmailId] = useState("");
     const [startDate, setStartDate] = useState("");
@@ -107,8 +107,8 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId, setV
     const [slot, setSlot] = useState(null);
     const [vehicleNo, setVehicleNo] = useState("");
 
-    
-   
+
+
 
 
     const getViolationIcon = (violationType) => {
@@ -408,7 +408,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId, setV
         setPage(value);
     };
 
-     // ── MOVED INSIDE the component so it can access errors + setErrors ──
+    // ── MOVED INSIDE the component so it can access errors + setErrors ──
     const clearError = (field) => {
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: "" }));
@@ -554,20 +554,38 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId, setV
         <>
             <div className="pg cp-wrap">
                 {/* Header */}
-                <div className="d-flex justify-content-between align-items-center mb-4 text-start">
-                    <div>
-                        <h4 className="cp-title">Parking Dashboard</h4>
-                        <p className="cp-sub">
-                            Monitor occupancy, manage visitor parking, and handle violations.
-                        </p>
+                <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                    {/* Left Section */}
+                    <div className="d-flex align-items-center gap-3">
+                        <div className="bc-header-icon">
+                            <FaCar size={20} color="#2563eb" />
+                        </div>
+
+                        <div className="text-start">
+                            <h4 className="cp-title mb-1">Parking Dashboard</h4>
+                            <p className="cp-sub mb-0">
+                                Monitor occupancy, manage visitor parking, and handle violations.
+                            </p>
+                        </div>
                     </div>
-                    <div className='d-flex'>
-                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingRules")}>
+
+                    {/* Right Section */}
+                    <div className="d-flex gap-2">
+                        <button
+                            className="btn btn-primary btn-sm"
+                            onClick={() => setActive("parkingRules")}
+                        >
                             Parking Rules
                         </button>
-                        {/* <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setShowAllocateSlot(true)}>
-                            + Allocate Slot
-                        </button> */}
+
+                        {/*
+        <button
+            className="btn btn-primary btn-sm"
+            onClick={() => setShowAllocateSlot(true)}
+        >
+            + Allocate Slot
+        </button>
+        */}
                     </div>
                 </div>
 
@@ -975,7 +993,7 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId, setV
                 // ✅ vehicleType for vehicle_type field (separate)
                 vehicleType={vehicleType}
                 setVehicleType={setVehicleType}
-                
+
                 penaltyamount={penaltyamount}
                 setPenaltyAmount={setPenaltyAmount}
                 lastName={lastName}

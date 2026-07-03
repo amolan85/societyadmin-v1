@@ -139,23 +139,40 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
     const getTenantMembers = async (societyId, page) => {
         try {
             const data = await getTenantsMembersApi(societyId, page, limit);
-            setAllTenantsMember(data.tenants);
-            setPage(data.page);
-            setLimit(data.per_page);
-            setTotalCount(data.total_count);
 
-            // Sirf pehli page par counts set karo
-            if (page === 1) {
-                setPendingCount(data.pending_count ?? data.tenants.filter(t => t.status === "Pending").length);
-                setExpiringCount(data.expiring_count ?? data.tenants.filter(t => {
+            console.log("API DATA", data);
+
+            setAllTenantsMember(data.tenants || []);
+
+            setPage(data.pagination.page);
+            setLimit(data.pagination.page_size);
+            setTotalCount(data.pagination.total);
+
+            const tenants = data.tenants || [];
+
+            setPendingCount(
+                tenants.filter(t => t.occupant_status === "Pending").length
+            );
+
+            setKycPendingCount(
+                tenants.filter(t => t.occupant_status !== "Approved").length
+            );
+
+            setExpiringCount(
+                tenants.filter(t => {
                     if (!t.end_date) return false;
-                    const diff = Math.ceil((new Date(t.end_date) - new Date()) / (1000 * 60 * 60 * 24));
+
+                    const diff = Math.ceil(
+                        (new Date(t.end_date) - new Date()) /
+                        (1000 * 60 * 60 * 24)
+                    );
+
                     return diff >= 0 && diff <= 30;
-                }).length);
-                setKycPendingCount(data.kyc_pending_count ?? data.tenants.filter(t => t.documents === 0).length);
-            }
+                }).length
+            );
+
         } catch (error) {
-            console.error("Error fetching members:", error);
+            console.log(error);
         }
     };
 
@@ -631,17 +648,20 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
 
     const total = Math.ceil(totalCount / limit);
 
-    const pendingApprovals = allTenentsMember.filter(
-        item => item.status === "Pending"
-    ).length;
+    const pendingApprovals =
+        allTenentsMember.filter(
+            item => item.occupant_status === "Pending"
+        ).length;
 
-    const activeRentals = allTenentsMember.filter(
-        item => item.status === "Approved"
-    ).length;
+    const activeRentals =
+        allTenentsMember.filter(
+            item => item.occupant_status === "Approved"
+        ).length;
 
-    const kycUnverified = allTenentsMember.filter(
-        item => item.documents === 0
-    ).length;
+    const kycUnverified =
+        allTenentsMember.filter(
+            item => item.occupant_status !== "Approved"
+        ).length;
 
     const agreementsExpiring = allTenentsMember.filter(item => {
         if (!item.end_date) return false;
@@ -677,7 +697,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                 })
                 : allTenentsMember.filter(
                     (item) =>
-                        item.status === mangementTypeTab ||
+                        item.occupant_status  === mangementTypeTab ||
                         item.document === mangementTypeTab
                 );
     return (
@@ -905,13 +925,13 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                                         {/* KYC */}
                                         <td className="text-start">
                                             <Badge
-                                                label={item.status}
+                                                label={item.occupant_status}
                                                 c={
-                                                    item.status === "Approved"
+                                                    item.occupant_status === "Approved"
                                                         ? "green"
-                                                        : item.status === "Pending"
+                                                        : item.occupant_status === "Pending"
                                                             ? "yellow"
-                                                            : item.status === "Rejected"
+                                                            : item.occupant_status === "Rejected"
                                                                 ? "red"
                                                                 : "gray"
                                                 }

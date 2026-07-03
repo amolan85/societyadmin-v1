@@ -1,4 +1,4 @@
-
+import { useState } from "react";
 const Visitormodal = ({
     allBlocks = [],
     allFlats = [],
@@ -68,15 +68,67 @@ const Visitormodal = ({
     scheduleEndDate,
     setScheduleEndDate,
 }) => {
-    if (!show) return null;
-
     const isEdit = mode === "edit";
-
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    if (!show) return null;
     const handleClose = () => {
         setShow(false);
         onClose && onClose();
     };
+    const handleConfirmSubmit = () => {
 
+        // validation check
+        const newErrors = {};
+
+        if (!visitorName.trim())
+            newErrors.visitorName = "required";
+
+        if (!mobile.trim())
+            newErrors.mobile = "required";
+
+        if (!selectedBlock)
+            newErrors.block = "required";
+
+        if (!selectedFlat)
+            newErrors.flatId = "required";
+
+        if (visitorType === "guest") {
+
+            if (!purpose.trim())
+                newErrors.purpose = "required";
+
+            if (!idType)
+                newErrors.idType = "required";
+
+            if (!idNumber.trim())
+                newErrors.idNumber = "required";
+        }
+
+        if (visitorType === "delivery") {
+
+            if (!parcelCompany.trim())
+                newErrors.parcelCompany = "required";
+
+            if (!parcelDeliveryType)
+                newErrors.parcelDeliveryType = "required";
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+
+        // Validation passed
+        setShowConfirmModal(true);
+    };
+
+    const handleProceed = () => {
+        setShowConfirmModal(false);
+
+        if (handleSubmit) {
+            handleSubmit();
+        }
+    };
     // ── clears a single field error as soon as user fills it ──
     const clearError = (field) => {
         if (errors[field]) {
@@ -86,8 +138,8 @@ const Visitormodal = ({
 
     return (
         <>
-            <div className="modal-backdrop fade show" />
-            <div className="modal show d-block">
+            <div className="modal-backdrop fade show" style={{ zIndex: 1050 }} />
+            <div className="modal show d-block" style={{ zIndex: 1055 }}>
                 <div className="modal-dialog modal-md">
                     <div className="modal-content">
 
@@ -451,10 +503,65 @@ const Visitormodal = ({
                                 <button className="btn btn-outline-secondary" onClick={handleClose}>
                                     Cancel
                                 </button>
-                                <button className="btn btn-primary" onClick={handleSubmit}>
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={handleConfirmSubmit}
+                                >
                                     {isEdit ? "Update Visitor" : "Add Visitor"}
                                 </button>
                             </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div
+                className={`modal fade ${showConfirmModal ? "show d-block" : ""}`}
+                tabIndex="-1"
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+            >
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+
+                        <div className="modal-header">
+                            <h5 className="modal-title">
+                                {isEdit ? "Confirm Update" : "Confirm Add"}
+                            </h5>
+
+                            <button
+                                type="button"
+                                className="btn-close"
+                                onClick={() => setShowConfirmModal(false)}
+                            />
+                        </div>
+
+                        <div className="modal-body text-start">
+
+                            <p className="mb-0">
+                                {isEdit
+                                    ? `Are you sure you want to update visitor "${visitorName}"?`
+                                    : `Are you sure you want to add visitor "${visitorName}"?`
+                                }
+                            </p>
+
+                        </div>
+
+                        <div className="modal-footer">
+
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => setShowConfirmModal(false)}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleProceed}
+                            >
+                                {isEdit ? "Yes, Update" : "Yes, Add"}
+                            </button>
+
                         </div>
 
                     </div>

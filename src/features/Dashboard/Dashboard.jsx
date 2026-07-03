@@ -473,7 +473,7 @@ const NAV = [
   {
     sec: "Visitors & Parking", items: [
       { id: "visitorRegister", icon: "🚶", lbl: "Visitors" },
-      { id: "vehicleRegister", icon: "🚘", lbl: "Vehicles" },
+      { id: "vehicleRegister", icon: "🚘", lbl: "Owner Vehicles" },
       { id: "parkingDashboard", icon: "🚗", lbl: "Parking" },
     ]
   },

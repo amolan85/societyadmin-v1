@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { GetSessionData } from "../../../utils/SessionManagement";
 import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
-import { FiSearch } from 'react-icons/fi';
+import { FiSearch} from 'react-icons/fi';
+import { FaCar } from 'react-icons/fa';
 import { toast } from "react-toastify";
 import {
     CreateVehicleApi, ListVehiclesApi,
@@ -347,7 +348,20 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
     return (
         <>
             <div className="pg cp-wrap">
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <div className="d-flex align-items-center gap-3">
+                        <div className="bc-header-icon">
+                            <FaCar  size={20} color="#2563eb" />
+                        </div>
 
+                        <div className="text-start">
+                            <h4 className="cp-title mb-1">Owner Vehicles</h4>
+                            <p className="cp-sub mb-0">
+                                Manage owner vehicle registrations and related information.
+                            </p>
+                        </div>
+                    </div>
+                </div>
                 {/* Stats */}
                 <div className="row g-3 mb-4">
                     {[
