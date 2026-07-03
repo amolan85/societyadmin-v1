@@ -5,7 +5,8 @@ import "../../../styles/ParkingRegister.css"
 import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import { BiExport } from 'react-icons/bi';
-import { FiFilter, FiSearch } from 'react-icons/fi';
+import { HiOutlineUserGroup } from "react-icons/hi2";
+import { FiFilter, FiSearch, FiUsers  } from 'react-icons/fi';
 import { toast } from "react-toastify";
 import {
     CreateVisitorApi, ListVisitorsApi,
@@ -500,7 +501,20 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
     return (
         <>
             <div className="pg cp-wrap">
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <div className="d-flex align-items-center gap-3">
+                        <div className="bc-header-icon">
+                            <HiOutlineUserGroup  size={20} color="#2563eb" />
+                        </div>
 
+                        <div className="text-start">
+                            <h4 className="cp-title mb-1">Visitors</h4>
+                            <p className="cp-sub mb-0">
+                                Manage visitor registrations.
+                            </p>
+                        </div>
+                    </div>
+                </div>
                 {/* Stats */}
                 <div className="row g-3 mb-4">
                     {[

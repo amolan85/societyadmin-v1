@@ -6,6 +6,7 @@ import { deleteStaffApi, getStaffAttendanceApi, markAttendanceStaffApi } from '.
 import { GetSessionData } from '../../utils/SessionManagement';
 import ManualEntryModal from './ManualEntryModal';
 import { FiDelete, FiFilter, FiSearch } from 'react-icons/fi';
+import { FaClipboardCheck } from 'react-icons/fa';
 import FilterAttendanceModal from './FilterAttendanceModal';
 import { CgExport } from 'react-icons/cg';
 import ExportModal from '../../components/Common/ExportModal';
@@ -174,10 +175,10 @@ const confirmDeleteStaff = async () => {
 
     const validateForm = () => {
         let errors = {};
-        if (!selectedStaff)   errors.selectedStaff  = "required";
-        if (!recordTypeTab)   errors.recordTypeTab   = "required";
-        if (!attendanceDate)  errors.attendanceDate  = "required";
-        if (!attendanceTime)  errors.attendanceTime  = "required";
+        if (!selectedStaff) errors.selectedStaff = "required";
+        if (!recordTypeTab) errors.recordTypeTab = "required";
+        if (!attendanceDate) errors.attendanceDate = "required";
+        if (!attendanceTime) errors.attendanceTime = "required";
         return errors;
     };
 
@@ -265,9 +266,9 @@ const confirmDeleteStaff = async () => {
     };
 
     const handleExport = () => {
-        if (activeTab === "excel")    { downloadExcel(); setExportModal(false); }
-        else if (activeTab === "csv") { downloadCSV();   setExportModal(false); }
-        else if (activeTab === "pdf") { downloadPDF();   setExportModal(false); }
+        if (activeTab === "excel") { downloadExcel(); setExportModal(false); }
+        else if (activeTab === "csv") { downloadCSV(); setExportModal(false); }
+        else if (activeTab === "pdf") { downloadPDF(); setExportModal(false); }
     };
 
     
@@ -275,20 +276,57 @@ const confirmDeleteStaff = async () => {
         <div className="pg sa-wrap">
 
             {/* Header */}
-            <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                <h4 className="sa-title">Staff Attendance & Tracking</h4>
-                <div className="d-flex gap-2">
+            <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                {/* Left Section */}
+                <div className="d-flex align-items-center gap-3">
+                    <div className="bc-header-icon">
+                        <FaClipboardCheck size={20} color="#2563eb" />
+                    </div>
+
+                    <div className="text-start">
+                        <h4 className="cp-title mb-1">Staff Attendance & Tracking</h4>
+                        <p className="cp-sub mb-0">
+                            Monitor staff attendance, track daily activities, and manage manual entries.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Right Section */}
+                <div className="d-flex align-items-center flex-wrap gap-2">
                     <input
                         type="date"
-                        className="sv-in sa-date"
+                        className="form-control"
+                        style={{ width: "170px" }}
                         value={date}
                         onChange={dateHandleChange}
                     />
+
                     <button
-                        className="btn-ol"
-                        onClick={() => { getAllExportStaff(societyId); setExportModal(true); }}
+                        className="btn btn-primary btn-sm"
+                        onClick={() => {
+                            getAllExportStaff(societyId);
+                            setExportModal(true);
+                        }}
                     >
-                        <CgExport /> Export
+                        <CgExport className="me-1" />
+                        Export
+                    </button>
+
+                    <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => setActive("createStaff")}
+                    >
+                        Create
+                    </button>
+
+                    <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => {
+                            setShow(true);
+                            resetForm();
+                        }}
+                    >
+                        Manual Entry
                     </button>
                     <button className="btn btn-sm btn-ac btn-primary" onClick={() => {setActive("createStaff"); setStaffId(null); }}>Create</button>
                     <button className="btn btn-sm btn-ac btn-primary" onClick={() => { setShow(true); resetForm(); }}>Manual Entry</button>
@@ -298,9 +336,9 @@ const confirmDeleteStaff = async () => {
             {/* Stats */}
             <div className="row g-3 mb-4">
                 {[
-                    [present,    "Present",    "tile-grn"],
-                    [absent,     "Absent",     "tile-red"],
-                    ["-",        "Late",       "tile-org"],
+                    [present, "Present", "tile-grn"],
+                    [absent, "Absent", "tile-red"],
+                    ["-", "Late", "tile-org"],
                     [totalStaff, "Total Staff", "tile-blu"]
                 ].map(([v, l, cls]) => (
                     <div className="col-6 col-md-3" key={l}>
@@ -403,9 +441,9 @@ const confirmDeleteStaff = async () => {
                                             label={s.status}
                                             c={
                                                 s.status === "present" ? "green"
-                                                : s.status === "absent"  ? "red"
-                                                : s.status === "late"    ? "tile-org"
-                                                : "gray"
+                                                    : s.status === "absent" ? "red"
+                                                        : s.status === "late" ? "tile-org"
+                                                            : "gray"
                                             }
                                         />
                                     </td>
