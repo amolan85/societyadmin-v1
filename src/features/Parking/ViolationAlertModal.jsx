@@ -1,5 +1,5 @@
+import { useState } from "react";
 import Select from "react-select";
-
 const ViolationAlertModal = ({
     showViolationAlert,
     setShowViolationAlert,
@@ -27,6 +27,7 @@ const ViolationAlertModal = ({
     handleSubmit = () => {},
     mode,
 }) => {
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
     if (!showViolationAlert) return null;
 
     // ── MOVED INSIDE the component so it can access errors + setErrors ──
@@ -56,6 +57,18 @@ const ViolationAlertModal = ({
         { value: "dismissed", label: "Dismissed" },
     ];
 
+
+    const handleConfirmSubmit = () => {
+    setShowConfirmModal(true);
+};
+
+const handleProceed = () => {
+    setShowConfirmModal(false);
+
+    if (handleSubmit) {
+        handleSubmit();
+    }
+};
     return (
         <>
             <div className="modal-backdrop fade show"></div>
@@ -261,14 +274,73 @@ const ViolationAlertModal = ({
                             >
                                 Cancel
                             </button>
-                            <button className="btn-ac px-4" onClick={handleSubmit}>
-                                {mode === "edit" ? "Update" : "Submit"}
-                            </button>
+                            <button
+    className="btn-ac px-4"
+    onClick={handleConfirmSubmit}
+>
+    {mode === "edit" ? "Update" : "Submit"}
+</button>
                         </div>
 
                     </div>
                 </div>
             </div>
+
+            <div
+    className={`modal fade ${showConfirmModal ? "show d-block" : ""}`}
+    tabIndex="-1"
+    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+>
+    <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content">
+
+            <div className="modal-header">
+                <h5 className="modal-title">
+                    {mode === "edit"
+                        ? "Confirm Update"
+                        : "Confirm Create"}
+                </h5>
+
+                <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowConfirmModal(false)}
+                />
+            </div>
+
+            <div className="modal-body text-start">
+
+                <p className="mb-0">
+                    {mode === "edit"
+                        ? `Are you sure you want to update violation for vehicle "${vehicleNo}"?`
+                        : `Are you sure you want to create a violation for vehicle "${vehicleNo}"?`}
+                </p>
+
+            </div>
+
+            <div className="modal-footer">
+
+                <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowConfirmModal(false)}
+                >
+                    Cancel
+                </button>
+
+                <button
+                    className="btn btn-primary"
+                    onClick={handleProceed}
+                >
+                    {mode === "edit"
+                        ? "Yes, Update"
+                        : "Yes, Create"}
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
         </>
     );
 };

@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 // VehicleModal.jsx
 const VehicleModal = ({
     show,
@@ -41,13 +42,28 @@ const VehicleModal = ({
     selectedOwnerName = "",
     rcDocumentUrl = "",
 }) => {
+    const isEdit = mode === "edit";
+    
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+
     if (!show) return null;
 
-    const isEdit = mode === "edit";
-
+    
     const handleClose = () => {
         setShow(false);
         onClose && onClose();
+    };
+
+    const handleConfirmSubmit = () => {
+        setShowConfirmModal(true);
+    };
+
+    const handleProceed = () => {
+        setShowConfirmModal(false);
+
+        if (handleSubmit) {
+            handleSubmit();
+        }
     };
 
     // ── clear a single field error as soon as user fills it ──
@@ -60,7 +76,7 @@ const VehicleModal = ({
     const VEHICLE_TYPES = [
         { value: "2_wheeler", label: "2 Wheeler" },
         { value: "4_wheeler", label: "4 Wheeler" },
-        { value: "other",     label: "Other" },
+        { value: "other", label: "Other" },
     ];
 
     return (
@@ -233,7 +249,7 @@ const VehicleModal = ({
                                         <div className="col-6">
                                             <div className="d-flex">
                                                 <label className="sv-lb">Sticker ID  </label>
-                                                 
+
                                             </div>
                                             <input
                                                 className={`sv-in ${errors.stickerId ? "error-input" : ""}`}
@@ -298,10 +314,65 @@ const VehicleModal = ({
                                 <button className="btn btn-outline-secondary" onClick={handleClose}>
                                     Cancel
                                 </button>
-                                <button className="btn btn-primary" onClick={handleSubmit}>
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={handleConfirmSubmit}
+                                >
                                     {isEdit ? "Update Vehicle" : "Add Vehicle"}
                                 </button>
                             </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div
+                className={`modal fade ${showConfirmModal ? "show d-block" : ""}`}
+                tabIndex="-1"
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+            >
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+
+                        <div className="modal-header">
+                            <h5 className="modal-title">
+                                {isEdit ? "Confirm Update" : "Confirm Add"}
+                            </h5>
+
+                            <button
+                                type="button"
+                                className="btn-close"
+                                onClick={() => setShowConfirmModal(false)}
+                            />
+                        </div>
+
+                        <div className="modal-body text-start">
+
+                            <p className="mb-0">
+                                {isEdit
+                                    ? `Are you sure you want to update vehicle "${vehicleNumber}"?`
+                                    : `Are you sure you want to add vehicle "${vehicleNumber}"?`
+                                }
+                            </p>
+
+                        </div>
+
+                        <div className="modal-footer">
+
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => setShowConfirmModal(false)}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleProceed}
+                            >
+                                {isEdit ? "Yes, Update" : "Yes, Add"}
+                            </button>
+
                         </div>
 
                     </div>
