@@ -1,4 +1,4 @@
- 
+
 const Visitormodal = ({
     allBlocks = [],
     allFlats = [],
@@ -10,7 +10,7 @@ const Visitormodal = ({
     setShow,
     flatNumber,
     setFlatNumber,
-    mode = "add",           
+    mode = "add",
 
     errors = {},
     setErrors,

@@ -221,13 +221,13 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
 
             setScheduleStartDate(
                 data.schedule_start_date
-                    ? data.schedule_start_date.replace(" ", "T").slice(0, 16)
+                    ? data.schedule_start_date.split(" ")[0]
                     : ""
             );
 
             setScheduleEndDate(
                 data.schedule_end_date
-                    ? data.schedule_end_date.replace(" ", "T").slice(0, 16)
+                    ? data.schedule_end_date.split(" ")[0]
                     : ""
             );
         } catch (error) {
@@ -293,10 +293,10 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         return errs;
     };
 
-    const formatDateTime = (date) => {
-        if (!date) return "";
-        return date.replace("T", " ") + ":00";
-    };
+    // const formatDateTime = (date) => {
+    //     if (!date) return "";
+    //     return `${date} 00:00:00`;
+    // };
 
     const handleSubmit = async () => {
         try {
@@ -314,6 +314,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 await UpdateVisitorApi({
                     visitorId: editVisitorId,
                     societyId,
+                    flatId,
                     visitorName,
                     mobile,
                     email,
@@ -322,8 +323,15 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                     comingFrom,
                     vehicleNumber,
                     purpose,
-                    scheduleStartDate: formatDateTime(scheduleStartDate),
-                    scheduleEndDate: formatDateTime(scheduleEndDate)
+                    idType,
+                    idNumber,
+                    parcelCompany,
+                    parcelDeliveryType,
+                    parcelDescription,
+                    approvalStatus,
+                    photo,
+                    scheduleStartDate,
+                    scheduleEndDate
                 });
             } else {
                 await CreateVisitorApi({
@@ -340,8 +348,8 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                     idNumber,
                     comingFrom,
                     photo,
-                    scheduleStartDate: formatDateTime(scheduleStartDate),
-                    scheduleEndDate: formatDateTime(scheduleEndDate)
+                    scheduleStartDate,
+                    scheduleEndDate
                 });
             }
 

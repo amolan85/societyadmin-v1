@@ -39,8 +39,19 @@ export const CreateVisitorApi = async ({
     formData.append("id_number", idNumber || "");
     formData.append("approval_status", "pending");
 
-    formData.append("schedule_start_date", scheduleStartDate || "");
-    formData.append("schedule_end_date", scheduleEndDate || "");
+    formData.append(
+        "schedule_start_date",
+        scheduleStartDate
+            ? `${scheduleStartDate} 00:00:00`
+            : ""
+    );
+
+    formData.append(
+        "schedule_end_date",
+        scheduleEndDate
+            ? `${scheduleEndDate} 00:00:00`
+            : ""
+    );
 
     if (photo) {
         formData.append("photo", photo);
@@ -165,6 +176,7 @@ export const GetMonthlyVisitorSummaryApi = async (societyId) => {
 export const UpdateVisitorApi = async ({
     visitorId,
     societyId,
+    flatId,
     visitorName,
     mobile,
     email,
@@ -173,6 +185,13 @@ export const UpdateVisitorApi = async ({
     comingFrom,
     vehicleNumber,
     purpose,
+    idType,
+    idNumber,
+    parcelCompany,
+    parcelDeliveryType,
+    parcelDescription,
+    approvalStatus,
+    photo,
     scheduleStartDate,
     scheduleEndDate
 }) => {
@@ -183,24 +202,40 @@ export const UpdateVisitorApi = async ({
 
     formData.append("visitor_id", visitorId);
     formData.append("society_id", societyId);
+    formData.append("flat_id", flatId || "");
+
     formData.append("visitor_name", visitorName || "");
     formData.append("mobile", mobile || "");
     formData.append("email", email || "");
     formData.append("gender", gender || "");
     formData.append("visitor_type", visitorType || "guest");
+
     formData.append("coming_from", comingFrom || "");
     formData.append("vehicle_number", vehicleNumber || "");
     formData.append("purpose", purpose || "");
 
+    formData.append("id_type", idType || "");
+    formData.append("id_number", idNumber || "");
+
+    formData.append("parcel_company", parcelCompany || "");
+    formData.append("parcel_delivery_type", parcelDeliveryType || "");
+    formData.append("parcel_description", parcelDescription || "");
+
+    formData.append("approval_status", approvalStatus || "pending");
+
     formData.append(
         "schedule_start_date",
-        scheduleStartDate || ""
+        scheduleStartDate ? `${scheduleStartDate} 00:00:00` : ""
     );
 
     formData.append(
         "schedule_end_date",
-        scheduleEndDate || ""
+        scheduleEndDate ? `${scheduleEndDate} 00:00:00` : ""
     );
+
+    if (photo) {
+        formData.append("photo", photo);
+    }
 
     try {
         const response = await apiClient({
