@@ -42,6 +42,14 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
     const [filterStatus, setFilterStatus] = useState("");
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
+    // Edit Modal
+const [showEditModal, setShowEditModal] = useState(false);
+const [selectedStaffId, setSelectedStaffId] = useState(null);
+const [selectedStaffName, setSelectedStaffName] = useState("");
+
+// Delete Modal
+const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [deleting, setDeleting] = useState(false);
 
     const total = Math.ceil(totalCount / limit);
 
@@ -112,22 +120,57 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
         setAllExportStaff(data.list)
     }
 
-    const GetStaffById = async (staffId) => {
-        setActive("createStaff")
-        setStaffId(staffId)
-    }
+  const GetStaffById = async (staffId) => {
+    setActive("createStaff")
+    setStaffId(staffId)
+}
 
-    const deleteStaff = async (staffId) => {
-        const confirmed = window.confirm("Are you sure you want to delete this staff?");
-        if (!confirmed) return;
-        try {
-            const data = await deleteStaffApi(staffId);
-            toast.success("Staff deleted successfully!");
-            getStaff(societyId, page, limit, date, search, filterStatus, dateFrom, dateTo);
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    const deleteStaff = (staffId, staffName) => {
+    setSelectedStaffId(staffId);
+    setSelectedStaffName(staffName);
+    setShowDeleteModal(true);
+};
+
+const confirmDeleteStaff = async () => {
+    try {
+        setDeleting(true);
+
+        await deleteStaffApi(selectedStaffId);
+
+        toast.success("Staff deleted successfully!");
+
+        setShowDeleteModal(false);
+
+        getStaff(
+            societyId,
+            page,
+            limit,
+            date,
+            search,
+            filterStatus,
+            dateFrom,
+            dateTo
+        );
+    }
+    catch (error) {
+        console.log(error);
+    }
+    finally {
+        setDeleting(false);
+    }
+};
+    const resetForm = () => {
+    setFirstName("");
+    setLastName("");
+    setEmailId("");
+    setMobileNo("");
+    setSalary("");
+    setJoiningDate("");
+    setRole("security");
+    setSId("");
+    setErrors({});
+    setErrorText("");
+};
 
     const validateForm = () => {
         let errors = {};
@@ -227,13 +270,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
         else if (activeTab === "pdf") { downloadPDF();   setExportModal(false); }
     };
 
-    const resetForm = () => {
-        setSelectedStaff(null)
-        setRecordTypeTab("")
-        setAttendanceDate("")
-        setAttendanceTime("")
-    }
-
+    
     return (
         <div className="pg sa-wrap">
 
@@ -253,7 +290,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                     >
                         <CgExport /> Export
                     </button>
-                    <button className="btn btn-sm btn-ac btn-primary" onClick={() => setActive("createStaff")}>Create</button>
+                    <button className="btn btn-sm btn-ac btn-primary" onClick={() => {setActive("createStaff"); setStaffId(null); }}>Create</button>
                     <button className="btn btn-sm btn-ac btn-primary" onClick={() => { setShow(true); resetForm(); }}>Manual Entry</button>
                 </div>
             </div>
@@ -397,7 +434,7 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                                                 <li>
                                                     <button
                                                         className="dropdown-item member-action-item member-action-delete"
-                                                        onClick={() => deleteStaff(s.staff_id)}
+                                                        onClick={() =>deleteStaff(s.staff_id,`${s.first_name} ${s.last_name}`)}
                                                     >
                                                         Delete Staff
                                                     </button>
@@ -412,6 +449,105 @@ const StaffAttendance = ({ setActive, setStaffId }) => {
                 </div>
                 <Pagination page={page} total={total} onChange={handlePageChange} />
             </div>
+
+            {/* <div
+    className={`modal fade ${showEditModal ? "show d-block" : ""}`}
+    tabIndex="-1"
+    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+>
+    <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content">
+
+            <div className="modal-header">
+                <h5 className="modal-title">Confirm Edit</h5>
+
+                <button
+                    className="btn-close"
+                    onClick={() => setShowEditModal(false)}
+                />
+            </div>
+
+            <div className="modal-body text-start">
+
+                <p>
+                    Are you sure you want to edit{" "}
+                    <strong>"{selectedStaffName}"</strong>?
+                </p>
+
+            </div>
+
+            <div className="modal-footer">
+
+                <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowEditModal(false)}
+                >
+                    Cancel
+                </button>
+
+                <button
+                    className="btn btn-primary"
+                    onClick={confirmEditStaff}
+                >
+                    Edit
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div> */}
+
+<div
+    className={`modal fade ${showDeleteModal ? "show d-block" : ""}`}
+    tabIndex="-1"
+    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+>
+    <div className="modal-dialog modal-dialog-centered">
+        <div className="modal-content">
+
+            <div className="modal-header">
+                <h5 className="modal-title">Confirm Delete</h5>
+
+                <button
+                    className="btn-close"
+                    onClick={() => setShowDeleteModal(false)}
+                    disabled={deleting}
+                />
+            </div>
+
+            <div className="modal-body text-start">
+
+                <p>
+                    Are you sure you want to delete{" "}
+                    <strong>"{selectedStaffName}"</strong>?
+                </p>
+
+            </div>
+
+            <div className="modal-footer">
+
+                <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowDeleteModal(false)}
+                    disabled={deleting}
+                >
+                    Cancel
+                </button>
+
+                <button
+                    className="btn btn-danger"
+                    onClick={confirmDeleteStaff}
+                    disabled={deleting}
+                >
+                    {deleting ? "Deleting..." : "Delete"}
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
 
             <ManualEntryModal
                 show={show}

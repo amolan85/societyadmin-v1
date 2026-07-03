@@ -70,6 +70,10 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   const [statsOwners, setStatsOwners] = useState(0);
   const [statsTenants, setStatsTenants] = useState(0);
   const [statsFamily, setStatsFamily] = useState(0);
+  // Delete Confirmation Modal
+const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [selectedMemberId, setSelectedMemberId] = useState(null);
+const [deleting, setDeleting] = useState(false);
 
   //loader
   const { setLoading } = useLoader(); 
@@ -287,9 +291,9 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
       const validationErrors = validateForm();
 
       if (Object.keys(validationErrors).length > 0) {
-        setErrors(validationErrors);
-        return;
-      }
+    setErrors(validationErrors);
+    throw new Error("Validation Failed");
+}
 
       
 
@@ -422,25 +426,34 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     }
   };
   
-  const handleDelete = async (memberId, societyId) => {
-    const confirmed = window.confirm("Are you sure you want to delete this member?");
+  const handleDelete = (memberId) => {
+    setSelectedMemberId(memberId);
+    setShowDeleteModal(true);
+};
 
-    if (!confirmed) return;
-
+const confirmDelete = async () => {
     try {
-      setLoading(true);
+        setDeleting(true);
+        setLoading(true);
 
-      await deleteMembersApi(memberId, societyId);
-      toast.success("Member deleted successfully");
-      await getMembers(societyId, page);
-      await fetchMemberStats(societyId);
+        await deleteMembersApi(selectedMemberId, societyId);
+
+        toast.success("Member deleted successfully");
+
+        setShowDeleteModal(false);
+        setSelectedMemberId(null);
+
+        await getMembers(societyId, page);
+        await fetchMemberStats(societyId);
 
     } catch (error) {
-      toast.error(error);
+        toast.error(error);
     } finally {
-      setLoading(false);
+        setDeleting(false);
+        setLoading(false);
     }
-  };
+};
+
   const resetForm = () => {
     setFirstName("");
     setLastName("");
@@ -877,7 +890,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
                             <li>
                               <button
                                 className="dropdown-item member-action-item member-action-delete"
-                                onClick={() => handleDelete(s.user_id, societyId)}
+                                onClick={() => handleDelete(s.user_id)}
                               >
                                 Delete Member
                               </button>
@@ -961,6 +974,63 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
         totalRecords={allMembersWithoutPagination.length}
         currentRecords={allMembers.length}
       />
+
+      {/* Delete Confirmation Modal */}
+<div
+    className={`modal fade ${showDeleteModal ? "show d-block" : ""}`}
+    tabIndex="-1"
+    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+>
+    <div className="modal-dialog modal-dialog-centered">
+
+        <div className="modal-content">
+
+            <div className="modal-header">
+                <h5 className="modal-title">
+                    Confirm Delete
+                </h5>
+
+                <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowDeleteModal(false)}
+                    disabled={deleting}
+                />
+            </div>
+
+            <div className="modal-body text-start">
+
+                <p>
+                    Are you sure you want to
+                    <strong> delete this member?</strong>
+                </p>
+
+            </div>
+
+            <div className="modal-footer">
+
+                <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowDeleteModal(false)}
+                    disabled={deleting}
+                >
+                    Cancel
+                </button>
+
+                <button
+                    className="btn btn-danger"
+                    onClick={confirmDelete}
+                    disabled={deleting}
+                >
+                    {deleting ? "Deleting..." : "Delete"}
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
     </>
 
   );

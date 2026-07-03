@@ -361,56 +361,58 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
                     {/* ── RIGHT COLUMN ── */}
                     <div className="col-lg-4">
 
-                        {/* Quick Actions */}
-                        <div className="card border-0 shadow-sm mb-4">
-                            <div className="card-header bg-white fw-semibold">
-                                Quick Actions
+                         {/* Quick Actions */}
+                    <div className="sv-card mb-3">
+                        <h6 className="bc-side-title text-start">Quick Actions</h6>
+
+                        {/* Go to Notice Board */}
+                        <button
+                            className="qa mb-2"
+                            onClick={() => setActive("noticeboard")}
+                        >
+                            <div
+                                className="qa-ico"
+                                style={{ background: "#ede9fe" }}
+                            >
+                                📋
                             </div>
-                            <div className="card-body">
-                                {[
-                                    [
-                                        <FiMessageSquare size={18} color="#ca8a04" />,
-                                        "Send Notification to Resident",
-                                        () => { },
-                                        "#fef9c3",
-                                        false,  // never disabled
-                                    ],
-                                    [
-                                        <FiFileText size={18} color="#2563eb" />,
-                                        "Update Status",
-                                        () => { setModalType("status"); setShowModal(true); },
-                                        "#dbeafe",
-                                        complaintDetails.status === "resolved" || complaintDetails.status === "closed",
-                                    ],
-                                    [
-                                        <FiCheckCircle size={18} color="#16a34a" />,
-                                        "Mark as Resolved",
-                                        async () => { setStatus("resolved"); setModalType("status"); setShowModal(true); },
-                                        "#dcfce7",
-                                        complaintDetails.status === "resolved" || complaintDetails.status === "closed",
-                                    ],
-                                ].map(([ic, lb, onClick, bgColor, isDisabled]) => (
-                                    <button
-                                        key={lb}
-                                        className="qa mb-2"
-                                        onClick={onClick}
-                                        type="button"
-                                        disabled={isDisabled}
-                                        style={isDisabled ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-                                    >
-                                        <div
-                                            className="qa-ico rounded-2"
-                                            style={{ background: bgColor, padding: "8px", display: "inline-flex" }}
-                                        >
-                                            {ic}
-                                        </div>
-                                        <div className="ms-2">
-                                            <div className="pl-qa-title">{lb}</div>
-                                        </div>
-                                    </button>
-                                ))}
+                            <span className="bc-qa-text">
+                                Notice Board
+                            </span>
+                        </button>
+
+                        {/* Go to Polls & Voting */}
+                        <button
+                            className="qa mb-2"
+                            onClick={() => setActive("polls")}
+                        >
+                            <div
+                                className="qa-ico"
+                                style={{ background: "#ffedd5" }}
+                            >
+                                🗳️
                             </div>
-                        </div>
+                            <span className="bc-qa-text">
+                                Polls & Voting
+                            </span>
+                        </button>
+                         
+                        {/* Go Back */}
+                        <button
+                            className="qa"
+                            onClick={() => setActive("complaints")}
+                        >
+                            <div
+                                className="qa-ico"
+                                style={{ background: "#dbeafe" }}
+                            >
+                                📡
+                            </div>
+                            <span className="bc-qa-text">
+                                Complaint List
+                            </span>
+                        </button>
+                    </div>
 
                         {/* Activity Log */}
                         <div className="card shadow-sm border mt-4 text-start">

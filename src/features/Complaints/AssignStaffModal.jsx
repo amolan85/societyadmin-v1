@@ -92,23 +92,23 @@ const AssignStaffModal = ({ show, setShow, complaintId, onAssigned }) => {
             <div className="modal-backdrop fade show" style={{ zIndex: 1050 }} />
             <div className="modal show d-block" style={{ zIndex: 1055 }}>
                 <div className="modal-dialog modal-md modal-dialog-centered">
-                    <div className="modal-content border-0 shadow">
+                    <div className="modal-content border-0 shadow rounded-3">
 
                         {/* ── HEADER ── */}
-                        <div className="modal-header">
-                            <h5 className="modal-title fw-bold">Assign Staff</h5>
+                        <div className="modal-header px-4 py-3">
+                            <h5 className="modal-title fw-bold mb-0">Assign Staff</h5>
                             <button type="button" className="btn-close" onClick={() => setShow(false)} />
                         </div>
 
                         {/* ── BODY ── */}
-                        <div className="modal-body p-4">
+                        <div className="modal-body px-4 py-3 text-start">
 
-                            {/* ROW 1 — Staff + Due Date */}
+                            {/* ROW 1 — Staff + Role */}
                             <div className="row g-3 mb-3">
 
                                 {/* Staff Member */}
                                 <div className="col-md-6">
-                                    <label className="form-label fw-semibold">
+                                    <label className="form-label fw-semibold mb-1">
                                         Staff Member <span className="text-danger">*</span>
                                     </label>
                                     <select
@@ -135,7 +135,7 @@ const AssignStaffModal = ({ show, setShow, complaintId, onAssigned }) => {
 
                                 {/* Role (auto-filled) */}
                                 <div className="col-md-6">
-                                    <label className="form-label fw-semibold">Role</label>
+                                    <label className="form-label fw-semibold mb-1">Role</label>
                                     <input
                                         type="text"
                                         className="form-control"
@@ -148,12 +148,12 @@ const AssignStaffModal = ({ show, setShow, complaintId, onAssigned }) => {
 
                             </div>
 
-                            {/* ROW 2 — Due Date + Complaint ID (readonly) */}
+                            {/* ROW 2 — Due Date */}
                             <div className="row g-3 mb-3">
 
                                 {/* Due Date */}
                                 <div className="col-md-6">
-                                    <label className="form-label fw-semibold">Due Date</label>
+                                    <label className="form-label fw-semibold mb-1">Due Date</label>
                                     <input
                                         type="date"
                                         className="form-control"
@@ -163,23 +163,11 @@ const AssignStaffModal = ({ show, setShow, complaintId, onAssigned }) => {
                                     />
                                 </div>
 
-                                {/* Complaint ref
-                                <div className="col-md-6">
-                                    <label className="form-label fw-semibold">Complaint Ref.</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        value={`#${complaintId}`}
-                                        readOnly
-                                        style={{ background: "#f9fafb" }}
-                                    />
-                                </div> */}
-
                             </div>
 
                             {/* ROW 3 — Notes (full width) */}
                             <div className="mb-3">
-                                <label className="form-label fw-semibold">Notes for Staff (Optional)</label>
+                                <label className="form-label fw-semibold mb-1">Description</label>
                                 <textarea
                                     className="form-control"
                                     rows={3}
@@ -191,7 +179,7 @@ const AssignStaffModal = ({ show, setShow, complaintId, onAssigned }) => {
 
                             {/* ROW 4 — Priority (full width, pill buttons) */}
                             <div className="mb-1">
-                                <label className="form-label fw-semibold">
+                                <label className="form-label fw-semibold mb-2">
                                     Priority <span className="text-danger">*</span>
                                 </label>
                                 <div className="d-flex gap-2 flex-wrap">
@@ -230,16 +218,16 @@ const AssignStaffModal = ({ show, setShow, complaintId, onAssigned }) => {
                         </div>
 
                         {/* ── FOOTER ── */}
-                        <div className="modal-footer">
+                        <div className="modal-footer px-4 py-3 border-top">
                             <button
-                                className="btn btn-sm btn-outline-secondary"
+                                className="btn btn-outline-secondary px-4"
                                 onClick={() => setShow(false)}
                                 disabled={submitting}
                             >
                                 Cancel
                             </button>
                             <button
-                                className="btn btn-sm btn-primary"
+                                className="btn btn-primary px-4"
                                 onClick={handleAssign}
                                 disabled={submitting || !selectedStaffId || !priority}
                             >

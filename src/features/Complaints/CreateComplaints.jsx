@@ -4,12 +4,14 @@ import { Badge } from '../../components/Common/ReusableFunction';
 import "../../styles/Broadcast.css"
 import { GetSessionData } from '../../utils/SessionManagement';
 import { CreateBroadcastApi } from '../../services/BroadcastApi';
+
 import { CreatePollApi } from '../../services/PollApi';
 import {
     createComplaintsApi,
     getFlatsAndCategoryApi,
     CreateComplaintCategoryApi,
     GetComplaintCategoriesApi,
+    getComplaintsApi
 } from '../../services/ComplaintsApi';
 import { toast } from "react-toastify";
 
@@ -38,6 +40,15 @@ const CreateComplaints = ({ setActive }) => {
     const [categoryLoading, setCategoryLoading] = useState(false);
     const [categorySubmitting, setCategorySubmitting] = useState(false);
     const [categoryErrors, setCategoryErrors] = useState({});
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedId, setSelectedId] = useState(null);
+    const [selectedName, setSelectedName] = useState("");
+    const [deleting, setDeleting] = useState(false);
+    // Create Confirmation
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [recentCommunications, setRecentCommunications] = useState([]);
+const [loadingRecent, setLoadingRecent] = useState(false);
 
     const priorityTabs = [
         {
@@ -77,6 +88,7 @@ const CreateComplaints = ({ setActive }) => {
 
         //call get flats and category api
         GetFlatsAndCategory(flats.society_id)
+        GetRecentCommunications(flats.society_id);
     }
 
     //handle change for options
@@ -96,6 +108,24 @@ const CreateComplaints = ({ setActive }) => {
 
         return `${date} ${hours}:${minutes}:${seconds}`;
     };
+
+    const GetRecentCommunications = async (societyId) => {
+    try {
+        setLoadingRecent(true);
+
+        const response = await getComplaintsApi(societyId);
+
+        console.log("response =", response);
+        console.log("list =", response.list);
+
+        setRecentCommunications(response.list.slice(0, 3));
+
+    } catch (error) {
+        console.log(error);
+    } finally {
+        setLoadingRecent(false);
+    }
+};
 
     //fetch get flats and category api
     const GetFlatsAndCategory = async (societyId) => {
@@ -228,14 +258,19 @@ const CreateComplaints = ({ setActive }) => {
         label: item.name,
     }));
     //create complaint function and fetch create complaint api
-    const CreateComplaint = async () => {
+    const CreateComplaint = async (validateOnly = false) => {
         try {
             const validationErrors = validateForm();
 
             if (Object.keys(validationErrors).length > 0) {
                 setErrors(validationErrors);
+
+                if (validateOnly) return false;
+
                 return;
             }
+
+            if (validateOnly) return true;
 
             const data = await createComplaintsApi(
                 societyId,
@@ -260,6 +295,33 @@ const CreateComplaints = ({ setActive }) => {
         }
     };
 
+    const handleConfirmSubmit = async () => {
+
+        const valid = await CreateComplaint(true);
+
+        if (!valid) return;
+
+        setShowConfirmModal(true);
+    };
+
+    const confirmCreateComplaint = async () => {
+
+        try {
+
+            setSaving(true);
+
+            await CreateComplaint();
+
+            setShowConfirmModal(false);
+
+        }
+        finally {
+
+            setSaving(false);
+
+        }
+
+    };
 
     return (
         <>
@@ -397,7 +459,12 @@ const CreateComplaints = ({ setActive }) => {
                         </div>
                         {errorText && <h6 className='text-danger'>{errorText}</h6>}
                         <div className="d-flex gap-2 justify-content-end">
-                            <button className="btn-ac" onClick={CreateComplaint}>Create Complaints</button>
+                            <button
+                                className="btn-ac"
+                                onClick={handleConfirmSubmit}
+                            >
+                                Create Complaints
+                            </button>
                         </div>
 
                     </div>
@@ -406,59 +473,106 @@ const CreateComplaints = ({ setActive }) => {
                 {/* RIGHT */}
                 <div className="col-12 col-lg-4">
 
-                    {/* Notifications */}
-                    <div className="sv-card mb-3">
-                        <h6 className="bc-side-title text-start">Notifications</h6>
-
-                        {[
-                            { lbl: "Committee Meeting", time: "Today, 08:00 PM", dot: "dot-org" },
-                            { lbl: "New user registered.", time: "59 minutes ago", dot: "dot-blu" },
-                            { lbl: "Mr. Roy Sing update notice board", time: "1 hour ago", dot: "dot-org" },
-                            { lbl: "Complaint by Riya Mittal", time: "Today, 10:59 AM", dot: "dot-red" },
-                        ].map((n, i) => (
-                            <div key={i} className="bc-notify-item">
-                                <span className={`dot ${n.dot}`} />
-                                <div className="text-start">
-                                    <div className="bc-notify-label">{n.lbl}</div>
-                                    <div className="bc-notify-time">{n.time}</div>
-                                </div>
-                            </div>
-                        ))}
-
-                        <button className="btn-dk w-100 mt-2">Show all notifications</button>
-                    </div>
+                   
 
                     {/* Quick Actions */}
                     <div className="sv-card mb-3">
                         <h6 className="bc-side-title text-start">Quick Actions</h6>
 
-                        {[["➕", "New Notice", "#dbeafe"], ["📊", "Create Poll", "#ffedd5"], ["📄", "Issue NOC", "#ede9fe"]].map(([ic, lb, bg]) => (
-                            <button key={lb} className="qa mb-2">
-                                <div className="qa-ico" style={{ background: bg }}>{ic}</div>
-                                <span className="bc-qa-text">{lb}</span>
-                            </button>
-                        ))}
+                        {/* Go to Notice Board */}
+                        <button
+                            className="qa mb-2"
+                            onClick={() => setActive("noticeboard")}
+                        >
+                            <div
+                                className="qa-ico"
+                                style={{ background: "#ede9fe" }}
+                            >
+                                📋
+                            </div>
+                            <span className="bc-qa-text">
+                                Notice Board
+                            </span>
+                        </button>
+
+                        {/* Go to Polls & Voting */}
+                        <button
+                            className="qa mb-2"
+                            onClick={() => setActive("polls")}
+                        >
+                            <div
+                                className="qa-ico"
+                                style={{ background: "#ffedd5" }}
+                            >
+                                🗳️
+                            </div>
+                            <span className="bc-qa-text">
+                                Polls & Voting
+                            </span>
+                        </button>
+                         
+                        {/* Go Back */}
+                        <button
+                            className="qa"
+                            onClick={() => setActive("complaints")}
+                        >
+                            <div
+                                className="qa-ico"
+                                style={{ background: "#dbeafe" }}
+                            >
+                                📡
+                            </div>
+                            <span className="bc-qa-text">
+                                Complaint List
+                            </span>
+                        </button>
                     </div>
 
                     {/* Recent Communications */}
                     <div className="sv-card">
                         <h6 className="bc-side-title text-start">Recent Communications</h6>
 
-                        {[
-                            { title: "Water Supply Cut", time: "Today, 10:30 AM", type: "Alert", s: "Sent", sc: "green" },
-                            { title: "New Year Event", time: "Dec 31, 08:00 PM", type: "Invitation", s: "Scheduled", sc: "blue" },
-                            { title: "Parking Lot Resurfacing", time: "Edited 2h ago", type: "Announcement", s: "Draft", sc: "gray" },
-                        ].map((r, i, arr) => (
-                            <div key={i} className={`bc-rc-item ${i < arr.length - 1 ? "bordered" : ""}`}>
-                                <div className="text-start">
-                                    <div className="bc-rc-title">{r.title}</div>
-                                    <div className="bc-rc-sub">{r.time} • {r.type}</div>
-                                </div>
-                                <Badge label={r.s} c={r.sc} />
-                            </div>
-                        ))}
+                       {loadingRecent ? (
+    <div className="text-center py-3">
+        Loading...
+    </div>
+) : recentCommunications.length === 0 ? (
+    <div className="text-center text-muted py-3">
+        No recent complaints
+    </div>
+) : (
+    recentCommunications.map((item, index) => (
+        <div
+            key={item.complaint_id}
+            className={`bc-rc-item ${
+                index < recentCommunications.length - 1 ? "bordered" : ""
+            }`}
+        >
+            <div className="text-start">
+                <div className="bc-rc-title">
+                    {item.title}
+                </div>
 
-                        <button className="btn-dk w-100 mt-3">Show all communication</button>
+                <div className="bc-rc-sub">
+                    {item.created_at} • {item.category_name}
+                </div>
+            </div>
+
+            <Badge
+                label={item.status}
+                c={
+                    item.status === "Resolved"
+                        ? "green"
+                        : item.status === "Pending"
+                        ? "orange"
+                        : "blue"
+                }
+            />
+        </div>
+    ))
+)}
+
+                        <button className="btn-dk w-100 mt-3"  onClick={() => setActive("complaints")}>Show all communication</button>
                     </div>
 
                 </div>
@@ -545,6 +659,55 @@ const CreateComplaints = ({ setActive }) => {
                 </div>
             </div>
 
+            <div
+                className={`modal fade ${showConfirmModal ? "show d-block" : ""}`}
+                tabIndex="-1"
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+            >
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+
+                        <div className="modal-header">
+                            <h5 className="modal-title">
+                                Confirm Complaint Creation
+                            </h5>
+
+                            <button
+                                className="btn-close"
+                                onClick={() => setShowConfirmModal(false)}
+                                disabled={saving}
+                            />
+                        </div>
+
+                        <div className="modal-body text-start">
+
+                            Are you sure you want to create this complaint?
+
+                        </div>
+
+                        <div className="modal-footer">
+
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => setShowConfirmModal(false)}
+                                disabled={saving}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                className="btn btn-primary"
+                                onClick={confirmCreateComplaint}
+                                disabled={saving}
+                            >
+                                {saving ? "Creating..." : "Create"}
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
         </>
 
     );

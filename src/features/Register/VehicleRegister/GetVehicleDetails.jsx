@@ -247,13 +247,13 @@ const GetVehicleDetails = ({ vehicleId, setActive, onBack }) => {
                                     Allocate Parking
                                 </button>
                             )}
-                            <button
+                            {/* <button
                                 className="btn btn-sm btn-danger"
                                 onClick={handleDelete}
                                 style={{ borderRadius: 8 }}
                             >
                                 Delete
-                            </button>
+                            </button> */}
                             <button
                                 className="btn btn-sm btn-primary"
                                 onClick={() => setActive("vehicleRegister")}

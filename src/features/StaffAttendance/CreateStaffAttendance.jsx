@@ -20,6 +20,9 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
     const [errors, setErrors] = useState({})
     const [sId, setSId] = useState("")
     const [errorText, setErrorText] = useState("")
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [actionType, setActionType] = useState("");
+    const [saving, setSaving] = useState(false);
 
     const tabs = [
         { id: "Security", icon: "📢", value: "security" },
@@ -35,10 +38,10 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
     }, [])
 
     useEffect(() => {
-    if (staffId && societyId) {
-        StaffById();
-    }
-}, [staffId, societyId]);
+        if (staffId && societyId) {
+            StaffById();
+        }
+    }, [staffId, societyId]);
 
     const SessionData = async () => {
         const data = await GetSessionData()
@@ -47,8 +50,21 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
         setSocietyId(flats.society_id)
     }
 
+    const handleCreateUpdate = () => {
+        const validationErrors = validateForm();
+
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+
+        setActionType(sId ? "update" : "create");
+        setShowConfirmModal(true);
+    };
+
+
     const StaffById = async () => {
-        const data = await getStaffByIdApi(staffId,societyId)
+        const data = await getStaffByIdApi(staffId, societyId)
         console.log(data)
         setFirstName(data.first_name)
         setLastName(data.last_name)
@@ -57,7 +73,7 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
         setSalary(data.salary)
         setJoiningDate(data.joining_date)
         setSId(data.staff_id)
-        setSocietyId(flats.society_id)
+        //setSocietyId(flats.society_id)
     }
 
     const validateForm = () => {
@@ -95,11 +111,8 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
 
     const CreateStaff = async () => {
         try {
-            const validationErrors = validateForm();
-            if (Object.keys(validationErrors).length > 0) {
-                setErrors(validationErrors);
-                return;
-            }
+            setSaving(true);
+
             if (sId) {
                 await UpdateStaffApi(
                     societyId,
@@ -112,10 +125,10 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
                     salary,
                     joiningDate
                 );
+
                 toast.success("Staff updated successfully");
-                setActive("staff");
-            }
-            else {
+            } else {
+
                 await createStaffApi(
                     societyId,
                     firstName,
@@ -126,18 +139,21 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
                     salary,
                     joiningDate
                 );
+
                 toast.success("Staff created successfully");
-                setActive("staff");
             }
+
+            setShowConfirmModal(false);
+            setActive("staff");
+
         } catch (error) {
             console.log(error);
-            toast.error(error);
-            setErrorText(error
-            );
-
-
+            toast.error(error?.message || "Something went wrong");
+        } finally {
+            setSaving(false);
         }
     };
+
 
     return (
         <div className="pg row g-4 bc-wrap">
@@ -148,7 +164,7 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
                         <h5 className="bc-title">{sId ? "Update" : "Create"} Staff Attendance</h5>
                         <button
                             className="btn btn-sm btn-ac ms-2 btn-primary"
-                            onClick={() => {setSId(null); setActive("staff"); }}
+                            onClick={() => { setSId(null); setActive("staff"); }}
                         >
                             Back
                         </button>
@@ -229,7 +245,12 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
 
                     <div className="d-flex gap-2 justify-content-end">
 
-                        <button className="btn-ac" onClick={CreateStaff}>{sId ? "Update" : "Create"}</button>
+                        <button
+                            className="btn-ac"
+                            onClick={handleCreateUpdate}
+                        >
+                            {sId ? "Update" : "Create"}
+                        </button>
                     </div>
 
                 </div>
@@ -293,6 +314,73 @@ const CreateStaffAttendance = ({ setActive, staffId }) => {
                     <button className="btn-dk w-100 mt-3">Show all communication</button>
                 </div>
 
+            </div>
+            <div
+                className={`modal fade ${showConfirmModal ? "show d-block" : ""}`}
+                tabIndex="-1"
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+            >
+                <div className="modal-dialog modal-dialog-centered">
+
+                    <div className="modal-content">
+
+                        <div className="modal-header">
+
+                            <h5 className="modal-title">
+                                Confirm {actionType === "create" ? "Create" : "Update"}
+                            </h5>
+
+                            <button
+                                type="button"
+                                className="btn-close"
+                                onClick={() => setShowConfirmModal(false)}
+                                disabled={saving}
+                            />
+
+                        </div>
+
+                        <div className="modal-body">
+
+                            <p>
+                                Are you sure you want to{" "}
+                                <strong>
+                                    {actionType === "create"
+                                        ? "create this staff?"
+                                        : "update this staff?"}
+                                </strong>
+                            </p>
+
+                        </div>
+
+                        <div className="modal-footer">
+
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => setShowConfirmModal(false)}
+                                disabled={saving}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                className="btn btn-primary"
+                                onClick={CreateStaff}
+                                disabled={saving}
+                            >
+                                {saving
+                                    ? actionType === "create"
+                                        ? "Creating..."
+                                        : "Updating..."
+                                    : actionType === "create"
+                                        ? "Create"
+                                        : "Update"}
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
             </div>
         </div>
     );
