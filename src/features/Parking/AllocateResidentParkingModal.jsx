@@ -6,9 +6,9 @@ import AllotVisitorParkingModal from "./AllotVisitorParkingModal";
 const AllocateResidentParkingModal = ({ show, onClose, vehicle, societyId, userId, onSuccess }) => {
 
     const [slots, setSlots] = useState([]);
-    const [slotId, setSlotId] = useState(null);  
+    const [slotId, setSlotId] = useState(null);
     const [remarks, setRemarks] = useState("");
-    const [setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
 
     /* fetch available slots when modal opens */
@@ -48,7 +48,7 @@ const AllocateResidentParkingModal = ({ show, onClose, vehicle, societyId, userI
             societyId,
             slotId: slotId.value,
             flat_id: vehicle?.flat_id,
-            user_id: vehicle?.user_id  || userId,
+            user_id: vehicle?.user_id || userId,
             allocated_by: userId,
             remarks,
         });

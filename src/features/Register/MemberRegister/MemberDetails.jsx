@@ -62,6 +62,7 @@ const MemberDetails = ({
   const [vehicles, setVehicles] = useState([]);
   const [parkingSlots, setParkingSlots] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
+  const [showMessage, setShowMessage] = useState(false);
 
   const addMemberType = [
     { id: "Owner", value: "owner" },
@@ -452,12 +453,12 @@ const MemberDetails = ({
                 History
               </button>
 
-              <button className="btn btn-sm btn-ad grey-btn">
-                {/* <i className="bi bi-chat-left-text me-1"></i> */}
+              <button
+                className="btn btn-sm btn-ad grey-btn"
+              >
                 <BiMessage className="me-1" size={16} />
-                Message
+              Message
               </button>
-
               <button
                 className="btn btn-sm btn-ac btn-primary"
                 onClick={async () => {
@@ -507,7 +508,17 @@ const MemberDetails = ({
 
                   <div className="col-md-6">
                     <small className="text-muted d-block">OCCUPATION</small>
-                    <div className="fw-semibold">-</div>
+                    <div className="fw-semibold">
+                      {occupancyType === "owner"
+                        ? "Owner"
+                        : occupancyType === "tenant"
+                          ? "Tenant"
+                          : occupancyType === "owner_relative"
+                            ? "Owner Family"
+                            : occupancyType === "tenant_relative"
+                              ? "Tenant Family"
+                              : "-"}
+                    </div>
                   </div>
 
                   <div className="col-md-6">
