@@ -92,10 +92,11 @@ export const createParkingRuleApi = async (
 };
 
 // Get a single parking rule by id
-export const getParkingRuleApi = async (ruleId) => {
+export const getParkingRuleApi = async (societyId, ruleId) => {
     const url = UrlData + "parking_violation/GetParkingRule";
 
     const data = {
+        society_id: societyId,
         rule_id: ruleId,
     };
 
@@ -114,6 +115,7 @@ export const getParkingRuleApi = async (ruleId) => {
             throw errors;
         });
 };
+
 // Toggle rule active/inactive — uses the same UpdateParkingRule endpoint
 export const updateParkingRuleStatusApi = async (societyId, ruleId, isActive) => {
     const url = UrlData + 'parking_violation/UpdateParkingRule';
@@ -136,9 +138,15 @@ export const updateParkingRuleStatusApi = async (societyId, ruleId, isActive) =>
         throw errors;
     });
 }
-// Update a parking rule's penalty / description / status
+
+// Update a parking rule's title / description / applicability / violation type / penalty / status
 export const updateParkingRuleApi = async (
+    societyId,
     ruleId,
+    ruleTitle,
+    ruleDescription,
+    appliesTo,
+    violationType,
     penaltyAmount,
     penaltyDescription,
     isActive,
@@ -146,7 +154,12 @@ export const updateParkingRuleApi = async (
     const url = UrlData + "parking_violation/UpdateParkingRule";
 
     const data = {
+        society_id: societyId,
         rule_id: ruleId,
+        rule_title: ruleTitle,
+        rule_description: ruleDescription,
+        applies_to: appliesTo,
+        violation_type: violationType,
         penalty_amount: penaltyAmount,
         penalty_description: penaltyDescription,
         is_active: isActive,
@@ -169,10 +182,11 @@ export const updateParkingRuleApi = async (
 };
 
 // Activate / deactivate a parking rule (status toggle only)
-export const toggleParkingRuleStatusApi = async (ruleId, isActive) => {
+export const toggleParkingRuleStatusApi = async (societyId, ruleId, isActive) => {
     const url = UrlData + "parking_violation/UpdateParkingRule";
 
     const data = {
+        society_id: societyId,
         rule_id: ruleId,
         is_active: isActive,
     };
@@ -194,10 +208,11 @@ export const toggleParkingRuleStatusApi = async (ruleId, isActive) => {
 };
 
 // Delete a parking rule
-export const deleteParkingRuleApi = async (ruleId) => {
+export const deleteParkingRuleApi = async (societyId, ruleId) => {
     const url = UrlData + "parking_violation/DeleteParkingRule";
 
     const data = {
+        society_id: societyId,
         rule_id: ruleId,
     };
 

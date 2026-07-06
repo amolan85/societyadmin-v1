@@ -6,7 +6,10 @@ import { toast } from 'react-toastify';
 import {
   listParkingRulesApi,
   createParkingRuleApi,
-  updateParkingRuleStatusApi, // add this to RulesApi.js — snippet shared separately
+  getParkingRuleApi,
+  updateParkingRuleStatusApi,
+  updateParkingRuleApi,
+  deleteParkingRuleApi,
 } from '../../services/RulesApi';
 
 const APPLIES_TO_OPTIONS = ["all", "owner", "tenant", "visitor"];
@@ -42,6 +45,16 @@ const Rules = () => {
   const [penaltyDescription, setPenaltyDescription] = useState("");
   const [isActive, setIsActive] = useState(true);
 
+  // set when the modal is in "edit" mode (holds the rule id being edited)
+  const [editingRuleId, setEditingRuleId] = useState(null);
+  const [editLoadingId, setEditLoadingId] = useState(null); // rule id currently being fetched for edit
+
+  // rule pending a status-change confirmation (popup) — used for both activate & deactivate
+  const [confirmStatusRule, setConfirmStatusRule] = useState(null);
+
+  // id of the rule whose ⋮ actions dropdown is currently open
+  const [openMenuId, setOpenMenuId] = useState(null);
+
   useEffect(() => {
     SessionData();
   }, []);
@@ -76,6 +89,18 @@ const Rules = () => {
     getRules();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [societyId, page]);
+
+  // close the ⋮ actions dropdown when clicking outside of it
+  useEffect(() => {
+    if (!openMenuId) return;
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".rl-action-menu-wrap")) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMenuId]);
 
   // reset to page 1 and refetch whenever a filter changes (debounced for search)
   useEffect(() => {
@@ -150,6 +175,7 @@ const Rules = () => {
     setPenaltyDescription("");
     setIsActive(true);
     setErrors({});
+    setEditingRuleId(null);
   };
 
   const openAddModal = () => {
@@ -177,21 +203,39 @@ const Rules = () => {
       return;
     }
 
+    // NOTE: updateParkingRuleApi now sends title/description/applies_to/violation_type/
+    // penalty/status together — make sure the same fields are added to the
+    // UpdateParkingRule stored procedure on the backend, or they'll be silently ignored.
     try {
-      await createParkingRuleApi(
-        societyId,
-        ruleTitle,
-        ruleDescription,
-        appliesTo,
-        "society_policy",
-        "active",
-        violationType,
-        penaltyAmount,
-        penaltyDescription,
-        isActive,
-        userId,
-      );
-      toast.success("Rule created successfully!");
+      if (editingRuleId) {
+        await updateParkingRuleApi(
+          societyId,
+          editingRuleId,
+          ruleTitle,
+          ruleDescription,
+          appliesTo,
+          violationType,
+          penaltyAmount,
+          penaltyDescription,
+          isActive,
+        );
+        toast.success("Rule updated successfully!");
+      } else {
+        await createParkingRuleApi(
+          societyId,
+          ruleTitle,
+          ruleDescription,
+          appliesTo,
+          "society_policy",
+          "active",
+          violationType,
+          penaltyAmount,
+          penaltyDescription,
+          isActive,
+          userId,
+        );
+        toast.success("Rule created successfully!");
+      }
       setShow(false);
       getRules();
     } catch (error) {
@@ -202,7 +246,12 @@ const Rules = () => {
 
   // ---- toggle a rule's active/inactive status ----
   // Hits POST /api/parking_violation/UpdateParkingRule with { rule_id, is_active }
-  const handleToggleStatus = async (rule) => {
+  // Both activating and deactivating ask for confirmation first (popup).
+  const requestToggleStatus = (rule) => {
+    setConfirmStatusRule(rule);
+  };
+
+  const performToggleStatus = async (rule) => {
     const nextStatus = !rule.is_active;
     setTogglingId(rule.id);
 
@@ -226,6 +275,39 @@ const Rules = () => {
     }
   };
 
+  const confirmStatusChange = () => {
+    if (confirmStatusRule) {
+      performToggleStatus(confirmStatusRule);
+    }
+    setConfirmStatusRule(null);
+  };
+
+  // ---- fetch full rule details and open the modal in edit mode ----
+  // Hits POST /api/parking_violation/GetParkingRule with { rule_id }
+  const handleEditRule = async (rule) => {
+    setEditLoadingId(rule.id);
+    try {
+      const data = await getParkingRuleApi(societyId, rule.id);
+      const r = data || rule; // fallback to the row data if API returns nothing
+
+      setEditingRuleId(rule.id);
+      setRuleTitle(r.rule_title || "");
+      setRuleDescription(r.rule_description || "");
+      setAppliesTo(r.applies_to || "all");
+      setViolationType(r.violation_type || "");
+      setPenaltyAmount(r.penalty_amount || "");
+      setPenaltyDescription(r.penalty_description || "");
+      setIsActive(!!r.is_active);
+      setErrors({});
+      setShow(true);
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    } finally {
+      setEditLoadingId(null);
+    }
+  };
+
   // Infer BY-LAW vs FINE badge for the TYPE column.
   // Adjust this to read an actual `rule_type` field from the API once available.
   const getRuleTypeLabel = (r) => (r.violation_type ? "FINE" : "BY-LAW");
@@ -243,7 +325,7 @@ const Rules = () => {
     <div className="pg row g-4 rl-wrap">
 
       {/* LEFT */}
-      <div className="col-12 col-lg-8">
+      <div className="col-12 col-lg-12">
 
         {/* Stats */}
         <div className="row g-3 mb-4">
@@ -317,6 +399,9 @@ const Rules = () => {
             <h6 className="rl-title">Active Rules & By-laws</h6>
 
             <div className="d-flex gap-2">
+              <button className="btn-ac px-3" onClick={openAddModal}>
+                + Create Rule
+              </button>
               <button className="btn-ol rl-btn" onClick={() => setShowFilters((s) => !s)}>
                 ▾ Filter
               </button>
@@ -382,19 +467,20 @@ const Rules = () => {
                   <th>PENALTY</th>
                   <th>TYPE</th>
                   <th>STATUS</th>
+                  <th>ACTIONS</th>
                 </tr>
               </thead>
 
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-4 text-muted">
+                    <td colSpan={6} className="text-center py-4 text-muted">
                       Loading rules...
                     </td>
                   </tr>
                 ) : allRules.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-4 text-muted">
+                    <td colSpan={6} className="text-center py-4 text-muted">
                       No rules found
                     </td>
                   </tr>
@@ -423,25 +509,99 @@ const Rules = () => {
                       </td>
 
                       <td>
-                        <button
-                          type="button"
-                          className="rl-status-toggle"
-                          disabled={togglingId === r.id}
-                          onClick={() => handleToggleStatus(r)}
-                          style={{
-                            border: "none",
-                            background: "none",
-                            padding: 0,
-                            cursor: togglingId === r.id ? "wait" : "pointer",
-                            opacity: togglingId === r.id ? 0.6 : 1,
-                          }}
-                          title="Click to toggle active/inactive"
-                        >
-                          <Badge
-                            label={r.is_active ? "ACTIVE" : "INACTIVE"}
-                            c={r.is_active ? "blue" : "gray"}
-                          />
-                        </button>
+                        <Badge
+                          label={r.is_active ? "ACTIVE" : "INACTIVE"}
+                          c={r.is_active ? "blue" : "gray"}
+                        />
+                      </td>
+
+                      <td style={{ position: "relative" }}>
+                        <div className="rl-action-menu-wrap" style={{ position: "relative", display: "inline-block" }}>
+                          <button
+                            type="button"
+                            onClick={() => setOpenMenuId(openMenuId === r.id ? null : r.id)}
+                            style={{
+                              border: "none",
+                              background: "none",
+                              cursor: "pointer",
+                              fontSize: 18,
+                              lineHeight: 1,
+                              color: "#4B5563",
+                              padding: "4px 8px",
+                              borderRadius: 6,
+                            }}
+                            title="Actions"
+                          >
+                            ⋮
+                          </button>
+
+                          {openMenuId === r.id && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "100%",
+                                right: 0,
+                                marginTop: 4,
+                                background: "#fff",
+                                border: "1px solid #E5E7EB",
+                                borderRadius: 8,
+                                boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+                                minWidth: 150,
+                                zIndex: 20,
+                                overflow: "hidden",
+                                textAlign: "left",
+                              }}
+                            >
+                              <button
+                                type="button"
+                                disabled={editLoadingId === r.id}
+                                onClick={() => {
+                                  handleEditRule(r);
+                                  setOpenMenuId(null);
+                                }}
+                                style={{
+                                  display: "block",
+                                  width: "100%",
+                                  border: "none",
+                                  background: "none",
+                                  padding: "10px 14px",
+                                  fontSize: 13.5,
+                                  color: "#1B3358",
+                                  textAlign: "left",
+                                  cursor: editLoadingId === r.id ? "wait" : "pointer",
+                                  opacity: editLoadingId === r.id ? 0.6 : 1,
+                                }}
+                              >
+                                {editLoadingId === r.id ? "Loading..." : "Edit Rule"}
+                              </button>
+
+                              <div style={{ borderTop: "1px solid #F0F1F4" }} />
+
+                              <button
+                                type="button"
+                                disabled={togglingId === r.id}
+                                onClick={() => {
+                                  requestToggleStatus(r);
+                                  setOpenMenuId(null);
+                                }}
+                                style={{
+                                  display: "block",
+                                  width: "100%",
+                                  border: "none",
+                                  background: "none",
+                                  padding: "10px 14px",
+                                  fontSize: 13.5,
+                                  color: r.is_active ? "#DC2626" : "#16A34A",
+                                  textAlign: "left",
+                                  cursor: togglingId === r.id ? "wait" : "pointer",
+                                  opacity: togglingId === r.id ? 0.6 : 1,
+                                }}
+                              >
+                                {r.is_active ? "Deactivate Rule" : "Activate Rule"}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </td>
 
                     </tr>
@@ -516,63 +676,7 @@ const Rules = () => {
         </div>
       </div>
 
-      {/* RIGHT */}
-      <div className="col-12 col-lg-4">
-
-        {/* Actions */}
-        <div className="sv-card mb-3">
-          <h6 className="rl-side-title text-start">Management Actions</h6>
-
-          {[
-            ["➕", "#dbeafe", "Create By-law", "Draft new regulation", openAddModal],
-            ["🗺", "#dcfce7", "Attach to Block/Wing", "Assign rules to areas", null],
-            ["⚠️", "#fee2e2", "Define Penalties", "Set fines & consequences", null]
-          ].map(([ic, bg, lb, sub, onClickFn]) => (
-            <button key={lb} className="qa mb-2" onClick={onClickFn || undefined}>
-
-              <div className="qa-ico rl-qa-ico" style={{ background: bg }}>
-                {ic}
-              </div>
-
-              <div className="rl-qa-text">
-                <div className="rl-qa-title">{lb}</div>
-                <div className="rl-qa-sub">{sub}</div>
-              </div>
-
-              <span className="rl-arrow">›</span>
-
-            </button>
-          ))}
-        </div>
-
-        {/* Violations */}
-        <div className="sv-card">
-          <div className="d-flex justify-content-between mb-3">
-            <h6 className="rl-side-title">Recent Violations</h6>
-            <a href="#!" className="rl-link">View All</a>
-          </div>
-
-          {[
-            ["dot-red", "Noise Complaint", "Unit 402 • 2 hours ago"],
-            ["dot-org", "Improper Parking", "Guest Lot • 5 hours ago"],
-            ["dot-grn", "Trash Disposal", "Resolved • Yesterday"]
-          ].map(([d, l, s]) => (
-            <div key={l} className="d-flex align-items-center gap-2 mb-2 text-start">
-
-              <span className={`dot ${d}`} />
-
-              <div>
-                <div className="rl-violation-title">{l}</div>
-                <div className="rl-sub">{s}</div>
-              </div>
-
-            </div>
-          ))}
-        </div>
-
-      </div>
-
-      {/* CREATE BY-LAW MODAL */}
+      {/* CREATE / EDIT RULE MODAL */}
       {show && (
         <>
           <div className="modal-backdrop fade show"></div>
@@ -581,7 +685,9 @@ const Rules = () => {
             <div className="modal-dialog modal-md">
               <div className="modal-content">
                 <div className="modal-header bg-light">
-                  <h5 className="modal-title fw-semibold">Create By-law</h5>
+                  <h5 className="modal-title fw-semibold">
+                    {editingRuleId ? "Edit By-law" : "Create By-law"}
+                  </h5>
 
                   <button
                     type="button"
@@ -656,9 +762,9 @@ const Rules = () => {
                         onChange={(e) => setPenaltyAmount(e.target.value)}
                       />
                     </div>
-                     
+
                   </div>
- 
+
                   <div className="mb-1">
                     <label className="sv-lb">Penalty Description</label>
                     <textarea
@@ -680,7 +786,57 @@ const Rules = () => {
                   </button>
 
                   <button className="btn-ac px-4" onClick={handleSubmit}>
-                    Add Rule
+                    {editingRuleId ? "Save Changes" : "Add Rule"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ACTIVATE / DEACTIVATE CONFIRMATION POPUP */}
+      {confirmStatusRule && (
+        <>
+          <div className="modal-backdrop fade show"></div>
+
+          <div className="modal show d-block">
+            <div className="modal-dialog modal-sm modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header bg-light">
+                  <h6 className="modal-title fw-semibold mb-0">
+                    {confirmStatusRule.is_active ? "Deactivate Rule?" : "Activate Rule?"}
+                  </h6>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setConfirmStatusRule(null)}
+                  ></button>
+                </div>
+
+                <div className="modal-body text-start">
+                  <p className="mb-0">
+                    Are you sure you want to {confirmStatusRule.is_active ? "deactivate" : "activate"}{" "}
+                    <strong>{confirmStatusRule.rule_title}</strong>?{" "}
+                    {confirmStatusRule.is_active
+                      ? "It will no longer apply until reactivated."
+                      : "It will start applying immediately."}
+                  </p>
+                </div>
+
+                <div className="modal-footer bg-light">
+                  <button
+                    className="btn btn-sm btn-ad grey-btn"
+                    onClick={() => setConfirmStatusRule(null)}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    className={`btn btn-sm ${confirmStatusRule.is_active ? "btn-danger" : "btn-success"}`}
+                    onClick={confirmStatusChange}
+                  >
+                    {confirmStatusRule.is_active ? "Yes, Deactivate" : "Yes, Activate"}
                   </button>
                 </div>
               </div>
