@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Select from "react-select";
 import { FiHome, FiUser } from "react-icons/fi";
 
@@ -43,8 +44,11 @@ const UnitModal = ({
     setMobileNo,
     handleMobileChange,
     handleSubmit,
+    confirmUpdate,
 }) => {
     if (!show) return null;
+
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     return (
         <>
@@ -98,8 +102,8 @@ const UnitModal = ({
 
                                             <input
                                                 className={`sv-in ${errors.flatNo
-                                                        ? "error-input"
-                                                        : ""
+                                                    ? "error-input"
+                                                    : ""
                                                     }`}
                                                 placeholder="e.g., A-101"
                                                 value={flatNo}
@@ -197,8 +201,8 @@ const UnitModal = ({
 
                                             <input
                                                 className={`sv-in ${errors.unitType
-                                                        ? "error-input"
-                                                        : ""
+                                                    ? "error-input"
+                                                    : ""
                                                     }`}
                                                 placeholder="Enter Unit Type"
                                                 value={unitType}
@@ -228,8 +232,8 @@ const UnitModal = ({
 
                                             <input
                                                 className={`sv-in ${errors.area
-                                                        ? "error-input"
-                                                        : ""
+                                                    ? "error-input"
+                                                    : ""
                                                     }`}
                                                 placeholder="e.g., 1200"
                                                 value={area}
@@ -257,8 +261,8 @@ const UnitModal = ({
 
                                             <select
                                                 className={`form-select form-control ${errors.currentStatus
-                                                        ? "error-input"
-                                                        : ""
+                                                    ? "error-input"
+                                                    : ""
                                                     }`}
                                                 value={currentStatus}
                                                 onChange={(e) =>
@@ -337,8 +341,8 @@ const UnitModal = ({
 
                                                     <input
                                                         className={`sv-in ${errors.fullName
-                                                                ? "error-input"
-                                                                : ""
+                                                            ? "error-input"
+                                                            : ""
                                                             }`}
                                                         placeholder="Enter Owner Name"
                                                         value={fullName}
@@ -368,8 +372,8 @@ const UnitModal = ({
 
                                                     <input
                                                         className={`sv-in ${errors.emailId
-                                                                ? "error-input"
-                                                                : ""
+                                                            ? "error-input"
+                                                            : ""
                                                             }`}
                                                         placeholder="name@example.com"
                                                         value={emailId}
@@ -396,8 +400,8 @@ const UnitModal = ({
                                                     <div className="d-flex">
                                                         <span
                                                             className={`am-code ${errors.mobileNo
-                                                                    ? "error-input"
-                                                                    : ""
+                                                                ? "error-input"
+                                                                : ""
                                                                 }`}
                                                         >
                                                             +91
@@ -405,8 +409,8 @@ const UnitModal = ({
 
                                                         <input
                                                             className={`sv-in am-phone ${errors.mobileNo
-                                                                    ? "error-input"
-                                                                    : ""
+                                                                ? "error-input"
+                                                                : ""
                                                                 }`}
                                                             maxLength={10}
                                                             placeholder="9876543210"
@@ -439,7 +443,13 @@ const UnitModal = ({
 
                                 <button
                                     className="btn-ac px-4"
-                                    onClick={handleSubmit}
+                                    onClick={() => {
+                                        if (mode === "edit") {
+                                            setShowConfirmModal(true);
+                                        } else {
+                                            handleSubmit();
+                                        }
+                                    }}
                                 >
                                     {isAssigningOwner
                                         ? "Assign Owner"
@@ -451,6 +461,61 @@ const UnitModal = ({
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            {/* Update Confirmation Modal */}
+            <div
+                className={`modal fade ${showConfirmModal ? "show d-block" : ""
+                    }`}
+                tabIndex="-1"
+                style={{
+                    backgroundColor: "rgba(0,0,0,0.5)"
+                }}
+            >
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+
+                        <div className="modal-header">
+                            <h5 className="modal-title">
+                                Confirm Update
+                            </h5>
+
+                            <button
+                                className="btn-close"
+                                onClick={() => setShowConfirmModal(false)}
+                            />
+                        </div>
+
+                        <div className="modal-body text-center">
+ 
+                            <p className="text-muted">
+                                Are you sure you want to update this unit?
+                            </p>
+
+                        </div>
+
+                        <div className="modal-footer">
+
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => setShowConfirmModal(false)}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => {
+                                    setShowConfirmModal(false);
+                                    handleSubmit();
+                                }}
+                            >
+                                Yes, Update
+                            </button>
+
+                        </div>
+
                     </div>
                 </div>
             </div>

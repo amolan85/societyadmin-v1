@@ -153,10 +153,11 @@ export const getStaffByIdApi = async (staffId,societyId) => {
     });
 }
 
-export const deleteStaffApi = async (staffId) => {
+export const deleteStaffApi = async (staffId,societyId) => {
     const url = UrlData + 'staff/DeleteStaff';
     const data = {
         staff_id: staffId,
+        society_id:societyId,
     }
     return await apiClient({
         method: 'post',

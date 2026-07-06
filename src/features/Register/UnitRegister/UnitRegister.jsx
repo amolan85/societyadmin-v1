@@ -54,6 +54,10 @@ const UnitRegister = ({ setActive, setFlatId }) => {
   const [selectedRange, setSelectedRange] = useState("all");
   const [tableLoading, setTableLoading] = useState(true);
   const [isAssigningOwner, setIsAssigningOwner] = useState(false); // true when modal opened via "Assign Owner"
+// Delete Confirmation Modal
+const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [deleteUnitId, setDeleteUnitId] = useState(null);
+const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     SessionData();
@@ -348,20 +352,31 @@ const UnitRegister = ({ setActive, setFlatId }) => {
   //     toast.error(error);
   //   }
   // };
-  const handleDelete = async (unitId) => {
-    const confirmed = window.confirm("Are you sure you want to delete this unit?");
+  const handleDelete = (unitId) => {
+  setDeleteUnitId(unitId);
+  setShowDeleteModal(true);
+};
 
-    if (!confirmed) return;
+const confirmDelete = async () => {
+  try {
+    setDeleteLoading(true);
 
-    try {
-      await deleteUnitApi(unitId);
-      toast.success("Unit deleted successfully");
-      getAllUnits(societyId, page);
-    } catch (error) {
-      console.error("Delete Error:", error);
-      toast.error(error);
-    }
-  };
+    await deleteUnitApi(deleteUnitId,societyId);
+
+    toast.success("Unit deleted successfully");
+
+    setShowDeleteModal(false);
+    setDeleteUnitId(null);
+
+    await getAllUnits(societyId, page);
+
+  } catch (error) {
+    console.log(error);
+    toast.error("Unable to delete unit");
+  } finally {
+    setDeleteLoading(false);
+  }
+};
   const exportData =
     selectedRange === "all"
       ? allUnitsWithoutPagination
@@ -984,6 +999,65 @@ const UnitRegister = ({ setActive, setFlatId }) => {
           </div>
         </>
       )}
+      {/* Delete Confirmation Modal */}
+<div
+  className={`modal fade ${showDeleteModal ? "show d-block" : ""}`}
+  tabIndex="-1"
+  style={{
+    backgroundColor: "rgba(0,0,0,0.5)"
+  }}
+>
+  <div className="modal-dialog modal-dialog-centered">
+    <div className="modal-content">
+
+      <div className="modal-header">
+        <h5 className="modal-title">
+          Delete Unit
+        </h5>
+
+        <button
+          className="btn-close"
+          onClick={() => {
+            setShowDeleteModal(false);
+            setDeleteUnitId(null);
+          }}
+        />
+      </div>
+
+      <div className="modal-body text-center">
+
+        <p className="text-muted">
+        Are you sure you want to delete?
+         
+         </p>
+
+      </div>
+
+      <div className="modal-footer">
+
+        <button
+          className="btn btn-secondary"
+          onClick={() => {
+            setShowDeleteModal(false);
+            setDeleteUnitId(null);
+          }}
+        >
+          Cancel
+        </button>
+
+        <button
+          className="btn btn-danger"
+          onClick={confirmDelete}
+          disabled={deleteLoading}
+        >
+          {deleteLoading ? "Deleting..." : "Delete"}
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+</div>
     </>
   );
 };

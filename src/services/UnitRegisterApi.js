@@ -234,10 +234,11 @@ export const getAllMembersWithoutPaginationApi = async (societyId, search) => {
     });
 }
 
-export const deleteUnitApi = async (unitId) => {
+export const deleteUnitApi = async (unitId,societyId) => {
     const url = UrlData + 'flat/DeleteFlat';
     const data = {
         flat_id: unitId,
+        society_id:societyId
 
     }
     return await apiClient({

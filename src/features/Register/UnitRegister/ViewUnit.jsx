@@ -285,10 +285,10 @@ const ViewUnit = ({ setActive, flatId, setMemberId }) => {
             </div>
 
             <div className="d-flex gap-2 mt-3 mt-lg-0">
-              <button className="btn btn-sm btn-ad grey-btn">
+              {/* <button className="btn btn-sm btn-ad grey-btn">
                 <FiMessageSquare className="me-1" size={16} />
                 Message
-              </button>
+              </button> */}
 
               <button
                 className="btn btn-sm btn-ac btn-primary"
