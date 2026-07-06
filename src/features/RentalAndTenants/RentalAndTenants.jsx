@@ -75,6 +75,9 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
     const [showFilterRentals, setShowFilterRentals] = useState(false)
     const [showUpload, setShowUpload] = useState(false)
     const [showApprove, setShowApprove] = useState(false)
+    const [showEditConfirm, setShowEditConfirm] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleteTenantId, setDeleteTenantId] = useState(null);
 
     const filterData = {
         blocks: [
@@ -189,16 +192,14 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
 
     const getAllBlocks = async (societyId) => {
         try {
-            const data = await getAllBlocksApi(societyId);
+            const res = await getAllBlocksApi(societyId);
 
-            const blockOptions = data.blocks.map((item) => ({
+            const blockOptions = res.data.blocks.map((item) => ({
                 value: item.block,
                 label: item.block,
             }));
 
             setAllBlocks(blockOptions);
-
-
         } catch (error) {
             console.error("Error fetching blocks:", error);
         }
@@ -214,18 +215,20 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
 
     const getAllFlats = async (societyId, block) => {
         try {
-            const data = await getAllFlatsApi(societyId, block);
+            const res = await getAllFlatsApi(societyId, block);
+            console.log("RAW FLATS RESPONSE:", res); // 👈 check shape here
 
-            console.log(data.flats, "All flats");
+            const flatsArray = res?.data?.flats ?? res?.flats ?? [];
 
             setAllFlats(
-                data.flats.map((item) => ({
+                flatsArray.map((item) => ({
                     value: item.flat_number,
                     label: item.flat_number,
                 }))
             );
         } catch (error) {
             console.error("Error fetching flats:", error);
+            setAllFlats([]);
         }
     };
 
@@ -402,67 +405,89 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
         }
     };
 
+
+    const confirmEdit = async () => {
+        setShowEditConfirm(false);
+        await handleSubmit();
+    };
+    const toInputDate = (dateStr) => {
+        if (!dateStr) return "";
+        const d = new Date(dateStr);
+        if (isNaN(d)) return "";
+        return d.toISOString().split("T")[0]; // "YYYY-MM-DD"
+    };
+
+
     const GetTenantById = async (tenantId) => {
         try {
             const data = await getMembersByIdApi(societyId, tenantId);
+
+            const flatInfo = data.flats?.[0] || {};
+            const occupancy = flatInfo.occupancy || {};
+
             setMId(tenantId);
             setFirstName(data.first_name);
             setLastName(data.last_name);
             setEmailId(data.email);
             setMobileNo(data.mobile);
+
             setBlocks({
-                value: data.block,
-                label: data.block,
+                value: flatInfo.block,
+                label: flatInfo.block,
             });
+
+            if (flatInfo.block) {
+                await getAllFlats(societyId, flatInfo.block);
+            }
+
             setFlat({
-                value: data.flat_number,
-                label: data.flat_number,
+                value: flatInfo.flat_number,
+                label: flatInfo.flat_number,
             });
             setFlatId({
-                value: data.flat_id,
-                label: data.flat_number,
+                value: flatInfo.flat_id,
+                label: flatInfo.flat_number,
             });
-            setFamilyType(data.occupancy_type);
-            setMemType(
-                data.occupancy_type === "owner_relative"
-                    ? "familyMember"
-                    : data.occupancy_type === "tenant_relative"
-                        ? "familyMember"
-                        : data.occupancy_type,
-            );
-            setStartDate(data.start_date);
-            setEndDate(data.end_date);
 
-            data.documents?.forEach((doc) => {
+            // ✅ occupancy_type drives memType
+            setMemType(occupancy.occupancy_type || "tenant");
+
+            // ✅ correct date fields
+            setStartDate(toInputDate(occupancy.start_date));
+            setEndDate(toInputDate(occupancy.end_date));
+
+            // ✅ fallback: if no documents[] entries, but agreement_doc_url exists, use it
+            setRentAgreement(occupancy.agreement_doc_url || "");
+            setPoliceNoc("");
+            setIdProof("");
+            setFamilyPhoto("");
+            setAgreement("");
+            setOwnershipDocuments("");
+            setMaintenanceReceipt("");
+
+            flatInfo.documents?.forEach((doc) => {
                 switch (doc.document_type) {
                     case "id_proof":
                         setIdProof(doc.url);
                         break;
-
                     case "family_photo":
                         setFamilyPhoto(doc.url);
                         break;
-
                     case "agreement":
                         setAgreement(doc.url);
                         break;
-
                     case "ownership":
                         setOwnershipDocuments(doc.url);
                         break;
-
                     case "maintenance_receipt":
                         setMaintenanceReceipt(doc.url);
                         break;
-
                     case "rent_agreement":
                         setRentAgreement(doc.url);
                         break;
-
                     case "police_noc":
                         setPoliceNoc(doc.url);
                         break;
-
                     default:
                         break;
                 }
@@ -472,21 +497,22 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
         }
     };
 
-    const handleDelete = async (tenantId) => {
-        const confirmed = window.confirm("Are you sure you want to delete this tenant?");
-
-        if (!confirmed) return;
-
+    const handleDelete = async () => {
         try {
-            const data = await deleteMembersApi(tenantId);
-            console.log(data, "Delete response");
+            await deleteMembersApi(deleteTenantId, societyId);
+
             toast.success("Tenant deleted successfully");
+
+            setShowDeleteConfirm(false);
+            setDeleteTenantId(null);
+
             getTenantMembers(societyId, page);
         } catch (error) {
             console.error("Delete Error:", error);
             toast.error(error);
         }
     };
+
 
     const ApproveFlat = async (approveStatus) => {
         try {
@@ -550,7 +576,8 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
         setEmailId("");
         setMobileNo("");
         setBlocks(null);
-        setFlat("");
+        setFlat(null);       // was setFlat("")
+        setFlatId(null);     // add this — it was never reset
         setStartDate("");
         setEndDate("");
         setFamilyType("");
@@ -564,7 +591,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
         setNominationDetails("");
         setErrors({});
         setErrorText("");
-        setMId("")
+        setMId("");
     };
 
     const handleSearch = async (e) => {
@@ -697,7 +724,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                 })
                 : allTenentsMember.filter(
                     (item) =>
-                        item.occupant_status  === mangementTypeTab ||
+                        item.occupant_status === mangementTypeTab ||
                         item.document === mangementTypeTab
                 );
     return (
@@ -1029,7 +1056,10 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                                                     <li>
                                                         <button
                                                             className="dropdown-item member-action-item member-action-delete"
-                                                            onClick={() => handleDelete(item.user_id)}
+                                                            onClick={() => {
+                                                                setDeleteTenantId(item.user_id);
+                                                                setShowDeleteConfirm(true);
+                                                            }}
                                                         >
                                                             Delete tenant
                                                         </button>
@@ -1096,6 +1126,10 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                 errors={errors}
                 errorText={errorText}
                 handleSubmit={handleSubmit}
+                showEditConfirm={showEditConfirm}
+                setShowEditConfirm={setShowEditConfirm}
+                confirmEdit={confirmEdit}
+                mode={mode}
             />
 
             <FilterRentalsModal
@@ -1174,6 +1208,59 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                 totalRecords={allExportTenent.length}
                 currentRecords={allTenentsMember.length}
             />
+
+            {showDeleteConfirm && (
+                <>
+                    <div
+                        className="modal fade show d-block"
+                        style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+                    >
+                        <div className="modal-dialog modal-dialog-centered">
+                            <div className="modal-content">
+
+                                <div className="modal-header">
+                                    <h5 className="modal-title">
+                                        Delete Tenant
+                                    </h5>
+                                </div>
+
+                                <div className="modal-body text-center">
+
+                                    <h6>
+                                        Are you sure you want to delete this tenant?
+                                    </h6>
+ 
+
+                                </div>
+
+                                <div className="modal-footer">
+
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() => {
+                                            setShowDeleteConfirm(false);
+                                            setDeleteTenantId(null);
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        className="btn btn-danger"
+                                        onClick={handleDelete}
+                                    >
+                                        Delete
+                                    </button>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="modal-backdrop fade show"></div>
+                </>
+            )}
         </>
     );
 };

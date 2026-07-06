@@ -49,8 +49,12 @@ const RegisterTenantsModal = ({
     handleBlockChange = () => { },
     handleSubmit = () => { },
     mode,
+    showEditConfirm,
+    setShowEditConfirm,
+    confirmEdit,
 }) => {
     if (!show) return null;
+
 
     return (
         <>
@@ -364,20 +368,82 @@ const RegisterTenantsModal = ({
                         <div className="modal-footer bg-light">
                             <button
                                 type="button"
-                                className="btn btn-ad grey-btn"  onClick={() => {
+                                className="btn btn-ad grey-btn" onClick={() => {
                                     setShow(false);
                                     resetForm();
-                                }}  
+                                }}
                             >
                                 Cancel
                             </button>
-                            <button className="btn-ac px-4" onClick={handleSubmit}>
-                                Submit Registration
-                            </button>
+                            <button
+    className="btn-ac px-4"
+    onClick={() => {
+        if (mode === "edit") {
+            setShowEditConfirm(true);
+        } else {
+            handleSubmit();
+        }
+    }}
+>
+    {mode === "edit" ? "Update Tenant" : "Submit Registration"}
+</button>
                         </div>
                     </div>
                 </div>
             </div>
+            {showEditConfirm && (
+    <>
+        <div
+            className="modal-backdrop fade show"
+            style={{ zIndex: 1055 }}
+        ></div>
+
+        <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{ zIndex: 1060 }}
+        >
+            <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content">
+
+                    <div className="modal-header">
+                        <h5 className="modal-title">
+                            Confirm Update
+                        </h5>
+                    </div>
+
+                    <div className="modal-body text-center">
+
+                        <h5>
+                            Are you sure you want to update this tenant?
+                        </h5>
+ 
+
+                    </div>
+
+                    <div className="modal-footer">
+
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => setShowEditConfirm(false)}
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            className="btn btn-primary"
+                            onClick={confirmEdit}
+                        >
+                            Yes, Update
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </>
+)}
         </>
     );
 };

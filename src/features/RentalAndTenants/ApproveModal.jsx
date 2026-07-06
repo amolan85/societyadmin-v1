@@ -1,4 +1,5 @@
 // ApproveModal.jsx
+import { useState } from "react";
 import Select from "react-select";
 
 const ApproveModal = ({
@@ -52,6 +53,8 @@ const ApproveModal = ({
 }) => {
     if (!showApprove) return null;
 
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [selectedStatus, setSelectedStatus] = useState("");
     return (
         <>
             <div className="modal-backdrop fade show"></div>
@@ -374,11 +377,10 @@ const ApproveModal = ({
 
                         <div className="modal-footer bg-light">
                             <button
-                                type="button"
                                 className="btn btn-ad grey-btn"
                                 onClick={() => {
-                                    setShowApprove(false);
-                                    handleSubmit("Rejected");
+                                    setSelectedStatus("Rejected");
+                                    setShowConfirm(true);
                                 }}
                             >
                                 Reject
@@ -386,7 +388,10 @@ const ApproveModal = ({
 
                             <button
                                 className="btn-ac px-4"
-                                onClick={() => handleSubmit("Approved")}
+                                onClick={() => {
+                                    setSelectedStatus("Approved");
+                                    setShowConfirm(true);
+                                }}
                             >
                                 Approve
                             </button>
@@ -394,6 +399,69 @@ const ApproveModal = ({
                     </div>
                 </div>
             </div>
+            {showConfirm && (
+                <>
+                    <div
+                        className="modal-backdrop fade show"
+                        style={{ zIndex: 1055 }}
+                    ></div>
+
+                    <div
+                        className="modal fade show d-block"
+                        tabIndex="-1"
+                        style={{ zIndex: 1060 }}
+                    >
+                        <div className="modal-dialog modal-dialog-centered">
+                            <div className="modal-content">
+
+                                <div className="modal-header">
+                                    <h5 className="modal-title">
+                                        Confirm {selectedStatus}
+                                    </h5>
+                                </div>
+
+                                <div className="modal-body text-center">
+
+                                    <h5>
+                                        Are you sure?
+                                    </h5>
+
+                                    {/* <p>
+                                        You are about to <b>{selectedStatus}</b> this tenant.
+                                    </p> */}
+
+                                </div>
+
+                                <div className="modal-footer">
+
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() => setShowConfirm(false)}
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        className={`btn ${selectedStatus === "Approved"
+                                                ? "btn-success"
+                                                : "btn-danger"
+                                            }`}
+                                        onClick={() => {
+                                            setShowConfirm(false);
+                                            setShowApprove(false);
+                                            handleSubmit(selectedStatus);
+                                        }}
+                                    >
+                                        Yes
+                                    </button>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </>
     );
 };
