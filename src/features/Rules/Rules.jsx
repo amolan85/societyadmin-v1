@@ -54,6 +54,7 @@ const Rules = () => {
 
   // id of the rule whose ⋮ actions dropdown is currently open
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [showEditConfirm, setShowEditConfirm] = useState(false);
 
   useEffect(() => {
     SessionData();
@@ -242,6 +243,11 @@ const Rules = () => {
       console.log(error);
       toast.error(error);
     }
+  };
+
+  const confirmEdit = async () => {
+    setShowEditConfirm(false);
+    await handleSubmit();
   };
 
   // ---- toggle a rule's active/inactive status ----
@@ -785,7 +791,16 @@ const Rules = () => {
                     Cancel
                   </button>
 
-                  <button className="btn-ac px-4" onClick={handleSubmit}>
+                  <button
+                    className="btn-ac px-4"
+                    onClick={() => {
+                      if (editingRuleId) {
+                        setShowEditConfirm(true);
+                      } else {
+                        handleSubmit();
+                      }
+                    }}
+                  >
                     {editingRuleId ? "Save Changes" : "Add Rule"}
                   </button>
                 </div>
@@ -839,6 +854,57 @@ const Rules = () => {
                     {confirmStatusRule.is_active ? "Yes, Deactivate" : "Yes, Activate"}
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* SAVE CHANGES CONFIRMATION */}
+      {showEditConfirm && (
+        <>
+          <div className="modal-backdrop fade show"></div>
+
+          <div className="modal show d-block">
+            <div className="modal-dialog modal-sm modal-dialog-centered">
+              <div className="modal-content">
+
+                <div className="modal-header bg-light">
+                  <h6 className="modal-title fw-semibold">
+                    Confirm Changes
+                  </h6>
+
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowEditConfirm(false)}
+                  ></button>
+                </div>
+
+                 <div className="modal-body text-center">
+                  <p className="mb-0">
+                    Are you sure you want to save these changes?
+                  </p>
+                </div>
+
+                <div className="modal-footer bg-light">
+
+                  <button
+                    className="btn btn-sm btn-ad grey-btn"
+                    onClick={() => setShowEditConfirm(false)}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    className="btn btn-sm btn-primary"
+                    onClick={confirmEdit}
+                  >
+                    Yes, Save Changes
+                  </button>
+
+                </div>
+
               </div>
             </div>
           </div>

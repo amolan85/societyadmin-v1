@@ -403,6 +403,7 @@ import Polls from "../Polls/Polls";
 import AddMember from "../AddMember/AddMember";
 import Documents from "../Documents&Noc/Documents";
 import FlatTransfer from "../FlatTransfer/FlatTransfer";
+import MemberTransfer from "../MemberTransfer/MemberTransfer";
 import Rules from "../Rules/Rules";
 import StaffAttendance from "../StaffAttendance/StaffAttendance";
 import Register from "../Register/Register";
@@ -494,7 +495,7 @@ const NAV = [
   },
   {
     sec: "Transfers", items: [
-      { id: "transfer", icon: "🔄", lbl: "Member Transfer" },
+      { id: "membertransfer", icon: "🔄", lbl: "Member Transfer" },
       { id: "flattransfer", icon: "🏠", lbl: "Flat Transfer" },
     ]
   },
@@ -559,7 +560,8 @@ const TITLES = {
   viewUnit: ["Administration", "Registers", "View Register", "View Unit"],
   transfer: ["Member Masters", "Transfer Member"],
   documents: ["Administration", "Documents & NOC"],
-  flattransfer: ["Administration", "Flat Transfer"],
+  flattransfer: ["Transfers", "Flat Transfer"],
+  membertransfer: ["Transfers", "Member Transfer"],
   registers: ["Administration", "Registers"],
   registerHistory: ["Administration", "Registers", "Member Register", "History"],
   unitRegister: ["Administration", "Registers", "Unit Register"],
@@ -651,6 +653,7 @@ export default function App() {
     transfer: <PlaceholderPage label="Transfer Member" />,
     documents: <Documents />,
     flattransfer: <FlatTransfer />,
+    membertransfer: <MemberTransfer />,
     registers: <Register setActive={setActive} />,
     registerHistory: <RegisterHistory setActive={setActive} />,
     rules: <Rules />,
