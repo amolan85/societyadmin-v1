@@ -446,8 +446,13 @@ import ListVehicleRegister from "../Register/VehicleRegister/ListVehicleRegister
 import GetVehicleDetails from "../Register/VehicleRegister/GetVehicleDetails";
 import FlatApprovals from "../FlatOccupancy/FlatApprovals";
 import Billing from "../Billing/Billing";
+<<<<<<< HEAD
 import PollAnalytics from "../Polls/PollAnalytics";
 import UpcomingEvents from "../Events/UpcomingEvents";
+=======
+import Accounts from "../Accounts/Accounts";
+
+>>>>>>> b39ced5 (Accounts)
 
 /* ══ OVERVIEW ══════════════════════════════════ */
 
@@ -483,6 +488,7 @@ const NAV = [
       { id: "complaints", icon: "🚨", lbl: "Complaints" },
       { id: "staff", icon: "👥", lbl: "Staff Attendance" },
       { id: "billing", icon: "💰", lbl: "Billing" },
+      { id: "accounts", icon: "📒", lbl: "Accounts" },
     ]
   },
   {
@@ -589,6 +595,7 @@ const TITLES = {
   vehicleRegister: ["Administration", "Registers", "Vehicle Register"],
   vehicleDetailsPage: ["Administration", "Registers", "Vehicle Register", "Vehicle Details"],
   billing: ["Operations", "Billing"],
+  accounts: ["Operations", "Accounts"],
   flatApprovals: ["Operations", "Flat Approvals"],
   pollAnalytics: ["Communication", "Polls & Voting", "Analytics"],
 };
@@ -683,6 +690,7 @@ export default function App() {
     vehicleRegister: <ListVehicleRegister setActive={setActive} setVehicleId={setVehicleId} />,
     vehicleDetailsPage: <GetVehicleDetails setActive={setActive} vehicleId={vehicleId} />,
     billing: <Billing setActive={setActive} />,
+    accounts: <Accounts setActive={setActive} />,
     flatApprovals: <FlatApprovals setActive={setActive} />,
     pollAnalytics: <PollAnalytics setActive={setActive} pollId={pollId} />,
     upcomingEvents: <UpcomingEvents setActive={setActive} />,
