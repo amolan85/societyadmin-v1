@@ -1,350 +1,97 @@
-/* ===========================
-   MEMBER TRANSFER PAGE
-=========================== */
+/* ---- Append these to your existing MemberTransfer.css ---- */
 
-.mt-breadcrumb{
-    font-size:12px;
-    color:#8A94A6;
-    margin-bottom:4px;
+.mt-stepper {
+    padding: 18px 20px;
 }
 
-.mt-title{
-    font-size:28px;
-    font-weight:700;
-    color:#1B3358;
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin-bottom:4px;
+.mt-stepper-track {
+    height: 4px;
+    background: #eee;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    overflow: hidden;
 }
 
-.mt-sub{
-    color:#8A94A6;
-    font-size:13px;
-    margin-bottom:0;
+.mt-stepper-fill {
+    height: 100%;
+    background: #2f80ed;
+    transition: width 0.25s ease;
 }
 
-/* ===========================
-   CARD
-=========================== */
-
-.sv-card{
-    background:#fff;
-    border-radius:14px;
-    border:1px solid #E8EDF5;
-    padding:22px;
-    box-shadow:0 3px 12px rgba(0,0,0,.04);
+.mt-stepper-labels {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
-.sv-card h5{
-    font-size:18px;
-    font-weight:700;
-    color:#1B3358;
+.mt-step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: #999;
+    font-size: 13px;
+    cursor: default;
 }
 
-/* ===========================
-   MEMBER AVATAR
-=========================== */
-
-.mt-avatar{
-
-    width:90px;
-    height:90px;
-    border-radius:50%;
-
-    background:#1B3358;
-    color:#fff;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-size:30px;
-    font-weight:700;
-
-    margin:auto;
+.mt-step-item.done {
+    cursor: pointer;
+    color: #2f80ed;
 }
 
-/* ===========================
-   FORM
-=========================== */
-
-label{
-    font-size:13px;
-    font-weight:600;
-    margin-bottom:6px;
-    color:#556274;
+.mt-step-item.active {
+    color: #111;
+    font-weight: 600;
 }
 
-.form-control,
-.form-select{
-
-    border-radius:10px;
-    min-height:44px;
-    border:1px solid #D7DFEA;
-    box-shadow:none;
-    font-size:14px;
+.mt-step-index {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #eee;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
 }
 
-.form-control:focus,
-.form-select:focus{
-
-    border-color:#1B3358;
-    box-shadow:0 0 0 .15rem rgba(27,51,88,.15);
-
+.mt-step-item.active .mt-step-index {
+    background: #2f80ed;
+    color: #fff;
 }
 
-textarea.form-control{
-
-    resize:none;
-
+.mt-step-item.done .mt-step-index {
+    background: #27ae60;
+    color: #fff;
 }
 
-/* ===========================
-   CHECKBOX
-=========================== */
-
-.form-check{
-
-    background:#F8FAFD;
-    border:1px solid #E7EDF6;
-    border-radius:10px;
-
-    padding:14px 18px;
-
+.mt-err {
+    color: #e2434a;
+    font-size: 12px;
+    margin-top: 4px;
 }
 
-.form-check-input{
-
-    cursor:pointer;
-
+.mt-dues-row {
+    display: flex;
+    gap: 32px;
+    background: #f8f9fb;
+    border-radius: 8px;
+    padding: 14px 18px;
 }
 
-.form-check-label{
-
-    margin-left:8px;
-    cursor:pointer;
-    font-weight:500;
+.mt-review-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 24px;
 }
 
-/* ===========================
-   STATUS CARD
-=========================== */
-
-.mt-status-row{
-
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-
-    padding:10px 0;
-
-    border-bottom:1px solid #EEF2F7;
-
-}
-
-.mt-status-row:last-child{
-
-    border-bottom:none;
-
-}
-
-.mt-status-title{
-
-    color:#8A94A6;
-    font-size:13px;
-
-}
-
-.mt-status-value{
-
-    color:#1B3358;
-    font-weight:700;
-
-}
-
-/* ===========================
-   HISTORY TABLE
-=========================== */
-
-.table{
-
-    margin-bottom:0;
-
-}
-
-.table thead th{
-
-    background:#F8FAFC;
-
-    font-size:12px;
-    font-weight:700;
-
-    color:#1B3358;
-
-    border-bottom:2px solid #E8EDF5;
-
-}
-
-.table tbody td{
-
-    vertical-align:middle;
-
-    font-size:13px;
-    color:#556274;
-
-}
-
-.table tbody tr:hover{
-
-    background:#F9FBFE;
-
-}
-
-/* ===========================
-   BUTTONS
-=========================== */
-
-.btn-ac{
-
-    background:#1B3358;
-    color:#fff;
-    border:none;
-
-    border-radius:8px;
-
-    padding:10px 22px;
-
-    font-weight:600;
-
-    transition:.3s;
-
-}
-
-.btn-ac:hover{
-
-    background:#284B84;
-
-}
-
-.btn-ol{
-
-    background:#fff;
-    color:#1B3358;
-
-    border:1px solid #D6DCE6;
-
-    border-radius:8px;
-
-    padding:10px 22px;
-
-    font-weight:600;
-
-    transition:.3s;
-
-}
-
-.btn-ol:hover{
-
-    background:#F5F8FC;
-
-}
-
-/* ===========================
-   MODAL
-=========================== */
-
-.modal-content{
-
-    border:none;
-    border-radius:16px;
-
-    overflow:hidden;
-
-}
-
-.modal-header{
-
-    background:#F7F9FC;
-
-}
-
-.modal-footer{
-
-    background:#F7F9FC;
-
-}
-
-.modal-title{
-
-    color:#1B3358;
-    font-weight:700;
-
-}
-
-/* ===========================
-   FILE INPUT
-=========================== */
-
-input[type=file]{
-
-    padding:9px;
-
-}
-
-/* ===========================
-   RESPONSIVE
-=========================== */
-
-@media(max-width:991px){
-
-    .mt-title{
-
-        font-size:24px;
-
-    }
-
-    .mt-avatar{
-
-        width:70px;
-        height:70px;
-
-        font-size:24px;
-
-        margin-bottom:20px;
-
-    }
-
-}
-
-@media(max-width:768px){
-
-    .sv-card{
-
-        padding:18px;
-
-    }
-
-    .btn-ac,
-    .btn-ol{
-
-        width:100%;
-        margin-top:10px;
-
-    }
-
-    .table{
-
-        font-size:12px;
-
-    }
-
-    .mt-title{
-
-        flex-direction:column;
-        align-items:flex-start;
-        gap:5px;
-
-    }
-
+.mt-review-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 13px;
 }

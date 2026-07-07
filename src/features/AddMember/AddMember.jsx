@@ -71,9 +71,13 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   const [statsTenants, setStatsTenants] = useState(0);
   const [statsFamily, setStatsFamily] = useState(0);
   // Delete Confirmation Modal
-const [showDeleteModal, setShowDeleteModal] = useState(false);
-const [selectedMemberId, setSelectedMemberId] = useState(null);
-const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedMemberId, setSelectedMemberId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // Edit Confirmation Modal
+  const [showEditConfirm, setShowEditConfirm] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   //loader
   const { setLoading } = useLoader(); 
@@ -363,6 +367,35 @@ const [deleting, setDeleting] = useState(false);
     }
     finally {
       setLoading(false);
+    }
+  };
+
+  // ── Intercepts the Save action from MemberModal. In "add" mode it saves
+  // straight away; in "edit" mode it validates first, then asks for
+  // confirmation before actually calling handleSubmit (mirrors the delete
+  // confirmation flow below). ──
+  const attemptSubmit = () => {
+    if (mode === "edit") {
+      const validationErrors = validateForm();
+
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+      }
+
+      setShowEditConfirm(true);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const confirmEditSave = async () => {
+    try {
+      setSavingEdit(true);
+      await handleSubmit();
+      setShowEditConfirm(false);
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -959,7 +992,7 @@ const confirmDelete = async () => {
         errors={errors}
         setErrors={setErrors} 
         errorText={errorText}
-        handleSubmit={handleSubmit}
+        handleSubmit={attemptSubmit}
       />
 
       {/* export modal */}
@@ -974,6 +1007,63 @@ const confirmDelete = async () => {
         totalRecords={allMembersWithoutPagination.length}
         currentRecords={allMembers.length}
       />
+
+      {/* Edit Confirmation Modal */}
+      <div
+        className={`modal fade ${showEditConfirm ? "show d-block" : ""}`}
+        tabIndex="-1"
+        style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+      >
+        <div className="modal-dialog modal-dialog-centered">
+
+          <div className="modal-content">
+
+            <div className="modal-header">
+              <h5 className="modal-title">
+                Confirm Changes
+              </h5>
+
+              <button
+                type="button"
+                className="btn-close"
+                onClick={() => setShowEditConfirm(false)}
+                disabled={savingEdit}
+              />
+            </div>
+
+            <div className="modal-body text-start">
+
+              <p>
+                Are you sure you want to
+                <strong> edit this member's details?</strong>
+              </p>
+
+            </div>
+
+            <div className="modal-footer">
+
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowEditConfirm(false)}
+                disabled={savingEdit}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="btn btn-primary"
+                onClick={confirmEditSave}
+                disabled={savingEdit}
+              >
+                {savingEdit ? "Saving..." : "Save Changes"}
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div>
 
       {/* Delete Confirmation Modal */}
 <div
