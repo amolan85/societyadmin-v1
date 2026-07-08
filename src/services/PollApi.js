@@ -98,12 +98,13 @@ export const getPollByIdApi = async (societyId, pollId) => {
 
 //api for create poll
 export const UpdatePollApi = async (
-    pollId, userId, title, description, options, startDate, endDate
+    pollId,societyId, userId, title, description, options, startDate, endDate
 ) => {
     try {
         const url = UrlData + "poll/UpdatePoll";
         const data = {
             poll_id: pollId,
+            society_id:societyId,
             user_id: userId,
             question: title,
             options: options,

@@ -57,6 +57,21 @@ const CreatePoll = ({ setActive, pollId }) => {
         setErrorText("");
     };
 
+    const handleAddOption = () => {
+    setOptions(prev => [...prev, ""]);
+};
+
+const handleRemoveOption = (index) => {
+    if (options.length <= 2) return;
+
+    const updated = [...options];
+    updated.splice(index, 1);
+    setOptions(updated);
+
+    const newErrors = { ...errors };
+    delete newErrors[`option_${index}`];
+    setErrors(newErrors);
+};
     const handleSubmitClick = () => {
 
         const validationErrors = validateForm();
@@ -188,6 +203,7 @@ const CreatePoll = ({ setActive, pollId }) => {
             if (pId) {
                 await UpdatePollApi(
                     pId,
+                    societyId,
                     userId,
                     title,
                     description,
@@ -268,31 +284,65 @@ const CreatePoll = ({ setActive, pollId }) => {
                     </div>
                     <h6 className='fw-bold'><BiListUl size={18} className="text-primary me-2" />  Voting Options</h6>
                     <div>
-                        {options.map((opt, index) => (
-                            <div key={index}>
-                                <div className='d-flex'>
-                                    <label className="sv-lb mt-2">Option {index + 1} <span className='text-danger'>*</span></label>
-                                    {errors[`option_${index}`] && (
-                                        <span className='text-danger mx-2 mt-1'>
-                                            {errors[`option_${index}`]}
-                                        </span>
-                                    )}
-                                </div>
 
-                                <input
-                                    className={`sv-in mb-2 ${errors[`option_${index}`] ? "error-input" : ""
-                                        }`}
-                                    placeholder={`Example: Option ${index + 1}`}
-                                    value={opt}
-                                    onChange={(e) => {
-                                        handleOptionChange(index, e.target.value);
-                                        clearError(`option_${index}`);
-                                    }
-                                    }
-                                />
-                            </div>
-                        ))}
-                    </div>
+    {options.map((opt, index) => (
+
+        <div key={index} className="mb-2">
+
+            <div className="d-flex justify-content-between align-items-center">
+
+                <div className="d-flex">
+
+                    <label className="sv-lb mt-2">
+                        Option {index + 1}
+                        <span className="text-danger">*</span>
+                    </label>
+
+                    {errors[`option_${index}`] && (
+                        <span className="text-danger mx-2 mt-1">
+                            {errors[`option_${index}`]}
+                        </span>
+                    )}
+
+                </div>
+
+                {options.length > 2 && (
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => handleRemoveOption(index)}
+                    >
+                        Remove
+                    </button>
+                )}
+
+            </div>
+
+            <input
+                className={`sv-in mb-2 ${
+                    errors[`option_${index}`] ? "error-input" : ""
+                }`}
+                placeholder={`Example: Option ${index + 1}`}
+                value={opt}
+                onChange={(e) => {
+                    handleOptionChange(index, e.target.value);
+                    clearError(`option_${index}`);
+                }}
+            />
+
+        </div>
+
+    ))}
+
+    <button
+        type="button"
+        className="btn btn-outline-primary mt-2"
+        onClick={handleAddOption}
+    >
+        + Add Option
+    </button>
+
+</div>
 
                     <div className="row mt-2">
                         <div className='col-lg-6'>

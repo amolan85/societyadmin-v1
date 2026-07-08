@@ -43,6 +43,10 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
     const [statsPublished, setStatsPublished] = useState(0);
     const [statsDraft, setStatsDraft] = useState(0);
     const [statsArchived, setStatsArchived] = useState(0);
+    // Confirmation Modal
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmAction, setConfirmAction] = useState(""); // publish | archive
+    const [selectedNotice, setSelectedNotice] = useState(null);
 
     const tabs = [
         { id: "All", value: "" },
@@ -204,7 +208,21 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
             default:
                 return "gray";
         }
-    }; const approveNotice = async (item) => {
+    };
+
+    const openPublishConfirm = (item) => {
+        setSelectedNotice(item);
+        setConfirmAction("publish");
+        setShowConfirmModal(true);
+    };
+
+    const openArchiveConfirm = (item) => {
+        setSelectedNotice(item);
+        setConfirmAction("archive");
+        setShowConfirmModal(true);
+    };
+
+    const approveNotice = async (item) => {
         try {
             await updateNoticeApi(
                 item.notice_id,
@@ -245,6 +263,26 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
             console.log(error);
         }
     };
+
+
+    const handleConfirmAction = async () => {
+
+        if (!selectedNotice) return;
+
+        if (confirmAction === "publish") {
+            await approveNotice(selectedNotice);
+        }
+
+        if (confirmAction === "archive") {
+            await rejectNotice(selectedNotice);
+        }
+
+        setShowConfirmModal(false);
+        setSelectedNotice(null);
+        setConfirmAction("");
+    };
+
+
     return (
         <>
             <div className="pg">
@@ -609,14 +647,14 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
 
                                             <button
                                                 className="btn-ok flex-grow-1"
-                                                onClick={() => approveNotice(item)}
+                                                onClick={() => openPublishConfirm(item)}
                                             >
                                                 ✓ Publish
                                             </button>
 
                                             <button
                                                 className="btn-er flex-grow-1"
-                                                onClick={() => rejectNotice(item)}
+                                                onClick={() => openArchiveConfirm(item)}
                                             >
                                                 ✕ Archive
                                             </button>
@@ -645,6 +683,93 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
                 </div>
             </div>
 
+            {/* Publish / Archive Confirmation */}
+            {
+                showConfirmModal && (
+                    <>
+                        <div
+                            className="modal-backdrop fade show"
+                            style={{ zIndex: 1040 }}
+                        ></div>
+
+                        <div
+                            className="modal fade show d-block"
+                            tabIndex="-1"
+                            style={{ zIndex: 1050 }}
+                        >
+                            <div className="modal-dialog modal-dialog-centered">
+
+                                <div className="modal-content">
+
+                                    <div className="modal-header">
+
+                                        <h5 className="modal-title">
+
+                                            {confirmAction === "publish"
+                                                ? "Publish Notice"
+                                                : "Archive Notice"}
+
+                                        </h5>
+
+                                        <button
+                                            className="btn-close"
+                                            onClick={() => setShowConfirmModal(false)}
+                                        ></button>
+
+                                    </div>
+
+                                    <div className="modal-body">
+
+                                        {confirmAction === "publish" ? (
+
+                                            <p>
+                                                Are you sure you want to publish
+                                                <strong> "{selectedNotice?.title}" </strong>
+                                                ?
+                                            </p>
+
+                                        ) : (
+
+                                            <p>
+                                                Are you sure you want to archive
+                                                <strong> "{selectedNotice?.title}" </strong>
+                                                ?
+                                            </p>
+
+                                        )}
+
+                                    </div>
+
+                                    <div className="modal-footer">
+
+                                        <button
+                                            className="btn btn-secondary"
+                                            onClick={() => setShowConfirmModal(false)}
+                                        >
+                                            Cancel
+                                        </button>
+
+                                        <button
+                                            className={`btn ${confirmAction === "publish"
+                                                ? "btn-success"
+                                                : "btn-danger"
+                                                }`}
+                                            onClick={handleConfirmAction}
+                                        >
+                                            {confirmAction === "publish"
+                                                ? "Publish"
+                                                : "Archive"}
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </>
+                )
+            }
             <ExportModal
                 show={show}
                 onClose={() => setShow(false)}

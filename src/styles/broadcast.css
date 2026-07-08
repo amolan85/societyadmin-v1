@@ -221,12 +221,24 @@
 .bc-icon-bg-default { background: #f3f4f6; }
 
 /* ── DROPDOWN (⋮) ── */
+/* Same Safari/iOS Dark Mode issue as .qa below: no explicit color meant
+   Safari rendered the ⋮ using its system button-text color, which can be
+   white-on-white in Dark Mode — invisible, even though it's really there. */
 .bc-action-btn {
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     width: 30px;
     height: 30px;
     background: #fff;
+    color: #374151;
+    font-size: 16px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color-scheme: light;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 /* ── FOOTER ── */
@@ -421,6 +433,7 @@
 .bc-wrap .bc-side-title {
   font-weight: 700;
   margin-bottom: 12px;
+  white-space: nowrap;
 }
 
 /* Notifications */
@@ -454,6 +467,11 @@
 .bc-wrap .dot-red { background: #dc3545; }
 
 /* Quick Actions */
+/* NOTE: explicit color + color-scheme + appearance reset added below.
+   Without these, Safari on macOS/iOS renders <button> text using the
+   system's native control color, which flips to a near-white color when
+   the device is in Dark Mode — making the label invisible against this
+   button's white background, even though it renders fine on Chrome/Firefox. */
 .bc-wrap .qa {
   width: 100%;
   display: flex;
@@ -464,6 +482,10 @@
   border-radius: 8px;
   padding: 10px 12px;
   text-align: left;
+  color: #111827;
+  color-scheme: light;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .bc-wrap .qa:hover {
@@ -484,6 +506,10 @@
 .bc-wrap .bc-qa-text {
   font-weight: 600;
   font-size: 13px;
+  color: #111827;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 /* Recent Communications */

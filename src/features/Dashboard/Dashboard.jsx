@@ -446,16 +446,10 @@ import ListVehicleRegister from "../Register/VehicleRegister/ListVehicleRegister
 import GetVehicleDetails from "../Register/VehicleRegister/GetVehicleDetails";
 import FlatApprovals from "../FlatOccupancy/FlatApprovals";
 import Billing from "../Billing/Billing";
-<<<<<<< HEAD
-import PollAnalytics from "../Polls/PollAnalytics";
+ import PollAnalytics from "../Polls/PollAnalytics";
 import UpcomingEvents from "../Events/UpcomingEvents";
-=======
-import Accounts from "../Accounts/Accounts";
-
->>>>>>> b39ced5 (Accounts)
-
-/* ══ OVERVIEW ══════════════════════════════════ */
-
+ import Accounts from "../Accounts/Accounts";
+ 
 function PlaceholderPage({ label }) {
   return (
     <div className="pg d-flex flex-column align-items-center justify-content-center" style={{ minHeight: 300, color: "var(--muted)" }}>
