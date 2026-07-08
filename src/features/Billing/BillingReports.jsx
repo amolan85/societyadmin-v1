@@ -318,6 +318,121 @@ const BillingReports = ({ setActive }) => {
                                 </>
                             )}
 
+
+                            {/* ── PENALTY REPORT ─────────────────── */}
+                            {activeReport === "penalty" && (
+                                <>
+                                    {/* Summary cards */}
+                                    <div className="d-flex gap-3 mb-3 flex-wrap">
+                                        {[
+                                            { label: "Total Penalties",  value: (data?.penalties||[]).length + " / " + (data?.pagination?.total||0) + " records" },
+                                            { label: "Total Amount",     value: "₹" + (data?.penalties||[]).reduce((s,p)=>s+parseFloat(p.penalty_amount||0),0).toLocaleString("en-IN",{minimumFractionDigits:2}) },
+                                            { label: "Fixed Penalties",  value: (data?.penalties||[]).filter(p=>p.penalty_type==="fixed").length },
+                                            { label: "Page",             value: (data?.pagination?.page||1) + " of " + (data?.pagination?.total_pages||1) },
+                                        ].map((c,i) => (
+                                            <div key={i} style={{ background:"#fff", border:"1px solid #e5e7eb",
+                                                borderRadius:10, padding:"12px 18px", minWidth:160 }}>
+                                                <div style={{ fontSize:11, color:"#6b7280" }}>{c.label}</div>
+                                                <div style={{ fontSize:16, fontWeight:700, color:"#dc2626" }}>{c.value}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Table */}
+                                    <div style={{ overflowX:"auto" }}>
+                                        <table className="billing-table w-100">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Flat</th>
+                                                    <th>Bill No</th>
+                                                    <th>Period</th>
+                                                    <th>Type</th>
+                                                    <th>Basis Amount</th>
+                                                    <th className="text-end">Penalty</th>
+                                                    <th>Applied On</th>
+                                                    <th>Remarks</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {(data?.penalties||[]).length === 0 && (
+                                                    <tr><td colSpan={9} style={{ textAlign:"center", padding:24, color:"#9ca3af" }}>
+                                                        No penalties found for this period
+                                                    </td></tr>
+                                                )}
+                                                {(data?.penalties||[]).map((p, i) => (
+                                                    <tr key={p.id} style={{ borderBottom:"1px solid #f3f4f6" }}>
+                                                        <td style={{ fontSize:11, color:"#9ca3af" }}>
+                                                            {((data?.pagination?.page||1)-1)*(data?.pagination?.page_size||20)+i+1}
+                                                        </td>
+                                                        <td style={{ fontWeight:600 }}>
+                                                            {p.flat_number}
+                                                            {p.block ? <span style={{ color:"#6b7280", fontSize:11 }}> / {p.block}</span> : null}
+                                                        </td>
+                                                        <td style={{ fontSize:12, color:"#2563eb" }}>{p.bill_no}</td>
+                                                        <td style={{ fontSize:12 }}>
+                                                            {p.bill_month} {p.bill_year}
+                                                        </td>
+                                                        <td>
+                                                            <span style={{ fontSize:11, padding:"2px 7px", borderRadius:4,
+                                                                background: p.penalty_type==="fixed"?"#fef2f2":"#fff7ed",
+                                                                color:      p.penalty_type==="fixed"?"#dc2626":"#ea580c",
+                                                                fontWeight:600 }}>
+                                                                {p.penalty_type}
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ fontSize:12, color:"#6b7280" }}>
+                                                            ₹{parseFloat(p.penalty_basis||0).toLocaleString("en-IN",{minimumFractionDigits:2})}
+                                                        </td>
+                                                        <td className="text-end" style={{ fontWeight:700, color:"#dc2626" }}>
+                                                            ₹{parseFloat(p.penalty_amount||0).toLocaleString("en-IN",{minimumFractionDigits:2})}
+                                                        </td>
+                                                        <td style={{ fontSize:11, color:"#6b7280" }}>
+                                                            {p.applied_on ? new Date(p.applied_on).toLocaleDateString("en-IN") : "—"}
+                                                        </td>
+                                                        <td style={{ fontSize:11, color:"#9ca3af", maxWidth:160,
+                                                            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                                                            {p.remarks || "—"}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                            <tfoot>
+                                                <tr style={{ borderTop:"2px solid #e5e7eb", fontWeight:700, background:"#fef2f2" }}>
+                                                    <td colSpan={6} style={{ padding:"8px 12px" }}>
+                                                        Page Total ({(data?.penalties||[]).length} records shown)
+                                                    </td>
+                                                    <td className="text-end" style={{ color:"#dc2626", padding:"8px 12px" }}>
+                                                        ₹{(data?.penalties||[]).reduce((s,p)=>s+parseFloat(p.penalty_amount||0),0)
+                                                            .toLocaleString("en-IN",{minimumFractionDigits:2})}
+                                                    </td>
+                                                    <td colSpan={2}></td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+
+                                    {/* Pagination */}
+                                    {(data?.pagination?.total_pages||1) > 1 && (
+                                        <div className="d-flex justify-content-center gap-2 mt-3">
+                                            <button className="billing-btn billing-btn-outline"
+                                                disabled={page <= 1}
+                                                onClick={() => { setPage(p => p-1); }}>
+                                                ← Prev
+                                            </button>
+                                            <span style={{ padding:"6px 14px", fontSize:13, color:"#374151" }}>
+                                                Page {data?.pagination?.page} of {data?.pagination?.total_pages}
+                                                &nbsp;({data?.pagination?.total} total)
+                                            </span>
+                                            <button className="billing-btn billing-btn-outline"
+                                                disabled={page >= (data?.pagination?.total_pages||1)}
+                                                onClick={() => { setPage(p => p+1); }}>
+                                                Next →
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            )}
                             {/* I&E */}
                             {activeReport === "ie" && (
                                 <div className="row g-3">

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { FiTarget, FiPlus, FiAlertTriangle } from "react-icons/fi";
 import { upsertBudgetApi, autoSplitBudgetMonthlyApi, getBudgetVsActualApi, listAccountHeadsApi } from "../../services/AccountsApi";
-import { T, Modal, EmptyState, Button, Input, Select, money, FKeyBar } from "./AccountsUI";
+import { T, Modal, EmptyState, Button, Input, Select, money, FKeyBar, errMsg } from "./AccountsUI";
 
 const currentFY = () => {
   const d = new Date();
@@ -24,7 +24,7 @@ const BudgetManager = ({ societyId, onEscape }) => {
       const res = await getBudgetVsActualApi(societyId, fy);
       setBudgets(res?.budgets || []);
     } catch (e) {
-      toast.error(e?.message || "Failed to load budgets");
+      toast.error(errMsg(e, "Failed to load budgets"));
     } finally {
       setLoading(false);
     }
@@ -33,7 +33,10 @@ const BudgetManager = ({ societyId, onEscape }) => {
   const fetchExpenseHeads = useCallback(async () => {
     try {
       const res = await listAccountHeadsApi(societyId, null, "expenditure");
-      setExpenseHeads(res?.heads || []);
+      // Waiveoff/Bad Debt Expense is an Accounting/Audit action (dues
+      // written off by committee resolution), not a routine budgetable
+      // expense like Electricity or Salary — exclude it from this picker.
+      setExpenseHeads((res?.heads || []).filter((h) => h.system_role !== "waiveoff_expense"));
     } catch (e) { /* non-blocking */ }
   }, [societyId]);
 
@@ -59,7 +62,7 @@ const BudgetManager = ({ societyId, onEscape }) => {
       setModalOpen(false);
       fetchBudgets();
     } catch (e2) {
-      toast.error(e2?.message || "Failed to save budget");
+      toast.error(errMsg(e2, "Failed to save budget"));
     }
   };
 
