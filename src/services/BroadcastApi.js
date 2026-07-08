@@ -24,43 +24,41 @@ import UrlData from "../utils/Url";
     }
 //api function for get broadcast list
 export const getBroadcastListApi = async (data) => {
-    const url = UrlData + 'broadcast/broadcast_list';
+    const url = UrlData + "broadcast/broadcast_list";
 
     const isValidDate = (date) => {
         return date && !isNaN(new Date(date).getTime());
     };
+
     const payload = {
         society_id: data.society_id,
-        page: data.currentPage,
-        limit: data.limit,
-        search: data.currentSearch,
-        type: data.currentType,
-        status: data.currentStatus,
-        start_date: isValidDate(data.currentStartDate)
-            ? data.currentStartDate
-            : null,
+        page: data.currentPage ? data.currentPage: null,
+        limit: data.limit ? data.limit: null,
+        search: data.currentSearch ? data.currentSearch: null,
+        type: data.currentType ? data.currentType: null,
+        status: data.currentStatus ? data.currentStatus: null,
+        start_date: isValidDate(data.currentStartDate) ? data.currentStartDate : null,
+        end_date: isValidDate(data.currentEndDate) ? data.currentEndDate : null,
+        get_all: data.getAll || false,
+    };
 
-        end_date: isValidDate(data.currentEndDate)
-            ? data.currentEndDate
-            : null,
-        get_all: data.getAll || false, // ← was hardcoded to false before
-    }
-    console.log("data")
-    console.log(payload)
+    console.log("getBroadcastListApi payload:", payload);
 
     return await apiClient({
-        method: 'post',
-        url: url,
-        data: payload
-    }).then((response) => {
-        return response.data.data;
-    }).catch((error) => {
-        console.log(error);
-        const errors = ErrorHandler(error);
-        console.log(errors, "Errors get broadcast list");
-        throw errors;
-    });
-}
+        method: "post",
+        url,
+        data: payload,
+    })
+        .then((response) => {
+            return response.data.data;
+        })
+        .catch((error) => {
+            console.log(error);
+            const errors = ErrorHandler(error);
+            console.log(errors, "Errors get broadcast list");
+            throw errors;
+        });
+};
 
 //api for create broadcast
 export const CreateBroadcastApi = async (societyId, subject, content, channel, status, type, attachment, scheduleDateTime) => {
