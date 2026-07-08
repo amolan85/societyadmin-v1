@@ -55,3 +55,19 @@
     background-color: #ffffff;
     border-radius: 4px;
 }
+
+.bc-wrap .qa {
+  color: #111 !important;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  color-scheme: light;
+  -webkit-appearance: none;
+  appearance: none;
+}
