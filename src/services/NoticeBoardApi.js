@@ -4,25 +4,39 @@ import UrlData from "../utils/Url";
 
 
 //api function for get noticeboard
-export const getNoticeBoardApi = async (societyId,status) => {
-    const url = UrlData + 'notice/GetAllNotices';
+export const getNoticeBoardApi = async ({
+    societyId,
+    status = "",
+    search = "",
+    dateFrom = "",
+    dateTo = "",
+    pageNo = 1,
+    pageSize = 10,
+}) => {
+
+    const url = UrlData + "notice/GetAllNotices";
+
     const data = {
         society_id: societyId,
-        status:status || null
-    }
+        status: status || null,
+        search,
+        date_from: dateFrom || null,
+        date_to: dateTo || null,
+        page_no: pageNo,
+        page_size: pageSize,
+    };
+
     return await apiClient({
-        method: 'post',
-        url: url,
-        data: data
-    }).then((response) => {
-        return response.data.data;
-    }).catch((error) => {
-        console.log(error);
-        const errors = ErrorHandler(error);
-        console.log(errors, "Errors get NoticeBoard");
-        throw errors;
-    });
-}
+        method: "post",
+        url,
+        data,
+    })
+        .then((response) => response.data.data)
+        .catch((error) => {
+            const errors = ErrorHandler(error);
+            throw errors;
+        });
+};
 
 //create notice board api
 export const createNoticeApi = async (societyId, userId, title, description, noticeType, priority, status) => {

@@ -47,6 +47,10 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [confirmAction, setConfirmAction] = useState(""); // publish | archive
     const [selectedNotice, setSelectedNotice] = useState(null);
+    
+const [pageSize] = useState(10);
+const [totalPages, setTotalPages] = useState(1);
+const [totalRecords, setTotalRecords] = useState(0);
 
     const tabs = [
         { id: "All", value: "" },
@@ -70,23 +74,63 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
         }
     };
 
+    // ── load session on mount — this was missing, so societyId never got
+    // set and the list/stats effects below never had anything to run on ──
     useEffect(() => {
         SessionData();
     }, []);
 
+    // ── single source of truth for list + pagination: one API call per
+    // change to societyId/page/filters, carrying page_no + page_size in
+    // the same request (no separate pagination call) ──
+    useEffect(() => {
+
+        if (!societyId) return;
+
+        getNoticeBoard();
+
+    }, [
+        societyId,
+        page,
+        filterStatus,
+        search,
+        startDate,
+        endDate,
+    ]);
+
     const SessionData = async () => {
-        const data = await GetSessionData();
-        const flats = data.data.flats[0];
-        setName(data.data.first_name + " " + data.data.last_name);
-        setSocietyId(flats.society_id);
-        getNoticeBoard(flats.society_id);
-        fetchStats(flats.society_id);
+        try {
+            const data = await GetSessionData();
+            const flats = data.data.flats[0];
+            setName(data.data.first_name + " " + data.data.last_name);
+            setSocietyId(flats.society_id);
+            // list itself is fetched by the useEffect above once societyId
+            // is set — only kick off the (separate, all-time) stats call here
+            fetchStats(flats.society_id);
+        } catch (error) {
+            console.log(error);
+        }
     };
 
-    const getNoticeBoard = async (sid) => {
+    const getNoticeBoard = async (sid = societyId) => {
         try {
-            const data = await getNoticeBoardApi(sid);
-            setAllNoticeBoard(data.list);
+
+            const data = await getNoticeBoardApi({
+                societyId: sid,
+                status: filterStatus,
+                search,
+                dateFrom: startDate,
+                dateTo: endDate,
+                pageNo: page,
+                pageSize,
+            });
+
+            setAllNoticeBoard(data.list || []);
+
+            setTotalPages(data.total_pages || 1);
+
+            setTotalRecords(data.total_records || 0);
+
         } catch (error) {
             console.log(error);
         }
@@ -101,7 +145,15 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
 
     const fetchStats = async (sid) => {
         try {
-            const data = await getNoticeBoardApi(sid);
+            const data = await getNoticeBoardApi({
+                societyId: sid,
+                status: "",
+                search: "",
+                dateFrom: "",
+                dateTo: "",
+                pageNo: 1,
+                pageSize: 1000, // high ceiling so stats reflect the full dataset, not just one page
+            });
             const list = data.list || [];
             setStatsTotal(list.length);
             setStatsPublished(list.filter(n => n.status === "published").length);
@@ -119,7 +171,15 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
 
     const getAllExportNoticeBoard = async (sid) => {
         try {
-            const data = await getNoticeBoardApi(sid);
+            const data = await getNoticeBoardApi({
+                societyId: sid,
+                status: "",
+                search: "",
+                dateFrom: "",
+                dateTo: "",
+                pageNo: 1,
+                pageSize: 1000,
+            });
             setAllExportNoticeBoard(data.list || []);
         } catch (error) {
             console.log(error);
@@ -152,26 +212,12 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
         return "Just now";
     };
 
-    const filteredData = allNoticeBoard.filter((item) => {
-        const matchesTab = tab === "" || item.notice_type === tab;
-        const matchesSearch = !search || item.title?.toLowerCase().includes(search.toLowerCase()) || item.description?.toLowerCase().includes(search.toLowerCase());
-        const matchesStatus = filterStatus === "" || item.status?.toLowerCase() === filterStatus.toLowerCase();
-        const noticeDate = item.publish_date ? new Date(item.publish_date) : null;
-        const matchesStart = !startDate || (noticeDate && noticeDate >= new Date(startDate));
-        const matchesEnd = !endDate || (noticeDate && noticeDate <= new Date(endDate + "T23:59:59"));
-        return matchesTab && matchesSearch && matchesStatus && matchesStart && matchesEnd;
-    });
-
-    const per = 5;
-    const total = Math.ceil(filteredData.length / per);
-    const rows = filteredData.slice((page - 1) * per, page * per);
-
     const handleStatusChange = (value) => {
         setFilterStatus(value);
         setPage(1);
     };
 
-    const exportData = selectedRange === "all" ? allExportNoticeBoard : filteredData;
+    const exportData = selectedRange === "all" ? allExportNoticeBoard : allNoticeBoard;
 
     const downloadExcel = () => exportFile({ data: exportData, fileName: "NoticeBoard", sheetName: "NoticeBoard", type: "xlsx" });
     const downloadCSV = () => exportFile({ data: exportData, fileName: "NoticeBoard", sheetName: "NoticeBoard", type: "csv" });
@@ -392,7 +438,7 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
                             </div>
 
                             {/* ROWS */}
-                            {rows.map((p, i, arr) => {
+                            {allNoticeBoard.map((p, i, arr) => {
                                 const noticeData = getNoticeIcon(p.notice_type);
                                 return (
                                     <div
@@ -469,7 +515,7 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
                                 );
                             })}
 
-                            <Pagination page={page} total={total} onChange={setPage} />
+                            <Pagination page={page} total={totalPages} onChange={setPage} />
 
                         </div>
                     </div>
@@ -779,7 +825,7 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
                 selectedRange={selectedRange}
                 setSelectedRange={setSelectedRange}
                 totalRecords={allExportNoticeBoard.length}
-                currentRecords={filteredData.length}
+                currentRecords={allNoticeBoard.length}
             />
         </>
     );
