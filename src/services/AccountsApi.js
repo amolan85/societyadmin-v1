@@ -22,6 +22,19 @@ const accountsPost = async (endpoint, societyId, payload = {}) => {
   }
 };
 
+// Waive Off lives in the Billing module (SP_WaiveOff), not Accounts — this
+// hits it directly so the guided "Waive Off" flow can live in the Accounts
+// UI (Collection Register) without duplicating billing logic. The
+// resulting waiveoff_transactions row is auto-journaled into Accounts by
+// the existing billing_controller.py → accounts_controller.py bridge.
+export const waiveOffApi = (societyId, billId, waiveType, waiveAmount, reason) =>
+  apiClient({
+    method: "post",
+    url: UrlData + "billing/WaiveOff",
+    data: { society_id: societyId, bill_id: billId, waive_type: waiveType, waive_amount: waiveAmount || null, reason },
+    timeout: 30000,
+  }).then((res) => res.data.data).catch((error) => { throw ErrorHandler(error); });
+
 // ── Groups (Tally hierarchy) ────────────────────────────────────
 export const seedStandardGroupsApi = (societyId) => accountsPost("SeedStandardGroups", societyId);
 export const listGroupsApi = (societyId) => accountsPost("ListGroups", societyId);

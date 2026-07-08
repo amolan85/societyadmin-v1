@@ -6,7 +6,7 @@
  
 // const UrlData = "http://192.168.0.172:5001/api/"
  
-const UrlData = "http://192.168.0.191:5001/api/"
+const UrlData = "http://192.168.0.197:5001/api/"
 
 
 export default UrlData;

@@ -446,13 +446,11 @@ import ListVehicleRegister from "../Register/VehicleRegister/ListVehicleRegister
 import GetVehicleDetails from "../Register/VehicleRegister/GetVehicleDetails";
 import FlatApprovals from "../FlatOccupancy/FlatApprovals";
 import Billing from "../Billing/Billing";
-<<<<<<< HEAD
+
 import PollAnalytics from "../Polls/PollAnalytics";
 import UpcomingEvents from "../Events/UpcomingEvents";
-=======
 import Accounts from "../Accounts/Accounts";
 
->>>>>>> b39ced5 (Accounts)
 
 /* ══ OVERVIEW ══════════════════════════════════ */
 

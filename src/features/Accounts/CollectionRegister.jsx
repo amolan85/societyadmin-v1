@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { FiDollarSign } from "react-icons/fi";
-import { getCollectionRegisterApi, getBillAuditTrailApi, retryBillJournalApi, backfillHistoricalBillingJournalsApi } from "../../services/AccountsApi";
-import { T, Badge, Modal, EmptyState, Input, Button, money, fmtDate, FKeyBar } from "./AccountsUI";
+import { getCollectionRegisterApi, getBillAuditTrailApi, retryBillJournalApi, backfillHistoricalBillingJournalsApi, waiveOffApi } from "../../services/AccountsApi";
+import { T, Badge, Modal, EmptyState, Input, Select, Button, money, fmtDate, FKeyBar, errMsg } from "./AccountsUI";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const monthStart = () => { const d = new Date(); d.setDate(1); return d.toISOString().slice(0, 10); };
@@ -27,6 +27,10 @@ const CollectionRegister = ({ societyId, onEscape }) => {
   const [auditOpen, setAuditOpen] = useState(false);
   const [audit, setAudit] = useState(null);
 
+  const [waiveOpen, setWaiveOpen] = useState(false);
+  const [waiveForm, setWaiveForm] = useState({ waive_type: "", waive_amount: "", reason: "", resolution_ref: "" });
+  const [waiving, setWaiving] = useState(false);
+
   const fetchRegister = useCallback(async () => {
     setLoading(true);
     try {
@@ -35,7 +39,7 @@ const CollectionRegister = ({ societyId, onEscape }) => {
       setReceipts(res?.receipts || []);
       setSummary(res?.summary || {});
     } catch (e) {
-      toast.error(e?.message || "Failed to load collection register");
+      toast.error(errMsg(e, "Failed to load collection register"));
     } finally {
       setLoading(false);
     }
@@ -43,11 +47,39 @@ const CollectionRegister = ({ societyId, onEscape }) => {
 
   useEffect(() => { fetchRegister(); }, [fetchRegister]);
 
+  const openWaiveOff = () => {
+    setWaiveForm({ waive_type: "", waive_amount: "", reason: "", resolution_ref: "" });
+    setWaiveOpen(true);
+  };
+
+  const handleWaiveOff = async (e) => {
+    e.preventDefault();
+    if (!waiveForm.waive_type) { toast.error("Select what's being waived"); return; }
+    if (!waiveForm.reason.trim()) { toast.error("A reason is required — this becomes part of the permanent audit trail"); return; }
+    if (waiveForm.waive_type === "partial" && !waiveForm.waive_amount) { toast.error("Enter the amount to waive"); return; }
+    setWaiving(true);
+    try {
+      const reasonWithRef = waiveForm.resolution_ref
+        ? `${waiveForm.reason} (Resolution ref: ${waiveForm.resolution_ref})`
+        : waiveForm.reason;
+      await waiveOffApi(societyId, audit.bill.id, waiveForm.waive_type, waiveForm.waive_amount, reasonWithRef);
+      toast.success("Dues waived off successfully");
+      setWaiveOpen(false);
+      const refreshed = await getBillAuditTrailApi(societyId, audit.bill.id);
+      setAudit(refreshed);
+      fetchRegister();
+    } catch (e2) {
+      toast.error(errMsg(e2, "Failed to waive off dues"));
+    } finally {
+      setWaiving(false);
+    }
+  };
+
   const openAudit = async (billId) => {
     try {
       const res = await getBillAuditTrailApi(societyId, billId);
       setAudit(res); setAuditOpen(true);
-    } catch (e) { toast.error(e?.message || "Failed to load audit trail"); }
+    } catch (e) { toast.error(errMsg(e, "Failed to load audit trail")); }
   };
 
   const handleRetry = async (billId) => {
@@ -57,7 +89,7 @@ const CollectionRegister = ({ societyId, onEscape }) => {
       fetchRegister();
       if (audit?.bill?.id === billId) openAudit(billId);
     } catch (e) {
-      toast.error(e?.message || "Failed to post journal — check charge head mapping");
+      toast.error(errMsg(e, "Failed to post journal — check charge head mapping"));
     }
   };
 
@@ -72,7 +104,7 @@ const CollectionRegister = ({ societyId, onEscape }) => {
       }
       fetchRegister();
     } catch (e) {
-      toast.error(e?.message || "Backfill failed");
+      toast.error(errMsg(e, "Backfill failed"));
     }
   };
 
@@ -172,7 +204,14 @@ const CollectionRegister = ({ societyId, onEscape }) => {
         {audit && (
           <div style={{ fontSize: 12 }}>
             <div style={{ marginBottom: 16 }}>
-              <div style={{ color: T.colors.blue600, textTransform: "uppercase", marginBottom: 4, fontSize: 11, fontWeight: 600 }}>Bill</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                <div style={{ color: T.colors.blue600, textTransform: "uppercase", fontSize: 11, fontWeight: 600 }}>Bill</div>
+                {audit.bill.status !== "paid" && (
+                  <button onClick={openWaiveOff} style={{ background: "none", border: "none", color: "#b45309", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>
+                    Waive Off Dues
+                  </button>
+                )}
+              </div>
               <div style={{ display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${T.colors.borderLight}`, padding: "4px 0" }}>
                 <span>{audit.bill.block} / {audit.bill.flat_number} — {fmtDate(audit.bill.bill_date)}</span>
                 <span>{money(audit.bill.total_amount)}</span>
@@ -243,6 +282,50 @@ const CollectionRegister = ({ societyId, onEscape }) => {
             )}
           </div>
         )}
+      </Modal>
+
+      {/* Waive Off — guided flow, deliberately separate from any generic
+          "pick an expense ledger" screen. This is an Accounts/Audit action
+          (dues written off by committee resolution), not a routine expense
+          like Electricity or Water — the ledger it posts to is excluded
+          from Budget's expense picker for the same reason. */}
+      <Modal open={waiveOpen} onClose={() => setWaiveOpen(false)} title={`Waive Off Dues — Bill ${audit?.bill?.bill_no || ""}`} width={480}>
+        <form onSubmit={handleWaiveOff}>
+          <div style={{ backgroundColor: T.colors.bg, borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 12 }}>
+            <div style={{ color: T.colors.slate500 }}>Flat</div>
+            <div style={{ fontWeight: 600, color: T.colors.slate800 }}>{audit?.bill?.block} / {audit?.bill?.flat_number}</div>
+          </div>
+          <Select label="What's being waived" value={waiveForm.waive_type}
+            onChange={(e) => setWaiveForm({ ...waiveForm, waive_type: e.target.value })}
+            options={[
+              { value: "interest", label: "Interest only" },
+              { value: "penalty", label: "Penalty only" },
+              { value: "both", label: "Both interest and penalty" },
+              { value: "partial", label: "Partial amount (specify below)" },
+            ]} required />
+          {waiveForm.waive_type === "partial" && (
+            <Input label="Amount to waive" type="number" step="0.01" value={waiveForm.waive_amount}
+              onChange={(e) => setWaiveForm({ ...waiveForm, waive_amount: e.target.value })} required />
+          )}
+          <label style={{ display: "block", marginBottom: 12 }}>
+            <span style={T.label}>Reason (required — becomes part of the permanent audit trail)</span>
+            <textarea
+              value={waiveForm.reason}
+              onChange={(e) => setWaiveForm({ ...waiveForm, reason: e.target.value })}
+              rows={3}
+              style={{ ...T.input, resize: "vertical", fontFamily: "inherit" }}
+              placeholder="e.g. Committee resolution dated 12-Jun-2026 — dues unrecoverable after 8 years"
+              required
+            />
+          </label>
+          <Input label="Committee resolution reference (optional)" value={waiveForm.resolution_ref}
+            onChange={(e) => setWaiveForm({ ...waiveForm, resolution_ref: e.target.value })}
+            placeholder="e.g. AGM Resolution No. 12/2026, or a link to the uploaded document" />
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 8, borderTop: `1px solid ${T.colors.border}` }}>
+            <Button variant="secondary" type="button" onClick={() => setWaiveOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="danger" disabled={waiving}>{waiving ? "Waiving…" : "Confirm Waive Off"}</Button>
+          </div>
+        </form>
       </Modal>
 
       <FKeyBar items={[]} onEscape={onEscape} />
