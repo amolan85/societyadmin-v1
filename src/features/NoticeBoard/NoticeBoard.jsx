@@ -446,7 +446,7 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
                                 <div className="d-flex align-items-center gap-2">
                                     <span style={{ fontSize: 20 }}>⚠️</span>
                                     <h6 className="nb-side-title mb-0">
-                                        Moderation Queue ({moderationQueue.length})
+                                        Draft Notices ({moderationQueue.length})
                                     </h6>
                                 </div>
 
@@ -611,14 +611,14 @@ const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
                                                 className="btn-ok flex-grow-1"
                                                 onClick={() => approveNotice(item)}
                                             >
-                                                ✓ Approve
+                                                ✓ Publish
                                             </button>
 
                                             <button
                                                 className="btn-er flex-grow-1"
                                                 onClick={() => rejectNotice(item)}
                                             >
-                                                ✕ Reject
+                                                ✕ Archive
                                             </button>
 
                                         </div>

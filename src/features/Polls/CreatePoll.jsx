@@ -27,9 +27,14 @@ const CreatePoll = ({ setActive, pollId }) => {
         SessionData()
     }, [])
 
+    // ── whenever pollId is empty (fresh "Create Poll" navigation), reset to
+    // a clean blank form instead of leaving stale data from a previous edit.
+    // Whenever pollId is set and we have societyId, load that poll for editing. ──
     useEffect(() => {
         if (pollId && societyId) {
             PollsById();
+        } else if (!pollId) {
+            resetForm();
         }
     }, [pollId, societyId]);
 
@@ -39,6 +44,17 @@ const CreatePoll = ({ setActive, pollId }) => {
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: "" }));
         }
+    };
+
+    const resetForm = () => {
+        setPId("");
+        setTitle("");
+        setDescription("");
+        setStartDate("");
+        setEndDate("");
+        setOptions(new Array(4).fill(""));
+        setErrors({});
+        setErrorText("");
     };
 
     const handleSubmitClick = () => {

@@ -320,178 +320,297 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
 
                 </div>
 
-                {/* ── FILTER BAR ── */}
-                <div className="bc-filter-card">
-                    <div className="row g-2">
-                        <div className="col-md-3">
-                            <select
-                                className="form-select form-select-sm"
-                                value={status}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    setStatus(val);
-                                    setPage(1);
-                                    getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: val, currentStartDate: startDate, currentEndDate: endDate });
-                                }}
-                            >
-                                <option value="">All Status</option>
-                                <option value="draft">Draft</option>
-                                <option value="scheduled">Scheduled</option>
-                                <option value="sent">Sent</option>
-                                <option value="failed">Failed</option>
-                            </select>
-                        </div>
-                        <div className="col-md-3">
-                            <input
-                                type="date"
-                                className="form-control form-control-sm"
-                                placeholder="From Date"
-                                value={startDate}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    setStartDate(val);
-                                    setPage(1);
-                                    getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: val, currentEndDate: endDate });
-                                }}
-                            />
-                        </div>
-                        <div className="col-md-3">
-                            <input
-                                type="date"
-                                className="form-control form-control-sm"
-                                placeholder="To Date"
-                                value={endDate}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    setEndDate(val);
-                                    setPage(1);
-                                    getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: startDate, currentEndDate: val });
-                                }}
-                            />
-                        </div>
-                        <div className="col-md-3">
-                            <div className="d-flex gap-2">
-                                <input
-                                    type="text"
-                                    placeholder="Search broadcasts..."
-                                    className="form-control form-control-sm"
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    onKeyDown={handleSearchKeyDown}
-                                />
-                                <button className="btn btn-primary btn-sm bc-search-btn" onClick={handleSearch}>
-                                    <FiSearch size={14} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                {/* ── MAIN LAYOUT: list (left) + sidebar (right) ── */}
+                <div className="row g-4">
 
-                    {/* TYPE TABS */}
-                    <div className="bc-tabs-wrap">
-                        {broadcastType.map((t) => (
-                            <button
-                                key={t.id}
-                                onClick={() => {
-                                    setBroadcastTypeTab(t.value);
-                                    setPage(1);
-                                    getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: t.value, currentStatus: status, currentStartDate: startDate, currentEndDate: endDate });
-                                }}
-                                className={`bc-tab-btn ${broadcastTypeTab === t.value ? "active" : ""}`}
-                            >
-                                {t.icon} {t.id}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                    {/* LEFT — filters + broadcast list */}
+                    <div className="col-12 col-lg-8">
 
-                {/* ── LIST CARD ── */}
-                <div className="bc-list-card">
-
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h6 className="mb-0 fw-semibold">Broadcasts</h6>
-                    </div>
-
-                    {loading ? (
-                        <div className="text-center py-5 text-muted">
-                            <div className="spinner-border mb-3" role="status" />
-                            Loading...
-                        </div>
-                    ) : allBroadcast.length === 0 ? (
-                        <div className="text-center py-5 text-muted">
-                            <FiGrid size={32} className="mb-2 opacity-25" />
-                            <br />
-                            No Broadcast Found
-                        </div>
-                    ) : (
-                        allBroadcast.map((p, i) => {
-                            const noticeData = getNoticeIcon(p.type);
-                            return (
-                                <div key={p.id} className="text-start bc-item">
-                                    <div className="d-flex gap-3 align-items-start">
-
-                                        {/* TYPE ICON */}
-                                        <div
-                                            className={`bc-item-icon ${noticeData.cls}`}
-                                            onClick={() => handleViewDetails(p)}
-                                        >
-                                            {noticeData.icon}
-                                        </div>
-
-                                        {/* CONTENT */}
-                                        <div className="flex-grow-1 min-w-0" style={{ cursor: "pointer" }} onClick={() => handleViewDetails(p)}>
-                                            <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                                <span className="bc-item-title">{p.title}</span>
-                                                <TypePill type={p.type} />
-                                                {p.channel && <ChannelPill channel={p.channel} />}
-                                                <StatusPill s={p.status} />
-                                            </div>
-                                            <p className="bc-item-message">{p.message}</p>
-                                            <div className="bc-item-meta">
-                                                <span>{name}</span>
-                                                <span>•</span>
-                                                <span>{timeAgo(p.sent_at || p.created_at)}</span>
-                                                {p.scheduled_at && (
-                                                    <>
-                                                        <span>•</span>
-                                                        <span>{new Date(p.scheduled_at).toLocaleDateString()}</span>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* ⋮ DROPDOWN */}
-                                        <div className="dropdown flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                            <button
-                                                type="button"
-                                                data-bs-toggle="dropdown"
-                                                aria-expanded="false"
-                                                className="bc-action-btn"
-                                            >
-                                                ⋮
-                                            </button>
-                                            <ul className="dropdown-menu dropdown-menu-end">
-                                                <li><button className="dropdown-item" onClick={() => handleViewDetails(p)}>View Details</button></li>
-                                                <li><button className="dropdown-item" onClick={() => handleEditClick(p.id)}>Edit Broadcast</button></li>
-                                                <li><hr className="dropdown-divider" /></li>
-                                                <li><button className="dropdown-item text-danger" onClick={() => deleteBroadcast(p.id, p.title)}>Delete Broadcast</button></li>
-                                            </ul>
-                                        </div>
-
+                        {/* ── FILTER BAR ── */}
+                        <div className="bc-filter-card">
+                            <div className="row g-2">
+                                <div className="col-md-3">
+                                    <select
+                                        className="form-select form-select-sm"
+                                        value={status}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setStatus(val);
+                                            setPage(1);
+                                            getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: val, currentStartDate: startDate, currentEndDate: endDate });
+                                        }}
+                                    >
+                                        <option value="">All Status</option>
+                                        <option value="draft">Draft</option>
+                                        <option value="scheduled">Scheduled</option>
+                                        <option value="sent">Sent</option>
+                                        <option value="failed">Failed</option>
+                                    </select>
+                                </div>
+                                <div className="col-md-3">
+                                    <input
+                                        type="date"
+                                        className="form-control form-control-sm"
+                                        placeholder="From Date"
+                                        value={startDate}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setStartDate(val);
+                                            setPage(1);
+                                            getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: val, currentEndDate: endDate });
+                                        }}
+                                    />
+                                </div>
+                                <div className="col-md-3">
+                                    <input
+                                        type="date"
+                                        className="form-control form-control-sm"
+                                        placeholder="To Date"
+                                        value={endDate}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setEndDate(val);
+                                            setPage(1);
+                                            getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: startDate, currentEndDate: val });
+                                        }}
+                                    />
+                                </div>
+                                <div className="col-md-3">
+                                    <div className="d-flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Search broadcasts..."
+                                            className="form-control form-control-sm"
+                                            value={search}
+                                            onChange={(e) => setSearch(e.target.value)}
+                                            onKeyDown={handleSearchKeyDown}
+                                        />
+                                        <button className="btn btn-primary btn-sm bc-search-btn" onClick={handleSearch}>
+                                            <FiSearch size={14} />
+                                        </button>
                                     </div>
                                 </div>
-                            );
-                        })
-                    )}
-
-                    {/* FOOTER */}
-                    {!loading && totalRecords > 0 && (
-                        <div className="bc-list-footer">
-                            <div className="bc-records-info">
-                                Showing {(page - 1) * limit + 1}–{Math.min(page * limit, totalRecords)} of {totalRecords} broadcasts
                             </div>
-                            <Pagination page={page} total={totalPages} onChange={handlePageChange} />
+
+                            {/* TYPE TABS */}
+                            <div className="bc-tabs-wrap">
+                                {broadcastType.map((t) => (
+                                    <button
+                                        key={t.id}
+                                        onClick={() => {
+                                            setBroadcastTypeTab(t.value);
+                                            setPage(1);
+                                            getBroadcast({ sid: societyIdRef.current, currentPage: 1, currentSearch: search, currentType: t.value, currentStatus: status, currentStartDate: startDate, currentEndDate: endDate });
+                                        }}
+                                        className={`bc-tab-btn ${broadcastTypeTab === t.value ? "active" : ""}`}
+                                    >
+                                        {t.icon} {t.id}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    )}
+
+                        {/* ── LIST CARD ── */}
+                        <div className="bc-list-card">
+
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h6 className="mb-0 fw-semibold">Broadcasts</h6>
+                            </div>
+
+                            {loading ? (
+                                <div className="text-center py-5 text-muted">
+                                    <div className="spinner-border mb-3" role="status" />
+                                    Loading...
+                                </div>
+                            ) : allBroadcast.length === 0 ? (
+                                <div className="text-center py-5 text-muted">
+                                    <FiGrid size={32} className="mb-2 opacity-25" />
+                                    <br />
+                                    No Broadcast Found
+                                </div>
+                            ) : (
+                                allBroadcast.map((p, i) => {
+                                    const noticeData = getNoticeIcon(p.type);
+                                    return (
+                                        <div key={p.id} className="text-start bc-item">
+                                            <div className="d-flex gap-3 align-items-start">
+
+                                                {/* TYPE ICON */}
+                                                <div
+                                                    className={`bc-item-icon ${noticeData.cls}`}
+                                                    onClick={() => handleViewDetails(p)}
+                                                >
+                                                    {noticeData.icon}
+                                                </div>
+
+                                                {/* CONTENT */}
+                                                <div className="flex-grow-1 min-w-0" style={{ cursor: "pointer" }} onClick={() => handleViewDetails(p)}>
+                                                    <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                        <span className="bc-item-title">{p.title}</span>
+                                                        <TypePill type={p.type} />
+                                                        {p.channel && <ChannelPill channel={p.channel} />}
+                                                        <StatusPill s={p.status} />
+                                                    </div>
+                                                    <p className="bc-item-message">{p.message}</p>
+                                                    <div className="bc-item-meta">
+                                                        <span>{name}</span>
+                                                        <span>•</span>
+                                                        <span>{timeAgo(p.sent_at || p.created_at)}</span>
+                                                        {p.scheduled_at && (
+                                                            <>
+                                                                <span>•</span>
+                                                                <span>{new Date(p.scheduled_at).toLocaleDateString()}</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* ⋮ DROPDOWN */}
+                                                <div className="dropdown flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                                    <button
+                                                        type="button"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false"
+                                                        className="bc-action-btn"
+                                                    >
+                                                        ⋮
+                                                    </button>
+                                                    <ul className="dropdown-menu dropdown-menu-end">
+                                                        <li><button className="dropdown-item" onClick={() => handleViewDetails(p)}>View Details</button></li>
+                                                        <li><button className="dropdown-item" onClick={() => handleEditClick(p.id)}>Edit Broadcast</button></li>
+                                                        <li><hr className="dropdown-divider" /></li>
+                                                        <li><button className="dropdown-item text-danger" onClick={() => deleteBroadcast(p.id, p.title)}>Delete Broadcast</button></li>
+                                                    </ul>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+
+                            {/* FOOTER */}
+                            {!loading && totalRecords > 0 && (
+                                <div className="bc-list-footer">
+                                    <div className="bc-records-info">
+                                        Showing {(page - 1) * limit + 1}–{Math.min(page * limit, totalRecords)} of {totalRecords} broadcasts
+                                    </div>
+                                    <Pagination page={page} total={totalPages} onChange={handlePageChange} />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* RIGHT — sidebar */}
+                    <div className="col-12 col-lg-4">
+
+                        {/* Notifications — real, derived from recent broadcast activity
+                        <div className="sv-card mb-3">
+                            <h6 className="bc-side-title text-start">Notifications</h6>
+
+                            {sidebarLoading ? (
+                                <div className="text-muted small text-start">Loading…</div>
+                            ) : notifications.length === 0 ? (
+                                <div className="text-muted small text-start">No recent activity</div>
+                            ) : (
+                                notifications.map((n, i) => (
+                                    <div key={i} className="bc-notify-item">
+                                        <span className={`dot ${n.dot}`} />
+                                        <div className="text-start">
+                                            <div className="bc-notify-label">{n.lbl}</div>
+                                            <div className="bc-notify-time">{n.time}</div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+
+                            <button className="btn-dk w-100 mt-2" onClick={() => setActive("broadcasting")}>
+                                Show all broadcasts
+                            </button>
+                        </div> */}
+
+                        {/* Quick Actions */}
+                        <div className="sv-card mb-3">
+                            <h6 className="bc-side-title text-start">Quick Actions</h6>
+
+                            {/* Go to Notice Board */}
+                            <button
+                                className="qa mb-2"
+                                onClick={() => setActive("noticeboard")}
+                            >
+                                <div
+                                    className="qa-ico"
+                                    style={{ background: "#ede9fe" }}
+                                >
+                                    📋
+                                </div>
+                                <span className="bc-qa-text">
+                                    Notice Board
+                                </span>
+                            </button>
+
+                            {/* Go to Polls & Voting */}
+                            <button
+                                className="qa mb-2"
+                                onClick={() => setActive("polls")}
+                            >
+                                <div
+                                    className="qa-ico"
+                                    style={{ background: "#ffedd5" }}
+                                >
+                                    🗳️
+                                </div>
+                                <span className="bc-qa-text">
+                                    Polls & Voting
+                                </span>
+                            </button>
+
+                            {/* Go Back */}
+                            <button
+                                className="qa"
+                                onClick={() => setActive("broadcasting")}
+                            >
+                                <div
+                                    className="qa-ico"
+                                    style={{ background: "#dbeafe" }}
+                                >
+                                    📡
+                                </div>
+                                <span className="bc-qa-text">
+                                    Broadcast List
+                                </span>
+                            </button>
+                        </div>
+
+                        {/* Recent Communications — real, last 3 broadcasts
+                        <div className="sv-card">
+                            <h6 className="bc-side-title text-start">Recent Communications</h6>
+
+                            {sidebarLoading ? (
+                                <div className="text-muted small text-start">Loading…</div>
+                            ) : recentBroadcasts.length === 0 ? (
+                                <div className="text-muted small text-start">No broadcasts yet</div>
+                            ) : (
+                                recentBroadcasts.map((r, i, arr) => (
+                                    <div key={r.id} className={`bc-rc-item ${i < arr.length - 1 ? "bordered" : ""}`}>
+                                        <div className="text-start">
+                                            <div className="bc-rc-title">{r.title}</div>
+                                            <div className="bc-rc-sub">
+                                                {timeAgo(r.sent_at || r.created_at)} • {capitalize(r.type)}
+                                            </div>
+                                        </div>
+                                        <Badge label={capitalize(r.status)} c={statusToBadgeColor(r.status)} />
+                                    </div>
+                                ))
+                            )}
+
+                            <button className="btn-dk w-100 mt-3" onClick={() => setActive("broadcasting")}>
+                                Show all communication
+                            </button>
+                        </div> */}
+
+                    </div>
+
                 </div>
             </div>
 

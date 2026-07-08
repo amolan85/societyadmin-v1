@@ -142,9 +142,16 @@ const Polls = ({ setActive, setPollId }) => {
         [expiredPollsCount, "Expired Polls", "tx-success"],
     ];
 
+    // ── always clears pollId before navigating to a fresh "create" form,
+    // so CreatePoll never inherits a stale id from a previous edit ──
+    const goToCreatePoll = () => {
+        setPollId("");
+        setActive("createPoll");
+    };
+
     const getPollById = (pollId) => {
+        setPollId(pollId);
         setActive("createPoll")
-        setPollId(pollId)
     }
 
     const deletePoll = (pollId, pollTitle) => {
@@ -282,7 +289,7 @@ const Polls = ({ setActive, setPollId }) => {
 
                         <button
                             className="btn-ac"
-                            onClick={() => setActive("createPoll")}
+                            onClick={goToCreatePoll}
                             style={{ display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}
                         >
                             <FiPlus size={16} /> Create Poll
@@ -440,10 +447,7 @@ const Polls = ({ setActive, setPollId }) => {
                                 <FaUsers className="text-primary" />,
                                 "Add New Poll",
                                 "Create a new public poll",
-                                () => {
-                                    setPollId("");
-                                    setActive("createPoll");
-                                },
+                                goToCreatePoll,
                             ],
 
                             [
