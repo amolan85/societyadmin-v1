@@ -6,7 +6,7 @@ import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import { BiExport } from 'react-icons/bi';
 import { HiOutlineUserGroup } from "react-icons/hi2";
-import { FiFilter, FiSearch, FiUsers  } from 'react-icons/fi';
+import { FiFilter, FiSearch, FiUsers } from 'react-icons/fi';
 import { toast } from "react-toastify";
 import {
     CreateVisitorApi, ListVisitorsApi,
@@ -169,18 +169,18 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
 
             const visitors = data?.visitors || [];
             const pagination = data?.pagination || {};
+            const analytics = data?.analytics || {};
 
             setVisitorsList(visitors);
             setTotalCount(pagination.total || 0);
             setTotalPages(pagination.total_pages || 1);
             setPage(pagination.page || pg);
-            const today = new Date().toISOString().split("T")[0];
 
             setStats({
-                total: pagination.total || 0,
-                today: visitors.filter(v => v.check_in_time?.startsWith(today)).length,
-                pending: visitors.filter(v => v.approval_status === "pending").length,
-                checkedOut: visitors.filter(v => !!v.check_out_time).length
+                total: analytics?.approval_status?.total || pagination.total || 0,
+                today: analytics?.entry_status?.inside || 0,
+                pending: analytics?.approval_status?.pending || 0,
+                checkedOut: analytics?.entry_status?.completed || 0
             });
 
         } catch (error) {
@@ -504,7 +504,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <div className="d-flex align-items-center gap-3">
                         <div className="bc-header-icon">
-                            <HiOutlineUserGroup  size={20} color="#2563eb" />
+                            <HiOutlineUserGroup size={20} color="#2563eb" />
                         </div>
 
                         <div className="text-start">

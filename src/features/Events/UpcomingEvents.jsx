@@ -47,24 +47,40 @@ const UpcomingEvents = ({ setActive, setPollId }) => {
     };
 
     const GetPollsData = async (sid, uid) => {
-        try {
-            setLoading(true);
-            const res = await getPollApi(sid, uid);
-            const polls = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
-            setAllPolls(polls);
-        } catch (error) {
-            console.error("Error fetching polls:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    try {
+        setLoading(true);
+
+        const res = await getPollApi(
+            sid,
+            uid,
+            "upcoming",   // fetch only upcoming polls
+            "",
+            "",
+            "",
+            "",
+            1,
+            100
+        );
+
+        const polls = Array.isArray(res?.list)
+            ? res.list
+            : [];
+
+        setAllPolls(polls);
+
+    } catch (error) {
+        console.log(error);
+    } finally {
+        setLoading(false);
+    }
+};
 
     const deletePoll = async (pollId) => {
         const confirmed = window.confirm("Are you sure you want to cancel this event?");
         if (!confirmed) return;
 
         try {
-            await deletePollApi(pollId);
+            await deletePollApi(pollId, societyId);
             toast.success("Event cancelled successfully!");
             GetPollsData(societyId, userId);
         } catch (error) {
@@ -74,10 +90,7 @@ const UpcomingEvents = ({ setActive, setPollId }) => {
     };
 
     // Only polls with status === "UPCOMING" belong on this page
-    const upcomingPolls = useMemo(
-        () => allPolls.filter((p) => p.status === "UPCOMING"),
-        [allPolls]
-    );
+   const upcomingPolls = allPolls;
 
     const formatDate = (dateString) => {
         if (!dateString) return "";
@@ -381,8 +394,8 @@ const UpcomingEvents = ({ setActive, setPollId }) => {
                                     </td>
 
                                     <td style={{ padding: "14px 16px", textAlign: "left" }}>
-                                        <div style={{ fontSize: 13 }}>{formatDate(p.expiry_datetime)}</div>
-                                        <div className="tx-muted" style={{ fontSize: 12 }}>{formatTime(p.expiry_datetime)}</div>
+                                        <div style={{ fontSize: 13 }}>{formatDate(p.end_datetime)}</div>
+                                        <div className="tx-muted" style={{ fontSize: 12 }}>{formatTime(p.end_datetime)}</div>
                                     </td>
 
                                     <td style={{ padding: "14px 16px" }}>

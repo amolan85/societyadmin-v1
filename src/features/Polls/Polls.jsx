@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Badge, Prog } from '../../components/Common/ReusableFunction';
+import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/polls.css"
 import { GetSessionData } from '../../utils/SessionManagement';
 import { deletePollApi, getPollApi, getPollOverviewApi } from '../../services/PollApi';
@@ -41,6 +41,7 @@ const Polls = ({ setActive, setPollId }) => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalRecords, setTotalRecords] = useState(0);
     const [searchText, setSearchText] = useState("");
+    const [upcomingPollsData, setUpcomingPollsData] = useState([]);
 
     // ── tab values now match the API's actual (lowercase) status strings ──
     const tabs = [
@@ -177,6 +178,10 @@ const Polls = ({ setActive, setPollId }) => {
         }
     };
 
+
+    const handlePageChange = (newPage) => {
+        setPage(newPage);
+    };
     //statsData for count — order matches design: Active Polls, Avg Participation, Total Participants, Expired Polls
     // API overview only returns active_polls, avg_turnout_percent, digital_adoption_percent, total_polls
     // so total_participants & expired_polls are derived from the polls list itself
@@ -241,7 +246,7 @@ const Polls = ({ setActive, setPollId }) => {
 
             setShowDeleteModal(false);
 
-            GetPollsData(societyId, userId, page, search, tab);
+            setPage(page);
 
 
         } catch (error) {
@@ -469,6 +474,28 @@ const Polls = ({ setActive, setPollId }) => {
                         )
                     })}
 
+                    {totalRecords > 0 && (
+                        <div
+                            className="d-flex justify-content-between align-items-center mt-3 flex-wrap"
+                        >
+                            <div
+                                className="text-muted"
+                                style={{ fontSize: "14px" }}
+                            >
+                                Showing {(page - 1) * pageSize + 1}
+                                {" - "}
+                                {Math.min(page * pageSize, totalRecords)}
+                                {" of "}
+                                {totalRecords} polls
+                            </div>
+
+                            <Pagination
+                                page={page}
+                                total={totalPages}
+                                onChange={handlePageChange}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* RIGHT */}
@@ -603,7 +630,10 @@ const Polls = ({ setActive, setPollId }) => {
 
                         <button
                             className="btn-dk w-100"
-                            onClick={() => setActive("upcomingEvents")}
+                            onClick={() => {
+                                setUpcomingPollsData(upcomingPolls);
+                                setActive("upcomingEvents");
+                            }}
                         >
                             Show All Upcoming Polls
                         </button>
