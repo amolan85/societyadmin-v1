@@ -301,20 +301,29 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
         }
     };
 
-    const fmt = (dt, type) => {
-        if (!dt) return "—";
-        // Replace space with T to make valid ISO, then treat as UTC
+    const parseDate = (dt) => {
+        if (!dt) return null;
+        // 1) Try native parsing first — handles RFC 2822 strings like
+        //    "Wed, 08 Jul 2026 07:10:32 GMT" and plain ISO dates like "2026-07-08"
+        let date = new Date(dt);
+        if (!isNaN(date)) return date;
+
+        // 2) Fallback for "YYYY-MM-DD HH:mm:ss" style strings without timezone info
         const normalized = dt.includes("T") ? dt : dt.replace(" ", "T");
-        const withZ = normalized.includes("Z") || normalized.includes("+")
-            ? normalized
-            : normalized + "Z";
-        const date = new Date(withZ);
-        if (isNaN(date)) return "—";
+        date = new Date(normalized);
+        if (!isNaN(date)) return date;
+
+        date = new Date(normalized + "Z");
+        return isNaN(date) ? null : date;
+    };
+
+    const fmt = (dt, type) => {
+        const date = parseDate(dt);
+        if (!date) return "—";
         return type === "time"
             ? date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })
             : date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
     };
-
     const getStatusColor = () => {
         if (visitor?.entry_status === "checked_in" || visitor?.entry_status === "inside") return "#22c55e";
         if (visitor?.entry_status === "checked_out") return "#94a3b8";
@@ -439,6 +448,7 @@ const GetVisitorDetails = ({ visitorId, setActive, onBack }) => {
                             <button
                                 className="btn btn-sm btn-primary"
                                 onClick={handleOpenAllotParking}
+                                disabled={visitor?.entry_status === "completed"}
                                 style={{ borderRadius: 8 }}
                             >
                                 + Allot Parking

@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "../../styles/AddMember.css";
 import { Badge, Pagination } from "../../components/Common/ReusableFunction";
 import { GetSessionData } from "../../utils/SessionManagement";
 import { toast } from "react-toastify";
-import { FiFilter, FiSearch } from "react-icons/fi";
+import { FiFilter, FiSearch, FiGrid, FiCheckCircle, FiLogOut, FiUsers, FiClock } from "react-icons/fi";
 import { ListVisitorsApi } from "../../services/VisitorApi";
 import {
     getAllBlocksApi,
@@ -14,11 +14,12 @@ import { CgExport, CgImport } from "react-icons/cg";
 import { exportFile, exportToPDF } from "../../components/Common/ExportFile";
 import { TbCar, TbMotorbike } from "react-icons/tb";
 
-import { visitorParkingApi, deleteVisitorParkingApi, getVisitorParkingByIdApi, AllotVisitorParkingApi, UpdateVisitorParkingApi } from "../../services/VisitorParkingApi";
+import { visitorParkingApi, deleteVisitorParkingApi, getVisitorParkingByIdApi, AllotVisitorParkingApi, UpdateVisitorParkingApi, releaseVisitorParkingApi } from "../../services/VisitorParkingApi";
 import ExportModal from "../../components/Common/ExportModal";
 import AllotVisitorParkingModal from "./AllotVisitorParkingModal";
 import CreateVisitorParkingModal from "./CreateVisitorParkingModal";
 import { ListParkingSlotsApi } from "../../services/ParkingApi";
+import CheckOutVisitorModal from "./CheckOutVisitorModal";
 
 
 const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParkingId }) => {
@@ -61,7 +62,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
     const [search, setSearch] = useState("");
     const [mId, setMId] = useState("");
     const [selectedRange, setSelectedRange] = useState("all");
-
+    const searchTimeout = useRef(null);
     const [allocationStatusTab, setAllocationStatusTab] = useState("");
     const [allVisitorParking, setAllVisitorParking] = useState([]);
     const [allExportVisitorParking, setAllExportVisitorParking] = useState([]);
@@ -78,6 +79,11 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
     const [remarks, setRemarks] = useState("");
     const [vehicleNumber, setVehicleNumber] = useState("");
     const [allSlots, setAllSlots] = useState([]);
+    const [releaseShow, setReleaseShow] = useState(false);
+    const [selectedParkingItem, setSelectedParkingItem] = useState(null);
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
+    const [showFilter, setShowFilter] = useState(false);
     const getVehicleIcon = (vehicleType) => {
         const icons = {
             "2_wheeler": { icon: <TbMotorbike size={18} />, color: "#f97316" },
@@ -85,6 +91,11 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
         };
         return icons[vehicleType] ?? icons["4_wheeler"];
     };
+    const allocationStatus = [
+        { id: "All Visitor", value: "", icon: <FiGrid size={15} /> },
+        { id: "Active", value: "active", icon: <FiCheckCircle size={15} /> },
+        { id: "Released", value: "released", icon: <FiLogOut size={15} /> },
+    ];
     const handleViewDetails = async (visitorParkingId) => {
         try {
             const data = await getVisitorParkingByIdApi(societyId, visitorParkingId);
@@ -94,6 +105,24 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
         } catch (error) {
             console.error("Error fetching visitor detail:", error);
             toast.error("Failed to fetch visitor details");
+        }
+    };
+    const handleConfirmRelease = async () => {
+        try {
+            await releaseVisitorParkingApi(societyId, selectedParkingItem.id);
+            toast.success("Parking released successfully");
+            visitorParking(societyId, page);
+        } catch (e) {
+            toast.error(e?.message || "Failed to release parking");
+        }
+    };
+    const handleReleaseParking = async (item) => {
+        try {
+            const fullData = await getVisitorParkingByIdApi(societyId, item.id);
+            setSelectedParkingItem({ ...fullData, id: fullData?.id || item.id }); // ✅ fallback id
+            setReleaseShow(true);
+        } catch (e) {
+            toast.error("Failed to load visitor details");
         }
     };
     const handleEditParking = async (item) => {
@@ -246,12 +275,12 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
         },
     ]
 
-    const allocationStatus = [
-        { id: "All Visitor", value: "" },
-        { id: "Active", value: "active" },
-        { id: "Released", value: "released" },
+    // const allocationStatus = [
+    //     { id: "All Visitor", value: "" },
+    //     { id: "Active", value: "active" },
+    //     { id: "Released", value: "released" },
 
-    ];
+    // ];
 
     const finalMemType = memType === "familyMember" ? familyType : memType;
 
@@ -266,16 +295,16 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
         setSocietyId(flats.society_id);
         setUserId(flats.user_id);
         visitorParking(flats.society_id, 1);
-        getAllBlocks(flats.society_id);
-        getVisitors(flats.society_id);
-        getParkingSlots(flats.society_id);
+        // getAllBlocks(flats.society_id);
+        // getVisitors(flats.society_id);
+        // getParkingSlots(flats.society_id);
 
     };
 
     //function for get visitor parking details
-    const visitorParking = async (societyId, page) => {
+    const visitorParking = async (societyId, page, status = allocationStatusTab, from = dateFrom, to = dateTo) => {
         try {
-            const data = await visitorParkingApi(societyId, page, limit);
+            const data = await visitorParkingApi(societyId, page, limit, search, status, from, to);
             setAllVisitorParking(data.visitor_parking || []);
             setPage(data.page);
             setLimit(data.limit);
@@ -339,7 +368,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
 
     const handlePageChange = (value) => {
         setPage(value);
-        visitorParking(societyId, value);
+        visitorParking(societyId, value, allocationStatusTab, dateFrom, dateTo);
     };
 
     //function for validation
@@ -578,7 +607,9 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
         (item) => item.status?.toLowerCase() === "released",
     ).length;
 
-
+    const totalPending = allVisitorParking.filter(
+        (item) => item.status?.toLowerCase() === "pending",
+    ).length;
 
     const resetForm = () => {
         setFirstName("");
@@ -681,29 +712,41 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
 
         setShow(true);
     };
-    const filteredData = allocationStatusTab === ""
-        ? allVisitorParking
-        : allVisitorParking.filter((item) => item.status === allocationStatusTab);
 
-    const handleSearch = async (e) => {
+    const handleApplyFilter = () => {
+        setPage(1);
+        setShowFilter(false);
+        visitorParking(societyId, 1, allocationStatusTab, dateFrom, dateTo);
+    };
+
+    const handleClearFilter = () => {
+        setDateFrom("");
+        setDateTo("");
+        setAllocationStatusTab("");
+        setPage(1);
+        setShowFilter(false);
+        visitorParking(societyId, 1, "", "", "");
+    };
+    const handleSearch = (e) => {
         const value = e.target.value;
         setSearch(value);
 
-        try {
-            if (!value.trim()) {
-                setPage(1);
-                const data = await visitorParkingApi(societyId, page, limit);
-                setAllVisitorParking(data.visitor_parking || []);
-            }
-
-            if (value.length < 3) return;
-
-            const data = await visitorParkingApi(societyId, page, limit, value);
-
-            setAllVisitorParking(data.visitor_parking || []);
-        } catch (error) {
-            console.error("Search error:", error);
+        // Purana pending call cancel karo
+        if (searchTimeout.current) {
+            clearTimeout(searchTimeout.current);
         }
+
+        // Naya call 500ms baad schedule karo
+        searchTimeout.current = setTimeout(async () => {
+            try {
+                setPage(1);
+                const data = await visitorParkingApi(societyId, 1, limit, value.trim(), allocationStatusTab, dateFrom, dateTo);
+                setAllVisitorParking(data.visitor_parking || []);
+                setTotalCount(data.total);
+            } catch (error) {
+                console.error("Search error:", error);
+            }
+        }, 500);
     };
     const total = Math.ceil(totalCount / limit);
 
@@ -713,116 +756,15 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
                 {/* Header */}
                 <div className="d-flex justify-content-between align-items-center mb-4 text-start">
                     <div>
-                        <h4 className="cp-title">Visitor Parking</h4>
-                        <p className="cp-sub">
-                            Monitor occupancy, manage visitor parking, and handle violations.
+                        <h4 className="cp-title mb-1" style={{ fontWeight: 700 }}>Visitor Parking</h4>
+                        <p className="cp-sub mb-0 text-muted">
+                            Monitor, manage, and track visitor parking with ease.
                         </p>
                     </div>
-                    <div className='d-flex'>
-
-                        {/* <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
-                            createvisitorparkingsetShow(true)}>+ Create Visitor</button> */}
-                        {/* <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() =>
-                            setShow(true)}>+ Allot Parking</button> */}
-                        <button className="btn btn-sm btn-ac ms-2 btn-primary" onClick={() => setActive("parkingDashboard")}>Back</button>
-                    </div>
-
-                </div>
-                {/* Stats */}
-                <div className="row g-3 mb-4">
-                    {[
-                        [totalVisitorParking, "All Visitors", "", "tile-blu"],
-                        [totalActive, "Active Visitor Parking", "", "tile-grn"],
-                        [totalReleased, "Released Visitor Parking", "", "tile-red"],
-                        // [totalFamilyMember, "Active Rentals", "+3 this month", "tile-grn"],
-                    ].map(([v, l, subText, cls]) => (
-                        <div className="col-6 col-md-4" key={l}>
-                            <div className={`tile bg-white ${cls}`}>
-                                <div className="text-start text-muted">
-                                    {l}
-                                </div>
-
-                                <div className="tile-val text-start mt-1" style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "6px"
-                                }}>
-                                    {v}
-
-                                    {subText && (
-                                        <span
-                                            style={{
-                                                fontSize: "10px",
-                                                fontWeight: "500",
-                                                marginLeft: "6px",
-                                                color: "#000"
-                                            }}
-                                        >
-                                            {subText}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                <div className='row'>
-                    <div className='col-lg-8'>
-                        <div className="NoticeBoardTabs mt-3 bg-white"
-                        >
-                            {allocationStatus.map((t) => (
-                                <button
-                                    key={t.id}
-                                    onClick={() => { setAllocationStatusTab(t.value); setPage(1); }}
-                                    className={`NoticeBoardTabs-btn ${allocationStatusTab === t.value ? "active" : ""}`}
-                                >
-                                    {t.icon} &nbsp;{t.id}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="d-flex justify-content-between align-items-center mb-4 text-start">
-                    {/* <div>
-                        <h4 className="cp-title">Members</h4>
-                        <p className="cp-sub">
-                            Manage and track all society members
-                        </p>
-                    </div> */}
-                    <div className="col-12 col-md-4 col-lg-3 position-relative">
-                        <span
-                            style={{
-                                position: "absolute",
-                                left: "15px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                color: "#aaa",
-                            }}
-                        >
-                            <FiSearch size={16} />
-                        </span>
-
-                        <input
-                            type="text"
-                            className="form-control rounded-pill"
-                            placeholder="Search by visitor name,vehicle no..."
-                            value={search}
-                            // onChange={(e) => setSearch(e.target.value)}
-                            onChange={handleSearch}
-                            style={{ paddingLeft: "35px" }}
-                        />
-                    </div>
-                    <div className="d-flex">
-                        {/* <button
-                            className="btn-ol ms-2"
-                            data-bs-toggle="dropdown"
-                        >
-                            <FiFilter size={14} />
-                            Filter
-                        </button> */}
+                    <div className="d-flex gap-2">
                         <button
-                            className="btn-ol ms-2"
+                            className="btn btn-sm btn-ac btn-primary"
+                            style={{ borderRadius: 10, fontSize: 13 }}
                             onClick={() => {
                                 getAllExportParking(societyId);
                                 setExportModal(true);
@@ -830,134 +772,427 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
                         >
                             <CgImport /> Export
                         </button>
+                        <button
+                            className="btn btn-sm btn-ac btn-primary"
+                            style={{ borderRadius: 10, fontWeight: 500 }}
+                            onClick={() => setActive("parkingDashboard")}
+                        >
+                            Back
+                        </button>
                     </div>
                 </div>
-                <div className="sv-card p-0 overflow-hidden">
+
+                {/* Stats */}
+                <div className="row g-3 mb-4">
+                    {[
+                        {
+                            value: totalVisitorParking,
+                            label: "All Visitors",
+                            sub: "Total visitor entries",
+                            bg: "#eff6ff",
+                            color: "#3b82f6",
+                            icon: "👥"
+                        },
+                        {
+                            value: totalActive,
+                            label: "Active Visitor Parking",
+                            sub: "Currently parked",
+                            bg: "#ecfdf5",
+                            color: "#22c55e",
+                            icon: "✓"
+                        },
+                        {
+                            value: totalReleased,
+                            label: "Released Visitor Parking",
+                            sub: "Exited today",
+                            bg: "#fef2f2",
+                            color: "#ef4444",
+                            icon: "🚗"
+                        },
+                    ].map((s) => (
+                        <div className="col-6 col-md-4" key={s.label}>
+                            <div
+                                className="p-3 bg-white h-100"
+                                style={{
+                                    borderRadius: 14,
+                                    border: "1px solid #f1f5f9",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 14
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: "50%",
+                                        background: s.bg,
+                                        color: s.color,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontSize: 20,
+                                        flexShrink: 0
+                                    }}
+                                >
+                                    {s.icon}
+                                </div>
+                                <div className="text-start">
+                                    <div className="text-muted" style={{ fontSize: 13 }}>{s.label}</div>
+                                    <div style={{ fontSize: 24, fontWeight: 700, color: s.color, lineHeight: 1.2 }}>
+                                        {s.value}
+                                    </div>
+                                    <div className="text-muted" style={{ fontSize: 11 }}>{s.sub}</div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Tabs */}
+                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+
+                    {/* Tabs */}
+                    <div
+                        className="d-inline-flex align-items-center gap-1"
+                        style={{
+                            background: "white",
+                            borderRadius: 999,
+                            padding: 6,
+                        }}
+                    >
+                        {allocationStatus.map((t) => {
+                            const isActive = allocationStatusTab === t.value;
+                            return (
+                                <button
+                                    key={t.id}
+                                    onClick={() => {
+                                        setAllocationStatusTab(t.value);
+                                        setPage(1);
+                                        visitorParking(societyId, 1, t.value, dateFrom, dateTo);
+                                    }}
+                                    className="d-flex align-items-center gap-2"
+                                    style={{
+                                        background: isActive ? "#0f172a" : "transparent",
+                                        color: isActive ? "#fff" : "#475569",
+                                        border: "none",
+                                        borderRadius: 999,
+                                        padding: "8px 18px",
+                                        fontWeight: 600,
+                                        fontSize: 14,
+                                        transition: "all 0.2s ease",
+                                    }}
+                                >
+                                    {t.icon}
+                                    {t.id === "All Visitor" ? "All" : t.id}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Right side: Date Filter + Search */}
+                    <div className="d-flex align-items-center gap-2">
+                        {/* Date Filter Button + Popover */}
+                        <div className="position-relative">
+                            <button
+                                onClick={() => setShowFilter((prev) => !prev)}
+                                className="d-flex align-items-center gap-2"
+                                style={{
+                                    background: (dateFrom || dateTo) ? "#eff6ff" : "#fff",
+                                    color: (dateFrom || dateTo) ? "#2563eb" : "#475569",
+                                    border: `1px solid ${(dateFrom || dateTo) ? "#2563eb" : "#cbd5e1"}`,
+                                    borderRadius: 8,
+                                    padding: "9px 16px",
+                                    fontWeight: 500,
+                                    fontSize: 14,
+                                }}
+                            >
+                                <FiFilter size={15} />
+                                Filter
+                                {(dateFrom || dateTo) && (
+                                    <span
+                                        style={{
+                                            width: 7, height: 7, borderRadius: "50%",
+                                            background: "#2563eb", display: "inline-block"
+                                        }}
+                                    />
+                                )}
+                            </button>
+
+                            {showFilter && (
+                                <>
+                                    {/* Backdrop to close on outside click */}
+                                    <div
+                                        onClick={() => setShowFilter(false)}
+                                        style={{ position: "fixed", inset: 0, zIndex: 15 }}
+                                    />
+                                    <div
+                                        className="bg-white shadow"
+                                        style={{
+                                            position: "absolute",
+                                            top: "calc(100% + 10px)",
+                                            right: 0,
+                                            zIndex: 20,
+                                            width: 300,
+                                            borderRadius: 14,
+                                            border: "1px solid #e5e7eb",
+                                            padding: 18,
+                                            boxShadow: "0 10px 30px rgba(0,0,0,0.12)"
+                                        }}
+                                    >
+                                        <div className="d-flex justify-content-between align-items-center mb-3">
+                                            <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>Filter by Date</span>
+                                            {(dateFrom || dateTo) && (
+                                                <button
+                                                    onClick={handleClearFilter}
+                                                    style={{
+                                                        background: "none",
+                                                        border: "none",
+                                                        color: "#ef4444",
+                                                        fontSize: 12,
+                                                        fontWeight: 600
+                                                    }}
+                                                >
+                                                    Clear
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="mb-3 text-start">
+                                            <label className="d-block mb-1" style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>
+                                                From Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                className="form-control"
+                                                value={dateFrom}
+                                                max={dateTo || undefined}
+                                                onChange={(e) => setDateFrom(e.target.value)}
+                                                style={{ border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14 }}
+                                            />
+                                        </div>
+
+                                        <div className="mb-3 text-start">
+                                            <label className="d-block mb-1" style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>
+                                                To Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                className="form-control"
+                                                value={dateTo}
+                                                min={dateFrom || undefined}
+                                                onChange={(e) => setDateTo(e.target.value)}
+                                                style={{ border: "1px solid #cbd5e1", borderRadius: 8, fontSize: 14 }}
+                                            />
+                                        </div>
+
+                                        <button
+                                            className="btn text-white w-100"
+                                            style={{ background: "#2563eb", border: "none", borderRadius: 8, fontWeight: 600, fontSize: 14, padding: "9px 0" }}
+                                            onClick={handleApplyFilter}
+                                        >
+                                            Apply Filter
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Search */}
+                        <div className="d-flex" style={{ width: 260 }}>
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Search..."
+                                value={search}
+                                onChange={handleSearch}
+                                style={{
+                                    border: "1px solid #cbd5e1",
+                                    borderRadius: "8px 0 0 8px",
+                                    borderRight: "none"
+                                }}
+                            />
+                            <button
+                                className="btn text-white d-flex align-items-center justify-content-center"
+                                style={{ background: "#2563eb", borderRadius: "0 8px 8px 0", width: 44, border: "none" }}
+                                onClick={() => visitorParking(societyId, 1, allocationStatusTab, dateFrom, dateTo)}
+                            >
+                                <FiSearch size={16} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+
+                {/* Table */}
+                <div className="sv-card p-0 overflow-hidden" style={{ borderRadius: 14 }}>
                     <div className="sa-table-wrap">
                         <table className="sv-tbl">
                             <thead>
                                 <tr>
                                     <th>VISITOR NAME</th>
-                                    <th>VISITOR MOBILE</th>
+                                    <th>MOBILE</th>
                                     <th>VEHICLE NO.</th>
                                     <th>VEHICLE TYPE</th>
-                                    <th>SLOT NO.</th>
+                                    <th>SLOT / ZONE</th>
+                                    <th>ALLOTTED AT</th>
+                                    <th>RELEASED AT</th>
                                     <th>STATUS</th>
-                                    <th>ACTION</th>
+                                    <th>RELEASE</th>
+                                    <th>ACTIONS</th>
                                 </tr>
                             </thead>
 
                             <tbody>
-                                {filteredData.map((item, index) => (
-                                    <tr key={index}>
-                                        {/* Unit */}
-                                        <td className="text-start">
-                                            <div className="fw-bold">{item.visitor_name}</div>
+                                {allVisitorParking.map((item, index) => {
+                                    const fmtDateTime = (dt) => {
+                                        if (!dt) return { time: "—", date: "" };
+                                        const normalized = dt.includes("T") ? dt : dt.replace(" ", "T");
+                                        const withZ = normalized.includes("Z") || normalized.includes("+") ? normalized : normalized + "Z";
+                                        const d = new Date(withZ);
+                                        if (isNaN(d)) return { time: "—", date: "" };
+                                        return {
+                                            time: d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }),
+                                            date: d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+                                        };
+                                    };
 
-                                        </td>
+                                    const allotted = fmtDateTime(item.allotted_at);
+                                    const released = fmtDateTime(item.released_at);
 
-                                        <td className="text-start">
-                                            <div className="fw-bold">{item.visitor_mobile}</div>
+                                    return (
+                                        <tr key={index}>
+                                            <td className="text-start">
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <div
+                                                        style={{
+                                                            width: 34,
+                                                            height: 34,
+                                                            borderRadius: "50%",
+                                                            background: "#e0e7ff",
+                                                            color: "#4f46e5",
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            fontWeight: 700,
+                                                            fontSize: 13,
+                                                            flexShrink: 0
+                                                        }}
+                                                    >
+                                                        {(item.visitor_name || "?").charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div className="fw-semibold">{item.visitor_name || "-"}</div>
+                                                </div>
+                                            </td>
 
-                                        </td>
-                                        <td className="text-start">
-                                            <div className="fw-bold">{item.vehicle_number}</div>
+                                            <td className="text-start">{item.visitor_mobile || "-"}</td>
 
-                                        </td>
-                                        <td className="text-start">
-                                            <Badge
-                                                label={item.vehicle_type == "4_wheeler" ? "4 Wheeler" : item.vehicle_type == "2_wheeler" ? "2 Wheeler" : ""}
-                                                c={
-                                                    item.vehicle_type === "4_wheeler"
-                                                        ? "blue"
-                                                        : item.vehicle_type === "2_wheeler"
+                                            <td className="text-start">{item.vehicle_number || "-"}</td>
+
+                                            <td className="text-start">
+                                                <Badge
+                                                    label={item.vehicle_type == "4_wheeler" ? "4 Wheeler" : item.vehicle_type == "2_wheeler" ? "2 Wheeler" : ""}
+                                                    c={
+                                                        item.vehicle_type === "4_wheeler"
+                                                            ? "blue"
+                                                            : item.vehicle_type === "2_wheeler"
+                                                                ? "green"
+                                                                : "gray"
+                                                    }
+                                                />
+                                            </td>
+
+                                            <td className="text-start">
+                                                <div className="fw-semibold">{item.slot_number || "-"}</div>
+                                                <small className="text-muted">
+                                                    {item.block ? `Block ${item.block}` : ""}{item.floor ? `, Floor ${item.floor}` : ""}
+                                                </small>
+                                            </td>
+
+                                            <td className="text-start">
+                                                <div>{allotted.time}</div>
+                                                {allotted.date && <small className="text-muted">{allotted.date}</small>}
+                                            </td>
+
+                                            <td className="text-start">
+                                                <div>{released.time}</div>
+                                                {released.date && <small className="text-muted">{released.date}</small>}
+                                            </td>
+
+                                            <td className="text-start">
+                                                <Badge
+                                                    label={item.status == "active" ? "Active" : item.status == "released" ? "Released" : ""}
+                                                    c={
+                                                        item.status === "active"
                                                             ? "green"
-                                                            : "gray"
-                                                }
-                                            />
-                                        </td>
-                                        <td className="text-start">
-                                            <div className="fw-bold">{item.slot_number}</div>
+                                                            : item.status === "released"
+                                                                ? "red"
+                                                                : "gray"
+                                                    }
+                                                />
+                                            </td>
 
-                                        </td>
-                                        {/* KYC */}
-                                        <td className="text-start">
+                                            <td className="text-start">
+                                                {item.status === "active" ? (
+                                                    <button
+                                                        className="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                                        style={{ fontSize: 12, fontWeight: 500 }}
+                                                        onClick={() => handleReleaseParking(item)}
+                                                    >
+                                                        Release
+                                                    </button>
+                                                ) : (
+                                                    <span className="text-muted" style={{ fontSize: 13 }}>—</span>
+                                                )}
+                                            </td>
 
-                                            <Badge
-                                                label={item.status == "active" ? "Active" : item.status == "released" ? "Released" : ""}
-                                                c={
-                                                    item.status === "active"
-                                                        ? "green"
-                                                        : item.status === "released"
-                                                            ? "red"
+                                            <td className="text-start">
+                                                <div className="member-action-dropdown dropdown">
+                                                    <button
+                                                        className="member-action-btn"
+                                                        type="button"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false"
+                                                    >
+                                                        ⋮
+                                                    </button>
 
-                                                            : "gray"
-                                                }
-                                            />{" "}
-
-                                        </td>
-
-                                        {/* Action */}
-
-                                        <td className="text-start">
-                                            <div className="member-action-dropdown dropdown">
-                                                <button
-                                                    className="member-action-btn"
-                                                    type="button"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-expanded="false"
-                                                >
-                                                    ⋮
-                                                </button>
-
-                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            // onClick={() =>
-                                                            //     getMembersById(s.user_id, s.flat_id)
-                                                            // }
-                                                            // onClick={() => setActive("rentalsApplication")}
-                                                            onClick={() => handleViewDetails(item.id)}
-                                                        >
-                                                            View Details
-                                                        </button>
-                                                    </li>
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            onClick={() => item.status === "active" && handleEditParking(item)}
-                                                            disabled={item.status !== "active"}
-                                                            style={item.status !== "active" ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-                                                        >
-                                                            Edit Parking
-                                                        </button>
-                                                    </li>
-                                                    {/* <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            onClick={() => handleOpenAllotModal(item)}
-                                                        >
-                                                            Allot Parking
-                                                        </button>
-                                                    </li> */}
-                                                    <li>
-                                                        <hr className="dropdown-divider" />
-                                                    </li>
-
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item member-action-delete"
-                                                            onClick={() => handleDelete(item.id)}
-                                                        >
-                                                            Delete Parking
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                                    <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item member-action-item"
+                                                                onClick={() => handleViewDetails(item.id)}
+                                                            >
+                                                                View Details
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item member-action-item"
+                                                                onClick={() => item.status === "active" && handleEditParking(item)}
+                                                                disabled={item.status !== "active"}
+                                                                style={item.status !== "active" ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                                                            >
+                                                                Edit Parking
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <hr className="dropdown-divider" />
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item member-action-item member-action-delete"
+                                                                onClick={() => handleDelete(item.id)}
+                                                            >
+                                                                Delete Parking
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
@@ -966,32 +1201,30 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
                     <Pagination page={page} total={total} onChange={handlePageChange} />
                 </div>
             </div>
+            <CheckOutVisitorModal
+                checkoutShow={releaseShow}
+                setCheckoutShow={setReleaseShow}
+                visitorData={selectedParkingItem}
+                onConfirm={handleConfirmRelease}
+                mode="release"
+            />
 
             <AllotVisitorParkingModal
                 show={show}
                 setShow={setShow}
-
-                // allBlocks={allVisitors}
                 allFlats={allSlots}
-
                 blocks={selectedVisitor}
                 setBlocks={setSelectedVisitor}
-
                 flat={selectedSlot}
                 setFlat={setSelectedSlot}
-
                 firstName={vehicleNumber}
                 setFirstName={setVehicleNumber}
-
                 memType={selectedVehicleType}
                 setMemType={setSelectedVehicleType}
-
                 remarks={remarks}
                 setRemarks={setRemarks}
-
                 errors={errors}
                 resetForm={resetForm}
-
                 handleSubmit={mode === "edit" ? handleEditParkingSubmit : handleVisitorParkingSubmit}
                 mode={mode}
             />

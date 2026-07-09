@@ -11,7 +11,7 @@ import { useLoader } from "../../../context/LoaderContext";
 import ParkingSlotModal from './ParkingSlotModal';
 import { GetSessionData } from "../../../utils/SessionManagement";
 
-const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData }) => {
+const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData, setVisitorParkingId, setFlatId }) => {
 
     const { setLoading } = useLoader();
     const [deallocateShow, setDeallocateShow] = useState(false);
@@ -416,7 +416,16 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData }) =
                                                 </div>
                                                 <div className="pt-2" style={{ borderTop: "1px solid #eef0f2" }}>
                                                     <a href="#" className="fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                                                        style={{ fontSize: 13, color: "#1197d2" }}>
+                                                        style={{ fontSize: 13, color: "#1197d2" }} onClick={(e) => {
+                                                            e.preventDefault();
+                                                            if (allocation.allocation_type === "visitor") {
+                                                                setVisitorParkingId(allocation.visitor_entry_id);
+                                                                setActive("visitorDetails");
+                                                            } else {
+                                                                setFlatId(allocation.vehicle_id);
+                                                                setActive("vehicleDetails");   // ⚠️ confirm karein exact page name
+                                                            }
+                                                        }}>
                                                         View Member Profile <FiArrowRight size={14} />
                                                     </a>
                                                 </div>

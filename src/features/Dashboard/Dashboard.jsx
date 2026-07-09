@@ -295,7 +295,7 @@ export default function App() {
     createNoticeBoard: <CreateNoticeBoard setActive={setActive} selectedNoticeData={selectedNoticeData} />,
     unitRegister: <UnitRegister setActive={setActive} setFlatId={setFlatId} />,
     parkingRegister: <ParkingRegister setActive={setActive} setSelectedSlotId={setSelectedSlotId} setSelectedSocietyId={setSelectedSocietyId} />,
-    parkingDetails: <ParkingDetails setActive={setActive} slotId={selectedSlotId} societyId={selectedSocietyId} setSelectedSlotData={setSelectedSlotData} />,
+    parkingDetails: <ParkingDetails setActive={setActive} slotId={selectedSlotId} societyId={selectedSocietyId} setSelectedSlotData={setSelectedSlotData} setVisitorParkingId={setVisitorParkingId} setFlatId={setFlatId} />,
     parkingHistory: <ParkingHistory setActive={setActive} slotId={selectedSlotId} slotData={selectedSlotData} />,
     visitorRegister: <VisitorRegister setActive={setActive} setVisitorId={setVisitorId} />,
     visitorDetailsPage: <GetVisitorDetails setActive={setActive} visitorId={visitorId} />,

@@ -3,7 +3,7 @@ import UrlData from "../utils/Url";
 import apiClient from "./apiClient";
 
 //api function for get visitor parking
-export const visitorParkingApi = async (societyId, page, limit, search, status) => {
+export const visitorParkingApi = async (societyId, page, limit, search, status, dateFrom, dateTo) => {
     const url = UrlData + 'visitor_parking/ListVisitorParking';
     const data = {
         society_id: societyId,
@@ -12,9 +12,8 @@ export const visitorParkingApi = async (societyId, page, limit, search, status) 
         search: search || "",
         status: status || "",
         visitor_entry_id: "",
-        date_from: "",
-        date_to: ""
-
+        date_from: dateFrom || "",
+        date_to: dateTo || ""
     }
     return await apiClient({
         method: 'post',
