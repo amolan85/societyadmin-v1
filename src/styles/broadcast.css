@@ -96,7 +96,9 @@
 }
 
 .bc-tab-btn {
+    color:#374151;
     flex: 1;
+    color: #6b7280;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -473,6 +475,7 @@
    the device is in Dark Mode — making the label invisible against this
    button's white background, even though it renders fine on Chrome/Firefox. */
 .bc-wrap .qa {
+  color: #111 !important;
   width: 100%;
   display: flex;
   align-items: center;
@@ -482,17 +485,18 @@
   border-radius: 8px;
   padding: 10px 12px;
   text-align: left;
-  color: #111827;
   color-scheme: light;
   -webkit-appearance: none;
   appearance: none;
 }
 
 .bc-wrap .qa:hover {
+  color: #111 !important;
   background: var(--surface-1, #f9fafb);
 }
 
 .bc-wrap .qa-ico {
+  color: #111 !important;
   width: 32px;
   height: 32px;
   border-radius: 8px;
@@ -506,7 +510,7 @@
 .bc-wrap .bc-qa-text {
   font-weight: 600;
   font-size: 13px;
-  color: #111827;
+  color: #111 !important;
   white-space: nowrap;
   min-width: 0;
   flex: 1 1 auto;

@@ -4,25 +4,45 @@ import UrlData from "../utils/Url";
 
 
 //api function for get all poll
-export const getPollApi = async (societyId, userId) => {
-    const url = UrlData + 'poll/GetPollsDataAdmin';
+// Get Poll List
+export const getPollApi = async (
+    societyId,
+    userId,
+    status = "",
+    category = "",
+    search = "",
+    dateFrom = "",
+    dateTo = "",
+    pageNo = 1,
+    pageSize = 10
+) => {
+
+    const url = UrlData + "poll/GetPollsDataAdmin";
+
     const data = {
         society_id: societyId,
-        user_id: userId
-    }
+        user_id: userId,
+        status: status,
+        category: category,
+        search: search,
+        date_from: dateFrom,
+        date_to: dateTo,
+        page_no: pageNo,
+        page_size: pageSize
+    };
+
+    console.log("Request", data);
+
     return await apiClient({
-        method: 'post',
-        url: url,
-        data: data
-    }).then((response) => {
-        return response.data.data;
-    }).catch((error) => {
-        console.log(error);
-        const errors = ErrorHandler(error);
-        console.log(errors, "Errors get broadcast");
-        throw errors;
+        method: "post",
+        url,
+        data
+    })
+    .then((response) => response.data.data)
+    .catch((error) => {
+        throw ErrorHandler(error);
     });
-}
+};
 
 //api for create poll
 export const CreatePollApi = async (

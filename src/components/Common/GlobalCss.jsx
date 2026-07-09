@@ -240,6 +240,7 @@ body {
 
 /* ── QUICK ACTION ───────────────────────────── */
 .qa {
+  color:black;
   display: flex; align-items: center; gap: 12px;
   padding: 11px 14px; border-radius: 10px;
   background: #f8fafc; cursor: pointer; border: none;

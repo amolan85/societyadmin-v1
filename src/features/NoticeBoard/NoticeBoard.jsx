@@ -85,18 +85,19 @@ const [totalRecords, setTotalRecords] = useState(0);
     // the same request (no separate pagination call) ──
     useEffect(() => {
 
-        if (!societyId) return;
+    if (!societyId) return;
 
-        getNoticeBoard();
+    getNoticeBoard();
 
-    }, [
-        societyId,
-        page,
-        filterStatus,
-        search,
-        startDate,
-        endDate,
-    ]);
+}, [
+    societyId,
+    page,
+    filterStatus,
+    search,
+    startDate,
+    endDate,
+    tab,
+]);
 
     const SessionData = async () => {
         try {
@@ -106,35 +107,43 @@ const [totalRecords, setTotalRecords] = useState(0);
             setSocietyId(flats.society_id);
             // list itself is fetched by the useEffect above once societyId
             // is set — only kick off the (separate, all-time) stats call here
-            fetchStats(flats.society_id);
+            //fetchStats(flats.society_id);
         } catch (error) {
             console.log(error);
         }
     };
 
     const getNoticeBoard = async (sid = societyId) => {
-        try {
+    try {
 
-            const data = await getNoticeBoardApi({
-                societyId: sid,
-                status: filterStatus,
-                search,
-                dateFrom: startDate,
-                dateTo: endDate,
-                pageNo: page,
-                pageSize,
-            });
+        const data = await getNoticeBoardApi({
+            societyId: sid,
+            status: filterStatus,
+            search,
+            dateFrom: startDate,
+            dateTo: endDate,
+            pageNo: page,
+            pageSize,
+            noticeType: tab,
+        });
 
-            setAllNoticeBoard(data.list || []);
+        // list
+        setAllNoticeBoard(data.list || []);
 
-            setTotalPages(data.total_pages || 1);
+        // pagination
+        setTotalPages(data.total_pages || 1);
+        setTotalRecords(data.total_count || 0);
 
-            setTotalRecords(data.total_records || 0);
+        // analytics
+        setStatsTotal(data.analytics?.total || 0);
+        setStatsPublished(data.analytics?.published || 0);
+        setStatsDraft(data.analytics?.draft || 0);
+        setStatsArchived(data.analytics?.archived || 0);
 
-        } catch (error) {
-            console.log(error);
-        }
-    };
+    } catch (error) {
+        console.log(error);
+    }
+};
 
     // =====================================================
     // STATS — independent of current filter (like ViolationAlertsList)
@@ -143,26 +152,7 @@ const [totalRecords, setTotalRecords] = useState(0);
     // If your API supports status filtering, swap to Promise.all like Broadcast.
     // =====================================================
 
-    const fetchStats = async (sid) => {
-        try {
-            const data = await getNoticeBoardApi({
-                societyId: sid,
-                status: "",
-                search: "",
-                dateFrom: "",
-                dateTo: "",
-                pageNo: 1,
-                pageSize: 1000, // high ceiling so stats reflect the full dataset, not just one page
-            });
-            const list = data.list || [];
-            setStatsTotal(list.length);
-            setStatsPublished(list.filter(n => n.status === "published").length);
-            setStatsDraft(list.filter(n => n.status === "draft").length);
-            setStatsArchived(list.filter(n => n.status === "archived").length);
-        } catch (error) {
-            console.error("Error fetching notice stats:", error);
-        }
-    };
+     
 
     const getNoticeBoardById = async (selectedData) => {
         setSelectedNoticeData(selectedData);
@@ -193,7 +183,7 @@ const [totalRecords, setTotalRecords] = useState(0);
             await deleteNoticeApi(noticeId, societyId);
             toast.success("Notice deleted successfully!");
             getNoticeBoard(societyId);
-            fetchStats(societyId);
+            //fetchStats(societyId);
         } catch (error) {
             console.log(error);
         }
@@ -283,7 +273,7 @@ const [totalRecords, setTotalRecords] = useState(0);
             toast.success("Notice Approved");
 
             getNoticeBoard(societyId);
-            fetchStats(societyId);
+            //fetchStats(societyId);
         } catch (error) {
             console.log(error);
         }
@@ -304,7 +294,7 @@ const [totalRecords, setTotalRecords] = useState(0);
             toast.success("Notice Rejected");
 
             getNoticeBoard(societyId);
-            fetchStats(societyId);
+            //fetchStats(societyId);
         } catch (error) {
             console.log(error);
         }
@@ -429,7 +419,7 @@ const [totalRecords, setTotalRecords] = useState(0);
                                 {tabs.map((t) => (
                                     <button
                                         key={t.id}
-                                        onClick={() => { setTab(t.value); setPage(1); }}
+                                        onClick={() => { setTab(t.value); setPage(1);}}
                                         className={`NoticeBoardTabs-btn ${tab === t.value ? "active" : ""}`}
                                     >
                                         {t.icon} &nbsp;{t.id}

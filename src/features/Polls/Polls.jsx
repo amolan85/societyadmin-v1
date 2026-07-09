@@ -24,12 +24,23 @@ const Polls = ({ setActive, setPollId }) => {
     const [societyId, setSocietyId] = useState("")
     const [userId, setUserId] = useState("")
     const [allPolls, setAllPolls] = useState([])
-    const [pollsOverview, setPollsOverview] = useState({})
     const [search, setSearch] = useState("");
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedPollId, setSelectedPollId] = useState(null);
     const [selectedPollTitle, setSelectedPollTitle] = useState("");
     const [deleting, setDeleting] = useState(false);
+    const [analytics, setAnalytics] = useState({
+        total: 0,
+        active: 0,
+        upcoming: 0,
+        closed: 0,
+    });
+
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalRecords, setTotalRecords] = useState(0);
+    const [searchText, setSearchText] = useState("");
 
     const tabs = [
         { id: "All", value: "" },
@@ -67,6 +78,17 @@ const Polls = ({ setActive, setPollId }) => {
         }
     };
 
+    useEffect(() => {
+
+        const timer = setTimeout(() => {
+            setSearch(searchText);
+            setPage(1);
+        }, 400);
+
+        return () => clearTimeout(timer);
+
+    }, [searchText]);
+
     // badge color per status (Active = green, Upcoming = orange, Expired = red)
     const getStatusBadgeColor = (status) => {
         switch (status) {
@@ -93,53 +115,95 @@ const Polls = ({ setActive, setPollId }) => {
         const flats = data.data.flats[0]
         setSocietyId(flats.society_id)
         setUserId(data.data.user_id)
-        GetPollsData(flats.society_id, data.data.user_id)
-        GetPollsOverview(flats.society_id)
+        //GetPollsData(flats.society_id,data.data.user_id,1,search,tab);
     }
+
+
+    useEffect(() => {
+
+        if (!societyId) return;
+
+        GetPollsData(societyId, userId, page, search, tab);
+
+    }, [societyId, userId, page, search, tab]);
+
 
     //function for get polls data
-    const GetPollsData = async (societyId, userId) => {
-        try {
-            const res = await getPollApi(societyId, userId)
-            console.log("GetPollsData raw response:", res)
-            // Handle both cases: service returns raw API json { data: [...] }
-            // OR service already unwraps and returns the array directly.
-            const polls = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
-            setAllPolls(polls)
-        } catch (error) {
-            console.error("Error fetching polls:", error)
-        }
-    }
+    const GetPollsData = async (
+    societyId,
+    userId,
+    pageNo = 1,
+    searchText = "",
+    status = ""
+) => {
 
-    //get polls overview function
-    const GetPollsOverview = async (societyId) => {
-        try {
-            const res = await getPollOverviewApi(societyId)
-            // Handle both cases: service returns raw API json { data: {...} }
-            // OR service already unwraps and returns the object directly.
-            const overview = res?.active_polls !== undefined ? res : (res?.data || {});
-            setPollsOverview(overview)
-        } catch (error) {
-            console.error("Error fetching poll overview:", error)
-        }
+    try {
+
+       const data = await getPollApi(
+    societyId,
+    userId,
+    status,
+    "",
+    searchText,
+    "",
+    "",
+    pageNo,
+    pageSize
+);
+
+setAllPolls(data || []);
+
+const analytics = {
+    active: data.filter(x => x.status === "ACTIVE").length,
+    upcoming: data.filter(x => x.status === "UPCOMING").length,
+    closed: data.filter(x => x.status === "EXPIRED").length,
+    total: data.length
+};
+
+setAnalytics(analytics);
+
+setTotalRecords(data.length);
+setTotalPages(1);
+
+    } catch (err) {
+        console.log(err);
     }
+};
 
     //statsData for count — order matches design: Active Polls, Avg Participation, Total Participants, Expired Polls
     // API overview only returns active_polls, avg_turnout_percent, digital_adoption_percent, total_polls
     // so total_participants & expired_polls are derived from the polls list itself
-    const totalParticipants = Array.isArray(allPolls)
-        ? allPolls.reduce((sum, p) => sum + (p.total_votes || 0), 0)
-        : 0;
-
-    const expiredPollsCount = Array.isArray(allPolls)
-        ? allPolls.filter((p) => p.status === "EXPIRED").length
-        : 0;
+    const totalParticipants = allPolls.reduce(
+        (sum, poll) => sum + Number(poll.total_votes || 0),
+        0
+    );
 
     const statsData = [
-        [pollsOverview.active_polls ?? 0, "Active Polls", "tx-primary"],
-        [`${Math.round((pollsOverview.avg_turnout_percent || 0) * 100)}%`, "Avg Participation", "tx-pink"],
-        [totalParticipants, "Total Participants", "tx-warning"],
-        [expiredPollsCount, "Expired Polls", "tx-success"],
+
+        [
+            analytics.active || 0,
+            "Active Polls",
+            "tx-primary"
+        ],
+
+        [
+            analytics.upcoming || 0,
+            "Upcoming Polls",
+            "tx-pink"
+        ],
+
+        [
+            totalParticipants,
+            "Total Participants",
+            "tx-warning"
+        ],
+
+        [
+            analytics.closed || 0,
+            "Closed Polls",
+            "tx-success"
+        ],
+
     ];
 
     // ── always clears pollId before navigating to a fresh "create" form,
@@ -171,7 +235,7 @@ const Polls = ({ setActive, setPollId }) => {
             setShowDeleteModal(false);
 
             GetPollsData(societyId, userId);
-            GetPollsOverview(societyId);
+
 
         } catch (error) {
             console.log(error);
@@ -215,18 +279,7 @@ const Polls = ({ setActive, setPollId }) => {
 
 
     // Filter by status + search title
-    const filteredData = Array.isArray(allPolls)
-        ? allPolls.filter((item) => {
-            const statusMatch =
-                tab === "" || item.status === tab;
-
-            const searchMatch =
-                search === "" ||
-                item.question?.toLowerCase().includes(search.toLowerCase());
-
-            return statusMatch && searchMatch;
-        })
-        : [];
+    const filteredData = allPolls;
 
     return (
         <div className="pg pl-wrap">
@@ -281,9 +334,8 @@ const Polls = ({ setActive, setPollId }) => {
                             <input
                                 className="sv-in"
                                 placeholder="Search polls..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                style={{ paddingLeft: 34, minWidth: 220 }}
+                                value={searchText}
+                                onChange={(e) => setSearchText(e.target.value)}
                             />
                         </div>
 

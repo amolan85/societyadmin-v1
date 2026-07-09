@@ -36,29 +36,27 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalRecords, setTotalRecords] = useState(0);
     const [allBroadcast, setAllBroadcast] = useState([]);
-    const [loading, setLoading] = useState(false);
+    //const [loading, setLoading] = useState(false);
     const [societyId, setSocietyId] = useState("");
     const societyIdRef = useRef("");
     const [name, setName] = useState("");
 
+    // ── filters — all blank on page load ──
     const [search, setSearch] = useState("");
     const [broadcastTypeTab, setBroadcastTypeTab] = useState("");
     const [status, setStatus] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
 
-    // These now hold TRUE all-time totals (independent of current page/filters)
+    // ── stat tiles — now populated straight from `analytics` in the SAME
+    // response as the paginated list. The API returns analytics on every
+    // call regardless of filters/get_all, so there is no need for a
+    // separate "fetch everything" request just for these numbers. ──
     const [statsTotal, setStatsTotal] = useState(0);
     const [statsSent, setStatsSent] = useState(0);
     const [statsScheduled, setStatsScheduled] = useState(0);
     const [statsDraft, setStatsDraft] = useState(0);
-
-    const [typeCounts, setTypeCounts] = useState({
-        announcement: 0,
-        emergency: 0,
-        circular: 0,
-        event: 0,
-    });
+    const [statsFailed, setStatsFailed] = useState(0);
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedBroadcastId, setSelectedBroadcastId] = useState(null);
@@ -80,7 +78,8 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
     ];
 
     // =====================================================
-    // LOAD SESSION
+    // LOAD SESSION — fires the ONE initial API call, with every
+    // filter blank (search "", type "", status "", dates "").
     // =====================================================
 
     useEffect(() => {
@@ -95,6 +94,8 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
             setSocietyId(sid);
             societyIdRef.current = sid;
             setName(`${data.data.first_name} ${data.data.last_name}`);
+
+            // single call — list + pagination + stats all come back together
             getBroadcast({
                 sid,
                 currentPage: 1,
@@ -104,61 +105,59 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                 currentStartDate: "",
                 currentEndDate: "",
             });
-            fetchStats(sid);
         } catch (error) {
             console.log(error);
         }
     };
 
     // =====================================================
-    // STATS — computed client-side from the full dataset,
-    // because the backend's status filter is currently broken
-    // (it returns unfiltered records regardless of `status` sent).
+    // SINGLE FETCH — list, pagination, AND stat tiles all come from
+    // this one call to getBroadcastListApi. Response shape:
+    // {
+    //   analytics: { draft, failed, scheduled, sent, total },
+    //   broadcasts: [...],
+    //   pagination: { limit, page, total_pages, total_records }
+    // }
     // =====================================================
 
-    const fetchStats = async (sid) => {
-        try {
-            const apiData = await getBroadcastListApi({
-                society_id: sid,
-                currentPage: 1,
-                limit: 1000, // high ceiling as a fallback in case get_all is ignored
-                currentSearch: "",
-                currentType: "",
-                currentStatus: "",
-                currentStartDate: "",
-                currentEndDate: "",
-                getAll: true,
-            });
-            const records = apiData?.records || [];
+    const getBroadcast = async ({
+    sid,
+    currentPage = 1,
+    currentSearch = "",
+    currentType = "",
+    currentStatus = "",
+    currentStartDate = "",
+    currentEndDate = "",
+    getAll = false,
+}) => {
+    try {
+        const apiData = await getBroadcastListApi({
+            society_id: sid,
+            currentPage,
+            limit,
+            currentSearch,
+            currentType,
+            currentStatus,
+            currentStartDate,
+            currentEndDate,
+            getAll,
+        });
 
-            setStatsTotal(records.length);
-            setStatsSent(records.filter((r) => r.status === "sent").length);
-            setStatsScheduled(records.filter((r) => r.status === "scheduled").length);
-            setStatsDraft(records.filter((r) => r.status === "draft").length);
-        } catch (error) {
-            console.error("Error fetching broadcast stats:", error);
-        }
-    };
+        setAllBroadcast(apiData?.broadcasts || []);
 
-    const getBroadcast = async ({ sid, currentPage, currentSearch, currentType, currentStatus, currentStartDate, currentEndDate }) => {
-        try {
-            const payload = { society_id: sid, currentPage, limit, currentSearch, currentType, currentStatus, currentStartDate, currentEndDate };
-            const apiData = await getBroadcastListApi(payload);
-            const records = apiData?.records || [];
+        setTotalPages(apiData?.pagination?.total_pages || 1);
+        setTotalRecords(apiData?.pagination?.total_records || 0);
 
-            setAllBroadcast(records);
-            setTotalPages(apiData?.total_pages || 1);
-            setTotalRecords(apiData?.total_records || 0);
-
-            // Type count (page-level breakdown for the type tabs, not used for stat tiles)
-            const counts = { announcement: 0, emergency: 0, circular: 0, event: 0 };
-            records.forEach((r) => { if (counts[r.type] !== undefined) counts[r.type]++; });
-            setTypeCounts(counts);
-        } catch (error) {
-            console.log(error);
-            toast.error("Failed to load broadcasts");
-        }
-    };
+        setStatsTotal(apiData?.analytics?.total || 0);
+        setStatsSent(apiData?.analytics?.sent || 0);
+        setStatsScheduled(apiData?.analytics?.scheduled || 0);
+        setStatsDraft(apiData?.analytics?.draft || 0);
+        setStatsFailed(apiData?.analytics?.failed || 0);
+    } catch (error) {
+        console.log(error);
+        toast.error("Failed to load broadcasts");
+    }
+};
 
     const handleSearch = () => {
         setPage(1);
@@ -184,8 +183,8 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
             await deleteBroadcastApi(selectedBroadcastId, societyIdRef.current);
             toast.success("Broadcast deleted successfully");
             setShowDeleteModal(false);
+            // single refresh call — brings back updated list + pagination + stats together
             getBroadcast({ sid: societyIdRef.current, currentPage: page, currentSearch: search, currentType: broadcastTypeTab, currentStatus: status, currentStartDate: startDate, currentEndDate: endDate });
-            fetchStats(societyIdRef.current);
         } catch (error) {
             console.log(error);
             toast.error("Failed to delete broadcast");
@@ -268,6 +267,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
 
     return (
         <>
+            
             <div className="pg bc-page">
 
                 {/* ── HEADER ── */}
@@ -289,7 +289,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                     </button>
                 </div>
 
-                {/* ── STAT TILES ── */}
+                {/* ── STAT TILES — sourced from analytics in the same list response ── */}
 
                 <div className="row g-3 mb-4">
 
@@ -417,12 +417,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                                 <h6 className="mb-0 fw-semibold">Broadcasts</h6>
                             </div>
 
-                            {loading ? (
-                                <div className="text-center py-5 text-muted">
-                                    <div className="spinner-border mb-3" role="status" />
-                                    Loading...
-                                </div>
-                            ) : allBroadcast.length === 0 ? (
+                            {allBroadcast.length === 0 ? (
                                 <div className="text-center py-5 text-muted">
                                     <FiGrid size={32} className="mb-2 opacity-25" />
                                     <br />
@@ -490,7 +485,7 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                             )}
 
                             {/* FOOTER */}
-                            {!loading && totalRecords > 0 && (
+                            {totalRecords > 0 && (
                                 <div className="bc-list-footer">
                                     <div className="bc-records-info">
                                         Showing {(page - 1) * limit + 1}–{Math.min(page * limit, totalRecords)} of {totalRecords} broadcasts
@@ -503,31 +498,6 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
 
                     {/* RIGHT — sidebar */}
                     <div className="col-12 col-lg-4">
-
-                        {/* Notifications — real, derived from recent broadcast activity
-                        <div className="sv-card mb-3">
-                            <h6 className="bc-side-title text-start">Notifications</h6>
-
-                            {sidebarLoading ? (
-                                <div className="text-muted small text-start">Loading…</div>
-                            ) : notifications.length === 0 ? (
-                                <div className="text-muted small text-start">No recent activity</div>
-                            ) : (
-                                notifications.map((n, i) => (
-                                    <div key={i} className="bc-notify-item">
-                                        <span className={`dot ${n.dot}`} />
-                                        <div className="text-start">
-                                            <div className="bc-notify-label">{n.lbl}</div>
-                                            <div className="bc-notify-time">{n.time}</div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-
-                            <button className="btn-dk w-100 mt-2" onClick={() => setActive("broadcasting")}>
-                                Show all broadcasts
-                            </button>
-                        </div> */}
 
                         {/* Quick Actions */}
                         <div className="sv-card mb-3">
@@ -582,39 +552,12 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                             </button>
                         </div>
 
-                        {/* Recent Communications — real, last 3 broadcasts
-                        <div className="sv-card">
-                            <h6 className="bc-side-title text-start">Recent Communications</h6>
-
-                            {sidebarLoading ? (
-                                <div className="text-muted small text-start">Loading…</div>
-                            ) : recentBroadcasts.length === 0 ? (
-                                <div className="text-muted small text-start">No broadcasts yet</div>
-                            ) : (
-                                recentBroadcasts.map((r, i, arr) => (
-                                    <div key={r.id} className={`bc-rc-item ${i < arr.length - 1 ? "bordered" : ""}`}>
-                                        <div className="text-start">
-                                            <div className="bc-rc-title">{r.title}</div>
-                                            <div className="bc-rc-sub">
-                                                {timeAgo(r.sent_at || r.created_at)} • {capitalize(r.type)}
-                                            </div>
-                                        </div>
-                                        <Badge label={capitalize(r.status)} c={statusToBadgeColor(r.status)} />
-                                    </div>
-                                ))
-                            )}
-
-                            <button className="btn-dk w-100 mt-3" onClick={() => setActive("broadcasting")}>
-                                Show all communication
-                            </button>
-                        </div> */}
-
                     </div>
 
                 </div>
             </div>
 
-            {/* ── DELETE MODAL — header now plain white instead of red ── */}
+            {/* ── DELETE MODAL ── */}
             <div className={`modal fade ${showDeleteModal ? "show d-block" : ""}`} tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
                 <div className="modal-dialog modal-dialog-centered">
                     <div className="modal-content">
@@ -632,7 +575,6 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                                 Are you sure you want to delete{" "}
                                 <strong>{selectedBroadcastTitle ? `"${selectedBroadcastTitle}"` : "this broadcast"}</strong>?
                             </p>
-                             
                         </div>
                         <div className="modal-footer">
                             <button
