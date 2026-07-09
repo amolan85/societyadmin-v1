@@ -449,15 +449,15 @@ import Billing from "../Billing/Billing";
 import PollAnalytics from "../Polls/PollAnalytics";
 import UpcomingEvents from "../Events/UpcomingEvents";
 import Accounts from "../Accounts/Accounts";
- 
-  
+
+
 
 // import PollAnalytics from "../Polls/PollAnalytics";
 // import UpcomingEvents from "../Events/UpcomingEvents";
 // import Accounts from "../Accounts/Accounts";
- 
+
 /* ══ OVERVIEW ══════════════════════════════════ */
- 
+
 function PlaceholderPage({ label }) {
   return (
     <div className="pg d-flex flex-column align-items-center justify-content-center" style={{ minHeight: 300, color: "var(--muted)" }}>
@@ -480,6 +480,7 @@ const NAV = [
   },
   {
     sec: "Visitors & Parking", items: [
+      { id: "parkingRegister", icon: "🅿️", lbl: "Parking Slots" },
       { id: "visitorRegister", icon: "🚶", lbl: "Visitors" },
       { id: "vehicleRegister", icon: "🚘", lbl: "Owner Vehicles" },
       { id: "parkingDashboard", icon: "🚗", lbl: "Parking" },
@@ -519,9 +520,9 @@ const PARENT_MAP = {
   // Registers ke child pages
   registerHistory: "registers",
   // unitRegister: "registers",
-  parkingRegister: "registers",
-  parkingDetails: "registers",
-  parkingHistory: "registers",
+  // parkingRegister: "registers",
+  // parkingDetails: "registers",
+  // parkingHistory: "registers",
   viewUnit: "registers",
 
   // Visitors ke child pages
@@ -574,9 +575,9 @@ const TITLES = {
   registerHistory: ["Administration", "Registers", "Member Register", "History"],
   unitRegister: ["Administration", "Registers", "Unit Register"],
   visitorRegister: ["Administration", "Registers", "Visitor Register"],
-  parkingRegister: ["Administration", "Registers", "Parking Register"],
-  parkingDetails: ["Administration", "Registers", "Parking Register", "Parking Details"],
-  parkingHistory: ["Administration", "Registers", "Parking Register", "Parking Details", "Parking History"],
+  parkingRegister: ["Visitors & Parking", "Parking Slots"],
+  parkingDetails: ["Visitors & Parking", "Parking Slots", "Parking Details"],
+  parkingHistory: ["Visitors & Parking", "Parking Slots", "Parking History"],
   rules: ["Administration", "Rules & By-laws"],
   complaints: ["Operations", "Complaints"],
   createComplaints: ["Operations", "Create Complaints"],
@@ -650,7 +651,7 @@ export default function App() {
   }, []);
 
   const PAGES = {
-    overview: <Overview />,
+    overview: <Overview setActive={setActive} />,
     broadcasting: <Broadcast setActive={setActive} setBroadcastId={setBroadcastId} setSelectedBroadcast={setSelectedBroadcast} />,
     createbroadcast: <CreateBroadcast setActive={setActive} broadcastId={broadcastId} />,
     viewbroadcastdetails: <ViewBroadcastDetails setActive={setActive} setBroadcastId={setBroadcastId} broadcastId={broadcastId} preloadedBroadcast={selectedBroadcast} />,

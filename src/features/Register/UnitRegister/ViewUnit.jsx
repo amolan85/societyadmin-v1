@@ -428,42 +428,46 @@ const ViewUnit = ({ setActive, flatId, setMemberId }) => {
           <div className="col-lg-4">
             <div className="card border-0 shadow-sm mb-4">
               <div className="card-header bg-white fw-semibold">
-                Register  Residents
+                Registered Residents
               </div>
 
               <div className="list-group list-group-flush">
-                <div className="list-group-item d-flex align-items-center gap-3">
-                  <img
-                    src="../src/assets/profile.png"
-                    className="rounded-circle"
-                    width="45"
-                    height="45"
-                    alt=""
-                  />
-
-                  <div>
-                    {/* <div className="fw-semibold">David Jenkins</div>
-                                        <small className="text-muted">Spouse</small> */}
-                    -
+                {members.filter((m) => m.occupancy_type !== "owner").length === 0 ? (
+                  <div className="list-group-item text-center text-muted py-3">
+                    No residents found
                   </div>
-                </div>
+                ) : (
+                  members
+                    .filter((m) => m.occupancy_type !== "owner")
+                    .map((m) => (
+                      <div
+                        key={m.user_id}
+                        className="list-group-item d-flex justify-content-between align-items-center"
+                      >
+                        <div className="d-flex align-items-center gap-3">
+                          <img
+                            src={m.profile_url || "../src/assets/profile.png"}
+                            className="rounded-circle object-fit-cover"
+                            width="45"
+                            height="45"
+                            alt={m.first_name}
+                          />
 
-                <div className="list-group-item d-flex align-items-center gap-3">
-                  <img
-                    // src="https://i.pravatar.cc/50?img=18"
-                    src="../src/assets/profile.png"
-                    className="rounded-circle"
-                    width="45"
-                    height="45"
-                    alt=""
-                  />
+                          <div>
+                            <div className="fw-semibold">
+                              {m.first_name} {m.last_name}
+                            </div>
 
-                  <div>
-                    {/* <div className="fw-semibold">Lily Jenkins</div>
-                                        <small className="text-muted">Daughter</small> */}
-                    -
-                  </div>
-                </div>
+                            <small
+                              className="text-muted text-capitalize"
+                            >
+                              {m.occupancy_type.replaceAll("_", " ")}
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                )}
               </div>
             </div>
 

@@ -265,13 +265,15 @@
 
 import { useState, useEffect } from 'react'
 import { Badge } from '../../components/Common/ReusableFunction';
+import { useNavigate } from "react-router-dom";
 import "../../styles/Overview.css"
 import {
     BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
     ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
+import { getComplaintsApi } from "../../services/ComplaintsApi";
 import { OverviewApi } from '../../services/OverviewApi';
-
+import { ListVisitorsApi } from "../../services/VisitorApi";
 import { GetSessionData } from '../../utils/SessionManagement';
 import {
     FiSearch, FiUsers, FiUserCheck, FiAlertTriangle, FiDollarSign,
@@ -280,27 +282,31 @@ import {
 } from 'react-icons/fi';
 import { FaCar, FaFireExtinguisher, FaBolt, FaWrench, FaBullhorn } from 'react-icons/fa';
 
-const COMPLAINT_COLORS = { open: "#f87171", in_progress: "#fbbf24", resolved: "#34d399" };
+const COMPLAINT_COLORS = { open: "#f12727", in_progress: "#fbbf24", resolved: "#34d399" };
 const OCC_COLORS = ["#34d399", "#e5e7eb"];
 const ATT_COLORS = { present: "#34d399", absent: "#f87171", on_leave: "#fbbf24" };
 
-const Overview = () => {
+const Overview = ({ setActive }) => {
     const [barData, setBarData] = useState([])
     const [totalVisits, setTotalVisits] = useState("")
     const [pendingApproval, setPendingApproval] = useState("")
     const [activeComplaints, setActiveComplaints] = useState("")
     const [staffAttendance, setStaffAttendance] = useState({})
-
+    const [todayVisitorCount, setTodayVisitorCount] = useState(0);
+    const [recentVisitors, setRecentVisitors] = useState([]);
     // New sections - wire these to real API responses when endpoints are available.
     const [totalMembers, setTotalMembers] = useState({ count: 1245, delta: "+15 this month" })
     const [maintenance, setMaintenance] = useState({ collected: 425000, pending: 75000, total: 500000, percent: 92 })
     const [parkingAvailable, setParkingAvailable] = useState(18)
-
-    const [complaintStatus, setComplaintStatus] = useState([
-        { name: "Open", key: "open", value: 12 },
-        { name: "In Progress", key: "in_progress", value: 6 },
-        { name: "Resolved", key: "resolved", value: 45 },
-    ])
+    const navigate = useNavigate();
+    const [societyId, setSocietyId] = useState(null);
+    const [complaintStatus, setComplaintStatus] = useState([]);
+    const [complaintsTotal, setComplaintsTotal] = useState(0);
+    // const [complaintStatus, setComplaintStatus] = useState([
+    //     { name: "Open", key: "open", value: 12 },
+    //     { name: "In Progress", key: "in_progress", value: 6 },
+    //     { name: "Resolved", key: "resolved", value: 45 },
+    // ])
 
     const [occupancy, setOccupancy] = useState({ occupied: 420, total: 450 })
 
@@ -331,14 +337,54 @@ const Overview = () => {
         { icon: <FiUserCheck />, label: "Visitor Registrations", count: 4 },
         { icon: <FiAlertTriangle />, label: "NOC Requests", count: 2 },
     ])
+    const GetComplaints = async (societyId) => {
+        try {
+            const response = await getComplaintsApi(societyId);
 
-    const [recentVisitors, setRecentVisitors] = useState([
-        { name: "Amit Kumar", purpose: "Personal Visit", flat: "A-101", time: "10:30 AM", status: "Checked In" },
-        { name: "Delivery Boy", purpose: "Delivery", flat: "B-204", time: "11:15 AM", status: "Checked In" },
-        { name: "Rahul Singh", purpose: "Personal Visit", flat: "C-302", time: "11:45 AM", status: "Checked Out" },
-        { name: "Sneha Patel", purpose: "Personal Visit", flat: "A-501", time: "12:20 PM", status: "Checked In" },
-        { name: "Vikram Joshi", purpose: "Service", flat: "B-103", time: "01:10 PM", status: "Checked In" },
-    ])
+            console.log("Complaint Response:", response);
+
+            const counts = response.status_counts || {};
+
+            setComplaintStatus([
+                {
+                    name: "Open",
+                    key: "open",
+                    value: counts.open || 0,
+                },
+                {
+                    name: "In Progress",
+                    key: "in_progress",
+                    value: counts.in_progress || 0,
+                },
+                {
+                    name: "Resolved",
+                    key: "resolved",
+                    value: counts.resolved || 0,
+                },
+                {
+                    name: "Closed",
+                    key: "closed",
+                    value: counts.closed || 0,
+                },
+            ]);
+
+            setComplaintsTotal(counts.total || 0);
+
+            // Top Card
+            setActiveComplaints(counts.open || 0);
+
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    // const [recentVisitors, setRecentVisitors] = useState([
+    //     { name: "Amit Kumar", purpose: "Personal Visit", flat: "A-101", time: "10:30 AM", status: "Checked In" },
+    //     { name: "Delivery Boy", purpose: "Delivery", flat: "B-204", time: "11:15 AM", status: "Checked In" },
+    //     { name: "Rahul Singh", purpose: "Personal Visit", flat: "C-302", time: "11:45 AM", status: "Checked Out" },
+    //     { name: "Sneha Patel", purpose: "Personal Visit", flat: "A-501", time: "12:20 PM", status: "Checked In" },
+    //     { name: "Vikram Joshi", purpose: "Service", flat: "B-103", time: "01:10 PM", status: "Checked In" },
+    // ])
 
     const [announcements, setAnnouncements] = useState([
         { title: "Water Supply Maintenance on 2nd July", date: "30 Jun 2026" },
@@ -362,15 +408,116 @@ const Overview = () => {
             {text}
         </h6>
     )
+    const formatTime = (value, type = "time") => {
+        if (!value) return "-";
 
+        const date = new Date(
+            value + (value.includes("Z") || value.includes("+") ? "" : "Z")
+        );
+
+        if (type === "time") {
+            return date.toLocaleTimeString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+            });
+        }
+
+        return date.toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        });
+    };
+    const GetVisitors = async (id) => {
+        try {
+            const response = await ListVisitorsApi({
+                societyId: id,
+                search: "",
+                visitor_type: "",
+                entry_status: "",
+                approval_status: "",
+                flat_id: null,
+                date_from: "",
+                date_to: "",
+                schedule_date: "",
+                page: 1,
+                page_size: 10,
+            });
+
+            console.log("API Response:", response);
+
+            // Response contains visitors directly
+            const visitors = response?.visitors || [];
+
+            console.log("Visitors Array:", visitors);
+
+            const today = new Date().toISOString().split("T")[0];
+            console.log("Today's Date:", today);
+
+            const todayVisitors = visitors.filter((visitor) => {
+                const date = visitor.check_in_time || visitor.created_at;
+
+                if (!date) return false;
+
+                const visitorDate = date.split(" ")[0];
+
+                console.log(
+                    visitor.visitor_name,
+                    "Visitor Date:",
+                    visitorDate,
+                    "Today:",
+                    today
+                );
+
+                return visitorDate === today;
+            });
+
+            console.log("Today's Visitors:", todayVisitors);
+            console.log("Today's Visitor Count:", todayVisitors.length);
+
+            setTodayVisitorCount(todayVisitors.length);
+
+            const sortedVisitors = [...visitors].sort((a, b) => {
+                const dateA = new Date(
+                    (a.check_in_time || a.created_at).replace(" ", "T")
+                );
+
+                const dateB = new Date(
+                    (b.check_in_time || b.created_at).replace(" ", "T")
+                );
+
+                return dateB - dateA;
+            });
+
+            setRecentVisitors(sortedVisitors.slice(0, 5));
+
+        } catch (error) {
+            console.error("Visitor API Error:", error);
+        }
+    };
     useEffect(() => {
-        SessionData()
-    }, [])
-
+        SessionData();
+    }, []);
+    useEffect(() => {
+        if (societyId) {
+            GetVisitors(societyId);
+        }
+    }, [societyId]);
     const SessionData = async () => {
-        const data = await GetSessionData()
-        GetDashboard(data.data.society_id)
-    }
+        try {
+            const session = await GetSessionData();
+
+            const id = session?.data?.society_id;
+
+            setSocietyId(id);
+
+            GetDashboard(id);
+             GetComplaints(id);
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     const GetDashboard = async (societyId) => {
         try {
@@ -395,7 +542,7 @@ const Overview = () => {
     ]
     const occupancyPct = occupancy.total ? Math.round((occupancy.occupied / occupancy.total) * 100) : 0
 
-    const complaintsTotal = complaintStatus.reduce((a, c) => a + c.value, 0)
+    // const complaintsTotal = complaintStatus.reduce((a, c) => a + c.value, 0)
     const staffTotal = staffSplit.reduce((a, c) => a + c.value, 0)
 
     return (
@@ -423,7 +570,7 @@ const Overview = () => {
                             <span className="stat-label">Today's Visitors</span>
                             <span className="stat-icon icon-purple"><FiUserCheck /></span>
                         </div>
-                        <div className="stat-val">{totalVisits || 58}</div>
+                        <div className="stat-val">{todayVisitorCount}</div>
                         <div className="stat-delta up">↑ 12 vs yesterday</div>
                     </div>
                 </div>
@@ -651,21 +798,34 @@ const Overview = () => {
                                         <th>Visitor</th>
                                         <th>Purpose</th>
                                         <th>Flat No.</th>
-                                        <th>Time</th>
+                                        <th>Check In</th>
+                                        <th>Check Out</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {recentVisitors.map((v, i) => (
-                                        <tr key={i}>
-                                            <td>{v.name}</td>
-                                            <td>{v.purpose}</td>
-                                            <td>{v.flat}</td>
-                                            <td>{v.time}</td>
+                                    {recentVisitors.map((v) => (
+                                        <tr key={v.id}>
+                                            <td>{v.visitor_name}</td>
+
+                                            <td>{v.purpose || "-"}</td>
+
+                                            <td>
+                                                {v.block}-{v.flat_number}
+                                            </td>
+
+                                            <td>{formatTime(v.check_in_time)}</td>
+                                            <td>{formatTime(v.check_out_time)}</td>
                                             <td>
                                                 <Badge
-                                                    label={v.status}
-                                                    c={v.status === "Checked In" ? "green" : "orange"}
+                                                    label={v.entry_status}
+                                                    c={
+                                                        v.entry_status === "completed"
+                                                            ? "green"
+                                                            : v.entry_status === "waiting"
+                                                                ? "orange"
+                                                                : "red"
+                                                    }
                                                 />
                                             </td>
                                         </tr>
@@ -673,7 +833,12 @@ const Overview = () => {
                                 </tbody>
                             </table>
                         </div>
-                        <button className="view-all-btn outline">View All Visitors</button>
+                        <button
+                            className="view-all-btn outline"
+                            onClick={() => setActive("visitorRegister")}
+                        >
+                            View All Visitors
+                        </button>
                     </div>
                 </div>
             </div>

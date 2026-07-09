@@ -26,6 +26,280 @@
   color: var(--text);
 }
 
+/* ============================================================
+   New: stat cards / attendance overview / shift summary / tabs /
+   monthly attendance sheet grid
+   ============================================================ */
+
+/* ── Stat cards (Present / Absent / Late / Total) ── */
+.sa-wrap .stat-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid #eef1f6;
+  border-radius: 12px;
+  padding: 16px;
+  height: 100%;
+}
+
+.sa-wrap .stat-card-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sa-wrap .stat-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.sa-wrap .stat-card-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.sa-wrap .stat-card-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.sa-wrap .stat-card-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.sa-wrap .stat-card-trend.trend-up {
+  color: #1a7f37;
+}
+
+.sa-wrap .stat-card-trend.trend-down {
+  color: #d1242f;
+}
+
+.sa-wrap .stat-card-trend.trend-neutral {
+  color: var(--muted);
+}
+
+.sa-wrap .stat-card-trend .trend-note {
+  color: var(--muted);
+  margin-left: 2px;
+}
+
+/* ── Attendance Overview + donut ── */
+.sa-wrap .overview-card {
+  min-height: 100%;
+}
+
+.sa-wrap .overview-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.sa-wrap .overview-stat .sa-muted.small {
+  margin-left: 4px;
+}
+
+.sa-wrap .donut-svg .donut-pct {
+  font-size: 22px;
+  font-weight: 700;
+  fill: var(--text);
+}
+
+.sa-wrap .donut-svg .donut-label {
+  font-size: 10px;
+  fill: var(--muted);
+}
+
+/* ── Shift Summary ── */
+.sa-wrap .shift-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f3f5;
+  font-size: 14px;
+}
+
+.sa-wrap .shift-row:last-child {
+  border-bottom: none;
+}
+
+.sa-wrap .shift-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2563eb;
+}
+
+/* ── View tabs (Attendance Dashboard / Monthly Attendance Sheet) ── */
+.sa-wrap .sa-view-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sa-wrap .sa-view-tab {
+  background: none;
+  border: none;
+  padding: 10px 4px;
+  margin-right: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.sa-wrap .sa-view-tab.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+/* ── Monthly Attendance Sheet grid ── */
+.sa-wrap .monthly-grid-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.sa-wrap .monthly-grid-tbl {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sa-wrap .monthly-grid-tbl th,
+.sa-wrap .monthly-grid-tbl td {
+  text-align: center;
+  white-space: nowrap;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.sa-wrap .monthly-grid-tbl .sticky-col {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 2;
+  min-width: 160px;
+  text-align: left;
+}
+
+.sa-wrap .monthly-grid-tbl .sticky-col-2 {
+  position: sticky;
+  left: 160px;
+  background: #fff;
+  z-index: 2;
+  min-width: 120px;
+  text-align: left;
+}
+
+.sa-wrap .monthly-grid-tbl thead .sticky-col,
+.sa-wrap .monthly-grid-tbl thead .sticky-col-2 {
+  z-index: 3;
+  background: #f9fafb;
+}
+
+.sa-wrap .day-header {
+  min-width: 42px;
+}
+
+.sa-wrap .day-header .day-dow {
+  font-size: 10px;
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.sa-wrap .day-cell-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sa-wrap .day-present {
+  background: #e6f4ea;
+  color: #1a7f37;
+}
+
+.sa-wrap .day-absent {
+  background: #fdeaea;
+  color: #d1242f;
+}
+
+.sa-wrap .day-late {
+  background: #fef3e0;
+  color: #b3690a;
+}
+
+.sa-wrap .day-holiday {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.sa-wrap .day-weekoff {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.sa-wrap .day-casual {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.sa-wrap .day-sick {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+.sa-wrap .sheet-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.sa-wrap .legend-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sa-wrap .quick-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sa-wrap .quick-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.sa-wrap .summary-metric-val {
+  font-size: 24px;
+  font-weight: 700;
+}
+
 /* .Toastify__toast-container--top-center {
   top: 50% !important;
   left: 50% !important;
