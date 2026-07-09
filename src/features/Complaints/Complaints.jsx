@@ -15,6 +15,7 @@ import {
   FiUser,
   FiClock,
   FiAlertCircle,
+  FiSearch,
 } from "react-icons/fi";
 import AssignStaffModal from "./AssignStaffModal";   // ← ADDED
 
@@ -225,12 +226,19 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
     <>
       <div className="pg cp-wrap">
 
-        {/* Header */}
-        <div className="d-flex justify-content-between align-items-center mb-4 text-start">
-          <div>
-            <h4 className="cp-title">Complaints</h4>
-            <p className="cp-sub">Manage and track all society complaints</p>
+        {/* Header — icon + title/subtitle, matches VisitorRegister */}
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="d-flex align-items-center gap-3">
+            <div className="bc-header-icon">
+              <FiAlertCircle size={20} color="#2563eb" />
+            </div>
+
+            <div className="text-start">
+              <h4 className="cp-title mb-1">Complaints</h4>
+              <p className="cp-sub mb-0">Manage and track all society complaints</p>
+            </div>
           </div>
+
           <div className='d-flex'>
             <button className="btn-ol ms-2" onClick={() => setShow(true)}>
               <CgExport /> Export
@@ -251,7 +259,7 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
           ].map(([v, l, cls]) => (
             <div className="col-6 col-md-3" key={l}>
               <div className={`tile bg-white ${cls}`}>
-                <div className="text-start fw-bold">{l}</div>
+                <div className="text-start text-muted">{l}</div>
                 <div className="tile-val text-start mt-1">{v}</div>
               </div>
             </div>
@@ -275,23 +283,85 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="row g-2 mt-3 mb-3 align-items-center">
-          <div className="col-md-3">
-            <input type="date" className="form-control" value={startDate} onChange={(e) => { setStartDate(e.target.value); setPage(1); }} />
-          </div>
-          <div className="col-md-3">
-            <input type="date" className="form-control" value={endDate} onChange={(e) => { setEndDate(e.target.value); setPage(1); }} />
-          </div>
-          <div className="col-md-3">
-            <input type="text" className="form-control" placeholder="Search by title, unit..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
-          </div>
-          <div className="col-md-3">
-            <button className="btn-ol ms-2" onClick={() => setShow(true)}>
-              <CgExport /> Export
-            </button>
-          </div>
+        {/* Toolbar */}
+<div className="visitor-toolbar mb-4 mt-3">
+  <div className="row align-items-center g-2">
+
+    {/* Start Date */}
+    <div className="col-md-2">
+      <input
+        type="date"
+        className="form-control"
+        value={startDate}
+        onChange={(e) => {
+          setStartDate(e.target.value);
+          setPage(1);
+        }}
+      />
+    </div>
+
+    {/* End Date */}
+    <div className="col-md-2">
+      <input
+        type="date"
+        className="form-control"
+        value={endDate}
+        onChange={(e) => {
+          setEndDate(e.target.value);
+          setPage(1);
+        }}
+      />
+    </div>
+
+    {/* Status Filter */}
+    {/* <div className="col-md-2">
+      <select
+        className="form-select"
+        value={filterStatus}
+        onChange={(e) => handleStatusChange(e.target.value)}
+      >
+        <option value="">All Status</option>
+        <option value="open">Open</option>
+        <option value="in_progress">In Progress</option>
+        <option value="resolved">Resolved</option>
+        <option value="closed">Closed</option>
+        <option value="rejected">Rejected</option>
+      </select>
+    </div> */}
+
+    {/* Search - Right Corner */}
+    <div className="col-md-8">
+      <div className="d-flex justify-content-end">
+        <div
+          className="position-relative"
+          style={{ width: "320px" }}
+        >
+          <FiSearch
+            className="position-absolute"
+            style={{
+              left: "12px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "#6c757d",
+            }}
+          />
+
+          <input
+            type="text"
+            className="form-control ps-5"
+            placeholder="Search by title, unit..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
         </div>
+      </div>
+    </div>
+
+  </div>
+</div>
 
         {/* Table view for resolved/closed */}
         {(tab !== "" && tab !== "open" && tab !== "in_progress") &&
@@ -340,11 +410,10 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
                 {/* LEFT: id + title + meta, all compact */}
                 <div className="text-start flex-grow-2 min-w-0">
                   <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                    {/* <span className="tx-muted" style={{ fontSize: 16 }}>#{data.complaint_id}</span> */}
                     <span style={{ fontSize: 16, fontWeight: 600 }}>{data.title}</span>
                   </div>
 
-                  <div className="d-flex flex-wrap align-items-center gap-3 text-secondary" style={{ fontSize: 16 }}>
+                  <div className="d-flex flex-wrap align-items-center gap-3 text-secondary" style={{ fontSize: 13 }}>
                     <div className="d-flex align-items-center gap-1"><FiTag size={12} /><span>{data.category_name}</span></div>
                     <div className="d-flex align-items-center gap-1"><FiMapPin size={12} /><span>{data.unit}</span></div>
                     <div className="d-flex align-items-center gap-1"><FiUser size={12} /><span>Rahul Sharma (A-401)</span></div>

@@ -464,9 +464,9 @@ const Polls = ({ setActive, setPollId }) => {
                                             </div>
                                         </div>
 
-                                        {p.status === "active" && (
-                                            <span className="pl-options-count">{optionsCount}/5 Options</span>
-                                        )}
+                                        {/* {p.status === "active" && (
+                                            <span className="pl-options-count">{optionsCount}</span>
+                                        )} */}
                                     </div>
 
                                 </div>
