@@ -81,13 +81,22 @@ const NAV = [
       { id: "polls", icon: "📊", lbl: "Polls & Voting" },
     ]
   },
+  // ================= Visitors =================
   {
-    sec: "Visitors & Parking", items: [
+    sec: "Visitors",
+    items: [
+      { id: "visitorRegister", icon: "🚶", lbl: "Visitor" },
+      { id: "visitorParking", icon: "🅿️", lbl: "Visitor Parking" },
+    ],
+  },
+
+  // ================= Parking =================
+  {
+    sec: "Parking",
+    items: [
       { id: "parkingRegister", icon: "🅿️", lbl: "Parking Slots" },
-      { id: "visitorRegister", icon: "🚶", lbl: "Visitors" },
-      { id: "vehicleRegister", icon: "🚘", lbl: "Owner Vehicles" },
-      { id: "parkingDashboard", icon: "🚗", lbl: "Parking" },
-    ]
+      { id: "parkingDashboard", icon: "🚗", lbl: "Parking Dashboard" },
+    ],
   },
   {
     sec: "Operations", items: [
@@ -98,13 +107,16 @@ const NAV = [
     ]
   },
   {
-    sec: "Residents", items: [
+    sec: "Residents",
+    items: [
       { id: "addmember", icon: "👤", lbl: "Members" },
-      { id: "unitRegister", icon: "🏠", lbl: "Add Unit" },
+      { id: "unitRegister", icon: "🏠", lbl: "Units" },
+      { id: "vehicleRegister", icon: "🚘", lbl: "Owner Vehicles" },
       { id: "flatApprovals", icon: "🏘️", lbl: "Flat Approvals" },
       { id: "rentals", icon: "🏢", lbl: "Rentals & Tenants" },
-    ]
+    ],
   },
+
   {
     sec: "Transfers", items: [
       { id: "membertransfer", icon: "🔄", lbl: "Member Transfer" },
@@ -120,34 +132,27 @@ const NAV = [
   },
 ];
 const PARENT_MAP = {
-  // Registers ke child pages
   registerHistory: "registers",
-  // unitRegister: "registers",
-  // parkingRegister: "registers",
-  // parkingDetails: "registers",
-  // parkingHistory: "registers",
   viewUnit: "registers",
 
-  // Visitors ke child pages
   visitorDetailsPage: "visitorRegister",
 
-  // Communication
   createbroadcast: "broadcasting",
   viewbroadcastdetails: "broadcasting",
   createNoticeBoard: "noticeboard",
   createPoll: "polls",
   upcomingEvents: "polls",
-  // Member Masters
+
   memberDetails: "addmember",
 
-  // Operations
   createComplaints: "complaints",
-  viewComplaintDetails: "complaints",       // ← ADDED
+  viewComplaintDetails: "complaints",
   AssignStaffModal: "complaints",
+
   createStaff: "staff",
   rentalsApplication: "rentals",
+
   parkingList: "parkingDashboard",
-  visitorParking: "parkingDashboard",
   violationAlerts: "parkingDashboard",
   parkingRules: "parkingDashboard",
   viewParkingDetails: "parkingDashboard",
@@ -177,10 +182,11 @@ const TITLES = {
   registers: ["Administration", "Registers"],
   registerHistory: ["Administration", "Registers", "Member Register", "History"],
   unitRegister: ["Administration", "Registers", "Unit Register"],
-  visitorRegister: ["Administration", "Registers", "Visitor Register"],
-  parkingRegister: ["Visitors & Parking", "Parking Slots"],
-  parkingDetails: ["Visitors & Parking", "Parking Slots", "Parking Details"],
-  parkingHistory: ["Visitors & Parking", "Parking Slots", "Parking History"],
+  visitorRegister: ["Visitors", "Visitor Register"],
+  visitorDetailsPage: ["Visitors", "Visitor Register", "Visitor Details",],
+  parkingRegister: ["Parking", "Parking Slots"],
+  parkingDetails: ["Parking", "Parking Slots", "Parking Details",],
+  parkingHistory: ["Parking", "Parking Slots", "Parking History",],
   rules: ["Administration", "Rules & By-laws"],
   complaints: ["Operations", "Complaints"],
   createComplaints: ["Operations", "Create Complaints"],
@@ -198,8 +204,8 @@ const TITLES = {
   rentalsApplication: ["Operations", "Rentals & Tenants", "Review Application"],
   staff: ["Operations", "Staff Attendance"],
   createStaff: ["Operations", "Create Staff Attendance"],
-  vehicleRegister: ["Administration", "Registers", "Vehicle Register"],
-  vehicleDetailsPage: ["Administration", "Registers", "Vehicle Register", "Vehicle Details"],
+  vehicleRegister: ["Residents", "Owner Vehicles"],
+  vehicleDetailsPage: ["Residents", "Owner Vehicles", "Vehicle Details",],
   billing: ["Operations", "Billing"],
   accounts: ["Operations", "Accounts"],
   flatApprovals: ["Operations", "Flat Approvals"],
