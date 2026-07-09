@@ -42,29 +42,30 @@ const Polls = ({ setActive, setPollId }) => {
     const [totalRecords, setTotalRecords] = useState(0);
     const [searchText, setSearchText] = useState("");
 
+    // ── tab values now match the API's actual (lowercase) status strings ──
     const tabs = [
         { id: "All", value: "" },
-        { id: "Active", value: "ACTIVE" },
-        { id: "Upcoming", value: "UPCOMING" },
-        { id: "Expired", value: "EXPIRED" },
+        { id: "Active", value: "active" },
+        { id: "Upcoming", value: "upcoming" },
+        { id: "Expired", value: "closed" },
     ];
 
     // status -> icon / colors (matches green/red/orange pill icons in design)
     const getPollStatusIcon = (status) => {
         switch (status) {
-            case "ACTIVE":
+            case "active":
                 return {
                     icon: <FiCheckCircle size={18} color="#16a34a" />,
                     bg: "#dcfce7",
                 };
 
-            case "UPCOMING":
+            case "upcoming":
                 return {
                     icon: <FiClock size={18} color="#f59e0b" />,
                     bg: "#fef3c7",
                 };
 
-            case "EXPIRED":
+            case "closed":
                 return {
                     icon: <FiXCircle size={18} color="#ef4444" />,
                     bg: "#fee2e2",
@@ -89,14 +90,14 @@ const Polls = ({ setActive, setPollId }) => {
 
     }, [searchText]);
 
-    // badge color per status (Active = green, Upcoming = orange, Expired = red)
+    // badge color per status (Active = green, Upcoming = orange, Closed/Expired = red)
     const getStatusBadgeColor = (status) => {
         switch (status) {
-            case "ACTIVE":
+            case "active":
                 return "green";
-            case "UPCOMING":
+            case "upcoming":
                 return "orange";
-            case "EXPIRED":
+            case "closed":
                 return "red";
             default:
                 return "gray";
@@ -130,45 +131,51 @@ const Polls = ({ setActive, setPollId }) => {
 
     //function for get polls data
     const GetPollsData = async (
-    societyId,
-    userId,
-    pageNo = 1,
-    searchText = "",
-    status = ""
-) => {
+        societyId,
+        userId,
+        pageNo = 1,
+        searchText = "",
+        status = ""
+    ) => {
 
-    try {
+        try {
 
-       const data = await getPollApi(
-    societyId,
-    userId,
-    status,
-    "",
-    searchText,
-    "",
-    "",
-    pageNo,
-    pageSize
-);
+            const res = await getPollApi(
+                societyId,
+                userId,
+                status,
+                "",
+                searchText,
+                "",
+                "",
+                pageNo,
+                pageSize
+            );
 
-setAllPolls(data || []);
+            // ── real response shape is { analytics, count, list, page_no,
+            // page_size, total_count, total_pages } — NOT the array itself.
+            // The poll rows live in res.list. ──
+            const list = Array.isArray(res?.list) ? res.list : [];
+            const apiAnalytics = res?.analytics || {};
 
-const analytics = {
-    active: data.filter(x => x.status === "ACTIVE").length,
-    upcoming: data.filter(x => x.status === "UPCOMING").length,
-    closed: data.filter(x => x.status === "EXPIRED").length,
-    total: data.length
-};
+            setAllPolls(list);
 
-setAnalytics(analytics);
+            // ── use the API's own all-time analytics instead of
+            // recomputing from whatever page happens to be loaded ──
+            setAnalytics({
+                active: apiAnalytics.active || 0,
+                upcoming: apiAnalytics.upcoming || 0,
+                closed: apiAnalytics.closed || 0,
+                total: apiAnalytics.total || 0,
+            });
 
-setTotalRecords(data.length);
-setTotalPages(1);
+            setTotalRecords(res?.total_count || 0);
+            setTotalPages(res?.total_pages || 1);
 
-    } catch (err) {
-        console.log(err);
-    }
-};
+        } catch (err) {
+            console.log(err);
+        }
+    };
 
     //statsData for count — order matches design: Active Polls, Avg Participation, Total Participants, Expired Polls
     // API overview only returns active_polls, avg_turnout_percent, digital_adoption_percent, total_polls
@@ -234,7 +241,7 @@ setTotalPages(1);
 
             setShowDeleteModal(false);
 
-            GetPollsData(societyId, userId);
+            GetPollsData(societyId, userId, page, search, tab);
 
 
         } catch (error) {
@@ -269,7 +276,7 @@ setTotalPages(1);
     };
 
     const upcomingPolls = allPolls
-        .filter((p) => p.status === "UPCOMING")
+        .filter((p) => p.status === "upcoming")
         .sort(
             (a, b) =>
                 new Date(a.start_datetime) -
@@ -311,7 +318,7 @@ setTotalPages(1);
                             {tabs.map((t) => (
                                 <button
                                     key={t.id}
-                                    onClick={() => setTab(t.value)}
+                                    onClick={() => { setTab(t.value); setPage(1); }}
                                     className={`PollsTabs-btn ${tab === t.value ? "active" : ""}`}
                                 >
                                     {t.id}
@@ -356,9 +363,9 @@ setTotalPages(1);
 
                     {filteredData.map((p, i) => {
 
-                        const totalVotes = p.total_votes || 0;
+                        const totalVotes = Number(p.total_votes) || 0;
                         const pollStatus = getPollStatusIcon(p.status);
-                        const endsLabel = getEndsInLabel(p.expiry_datetime);
+                        const endsLabel = getEndsInLabel(p.end_datetime);
                         const optionsCount = p.options?.length || 0;
 
                         return (
@@ -375,7 +382,7 @@ setTotalPages(1);
                                         <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
                                             <span className="pl-title">{p.question}</span>
                                             <Badge
-                                                label={p.status === "ACTIVE" ? "Active" : p.status === "UPCOMING" ? "Upcoming" : p.status === "EXPIRED" ? "Expired" : p.status}
+                                                label={p.status === "active" ? "Active" : p.status === "upcoming" ? "Upcoming" : p.status === "closed" ? "Expired" : p.status}
                                                 c={getStatusBadgeColor(p.status)}
                                             />
                                         </div>
@@ -385,7 +392,7 @@ setTotalPages(1);
                                                 <FiCalendar size={13} /> {formatDate(p.start_datetime)}
                                             </span>
                                             {endsLabel && (
-                                                <span className={`d-flex align-items-center gap-1 ${p.status === "EXPIRED" ? "tx-danger" : "tx-muted"}`}>
+                                                <span className={`d-flex align-items-center gap-1 ${p.status === "closed" ? "tx-danger" : "tx-muted"}`}>
                                                     <FiClock size={13} /> {endsLabel}
                                                 </span>
                                             )}
@@ -394,12 +401,12 @@ setTotalPages(1);
                                             </span>
                                         </div>
 
-                                        {p.status !== "ACTIVE" && (
+                                        {p.status !== "active" && (
                                             <div className="pl-result mb-1">
                                                 Result:{" "}
                                                 {p.options.map((t, index) => (
                                                     <span key={index} className={`pl-result-val ${index === 0 ? "tx-success" : "tx-muted"}`}>
-                                                        {t.text} ({t.votes}%){index < p.options.length - 1 ? " | " : ""}
+                                                        {t.option_text} ({t.percentage}%){index < p.options.length - 1 ? " | " : ""}
                                                     </span>
                                                 ))}
                                             </div>
@@ -415,7 +422,7 @@ setTotalPages(1);
                                                     setActive("pollAnalytics");
                                                 }}
                                             >
-                                                {p.status === "EXPIRED" ? "View Report" : "Analyze"}
+                                                {p.status === "closed" ? "View Report" : "Analyze"}
                                             </button>
 
                                             <div className="member-action-dropdown dropdown">
@@ -452,7 +459,7 @@ setTotalPages(1);
                                             </div>
                                         </div>
 
-                                        {p.status === "ACTIVE" && (
+                                        {p.status === "active" && (
                                             <span className="pl-options-count">{optionsCount}/5 Options</span>
                                         )}
                                     </div>
@@ -519,7 +526,8 @@ setTotalPages(1);
                                 "Upcoming Polls",
                                 "View scheduled polls",
                                 () => {
-                                    setTab("UPCOMING");
+                                    setTab("upcoming");
+                                    setPage(1);
                                 },
                             ],
                         ].map(([ic, lb, sub, onClick]) => (
