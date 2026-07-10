@@ -178,9 +178,9 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
 
             setStats({
                 total: analytics?.approval_status?.total || pagination.total || 0,
-                today: analytics?.entry_status?.inside || 0,
+                today: analytics?.today_total_visitors || 0,
                 pending: analytics?.approval_status?.pending || 0,
-                checkedOut: analytics?.entry_status?.completed || 0
+                checkedOut: analytics?.today_checked_out || 0
             });
 
         } catch (error) {
@@ -548,7 +548,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
 
                             <div className="position-relative">
 
-                                <button
+                                {/* <button
                                     className={`btn btn-sm btn-ac btn-primary ${showMoreFilters ? "active" : ""}`}
                                     onClick={() => {
                                         setTempVisitorType(visitorTypeFilter);
@@ -559,7 +559,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                     }}
                                 >
                                     <FiFilter size={14} /> More Filters
-                                </button>
+                                </button> */}
 
                                 {showMoreFilters && (
                                     <div
