@@ -9,9 +9,10 @@ import { getAllBlocksApi, getAllFlatsApi } from '../../../services/UnitRegisterA
 import { toast } from "react-toastify";
 import { useLoader } from "../../../context/LoaderContext";
 import ParkingSlotModal from './ParkingSlotModal';
+import { GetVehicleByIdApi } from '../../../services/VehicleRegisterAPI';
 import { GetSessionData } from "../../../utils/SessionManagement";
 
-const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData, setVisitorParkingId, setFlatId }) => {
+const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData, setVisitorParkingId, setFlatId, setVehicleId, setVisitorId, setMemberId }) => {
 
     const { setLoading } = useLoader();
     const [deallocateShow, setDeallocateShow] = useState(false);
@@ -36,6 +37,7 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData, set
     const [allFlats, setAllFlats] = useState([]);
     const [selectedBlock, setSelectedBlock] = useState("");
     const [selectedFlat, setSelectedFlat] = useState("");
+    const isVisitor = slotData?.allocation?.allocation_type?.toLowerCase() === "visitor";
     //const [societyId, setSocietyId] = useState(null);
     useEffect(() => {
         if (slotId && societyId) {
@@ -72,7 +74,32 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData, set
     // const filteredFlats = allFlats.filter(
     //     x => x.block === selectedBlock
     // );
+    const handleViewOwnerParking = async () => {
+        if (!allocation?.vehicle_id) {
+            toast.error("No vehicle linked to this allocation");
+            return;
+        }
+        try {
+            const res = await GetVehicleByIdApi(allocation.vehicle_id, societyId);
 
+            // sirf explicit failure par error dikhao
+            if (res?.success === false) {
+                toast.error(res?.message || "Vehicle not found");
+                return;
+            }
+
+            const vehicleData = res?.data || res;
+            if (!vehicleData) {
+                toast.error("Vehicle not found");
+                return;
+            }
+
+            setVehicleId(allocation.vehicle_id);
+            setActive("vehicleDetailsPage");
+        } catch (error) {
+            toast.error(error?.message || "Vehicle not found");
+        }
+    };
     const loadSlotDetails = async () => {
         try {
             setLoading(true);
@@ -137,6 +164,22 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData, set
             toast.error(error?.message || "Failed to deallocate parking slot");
         }
     };
+    const handleViewVisitorParking = () => {
+        setVisitorParkingId(allocation.visitor_parking_id);
+        setActive("visitorDetails");
+    };
+
+    const handleViewMemberProfile = () => {
+        if (allocation.allocation_type === "visitor") {
+            // visitor jis flat/member ko visit kar raha hai uska profile
+            setFlatId(allocation.visited_flat_id);
+        } else {
+            // resident khud ka profile
+            setFlatId(allocation.flat_id);
+        }
+        setActive("memberDetails");
+    };
+
     const handleEdit = async () => {
         try {
             await UpdateParkingSlotApi(societyId, slotId, editZone, editFloor, editEvReady, editStatus, "");
@@ -285,34 +328,79 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData, set
                             <div className="card-header bg-white d-flex justify-content-between align-items-center">
                                 <span className="fw-semibold">Vehicle Details</span>
                             </div>
+
                             <div className="card-body">
                                 <div className="row g-4">
+
+                                    {/* Vehicle Model */}
                                     <div className="col-md-6">
                                         <small className="text-muted d-block">VEHICLE MODEL</small>
-                                        <div className="fw-semibold">-</div>
-                                    </div>
-                                    <div className="col-md-6">
-                                        <small className="text-muted d-block">PLATE NUMBER</small>
-                                        <div className="fw-semibold">-</div>
-                                    </div>
-                                    <div className="col-md-6">
-                                        <small className="text-muted d-block">COLOR</small>
-                                        <div className="fw-semibold">-</div>
-                                    </div>
-                                    <div className="col-md-6">
-                                        <small className="text-muted d-block">VEHICLE TYPE</small>
-                                        <div className="fw-semibold">{fmt(slotData?.vehicle_type)}</div>
-                                    </div>
-                                    <div className="col-md-6">
-                                        <small className="text-muted d-block">STICKER ID</small>
-                                        <div className="fw-semibold">-</div>
-                                    </div>
-                                    <div className="col-md-6">
-                                        <small className="text-muted d-block">REGISTRATION COPY</small>
-                                        <div className="fw-semibold text-primary" onClick={() => setShowDocument(true)} style={{ cursor: "pointer" }}>
-                                            View Document
+                                        <div className="fw-semibold">
+                                            {fmt(slotData?.allocation?.vehicle_model)}
                                         </div>
                                     </div>
+
+                                    {/* Plate Number */}
+                                    <div className="col-md-6">
+                                        <small className="text-muted d-block">PLATE NUMBER</small>
+                                        <div className="fw-semibold">
+                                            {fmt(
+                                                slotData?.allocation?.vehicle_number ||
+                                                slotData?.allocation?.visitor_vehicle_number
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Sirf Resident ke liye */}
+                                    {!isVisitor && (
+                                        <>
+                                            <div className="col-md-6">
+                                                <small className="text-muted d-block">COLOR</small>
+                                                <div className="fw-semibold">
+                                                    {fmt(slotData?.allocation?.color)}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {/* Vehicle Type */}
+                                    <div className="col-md-6">
+                                        <small className="text-muted d-block">VEHICLE TYPE</small>
+                                        <div className="fw-semibold">
+                                            {fmt(slotData?.allocation?.vehicle_type)}
+                                        </div>
+                                    </div>
+
+                                    {/* Sirf Resident ke liye */}
+                                    {!isVisitor && (
+                                        <>
+                                            <div className="col-md-6">
+                                                <small className="text-muted d-block">STICKER ID</small>
+                                                <div className="fw-semibold">
+                                                    {fmt(slotData?.allocation?.sticker_id)}
+                                                </div>
+                                            </div>
+
+                                            <div className="col-md-6">
+                                                <small className="text-muted d-block">
+                                                    REGISTRATION COPY
+                                                </small>
+
+                                                {slotData?.allocation?.rc_document_url ? (
+                                                    <div
+                                                        className="fw-semibold text-primary"
+                                                        style={{ cursor: "pointer" }}
+                                                        onClick={() => setShowDocument(true)}
+                                                    >
+                                                        View Document
+                                                    </div>
+                                                ) : (
+                                                    <div className="fw-semibold">-</div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+
                                 </div>
                             </div>
                         </div>
@@ -403,6 +491,10 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData, set
                                             /* ── VISITOR FIELDS ── */
                                             <>
                                                 <div className="mb-3">
+                                                    <small className="text-muted d-block mb-1" style={{ fontSize: 11, letterSpacing: 0.4 }}>NAME</small>
+                                                    <div className="fw-semibold" style={{ fontSize: 14 }}>{allocation.visitor_name || "-"}</div>
+                                                </div>
+                                                <div className="mb-3">
                                                     <small className="text-muted d-block mb-1" style={{ fontSize: 11, letterSpacing: 0.4 }}>ALLOTTED SINCE</small>
                                                     <div className="fw-semibold" style={{ fontSize: 14 }}>{fmtDate(allocation.allotted_at)}</div>
                                                 </div>
@@ -414,25 +506,35 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData, set
                                                     <small className="text-muted d-block mb-1" style={{ fontSize: 11, letterSpacing: 0.4 }}>VEHICLE NUMBER</small>
                                                     <div className="fw-semibold" style={{ fontSize: 14 }}>{allocation.parked_vehicle_number || "-"}</div>
                                                 </div>
+
                                                 <div className="pt-2" style={{ borderTop: "1px solid #eef0f2" }}>
                                                     <a href="#" className="fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
                                                         style={{ fontSize: 13, color: "#1197d2" }} onClick={(e) => {
                                                             e.preventDefault();
-                                                            if (allocation.allocation_type === "visitor") {
-                                                                setVisitorParkingId(allocation.visitor_entry_id);
-                                                                setActive("visitorDetails");
-                                                            } else {
-                                                                setFlatId(allocation.vehicle_id);
-                                                                setActive("vehicleDetails");   // ⚠️ confirm karein exact page name
-                                                            }
+                                                            setVisitorParkingId(allocation.visitor_parking_id);
+                                                            setActive("visitorDetails");
                                                         }}>
-                                                        View Member Profile <FiArrowRight size={14} />
+                                                        View Visitor Parking <FiArrowRight size={14} />
+                                                    </a>
+                                                </div>
+                                                <div className="pt-2 mt-2" style={{ borderTop: "1px solid #eef0f2" }}>
+                                                    <a href="#" className="fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
+                                                        style={{ fontSize: 13, color: "#1197d2" }} onClick={(e) => {
+                                                            e.preventDefault();
+                                                            setVisitorId(allocation.visitor_entry_id);
+                                                            setActive("visitorDetailsPage");   // ⚠️ confirm karein exact page name
+                                                        }}>
+                                                        View Visitor Profile <FiArrowRight size={14} />
                                                     </a>
                                                 </div>
                                             </>
                                         ) : (
                                             /* ── RESIDENT FIELDS ── */
                                             <>
+                                                <div className="mb-3">
+                                                    <small className="text-muted d-block mb-1" style={{ fontSize: 11, letterSpacing: 0.4 }}>NAME</small>
+                                                    <div className="fw-semibold" style={{ fontSize: 14 }}>{allocation.resident_name || "-"}</div>
+                                                </div>
                                                 <div className="mb-3">
                                                     <small className="text-muted d-block mb-1" style={{ fontSize: 11, letterSpacing: 0.4 }}>ALLOCATED SINCE</small>
                                                     <div className="fw-semibold" style={{ fontSize: 14 }}>{fmtDate(allocation.allocated_at)}</div>
@@ -445,9 +547,21 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData, set
                                                     <small className="text-muted d-block mb-1" style={{ fontSize: 11, letterSpacing: 0.4 }}>EMAIL</small>
                                                     <div className="fw-semibold" style={{ fontSize: 14 }}>{allocation.resident_email || "-"}</div>
                                                 </div>
-                                                <div className="pt-2" style={{ borderTop: "1px solid #eef0f2" }}>
+
+                                                <a href="#" className="fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
+                                                    style={{ fontSize: 13, color: "#1197d2" }} onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleViewOwnerParking();
+                                                    }}>
+                                                    View Owner Parking <FiArrowRight size={14} />
+                                                </a>
+                                                <div className="pt-2 mt-2" style={{ borderTop: "1px solid #eef0f2" }}>
                                                     <a href="#" className="fw-semibold text-decoration-none d-inline-flex align-items-center gap-1"
-                                                        style={{ fontSize: 13, color: "#1197d2" }}>
+                                                        style={{ fontSize: 13, color: "#1197d2" }} onClick={(e) => {
+                                                            e.preventDefault();
+                                                            setMemberId(allocation.user_id);
+                                                            setActive("memberDetails");
+                                                        }}>
                                                         View Member Profile <FiArrowRight size={14} />
                                                     </a>
                                                 </div>
@@ -673,6 +787,7 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData, set
             />
 
             {/* ── Document Viewer Modal ── */}
+            {/* ── Document Viewer Modal ── */}
             {showDocument && (
                 <>
                     <div className="modal-backdrop fade show" onClick={() => setShowDocument(false)}></div>
@@ -694,26 +809,40 @@ const ParkingDetails = ({ setActive, slotId, societyId, setSelectedSlotData, set
                                         style={{ background: "#ffffff" }}>
                                         <div className="mb-3">
                                             <div className="fw-semibold text-start" style={{ fontSize: "13px" }}>
-                                                Vehicle Registration - EV-22-ZZ-5555.pdf
+                                                Vehicle Registration - {allocation?.vehicle_number || "Document"}
                                             </div>
                                             <div className="text-muted text-start mt-1" style={{ fontSize: "11px" }}>
-                                                Uploaded on Jan 15, 2023 • 2.4 MB
+                                                {fmt(allocation?.vehicle_type)} • {allocation?.color || "-"}
                                             </div>
                                         </div>
-                                        <button className="btn btn-sm border py-2">
+
+                                        <a href={allocation?.rc_document_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-sm border py-2"
+                                        >
                                             <FiExternalLink className="me-2" />Open in New Tab
-                                        </button>
+                                        </a>
                                     </div>
                                     <div className="overflow-hidden rounded-1 border" style={{ background: "#f1f5f9" }}>
-                                        <img
-                                            src="https://images.unsplash.com/photo-1586282391129-76a6df230234?q=80&w=1200&auto=format&fit=crop"
-                                            alt="document" className="w-100"
-                                            style={{ height: "300px", objectFit: "cover" }} />
+                                        {allocation?.rc_document_url ? (
+                                            <img
+                                                src={allocation.rc_document_url}
+                                                alt="RC Document" className="w-100"
+                                                style={{ maxHeight: "500px", objectFit: "contain" }} />
+                                        ) : (
+                                            <div className="text-center text-muted py-5">Document not available</div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="modal-footer px-4 pb-4 pt-3">
-                                    <button className="btn btn-sm btn-light border px-4"><FiPrinter className="me-2" />Print</button>
-                                    <button className="btn btn-sm btn-primary px-4"><FiDownload className="me-2" />Download</button>
+
+                                    <a href={allocation?.rc_document_url}
+                                        download
+                                        className="btn btn-sm btn-primary px-4"
+                                    >
+                                        <FiDownload className="me-2" />Download
+                                    </a>
                                     <button className="btn btn-sm btn-light border ms-auto" onClick={() => setShowDocument(false)}>Close</button>
                                 </div>
                             </div>

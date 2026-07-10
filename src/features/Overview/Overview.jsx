@@ -275,6 +275,7 @@ import { getComplaintsApi } from "../../services/ComplaintsApi";
 import { OverviewApi } from '../../services/OverviewApi';
 import { ListVisitorsApi } from "../../services/VisitorApi";
 import { GetSessionData } from '../../utils/SessionManagement';
+import { getStaffAttendanceApi } from "../../services/StaffAttendanceApi";
 import {
     FiSearch, FiUsers, FiUserCheck, FiAlertTriangle, FiDollarSign,
     FiClock, FiPhone, FiShield, FiBarChart2, FiPieChart, FiHome,
@@ -282,9 +283,15 @@ import {
 } from 'react-icons/fi';
 import { FaCar, FaFireExtinguisher, FaBolt, FaWrench, FaBullhorn } from 'react-icons/fa';
 
-const COMPLAINT_COLORS = { open: "#f12727", in_progress: "#fbbf24", resolved: "#34d399" };
+const COMPLAINT_COLORS = {
+    open: "#f12727",
+    in_progress: "#fbbf24",
+    resolved: "#34d399",
+    closed: "#6b7280",
+    rejected: "#94a3b8",
+};
 const OCC_COLORS = ["#34d399", "#e5e7eb"];
-const ATT_COLORS = { present: "#34d399", absent: "#f87171", on_leave: "#fbbf24" };
+const ATT_COLORS = { present: "#34d399", absent: "#f87171", not_marked: "#9ca3af" };
 
 const Overview = ({ setActive }) => {
     const [barData, setBarData] = useState([])
@@ -302,6 +309,7 @@ const Overview = ({ setActive }) => {
     const [societyId, setSocietyId] = useState(null);
     const [complaintStatus, setComplaintStatus] = useState([]);
     const [complaintsTotal, setComplaintsTotal] = useState(0);
+    const [highPriorityCount, setHighPriorityCount] = useState(0);
     // const [complaintStatus, setComplaintStatus] = useState([
     //     { name: "Open", key: "open", value: 12 },
     //     { name: "In Progress", key: "in_progress", value: 6 },
@@ -337,41 +345,52 @@ const Overview = ({ setActive }) => {
         { icon: <FiUserCheck />, label: "Visitor Registrations", count: 4 },
         { icon: <FiAlertTriangle />, label: "NOC Requests", count: 2 },
     ])
+    const GetStaffAttendance = async (societyId) => {
+        try {
+            // Positional args: societyId, page, limit, date, search, status, dateFrom, dateTo
+            const response = await getStaffAttendanceApi(societyId, 1, 10, null, null, null, null, null);
+
+            console.log("Staff Attendance Response:", response);
+
+            // response already unwrapped (function returns response.data.data)
+            const summary = response?.summary || {};
+
+            setStaffSplit([
+                { name: "Present", key: "present", value: summary.present || 0 },
+                { name: "Absent", key: "absent", value: summary.absent || 0 },
+                { name: "Not Marked", key: "not_marked", value: summary.not_marked || 0 },
+            ]);
+
+            setStaffAttendance({
+                total: response?.count || response?.pagination?.total_records || 0,
+                present: summary.present || 0,
+            });
+
+        } catch (error) {
+            console.log(error);
+        }
+    };
     const GetComplaints = async (societyId) => {
         try {
-            const response = await getComplaintsApi(societyId);
+            const response = await getComplaintsApi({ societyId });
 
             console.log("Complaint Response:", response);
 
-            const counts = response.status_counts || {};
+            const counts = response?.analytics?.status_counts || {};
+
 
             setComplaintStatus([
-                {
-                    name: "Open",
-                    key: "open",
-                    value: counts.open || 0,
-                },
-                {
-                    name: "In Progress",
-                    key: "in_progress",
-                    value: counts.in_progress || 0,
-                },
-                {
-                    name: "Resolved",
-                    key: "resolved",
-                    value: counts.resolved || 0,
-                },
-                {
-                    name: "Closed",
-                    key: "closed",
-                    value: counts.closed || 0,
-                },
+                { name: "Open", key: "open", value: counts.open || 0 },
+                { name: "In Progress", key: "in_progress", value: counts.in_progress || 0 },
+                { name: "Resolved", key: "resolved", value: counts.resolved || 0 },
+                { name: "Closed", key: "closed", value: counts.closed || 0 },
+                { name: "Rejected", key: "rejected", value: counts.rejected || 0 },
             ]);
 
             setComplaintsTotal(counts.total || 0);
-
-            // Top Card
             setActiveComplaints(counts.open || 0);
+            const priorityCounts = response?.analytics?.priority_counts || {};
+            setHighPriorityCount((priorityCounts.urgent || 0) + (priorityCounts.high || 0));
 
         } catch (error) {
             console.log(error);
@@ -445,52 +464,33 @@ const Overview = ({ setActive }) => {
                 page_size: 10,
             });
 
-            console.log("API Response:", response);
+            console.log("Visitor Response:", response);
 
-            // Response contains visitors directly
-            const visitors = response?.visitors || [];
+            // Handle both possible shapes (with or without extra `.data` wrapper)
+            const payload = response?.data ?? response ?? {};
+            const visitors = payload.visitors || [];
+            const analytics = payload.analytics || {};
 
-            console.log("Visitors Array:", visitors);
+            // Direct from analytics - no manual date filtering needed
+            setTodayVisitorCount(analytics.today_total_visitors || 0);
 
-            const today = new Date().toISOString().split("T")[0];
-            console.log("Today's Date:", today);
-
-            const todayVisitors = visitors.filter((visitor) => {
-                const date = visitor.check_in_time || visitor.created_at;
-
-                if (!date) return false;
-
-                const visitorDate = date.split(" ")[0];
-
-                console.log(
-                    visitor.visitor_name,
-                    "Visitor Date:",
-                    visitorDate,
-                    "Today:",
-                    today
-                );
-
-                return visitorDate === today;
-            });
-
-            console.log("Today's Visitors:", todayVisitors);
-            console.log("Today's Visitor Count:", todayVisitors.length);
-
-            setTodayVisitorCount(todayVisitors.length);
-
+            // Sort by check_in_time (or created_at) - most recent first
             const sortedVisitors = [...visitors].sort((a, b) => {
-                const dateA = new Date(
-                    (a.check_in_time || a.created_at).replace(" ", "T")
-                );
-
-                const dateB = new Date(
-                    (b.check_in_time || b.created_at).replace(" ", "T")
-                );
-
+                const dateA = new Date((a.check_in_time || a.created_at || "").replace(" ", "T"));
+                const dateB = new Date((b.check_in_time || b.created_at || "").replace(" ", "T"));
                 return dateB - dateA;
             });
 
             setRecentVisitors(sortedVisitors.slice(0, 5));
+
+            // Bonus: wire "Visitor Registrations" pending approval count from entry_status.waiting
+            setPendingApprovals((prev) =>
+                prev.map((p) =>
+                    p.label === "Visitor Registrations"
+                        ? { ...p, count: analytics?.entry_status?.waiting || 0 }
+                        : p
+                )
+            );
 
         } catch (error) {
             console.error("Visitor API Error:", error);
@@ -508,12 +508,16 @@ const Overview = ({ setActive }) => {
         try {
             const session = await GetSessionData();
 
-            const id = session?.data?.society_id;
+            const flats = session?.data?.flats?.[0];
+            const id = flats?.society_id;
 
             setSocietyId(id);
 
-            GetDashboard(id);
-             GetComplaints(id);
+            if (id) {
+                GetDashboard(id);
+                GetComplaints(id);
+                GetStaffAttendance(id);
+            }
         } catch (error) {
             console.log(error);
         }
@@ -525,7 +529,7 @@ const Overview = ({ setActive }) => {
             setBarData(data.monthly_data || [])
             setTotalVisits(data.total_visits || "")
             setPendingApproval(data.pending_visits || "")
-            setActiveComplaints(data.active_complaints_count || "")
+            // setActiveComplaints(data.active_complaints_count || "")
             setStaffAttendance(data.staff_attendance || {})
             // When backend supports them, also map:
             // setComplaintStatus(...), setOccupancy(...), setStaffSplit(...),
@@ -581,7 +585,7 @@ const Overview = ({ setActive }) => {
                             <span className="stat-icon icon-red"><FiAlertTriangle /></span>
                         </div>
                         <div className="stat-val danger-text">{activeComplaints || 12}</div>
-                        <div className="stat-delta down">4 High Priority</div>
+                        <div className="stat-delta down">{highPriorityCount} High Priority</div>
                     </div>
                 </div>
                 <div className="stat-col">
@@ -674,7 +678,9 @@ const Overview = ({ setActive }) => {
                                 <div className="legend-row" key={c.key}>
                                     <span className="legend-dot" style={{ background: COMPLAINT_COLORS[c.key] }} />
                                     <span className="legend-name">{c.name}</span>
-                                    <span className="legend-val">{c.value} ({Math.round((c.value / complaintsTotal) * 100)}%)</span>
+                                    <span className="legend-val">
+                                        {c.value} ({complaintsTotal ? Math.round((c.value / complaintsTotal) * 100) : 0}%)
+                                    </span>
                                 </div>
                             ))}
                         </div>
@@ -937,7 +943,7 @@ const Overview = ({ setActive }) => {
                                 ))}
                             </div>
                         </div>
-                        <button className="view-all-btn outline">View Attendance</button>
+                        <button className="view-all-btn outline"  onClick={() => setActive("staff")}>View Attendance</button>
                     </div>
                 </div>
             </div>

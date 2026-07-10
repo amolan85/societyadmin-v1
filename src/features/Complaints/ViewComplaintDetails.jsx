@@ -14,9 +14,9 @@ import { GetSessionData } from "../../utils/SessionManagement";
 import { getComplaintsApi, updateComplaintStatusApi, updateComplaintPriorityApi } from "../../services/ComplaintsApi";
 import { Badge } from "../../components/Common/ReusableFunction";
 
-const ViewComplaintDetails = ({ setActive, complaintId }) => {
+const ViewComplaintDetails = ({ setActive, complaintId, societyId }) => {
 
-    const [societyId, setSocietyId] = useState("");
+    // const [societyId, setSocietyId] = useState("");
     const [complaintDetails, setComplaintDetails] = useState({});
     const [loading, setLoading] = useState(true);
 
@@ -60,8 +60,7 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
 
     const getComplaintById = async () => {
         try {
-
-            const data = await getComplaintsApi(societyId);
+            const data = await getComplaintsApi({ societyId, pageSize: 10000 });
             const list = data?.list || [];
             const found = list.find(
                 (c) => String(c.complaint_id) === String(complaintId)
@@ -74,8 +73,6 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
         } catch (error) {
             console.log(error, "Error fetching complaint details");
             setComplaintDetails({});
-        } finally {
-
         }
     };
 
@@ -361,58 +358,58 @@ const ViewComplaintDetails = ({ setActive, complaintId }) => {
                     {/* ── RIGHT COLUMN ── */}
                     <div className="col-lg-4">
 
-                         {/* Quick Actions */}
-                    <div className="sv-card mb-3">
-                        <h6 className="bc-side-title text-start">Quick Actions</h6>
+                        {/* Quick Actions */}
+                        <div className="sv-card mb-3">
+                            <h6 className="bc-side-title text-start">Quick Actions</h6>
 
-                        {/* Go to Notice Board */}
-                        <button
-                            className="qa mb-2"
-                            onClick={() => setActive("noticeboard")}
-                        >
-                            <div
-                                className="qa-ico"
-                                style={{ background: "#ede9fe" }}
+                            {/* Go to Notice Board */}
+                            <button
+                                className="qa mb-2"
+                                onClick={() => setActive("noticeboard")}
                             >
-                                📋
-                            </div>
-                            <span className="bc-qa-text">
-                                Notice Board
-                            </span>
-                        </button>
+                                <div
+                                    className="qa-ico"
+                                    style={{ background: "#ede9fe" }}
+                                >
+                                    📋
+                                </div>
+                                <span className="bc-qa-text">
+                                    Notice Board
+                                </span>
+                            </button>
 
-                        {/* Go to Polls & Voting */}
-                        <button
-                            className="qa mb-2"
-                            onClick={() => setActive("polls")}
-                        >
-                            <div
-                                className="qa-ico"
-                                style={{ background: "#ffedd5" }}
+                            {/* Go to Polls & Voting */}
+                            <button
+                                className="qa mb-2"
+                                onClick={() => setActive("polls")}
                             >
-                                🗳️
-                            </div>
-                            <span className="bc-qa-text">
-                                Polls & Voting
-                            </span>
-                        </button>
-                         
-                        {/* Go Back */}
-                        <button
-                            className="qa"
-                            onClick={() => setActive("complaints")}
-                        >
-                            <div
-                                className="qa-ico"
-                                style={{ background: "#dbeafe" }}
+                                <div
+                                    className="qa-ico"
+                                    style={{ background: "#ffedd5" }}
+                                >
+                                    🗳️
+                                </div>
+                                <span className="bc-qa-text">
+                                    Polls & Voting
+                                </span>
+                            </button>
+
+                            {/* Go Back */}
+                            <button
+                                className="qa"
+                                onClick={() => setActive("complaints")}
                             >
-                                📡
-                            </div>
-                            <span className="bc-qa-text">
-                                Complaint List
-                            </span>
-                        </button>
-                    </div>
+                                <div
+                                    className="qa-ico"
+                                    style={{ background: "#dbeafe" }}
+                                >
+                                    📡
+                                </div>
+                                <span className="bc-qa-text">
+                                    Complaint List
+                                </span>
+                            </button>
+                        </div>
 
                         {/* Activity Log */}
                         <div className="card shadow-sm border mt-4 text-start">

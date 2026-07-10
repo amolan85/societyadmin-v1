@@ -63,6 +63,7 @@ const MemberDetails = ({
   const [parkingSlots, setParkingSlots] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [showMessage, setShowMessage] = useState(false);
+  const [familyMembers, setFamilyMembers] = useState([]);
 
   const addMemberType = [
     { id: "Owner", value: "owner" },
@@ -144,58 +145,63 @@ const MemberDetails = ({
       setPageLoading(true);
       const data = await getMembersByIdApi(societyId, memberId);
 
-      setFirstName(data.first_name || "");
-      setLastName(data.last_name || "");
-      setEmailId(data.email || "");
-      setMobileNo(data.mobile || "");
-      setProfileUrl(data.profile_url || "");
+      const profile = data.profile || {};
+      setFirstName(profile.first_name || "");
+      setLastName(profile.last_name || "");
+      setEmailId(profile.email || "");
+      setMobileNo(profile.mobile || "");
+      setProfileUrl(profile.profile_url || "");
 
       const flat = data.flats?.[0];
 
       if (flat) {
-
+        const flatDetails = flat.flat_details || {};
+        const occupancy = flat.occupancy || {};
+        const assets = flat.assets || {};
+        const relatedPeople = flat.related_people || {};
+        setFamilyMembers(relatedPeople.family_members || []);
         setBlocks({
-          value: flat.block,
-          label: flat.block,
+          value: flatDetails.block,
+          label: flatDetails.block,
         });
 
         setFlat({
-          value: flat.flat_id,
-          label: flat.flat_number,
+          value: flatDetails.flat_id,
+          label: flatDetails.flat_number,
         });
 
-        setFlatIdNo(flat.flat_id);
+        setFlatIdNo(flatDetails.flat_id);
 
-        setArea(flat.area_sqft);
+        setArea(flatDetails.area_sqft);
 
-        setUnitType(flat.unit_type);
+        setUnitType(flatDetails.unit_type);
 
-        setOccupancyType(flat.occupancy?.occupancy_type || "");
+        setOccupancyType(occupancy.occupancy_type || "");
 
-        setFamilyType(flat.occupancy?.occupancy_type || "");
+        setFamilyType(occupancy.occupancy_type || "");
 
         setMemType(
-          flat.occupancy?.occupancy_type === "owner_relative"
+          occupancy.occupancy_type === "owner_relative"
             ? "familyMember"
-            : flat.occupancy?.occupancy_type === "tenant_relative"
+            : occupancy.occupancy_type === "tenant_relative"
               ? "familyMember"
-              : flat.occupancy?.occupancy_type
+              : occupancy.occupancy_type
         );
 
-        setStatus(flat.occupancy?.occupant_status || "");
+        setStatus(occupancy.occupant_status || "");
 
-        setMoveInDate(flat.occupancy?.start_date || "");
+        setMoveInDate(occupancy.start_date || "");
 
-        setMoveOutDate(flat.occupancy?.end_date || "");
-        setVehicles(flat.vehicles || []);
-        setParkingSlots(flat.parking || []);
-        const vehicleEvents = (flat.vehicles || []).map((v) => ({
+        setMoveOutDate(occupancy.end_date || "");
+        setVehicles(assets.vehicles || []);
+        setParkingSlots(assets.parking || []);
+        const vehicleEvents = (assets.vehicles || []).map((v) => ({
           title: `${v.vehicle_model} (${v.vehicle_number}) Added`,
           date: v.registered_at,
           type: "vehicle",
         }));
 
-        const parkingEvents = (flat.parking || []).map((p) => ({
+        const parkingEvents = (assets.parking || []).map((p) => ({
           title: `Slot ${p.slot_number} Allocated`,
           date: p.allocated_at,
           type: "parking",
@@ -206,7 +212,7 @@ const MemberDetails = ({
           .sort((a, b) => new Date(b.date) - new Date(a.date));
 
         setRecentActivity(merged);
-        flat.documents?.forEach((doc) => {
+        (assets.documents || []).forEach((doc) => {
           switch (doc.document_type) {
 
             case "id_proof":
@@ -453,12 +459,12 @@ const MemberDetails = ({
                 History
               </button>
 
-              <button
+              {/* <button
                 className="btn btn-sm btn-ad grey-btn"
               >
                 <BiMessage className="me-1" size={16} />
-              Message
-              </button>
+                Message
+              </button> */}
               <button
                 className="btn btn-sm btn-ac btn-primary"
                 onClick={async () => {
@@ -604,38 +610,27 @@ const MemberDetails = ({
               </div>
 
               <div className="list-group list-group-flush">
-                <div className="list-group-item d-flex align-items-center gap-3">
-                  <img
-                    src="../src/assets/profile.png"
-                    className="rounded-circle"
-                    width="45"
-                    height="45"
-                    alt=""
-                  />
-
-                  <div>
-                    {/* <div className="fw-semibold">David Jenkins</div>
-                                        <small className="text-muted">Spouse</small> */}
-                    -
-                  </div>
-                </div>
-
-                <div className="list-group-item d-flex align-items-center gap-3">
-                  <img
-                    // src="https://i.pravatar.cc/50?img=18"
-                    src="../src/assets/profile.png"
-                    className="rounded-circle"
-                    width="45"
-                    height="45"
-                    alt=""
-                  />
-
-                  <div>
-                    {/* <div className="fw-semibold">Lily Jenkins</div>
-                                        <small className="text-muted">Daughter</small> */}
-                    -
-                  </div>
-                </div>
+                {familyMembers.length === 0 ? (
+                  <div className="list-group-item text-muted">No family members added</div>
+                ) : (
+                  familyMembers.map((fm) => (
+                    <div className="list-group-item d-flex align-items-center gap-3" key={fm.user_id}>
+                      <img
+                        src={fm.profile_url || "../src/assets/profile.png"}
+                        className="rounded-circle"
+                        width="45"
+                        height="45"
+                        alt=""
+                      />
+                      <div>
+                        <div className="fw-semibold">{fm.name}</div>
+                        <small className="text-muted text-capitalize">
+                          {fm.occupancy_type.replaceAll("_", " ")}
+                        </small>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 

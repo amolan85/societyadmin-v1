@@ -195,7 +195,7 @@ const TITLES = {
   parkingList: ["Operations", "Parking"],
   parkingDashboard: ["Operations", "Parking"],
   visitorParking: ["Operations", "Parking", "Visitor Parking"],
-  visitorDetailsPage: ["Administration", "Visitor Register", "Visitor Details"],
+  // visitorDetailsPage: ["Administration", "Visitor Register", "Visitor Details"],
   violationAlerts: ["Operations", "Parking", "Violation Alerts"],
   parkingRules: ["Operations", "Parking", "Parking Rules"],
   viewParkingDetails: ["Operations", "Parking", "Violation Details"],
@@ -278,7 +278,7 @@ export default function App() {
     rules: <Rules />,
     complaints: <Complaints setActive={setActive} setSelectedComplaintId={setSelectedComplaintId} />,  // ← UPDATED
     createComplaints: <CreateComplaints setActive={setActive} />,
-    viewComplaintDetails: <ViewComplaintDetails setActive={setActive} complaintId={selectedComplaintId} />,  // ← ADDED
+    viewComplaintDetails: <ViewComplaintDetails setActive={setActive} complaintId={selectedComplaintId} societyId={societyId} />,  // ← ADDED
     AssignStaffModal: <AssignStaffModal setActive={setActive} selectedStaffId={setSelectedStaffId} />,
     parkingList: <ParkingList setActive={setActive} />,
     parkingDashboard: <ParkingDashboard setActive={setActive} setViolationId={setViolationId} setVisitorParkingId={setVisitorParkingId} setVehicleId={setVehicleId} />,
@@ -295,7 +295,7 @@ export default function App() {
     createNoticeBoard: <CreateNoticeBoard setActive={setActive} selectedNoticeData={selectedNoticeData} />,
     unitRegister: <UnitRegister setActive={setActive} setFlatId={setFlatId} />,
     parkingRegister: <ParkingRegister setActive={setActive} setSelectedSlotId={setSelectedSlotId} setSelectedSocietyId={setSelectedSocietyId} />,
-    parkingDetails: <ParkingDetails setActive={setActive} slotId={selectedSlotId} societyId={selectedSocietyId} setSelectedSlotData={setSelectedSlotData} setVisitorParkingId={setVisitorParkingId} setFlatId={setFlatId} />,
+    parkingDetails: <ParkingDetails setActive={setActive} slotId={selectedSlotId} societyId={selectedSocietyId} setSelectedSlotData={setSelectedSlotData} setVisitorParkingId={setVisitorParkingId} setFlatId={setFlatId} setVehicleId={setVehicleId} setVisitorId={setVisitorId} setMemberId={setMemberId} />,
     parkingHistory: <ParkingHistory setActive={setActive} slotId={selectedSlotId} slotData={selectedSlotData} />,
     visitorRegister: <VisitorRegister setActive={setActive} setVisitorId={setVisitorId} />,
     visitorDetailsPage: <GetVisitorDetails setActive={setActive} visitorId={visitorId} />,
