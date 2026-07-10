@@ -351,8 +351,8 @@ const ParkingDashboard = ({ setActive, setViolationId, setVisitorParkingId, setV
         parkingDashboard(flats.society_id);
         visitorParking(flats.society_id);
         violationAlerts(flats.society_id);
-        getParkingSlots(flats.society_id);
-        getVisitors(flats.society_id);
+        // getParkingSlots(flats.society_id);
+        // getVisitors(flats.society_id);
         getVehicles(flats.society_id);
     };
 
