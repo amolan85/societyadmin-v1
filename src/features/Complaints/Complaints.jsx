@@ -9,6 +9,7 @@ import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import { CgExport } from "react-icons/cg";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { toast } from "react-toastify";
 import {
   FiTag,
   FiMapPin,
@@ -17,15 +18,16 @@ import {
   FiAlertCircle,
   FiSearch,
 } from "react-icons/fi";
-import AssignStaffModal from "./AssignStaffModal";   // ← ADDED
+import AssignStaffModal from "./AssignStaffModal";
 
 const Complaints = ({ setActive, setSelectedComplaintId }) => {
 
   const [tab, setTab] = useState("")
   const [societyId, setSocietyId] = useState("")
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [allComplaints, setAllComplaints] = useState([])
@@ -42,14 +44,11 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
   const [complaintId, setComplaintId] = useState("")
   const [show, setShow] = useState(false)
   const [activeTab, setActiveTab] = useState("excel");
-  const [allExportcomplaints, setAllExportcomplaints] = useState([]);
-  const [selectedRange, setSelectedRange] = useState("all");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteComplaintId, setDeleteComplaintId] = useState(null);
 
-  // ── Assign Staff Modal ────────────────────────────────
-  const [showAssignModal, setShowAssignModal] = useState(false);   // ← ADDED
-  const [assignComplaintId, setAssignComplaintId] = useState(null); // ← ADDED
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignComplaintId, setAssignComplaintId] = useState(null);
 
   const tabs = [
     { id: "All Items", value: "" },
@@ -60,41 +59,76 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
   ];
 
   useEffect(() => {
-    SessionData()
-  }, [])
+  SessionData()
+}, [])
 
-  const SessionData = async () => {
-    const data = await GetSessionData()
-    const flats = data.data.flats[0]
-    setSocietyId(flats.society_id)
-    getComplaints(flats.society_id)
-  }
 
-  const getComplaints = async (societyId) => {
-    try {
-      const data = await getComplaintsApi(societyId)
-      setAllComplaints(data.list)
-      setTotalOpen(data.status_counts.open)
-      setTotalProgress(data.status_counts.in_progress)
-      setTotalResolved(data.status_counts.resolved)
-      setAvgResolution(data.avg_resolution_hours)
-    } catch (error) {
-      console.error("Error fetching complaints:", error)
-    }
+ const SessionData = async () => {
+  const data = await GetSessionData()
+  const flats = data.data.flats[0]
+  setSocietyId(flats.society_id)
+  // ── don't call getComplaints here — the effect below picks it up
+  // as soon as societyId is set, avoiding a duplicate call ──
+}
+
+// Single source of truth for fetching — fires on mount (once societyId
+// is set) and on every filter/page change after that
+useEffect(() => {
+  if (!societyId) return;
+
+  getComplaints({
+    sid: societyId,
+    pg: page,
+    status: tab,
+    searchText: search,
+    fromDate: startDate,
+    toDate: endDate
+  });
+}, [societyId, tab, page, startDate, endDate, search]);
+
+const getComplaints = async ({ sid, pg, status, searchText, fromDate, toDate }) => {
+  try {
+    const data = await getComplaintsApi({
+      societyId: sid,
+      status: status,
+      search: searchText,
+      dateFrom: fromDate,
+      dateTo: toDate,
+      page: pg,
+      pageSize: 5
+    })
+
+    const list = data?.list || [];
+    const pagination = data?.pagination || {};
+    const analytics = data?.analytics || {};
+    const statusCounts = analytics?.status_counts || {};
+
+    setAllComplaints(list)
+    setTotalOpen(statusCounts.open || 0)
+    setTotalProgress(statusCounts.in_progress || 0)
+    setTotalResolved(statusCounts.resolved || 0)
+    setAvgResolution(analytics?.avg_resolution_hours || 0)
+
+    setTotalCount(pagination.total || 0)
+    setTotalPages(pagination.total_pages || 1)
+    setPage(pagination.page || pg)
+
+  } catch (error) {
+    console.error("Error fetching complaints:", error)
   }
+}
 
   const confirmDelete = async () => {
     try {
       await deleteComplaintApi(deleteComplaintId, societyId);
       toast.success("Complaint deleted successfully");
       setShowDeleteModal(false);
-      getComplaints(societyId);
+      getComplaints({ sid: societyId, pg: page, status: tab, searchText: search, fromDate: startDate, toDate: endDate });
     } catch (error) {
       console.log(error);
       toast.error("Failed to delete complaint");
     }
   };
-
 
   const modalConfig = {
     priority: {
@@ -133,29 +167,39 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
   const UpdateData = async () => {
     if (modalType === "priority") {
       await updateComplaintPriorityApi(complaintId, priority, comments)
-      getComplaints(societyId)
     }
     if (modalType === "status") {
       await updateComplaintStatusApi(complaintId, status, comments)
-      getComplaints(societyId)
     }
+    getComplaints({ sid: societyId, pg: page, status: tab, searchText: search, fromDate: startDate, toDate: endDate });
   }
 
-  const getAllExportcomplaints = async (sid) => {
+  // Export still needs the full unfiltered/filtered list — fetch a large page separately
+  const getAllExportComplaints = async () => {
     try {
-      const data = await getComplaintsApi(sid);
-      setAllExportcomplaints(data.list || []);
+      const data = await getComplaintsApi({
+        societyId,
+        status: tab,
+        search: search,
+        dateFrom: startDate,
+        dateTo: endDate,
+        page: 1,
+        pageSize: 10000
+      });
+      return data?.list || [];
     } catch (error) {
       console.error("Error fetching export complaints:", error);
+      return [];
     }
   };
 
   const downloadExcel = async () => {
+    const exportData = await getAllExportComplaints();
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Complaints");
-    if (allComplaints.length > 0) {
-      worksheet.columns = Object.keys(allComplaints[0]).map((key) => ({ header: key, key, width: 20 }));
-      allComplaints.forEach((item) => worksheet.addRow(item));
+    if (exportData.length > 0) {
+      worksheet.columns = Object.keys(exportData[0]).map((key) => ({ header: key, key, width: 20 }));
+      exportData.forEach((item) => worksheet.addRow(item));
     }
     worksheet.getRow(1).font = { bold: true };
     const buffer = await workbook.xlsx.writeBuffer();
@@ -163,31 +207,33 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
   };
 
   const downloadCSV = async () => {
+    const exportData = await getAllExportComplaints();
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Complaints");
-    if (allComplaints.length > 0) {
-      worksheet.columns = Object.keys(allComplaints[0]).map((key) => ({ header: key, key, width: 20 }));
-      allComplaints.forEach((item) => worksheet.addRow(item));
+    if (exportData.length > 0) {
+      worksheet.columns = Object.keys(exportData[0]).map((key) => ({ header: key, key, width: 20 }));
+      exportData.forEach((item) => worksheet.addRow(item));
     }
     worksheet.getRow(1).font = { bold: true };
     const csvBuffer = await workbook.csv.writeBuffer();
     saveAs(new Blob([csvBuffer], { type: "text/csv;charset=utf-8;" }), "Complaints.csv");
   };
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
+    const exportData = await getAllExportComplaints();
     const doc = new jsPDF("landscape");
     doc.setFontSize(18);
     doc.text("Complaints Report", 14, 15);
     const tableColumn = ["ID", "Title", "Description", "Unit", "Category", "Priority", "Status", "Time"];
-    const tableRows = allComplaints.map((item) => [item.complaint_id, item.title, item.description, item.unit, item.category_name, item.priority, item.status, item.created_at]);
+    const tableRows = exportData.map((item) => [item.complaint_id, item.title, item.description, item.unit, item.category_name, item.priority, item.status, item.created_at]);
     autoTable(doc, { head: [tableColumn], body: tableRows, startY: 25, styles: { fontSize: 8, cellPadding: 3 }, headStyles: { fillColor: [13, 110, 253] }, theme: "grid" });
     doc.save("ComplaintsData.pdf");
   };
 
   const handleExport = () => {
-    if (activeTab === "excel") { downloadExcel(); setShowModal(false) }
-    else if (activeTab === "csv") { downloadCSV(); setShowModal(false) }
-    else if (activeTab === "pdf") { downloadPDF(); setShowModal(false) }
+    if (activeTab === "excel") { downloadExcel(); setShow(false) }
+    else if (activeTab === "csv") { downloadCSV(); setShow(false) }
+    else if (activeTab === "pdf") { downloadPDF(); setShow(false) }
   };
 
   const timeAgo = (utcDate) => {
@@ -203,22 +249,16 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
     return "Just now";
   };
 
-  const filteredData = allComplaints.filter((item) => {
-    const matchesTab = tab === "" || item.status === tab;
-    const matchesStatus = filterStatus === "" || item.status?.toLowerCase() === filterStatus.toLowerCase();
-    const matchesSearch = !search || item.title?.toLowerCase().includes(search.toLowerCase()) || item.description?.toLowerCase().includes(search.toLowerCase()) || item.unit?.toLowerCase().includes(search.toLowerCase());
-    const complaintDate = item.created_at ? new Date(item.created_at) : null;
-    const matchesStartDate = !startDate || (complaintDate && complaintDate >= new Date(startDate));
-    const matchesEndDate = !endDate || (complaintDate && complaintDate <= new Date(endDate + "T23:59:59"));
-    return matchesTab && matchesStatus && matchesSearch && matchesStartDate && matchesEndDate;
-  });
+  // No more client-side filtering — allComplaints is already the current page from the server
+  const rows = allComplaints;
 
-  const per = 5;
-  const total = Math.ceil(filteredData.length / per);
-  const rows = filteredData.slice((page - 1) * per, page * per);
+  const handleTabChange = (value) => {
+    setTab(value);
+    setPage(1);
+  };
 
-  const handleStatusChange = (value) => {
-    setFilterStatus(value);
+  const handleSearchChange = (value) => {
+    setSearch(value);
     setPage(1);
   };
 
@@ -226,7 +266,6 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
     <>
       <div className="pg cp-wrap">
 
-        {/* Header — icon + title/subtitle, matches VisitorRegister */}
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex align-items-center gap-3">
             <div className="bc-header-icon">
@@ -273,7 +312,7 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
               {tabs.map((t) => (
                 <button
                   key={t.id}
-                  onClick={() => { setTab(t.value); setPage(1) }}
+                  onClick={() => handleTabChange(t.value)}
                   className={`NoticeBoardTabs-btn ${tab === t.value ? "active" : ""}`}
                 >
                   {t.id}
@@ -284,84 +323,47 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
         </div>
 
         {/* Toolbar */}
-<div className="visitor-toolbar mb-4 mt-3">
-  <div className="row align-items-center g-2">
+        <div className="visitor-toolbar mb-4 mt-3">
+          <div className="row align-items-center g-2">
 
-    {/* Start Date */}
-    <div className="col-md-2">
-      <input
-        type="date"
-        className="form-control"
-        value={startDate}
-        onChange={(e) => {
-          setStartDate(e.target.value);
-          setPage(1);
-        }}
-      />
-    </div>
+            <div className="col-md-2">
+              <input
+                type="date"
+                className="form-control"
+                value={startDate}
+                onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
+              />
+            </div>
 
-    {/* End Date */}
-    <div className="col-md-2">
-      <input
-        type="date"
-        className="form-control"
-        value={endDate}
-        onChange={(e) => {
-          setEndDate(e.target.value);
-          setPage(1);
-        }}
-      />
-    </div>
+            <div className="col-md-2">
+              <input
+                type="date"
+                className="form-control"
+                value={endDate}
+                onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
+              />
+            </div>
 
-    {/* Status Filter */}
-    {/* <div className="col-md-2">
-      <select
-        className="form-select"
-        value={filterStatus}
-        onChange={(e) => handleStatusChange(e.target.value)}
-      >
-        <option value="">All Status</option>
-        <option value="open">Open</option>
-        <option value="in_progress">In Progress</option>
-        <option value="resolved">Resolved</option>
-        <option value="closed">Closed</option>
-        <option value="rejected">Rejected</option>
-      </select>
-    </div> */}
+            <div className="col-md-8">
+              <div className="d-flex justify-content-end">
+                <div className="position-relative" style={{ width: "320px" }}>
+                  <FiSearch
+                    className="position-absolute"
+                    style={{ left: "12px", top: "50%", transform: "translateY(-50%)", color: "#6c757d" }}
+                  />
+                  <input
+                    type="text"
+                    className="form-control ps-5"
+                    placeholder="Search by title, unit..."
+                    value={search}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
 
-    {/* Search - Right Corner */}
-    <div className="col-md-8">
-      <div className="d-flex justify-content-end">
-        <div
-          className="position-relative"
-          style={{ width: "320px" }}
-        >
-          <FiSearch
-            className="position-absolute"
-            style={{
-              left: "12px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "#6c757d",
-            }}
-          />
-
-          <input
-            type="text"
-            className="form-control ps-5"
-            placeholder="Search by title, unit..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-          />
+          </div>
         </div>
-      </div>
-    </div>
-
-  </div>
-</div>
 
         {/* Table view for resolved/closed */}
         {(tab !== "" && tab !== "open" && tab !== "in_progress") &&
@@ -393,106 +395,108 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
                 </tbody>
               </table>
             </div>
-            <Pagination page={page} total={total} onChange={(p) => setPage(p)} />
+            <Pagination page={page} total={totalPages} onChange={(p) => setPage(p)} />
           </div>
         }
 
-        {/* Card view for all/open/in_progress — compact, Broadcast-style row */}
+        {/* Card view for all/open/in_progress */}
         {(tab === "" || tab === "open" || tab === "in_progress") &&
-          rows.map((data) => (
-            <div
-              key={data.complaint_id}
-              className="card border-0 shadow-sm rounded-3"
-              style={{ padding: "10px 14px", marginTop: 8 }}
-            >
-              <div className="d-flex justify-content-between align-items-start gap-2">
+          <>
+            {rows.map((data) => (
+              <div
+                key={data.complaint_id}
+                className="card border-0 shadow-sm rounded-3"
+                style={{ padding: "10px 14px", marginTop: 8 }}
+              >
+                <div className="d-flex justify-content-between align-items-start gap-2">
 
-                {/* LEFT: id + title + meta, all compact */}
-                <div className="text-start flex-grow-2 min-w-0">
-                  <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                    <span style={{ fontSize: 16, fontWeight: 600 }}>{data.title}</span>
+                  <div className="text-start flex-grow-2 min-w-0">
+                    <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                      <span style={{ fontSize: 16, fontWeight: 600 }}>{data.title}</span>
+                    </div>
+
+                    <div className="d-flex flex-wrap align-items-center gap-3 text-secondary" style={{ fontSize: 13 }}>
+                      <div className="d-flex align-items-center gap-1"><FiTag size={12} /><span>{data.category_name}</span></div>
+                      <div className="d-flex align-items-center gap-1"><FiMapPin size={12} /><span>{data.unit}</span></div>
+                      <div className="d-flex align-items-center gap-1"><FiUser size={12} /><span>Rahul Sharma (A-401)</span></div>
+                      <div className="d-flex align-items-center gap-1"><FiClock size={12} /><span>{timeAgo(data.created_at)}</span></div>
+                      <div className="d-flex align-items-center gap-1 text-danger"><FiAlertCircle size={12} /><span>{data.priority}</span></div>
+                    </div>
                   </div>
 
-                  <div className="d-flex flex-wrap align-items-center gap-3 text-secondary" style={{ fontSize: 13 }}>
-                    <div className="d-flex align-items-center gap-1"><FiTag size={12} /><span>{data.category_name}</span></div>
-                    <div className="d-flex align-items-center gap-1"><FiMapPin size={12} /><span>{data.unit}</span></div>
-                    <div className="d-flex align-items-center gap-1"><FiUser size={12} /><span>Rahul Sharma (A-401)</span></div>
-                    <div className="d-flex align-items-center gap-1"><FiClock size={12} /><span>{timeAgo(data.created_at)}</span></div>
-                    <div className="d-flex align-items-center gap-1 text-danger"><FiAlertCircle size={12} /><span>{data.priority}</span></div>
-                  </div>
-                </div>
+                  <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                    <Badge
+                      label={data.status}
+                      c={data.status === "open" ? "red" : data.status === "resolved" ? "green" : data.status === "in_progress" ? "orange" : "grey"}
+                    />
 
-                {/* RIGHT: status badge + 3-dot menu */}
-                <div className="d-flex align-items-center gap-2 flex-shrink-0">
-                  <Badge
-                    label={data.status}
-                    c={data.status === "open" ? "red" : data.status === "resolved" ? "green" : data.status === "in_progress" ? "orange" : "grey"}
-                  />
-
-                  <div
-                    className="member-action-dropdown dropdown flex-shrink-0"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      className="member-action-btn"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
+                    <div
+                      className="member-action-dropdown dropdown flex-shrink-0"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      ⋮
-                    </button>
-                    <ul className="dropdown-menu member-action-menu dropdown-menu-end">
-                      <li>
-                        <button
-                          className="dropdown-item member-action-item"
-                          onClick={() => {
-                            setSelectedComplaintId(data.complaint_id);
-                            setActive("viewComplaintDetails");
-                          }}
-                        >
-                          View Details
-                        </button>
-                      </li>
-                      <li>
-                        <button
-                          className="dropdown-item member-action-item"
-                          onClick={() => {
-                            setAssignComplaintId(data.complaint_id);
-                            setShowAssignModal(true);
-                          }}
-                        >
-                          Assign Staff
-                        </button>
-                      </li>
-                      <li><hr className="dropdown-divider" /></li>
-                      <li>
-                        <button
-                          className="dropdown-item member-action-item member-action-delete"
-                          onClick={() => {
-                            setDeleteComplaintId(data.complaint_id);
-                            setShowDeleteModal(true);
-                          }}
-                        >
-                          Delete Complaint
-                        </button>
-                      </li>
-                    </ul>
+                      <button
+                        className="member-action-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        ⋮
+                      </button>
+                      <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                        <li>
+                          <button
+                            className="dropdown-item member-action-item"
+                            onClick={() => {
+                              setSelectedComplaintId(data.complaint_id);
+                              setActive("viewComplaintDetails");
+                            }}
+                          >
+                            View Details
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className="dropdown-item member-action-item"
+                            onClick={() => {
+                              setAssignComplaintId(data.complaint_id);
+                              setShowAssignModal(true);
+                            }}
+                          >
+                            Assign Staff
+                          </button>
+                        </li>
+                        <li><hr className="dropdown-divider" /></li>
+                        <li>
+                          <button
+                            className="dropdown-item member-action-item member-action-delete"
+                            onClick={() => {
+                              setDeleteComplaintId(data.complaint_id);
+                              setShowDeleteModal(true);
+                            }}
+                          >
+                            Delete Complaint
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
-                </div>
 
+                </div>
               </div>
+            ))}
+            <div className="sv-card p-0 mt-2">
+              <Pagination page={page} total={totalPages} onChange={(p) => setPage(p)} />
             </div>
-          ))
+          </>
         }
 
       </div>
 
-      {/* ── ASSIGN STAFF MODAL ── */}
       <AssignStaffModal
         show={showAssignModal}
         setShow={setShowAssignModal}
         complaintId={assignComplaintId}
-        onAssigned={() => getComplaints(societyId)}
+        onAssigned={() => getComplaints({ sid: societyId, pg: page, status: tab, searchText: search, fromDate: startDate, toDate: endDate })}
       />
 
       {/* Status/Priority Modal */}
@@ -580,16 +584,9 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
                   <div className="range-card active-range d-flex justify-content-between align-items-center mb-3">
                     <div className="d-flex align-items-center gap-3">
                       <input className="form-check-input" type="radio" defaultChecked />
-                      <h6 className='fw-bold mt-1'>All Data</h6>
+                      <h6 className='fw-bold mt-1'>All Data (current filters)</h6>
                     </div>
-                    <span className="text-muted mt-1"><h6>{allComplaints.length} records</h6></span>
-                  </div>
-                  <div className="range-card d-flex justify-content-between align-items-center mb-3">
-                    <div className="d-flex align-items-center gap-3">
-                      <input className="form-check-input" type="radio" />
-                      <h6 className="fw-bold mt-1">Current Search results</h6>
-                    </div>
-                    <h6 className="text-muted mt-1">{filteredData.length} records</h6>
+                    <span className="text-muted mt-1"><h6>{totalCount} records</h6></span>
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -601,7 +598,7 @@ const Complaints = ({ setActive, setSelectedComplaintId }) => {
               </div>
             </div>
           </div>
-          {/* ── DELETE CONFIRM MODAL ── */}
+
           <div
             className={`modal fade ${showDeleteModal ? "show d-block" : ""}`}
             tabIndex="-1"

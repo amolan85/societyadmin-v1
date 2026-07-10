@@ -4,10 +4,33 @@ import UrlData from "../utils/Url";
 
 
 //api function for get complaints
-export const getComplaintsApi = async (societyId) => {
+// api function for get complaints
+export const getComplaintsApi = async ({
+    societyId,
+    status = "",
+    priority = "",
+    categoryId = null,
+    flatId = null,
+    assignedTo = null,
+    search = "",
+    dateFrom = "",
+    dateTo = "",
+    page = 1,
+    pageSize = 10
+}) => {
     const url = UrlData + 'complaint/GetAllComplaints';
     const data = {
         society_id: societyId,
+        status: status,
+        priority: priority,
+        category_id: categoryId,
+        flat_id: flatId,
+        assigned_to: assignedTo,
+        search: search,
+        date_from: dateFrom,
+        date_to: dateTo,
+        page: page,
+        page_size: pageSize
     }
     return await apiClient({
         method: 'post',
