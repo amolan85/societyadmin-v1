@@ -789,158 +789,165 @@ const confirmDelete = async () => {
         </div>
         
 
-        <div className="sv-card p-0 overflow-hidden">
-          <div className="sa-table-wrap">
-            <table className="sv-tbl">
-              <thead>
-                <tr>
-                  {
-                    [
-                      "MEMBER NAME",
-                      "UNIT NO.",
-                      "ROLE",
-                      "CONTACT INFO",
-                      "STATUS",
-                      "ACTIONS",
-                    ].map((h) => (
-                      <th key={h}>{h}</th>
-                    ))
-                  }
-                </tr>
-              </thead>
-              <tbody>
-                {tableLoading ? (
-                  [...Array(5)].map((_, i) => (
-                    <tr key={i}>
-                      <td>
-                        <div className="d-flex align-items-center gap-2">
-                          <div className="skeleton-box rounded-circle" style={{ width: 38, height: 38, flexShrink: 0 }} />
-                          <div>
-                            <div className="skeleton-box mb-1" style={{ width: 120, height: 13 }} />
-                            <div className="skeleton-box" style={{ width: 80, height: 11 }} />
-                          </div>
-                        </div>
-                      </td>
-                      <td><div className="skeleton-box" style={{ width: 50, height: 13 }} /></td>
-                      <td><div className="skeleton-box" style={{ width: 65, height: 22, borderRadius: 12 }} /></td>
-                      <td><div className="skeleton-box" style={{ width: 100, height: 13 }} /></td>
-                      <td><div className="skeleton-box" style={{ width: 65, height: 22, borderRadius: 12 }} /></td>
-                      <td><div className="skeleton-box" style={{ width: 28, height: 28, borderRadius: 6 }} /></td>
-                    </tr>
-                  ))
-                ) : (
-                  allMembers.map((s, i) => (
-                    <tr className="text-start" key={i}>
-                      <td>
-                        <div className="d-flex align-items-center gap-2">
-                          <img
-                            src={s.profile_url || "../src/assets/profile.png"}
-                            alt="Profile"
+        <>
+    {allMembers.map((member) => (
+        <div
+            key={member.user_id}
+            className="card border-0 shadow-sm rounded-3"
+            style={{
+                padding: "8px 10px",
+                marginTop: "6px"
+            }}
+        >
+            <div className="d-flex justify-content-between align-items-start">
+
+                {/* Left Side */}
+
+                <div className="text-start flex-grow-1">
+
+                    <div className="d-flex align-items-center gap-3">
+
+                        <img
+                            src={member.profile_url || "../src/assets/profile.png"}
+                            alt=""
                             width={38}
                             height={38}
                             className="rounded-circle object-fit-cover"
-                          />
-                          <div>
-                            <div className="fw-semibold">
-                              {s.first_name} {s.last_name}
-                            </div>
-                            <small className="text-muted">{s.email}</small>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="sa-name">{s.flat_number}</td>
-                      <td>
-                        {s.occupancy_type && (
-                          <Badge
-                            label={
-                              s.occupancy_type === "tenant_relative"
-                                ? "Tenant Family"
-                                : s.occupancy_type === "owner_relative"
-                                  ? "Owner Family"
-                                  : s.occupancy_type
-                                    .replaceAll("_", " ")
-                                    .replace(/\b\w/g, (char) => char.toUpperCase())
-                            }
-                            c={
-                              s.occupancy_type === "owner"
-                                ? "blue"
-                                : s.occupancy_type === "tenant"
-                                  ? "pink"
-                                  : s.occupancy_type === "tenant_relative"
-                                    ? "lightpink"
-                                    : s.occupancy_type === "owner_relative"
-                                      ? "lightblue"
-                                      : "grey"
-                            }
-                          />
-                        )}
-                      </td>
-                      <td className="sa-name">{s.mobile}</td>
-                      <td>
-                        <Badge
-                          label={s.occupant_status === "Approved" ? "Active" : s.occupant_status}
-                          c={
-                            s.occupant_status === "Approved"
-                              ? "green"
-                              : s.occupant_status === "Pending"
-                                ? "yellow"
-                                : "gray"
-                          }
                         />
-                      </td>
-                      <td>
-                        <div className="member-action-dropdown dropdown">
-                          <button
-                            className="member-action-btn"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                          >
-                            ⋮
-                          </button>
-                          <ul className="dropdown-menu member-action-menu dropdown-menu-end">
-                            <li>
-                              <button
-                                className="dropdown-item member-action-item"
-                                onClick={() => getMembersById(s.user_id, s.flat_id)}
-                              >
-                                View Profile
-                              </button>
-                            </li>
-                            <li>
-                              <button
-                                className="dropdown-item member-action-item"
-                                onClick={() => {
-                                  setMode("edit");
-                                  setShow(true);
-                                  GetMemberDetailsById(s.user_id);
-                                }}
-                              >
-                                Edit Member
-                              </button>
-                            </li>
-                            <li><hr className="dropdown-divider" /></li>
-                            <li>
-                              <button
-                                className="dropdown-item member-action-item member-action-delete"
-                                onClick={() => handleDelete(s.user_id)}
-                              >
-                                Delete Member
-                              </button>
-                            </li>
-                          </ul>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
 
-          {/* Pagination */}
-          <Pagination page={page} total={total} onChange={handlePageChange} />
+                        <div>
+
+                            <h6 className="mb-1 fw-medium" style={{fontSize: "16px",lineHeight: "20px",marginBottom: "2px",}}>
+                               {member.first_name} {member.last_name}
+                            </h6>
+
+                            <div className="d-flex flex-wrap gap-3 text-secondary small"  style={{fontSize: "14px",lineHeight: "18px",}}>
+
+                                <span>
+                                      {member.email}
+                                </span>
+
+                                <span>
+                                      {member.mobile}
+                                </span>
+
+                                <span>
+                                      {member.flat_number}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {/* Right Side */}
+
+                <div className="d-flex align-items-center gap-2">
+
+                    <Badge
+                        label={
+                            member.occupancy_type === "tenant_relative"
+                                ? "Tenant Family"
+                                : member.occupancy_type === "owner_relative"
+                                    ? "Owner Family"
+                                    : member.occupancy_type
+                        }
+                        c={
+                            member.occupancy_type === "owner"
+                                ? "blue"
+                                : member.occupancy_type === "tenant"
+                                    ? "pink"
+                                    : "gray"
+                        }
+                    />
+
+                    <Badge
+                        label={
+                            member.occupant_status === "Approved"
+                                ? "Active"
+                                : member.occupant_status
+                        }
+                        c={
+                            member.occupant_status === "Approved"
+                                ? "green"
+                                : "yellow"
+                        }
+                    />
+
+                    <div className="dropdown">
+
+                        <button
+                            className="member-action-btn"
+                            data-bs-toggle="dropdown"
+                        >
+                            ⋮
+                        </button>
+
+                        <ul className="dropdown-menu dropdown-menu-end">
+
+                            <li>
+                                <button
+                                    className="dropdown-item"
+                                    onClick={() =>
+                                        getMembersById(
+                                            member.user_id,
+                                            member.flat_id
+                                        )
+                                    }
+                                >
+                                    View Profile
+                                </button>
+                            </li>
+
+                            <li>
+                                <button
+                                    className="dropdown-item"
+                                    onClick={() => {
+                                        setMode("edit");
+                                        setShow(true);
+                                        GetMemberDetailsById(member.user_id);
+                                    }}
+                                >
+                                    Edit Member
+                                </button>
+                            </li>
+
+                            <li>
+                                <hr className="dropdown-divider" />
+                            </li>
+
+                            <li>
+                                <button
+                                    className="dropdown-item text-danger"
+                                    onClick={() =>
+                                        handleDelete(member.user_id)
+                                    }
+                                >
+                                    Delete Member
+                                </button>
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+                </div>
+
+            </div>
         </div>
+    ))}
+
+    <div className="sv-card p-0 mt-2">
+        <Pagination
+            page={page}
+            total={total}
+            onChange={handlePageChange}
+        />
+    </div>
+</>
       </div>
 
       {/* member modal */}

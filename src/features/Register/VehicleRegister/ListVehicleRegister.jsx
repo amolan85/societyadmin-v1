@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { GetSessionData } from "../../../utils/SessionManagement";
 import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
-import { FiSearch} from 'react-icons/fi';
+import { FiSearch, FiMapPin, FiTruck, FiTag, FiHash, FiPhone, FiMail } from 'react-icons/fi';
 import { FaCar } from 'react-icons/fa';
 import { toast } from "react-toastify";
 import {
@@ -453,110 +453,112 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                     </div>
                 </div>
 
-                {/* Table */}
-                <div className="sv-card p-0">
-                    <div className="sa-table-wrap">
-                        <table className="sv-tbl">
-                            <thead>
-                                <tr>
-                                    {["OWNER", "VEHICLE NUMBER", "UNIT", "TYPE", "MODEL", "COLOR", "STICKER ID", "ACTIONS"].map(h => (
-                                        <th key={h}>{h}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading ? (
-                                    <tr><td colSpan={8} className="text-center py-4 text-muted">Loading...</td></tr>
-                                ) : filteredVehicles.length === 0 ? (
-                                    <tr><td colSpan={8} className="text-center py-4 text-muted">No vehicles found</td></tr>
-                                ) : filteredVehicles.map((v, i) => (
-                                    <tr className="text-start" key={i}>
-                                        <td>
-                                            <div className="d-flex align-items-center gap-2">
-                                                <img
-                                                    src={
-                                                        v.owner_profile_url?.startsWith("http")
-                                                            ? v.owner_profile_url
-                                                            : "../src/assets/profile.png"
-                                                    }
-                                                    alt="Profile"
-                                                    width={38}
-                                                    height={38}
-                                                    className="rounded-circle object-fit-cover"
-                                                    onError={(e) => { e.target.src = "../src/assets/profile.png"; }}
-                                                />
-                                                <div>
-                                                    <div className="fw-semibold">{v.owner_name || "—"}</div>
-                                                    {v.owner_email && (
-                                                        <div className="text-muted" style={{ fontSize: 12 }}>{v.owner_email}</div>
-                                                    )}
-                                                    {v.owner_mobile && (
-                                                        <div className="text-muted" style={{ fontSize: 12 }}>{v.owner_mobile}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div className="fw-semibold">{v.vehicle_number}</div>
-                                        </td>
-                                        <td>{v.flat_number || "—"}</td>
-                                        <td>
+                {/* Cards — Complaints-style row format */}
+                {loading ? (
+                    <div className="sv-card text-center py-5 text-muted">Loading...</div>
+                ) : filteredVehicles.length === 0 ? (
+                    <div className="sv-card text-center py-5 text-muted">No vehicles found</div>
+                ) : (
+                    filteredVehicles.map((v, i) => (
+                        <div
+                            key={v.vehicle_id || i}
+                            className="card border-0 shadow-sm rounded-3"
+                            style={{ padding: "10px 14px", marginTop: 8 }}
+                        >
+                            <div className="d-flex justify-content-between align-items-start gap-2">
+
+                                <div className="d-flex gap-2 flex-grow-2 min-w-0">
+                                    <img
+                                        src={
+                                            v.owner_profile_url?.startsWith("http")
+                                                ? v.owner_profile_url
+                                                : "../src/assets/profile.png"
+                                        }
+                                        alt="Profile"
+                                        width={38}
+                                        height={38}
+                                        className="rounded-circle object-fit-cover flex-shrink-0"
+                                        onError={(e) => { e.target.src = "../src/assets/profile.png"; }}
+                                    />
+
+                                    <div className="text-start min-w-0">
+                                        <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                            <span style={{ fontSize: 16, fontWeight: 600 }}>{v.owner_name || "—"}</span>
                                             <Badge
                                                 label={vehicleTypeLabel(v.vehicle_type)}
                                                 c={vehicleTypeBadgeColor(v.vehicle_type)}
                                             />
-                                        </td>
-                                        <td>{v.vehicle_model || <span className="text-muted">—</span>}</td>
-                                        <td>{v.color || <span className="text-muted">—</span>}</td>
-                                        <td>{v.sticker_id || <span className="text-muted">—</span>}</td>
-                                        <td>
-                                            <div className="member-action-dropdown dropdown">
-                                                <button className="member-action-btn" type="button" data-bs-toggle="dropdown">⋮</button>
-                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            onClick={() => {
-                                                                setVehicleId(v.vehicle_id);
-                                                                setActive("vehicleDetailsPage");
-                                                            }}
-                                                        >
-                                                            View Details
-                                                        </button>
-                                                    </li>
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            onClick={() => handleEditOpen(v.vehicle_id)}
-                                                        >
-                                                            Edit Vehicle
-                                                        </button>
-                                                    </li>
-                                                    {/* ── Allocate Parking option ── */}
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            onClick={() => handleAllocateParking(v)}
-                                                        >
-                                                            Allocate Parking
-                                                        </button>
-                                                    </li>
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item text-danger"
-                                                            onClick={() => handleDelete(v.vehicle_id, v.vehicle_number)}
-                                                        >
-                                                            Delete Vehicle
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                        </div>
+
+                                        <div className="d-flex flex-wrap align-items-center gap-3 text-secondary" style={{ fontSize: 13 }}>
+                                            <div className="d-flex align-items-center gap-1"><FiTruck size={12} /><span>{v.vehicle_number}</span></div>
+                                            <div className="d-flex align-items-center gap-1"><FiMapPin size={12} /><span>{v.flat_number || "—"}</span></div>
+                                            <div className="d-flex align-items-center gap-1"><FiTag size={12} /><span>{v.vehicle_model || "—"}</span></div>
+                                            <div className="d-flex align-items-center gap-1"><span style={{ width: 12 }}>●</span><span>{v.color || "—"}</span></div>
+                                            <div className="d-flex align-items-center gap-1"><FiHash size={12} /><span>{v.sticker_id || "—"}</span></div>
+                                            {v.owner_mobile && (
+                                                <div className="d-flex align-items-center gap-1"><FiPhone size={12} /><span>{v.owner_mobile}</span></div>
+                                            )}
+                                            {v.owner_email && (
+                                                <div className="d-flex align-items-center gap-1"><FiMail size={12} /><span>{v.owner_email}</span></div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                                    <div
+                                        className="member-action-dropdown dropdown flex-shrink-0"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <button className="member-action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
+                                        <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                            <li>
+                                                <button
+                                                    className="dropdown-item member-action-item"
+                                                    onClick={() => {
+                                                        setVehicleId(v.vehicle_id);
+                                                        setActive("vehicleDetailsPage");
+                                                    }}
+                                                >
+                                                    View Details
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button
+                                                    className="dropdown-item member-action-item"
+                                                    onClick={() => handleEditOpen(v.vehicle_id)}
+                                                >
+                                                    Edit Vehicle
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button
+                                                    className="dropdown-item member-action-item"
+                                                    onClick={() => handleAllocateParking(v)}
+                                                >
+                                                    Allocate Parking
+                                                </button>
+                                            </li>
+                                            <li><hr className="dropdown-divider" /></li>
+                                            <li>
+                                                <button
+                                                    className="dropdown-item member-action-item member-action-delete"
+                                                    onClick={() => handleDelete(v.vehicle_id, v.vehicle_number)}
+                                                >
+                                                    Delete Vehicle
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    ))
+                )}
+
+                <div className="sv-card p-0 mt-2">
                     <Pagination page={page} total={totalPages} onChange={setPage} />
                 </div>
             </div>

@@ -8,10 +8,8 @@ import {
     FiSearch,
     FiMail,
     FiMessageSquare,
-    FiEye,
-    FiSend,
     FiClock,
-    FiFile,
+    FiUser,
 } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { Pagination } from "../../components/Common/ReusableFunction";
@@ -218,21 +216,11 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
         return "Just now";
     };
 
-    const getNoticeIcon = (type) => {
-        switch (type) {
-            case "announcement": return { icon: <FiVolume2 size={18} color="#f59e0b" />, cls: "bc-icon-bg-announcement" };
-            case "circular": return { icon: <FiFileText size={18} color="#7c3aed" />, cls: "bc-icon-bg-circular" };
-            case "emergency": return { icon: <FiAlertTriangle size={18} color="#ef4444" />, cls: "bc-icon-bg-emergency" };
-            case "event": return { icon: <FiCalendar size={18} color="#10b981" />, cls: "bc-icon-bg-event" };
-            default: return { icon: <FiCalendar size={18} color="#6b7280" />, cls: "bc-icon-bg-default" };
-        }
-    };
-
     const getChannelIcon = (channel) => {
         switch (channel) {
-            case "email": return <FiMail size={11} />;
-            case "sms": return <FiMessageSquare size={11} />;
-            case "whatsapp": return <span style={{ fontSize: 11 }}>💬</span>;
+            case "email": return <FiMail size={12} />;
+            case "sms": return <FiMessageSquare size={12} />;
+            case "whatsapp": return <span style={{ fontSize: 12 }}>💬</span>;
             default: return null;
         }
     };
@@ -256,10 +244,6 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
         };
         return <span className={`bc-pill bc-pill-strong ${clsMap[s] || "bc-pill-status-default"}`}>{s}</span>;
     };
-
-    const ChannelPill = ({ channel }) => (
-        <span className="bc-pill bc-pill-channel">{getChannelIcon(channel)} {channel}</span>
-    );
 
     // =====================================================
     // RENDER
@@ -410,90 +394,105 @@ const Broadcast = ({ setActive, setBroadcastId, setSelectedBroadcast }) => {
                             </div>
                         </div>
 
-                        {/* ── LIST CARD ── */}
-                        <div className="bc-list-card">
-
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <h6 className="mb-0 fw-semibold">Broadcasts</h6>
+                        {/* ── LIST — Complaints-style cards ── */}
+                        {allBroadcast.length === 0 ? (
+                            <div className="sv-card text-center py-5 text-muted">
+                                <FiGrid size={32} className="mb-2 opacity-25" />
+                                <br />
+                                No Broadcast Found
                             </div>
+                        ) : (
+                            allBroadcast.map((p) => (
+                                <div
+                                    key={p.id}
+                                    className="card border-0 shadow-sm rounded-3"
+                                    style={{ padding: "10px 14px", marginTop: 8 }}
+                                >
+                                    <div className="d-flex justify-content-between align-items-start gap-2">
 
-                            {allBroadcast.length === 0 ? (
-                                <div className="text-center py-5 text-muted">
-                                    <FiGrid size={32} className="mb-2 opacity-25" />
-                                    <br />
-                                    No Broadcast Found
-                                </div>
-                            ) : (
-                                allBroadcast.map((p, i) => {
-                                    const noticeData = getNoticeIcon(p.type);
-                                    return (
-                                        <div key={p.id} className="text-start bc-item">
-                                            <div className="d-flex gap-3 align-items-start">
+                                        <div
+                                            className="text-start flex-grow-2 min-w-0"
+                                            style={{ cursor: "pointer" }}
+                                            onClick={() => handleViewDetails(p)}
+                                        >
+                                            <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                <span style={{ fontSize: 16, fontWeight: 600 }}>{p.title}</span>
+                                                <TypePill type={p.type} />
+                                            </div>
 
-                                                {/* TYPE ICON */}
-                                                <div
-                                                    className={`bc-item-icon ${noticeData.cls}`}
-                                                    onClick={() => handleViewDetails(p)}
-                                                >
-                                                    {noticeData.icon}
-                                                </div>
-
-                                                {/* CONTENT */}
-                                                <div className="flex-grow-1 min-w-0" style={{ cursor: "pointer" }} onClick={() => handleViewDetails(p)}>
-                                                    <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                                        <span className="bc-item-title">{p.title}</span>
-                                                        <TypePill type={p.type} />
-                                                        {p.channel && <ChannelPill channel={p.channel} />}
-                                                        <StatusPill s={p.status} />
-                                                    </div>
-                                                    <p className="bc-item-message">{p.message}</p>
-                                                    <div className="bc-item-meta">
-                                                        <span>{name}</span>
-                                                        <span>•</span>
-                                                        <span>{timeAgo(p.sent_at || p.created_at)}</span>
-                                                        {p.scheduled_at && (
-                                                            <>
-                                                                <span>•</span>
-                                                                <span>{new Date(p.scheduled_at).toLocaleDateString()}</span>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* ⋮ DROPDOWN */}
-                                                <div className="dropdown flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                                    <button
-                                                        type="button"
-                                                        data-bs-toggle="dropdown"
-                                                        aria-expanded="false"
-                                                        className="bc-action-btn"
-                                                    >
-                                                        ⋮
-                                                    </button>
-                                                    <ul className="dropdown-menu dropdown-menu-end">
-                                                        <li><button className="dropdown-item" onClick={() => handleViewDetails(p)}>View Details</button></li>
-                                                        <li><button className="dropdown-item" onClick={() => handleEditClick(p.id)}>Edit Broadcast</button></li>
-                                                        <li><hr className="dropdown-divider" /></li>
-                                                        <li><button className="dropdown-item text-danger" onClick={() => deleteBroadcast(p.id, p.title)}>Delete Broadcast</button></li>
-                                                    </ul>
-                                                </div>
-
+                                            <div className="d-flex flex-wrap align-items-center gap-3 text-secondary" style={{ fontSize: 13 }}>
+                                                <div className="d-flex align-items-center gap-1"><FiUser size={12} /><span>{name}</span></div>
+                                                <div className="d-flex align-items-center gap-1"><FiClock size={12} /><span>{timeAgo(p.sent_at || p.created_at)}</span></div>
+                                                {p.scheduled_at && (
+                                                    <div className="d-flex align-items-center gap-1"><FiCalendar size={12} /><span>{new Date(p.scheduled_at).toLocaleDateString()}</span></div>
+                                                )}
+                                                {p.channel && (
+                                                    <div className="d-flex align-items-center gap-1">{getChannelIcon(p.channel)}<span>{p.channel}</span></div>
+                                                )}
                                             </div>
                                         </div>
-                                    );
-                                })
-                            )}
 
-                            {/* FOOTER */}
-                            {totalRecords > 0 && (
-                                <div className="bc-list-footer">
+                                        <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                                            <StatusPill s={p.status} />
+
+                                            <div
+                                                className="member-action-dropdown dropdown flex-shrink-0"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <button
+                                                    className="member-action-btn"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                >
+                                                    ⋮
+                                                </button>
+                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() => handleViewDetails(p)}
+                                                        >
+                                                            View Details
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item"
+                                                            onClick={() => handleEditClick(p.id)}
+                                                        >
+                                                            Edit Broadcast
+                                                        </button>
+                                                    </li>
+                                                    <li><hr className="dropdown-divider" /></li>
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item member-action-delete"
+                                                            onClick={() => deleteBroadcast(p.id, p.title)}
+                                                        >
+                                                            Delete Broadcast
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            ))
+                        )}
+
+                        {/* FOOTER */}
+                        {totalRecords > 0 && (
+                            <div className="sv-card p-0 mt-2">
+                                <div className="d-flex justify-content-between align-items-center px-3 py-2">
                                     <div className="bc-records-info">
                                         Showing {(page - 1) * limit + 1}–{Math.min(page * limit, totalRecords)} of {totalRecords} broadcasts
                                     </div>
-                                    <Pagination page={page} total={totalPages} onChange={handlePageChange} />
                                 </div>
-                            )}
-                        </div>
+                                <Pagination page={page} total={totalPages} onChange={handlePageChange} />
+                            </div>
+                        )}
                     </div>
 
                     {/* RIGHT — sidebar */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Badge, Pagination } from '../../components/Common/ReusableFunction';
 import "../../styles/Complaints.css"
-import { getComplaintsApi, updateComplaintPriorityApi, updateComplaintStatusApi, deleteComplaintApi } from '../../services/ComplaintsApi';
+import { getComplaintsApi, updateComplaintPriorityApi, updateComplaintStatusApi, deleteComplaintApi,GetComplaintByIdApi } from '../../services/ComplaintsApi';
 import { GetSessionData } from '../../utils/SessionManagement';
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
@@ -404,10 +404,14 @@ const getComplaints = async ({ sid, pg, status, searchText, fromDate, toDate }) 
           <>
             {rows.map((data) => (
               <div
-                key={data.complaint_id}
-                className="card border-0 shadow-sm rounded-3"
-                style={{ padding: "10px 14px", marginTop: 8 }}
-              >
+  key={data.complaint_id}
+  className="card border-0 shadow-sm rounded-3"
+  style={{ padding: "10px 14px", marginTop: 8, cursor: "pointer" }}
+  onClick={() => {
+    setSelectedComplaintId(data.complaint_id);
+    setActive("viewComplaintDetails");
+  }}
+>
                 <div className="d-flex justify-content-between align-items-start gap-2">
 
                   <div className="text-start flex-grow-2 min-w-0">
@@ -446,7 +450,8 @@ const getComplaints = async ({ sid, pg, status, searchText, fromDate, toDate }) 
                         <li>
                           <button
                             className="dropdown-item member-action-item"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setSelectedComplaintId(data.complaint_id);
                               setActive("viewComplaintDetails");
                             }}
@@ -457,7 +462,8 @@ const getComplaints = async ({ sid, pg, status, searchText, fromDate, toDate }) 
                         <li>
                           <button
                             className="dropdown-item member-action-item"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setAssignComplaintId(data.complaint_id);
                               setShowAssignModal(true);
                             }}
@@ -469,7 +475,7 @@ const getComplaints = async ({ sid, pg, status, searchText, fromDate, toDate }) 
                         <li>
                           <button
                             className="dropdown-item member-action-item member-action-delete"
-                            onClick={() => {
+                            onClick={(e) => {
                               setDeleteComplaintId(data.complaint_id);
                               setShowDeleteModal(true);
                             }}

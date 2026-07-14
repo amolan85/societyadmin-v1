@@ -9,9 +9,10 @@ import {
     FiTag,
     FiClock,
     FiAlertCircle,
+    FiSettings,
 } from "react-icons/fi";
 import { GetSessionData } from "../../utils/SessionManagement";
-import { getComplaintsApi, updateComplaintStatusApi, updateComplaintPriorityApi } from "../../services/ComplaintsApi";
+import { getComplaintsApi, updateComplaintStatusApi, updateComplaintPriorityApi ,GetComplaintByIdApi} from "../../services/ComplaintsApi";
 import { Badge } from "../../components/Common/ReusableFunction";
 
 const ViewComplaintDetails = ({ setActive, complaintId, societyId }) => {
@@ -26,6 +27,8 @@ const ViewComplaintDetails = ({ setActive, complaintId, societyId }) => {
     const [status, setStatus] = useState("");
     const [priority, setPriority] = useState("");
     const [comments, setComments] = useState("");
+    const [activityLog, setActivityLog] = useState([]);
+    const [activityCount, setActivityCount] = useState(0);
 
     // =====================================================
     // LOAD SESSION
@@ -59,23 +62,40 @@ const ViewComplaintDetails = ({ setActive, complaintId, societyId }) => {
     // =====================================================
 
     const getComplaintById = async () => {
-        try {
-            const data = await getComplaintsApi({ societyId, pageSize: 10000 });
-            const list = data?.list || [];
-            const found = list.find(
-                (c) => String(c.complaint_id) === String(complaintId)
-            );
-            if (found) {
-                setComplaintDetails(found);
-                setStatus(found.status || "");
-                setPriority(found.priority || "");
-            }
-        } catch (error) {
-            console.log(error, "Error fetching complaint details");
-            setComplaintDetails({});
-        }
-    };
+    try {
+        setLoading(true);
 
+        const response = await GetComplaintByIdApi({
+        societyId,
+        complaintId
+        });
+
+        console.log("GetComplaintByIdApi raw response =", response);
+
+        // service function may return the raw {data:{...}} envelope,
+        // or may already unwrap it to {complaint, activity_log, activity_count}
+        const payload = response?.data ?? response ?? {};
+
+        const complaint = payload?.complaint || {};
+        const activity = payload?.activity_log || [];
+        const count = payload?.activity_count ?? activity.length;
+
+        setComplaintDetails(complaint);
+        setActivityLog(activity);
+        setActivityCount(count);
+
+        setStatus(complaint.status || "");
+        setPriority(complaint.priority || "");
+
+    } catch (error) {
+        console.log(error);
+        setComplaintDetails({});
+        setActivityLog([]);
+        setActivityCount(0);
+    } finally {
+        setLoading(false);
+    }
+};
     // =====================================================
     // UPDATE STATUS / PRIORITY
     // =====================================================
@@ -137,6 +157,29 @@ const ViewComplaintDetails = ({ setActive, complaintId, societyId }) => {
         if (p === "medium") return "orange";
         if (p === "low") return "gray";
         return "gray";
+    };
+
+    // Who posted the activity/comment entry, and what icon/label to show for it
+    const getActivityMeta = (item) => {
+        if (item.commenter_type === "staff") {
+            return {
+                name: item.by?.name || "Staff",
+                icon: <FiUser size={14} />,
+                badgeLabel: "Staff",
+            };
+        }
+        if (item.commenter_type === "resident" || item.commenter_type === "user") {
+            return {
+                name: item.by?.name || "Resident",
+                icon: <FiUser size={14} />,
+                badgeLabel: "Resident",
+            };
+        }
+        return {
+            name: "System",
+            icon: <FiSettings size={14} />,
+            badgeLabel: "System",
+        };
     };
 
     const modalConfig = {
@@ -204,9 +247,7 @@ const ViewComplaintDetails = ({ setActive, complaintId, societyId }) => {
                                     />
                                 </div>
                                 <div className="text-muted text-start small mt-2">
-                                    <span className="me-3">
-                                        #{complaintDetails.complaint_id || "-"}
-                                    </span>
+                                     
                                     <span>
                                         {complaintDetails.category_name || "-"}
                                     </span>
@@ -303,8 +344,9 @@ const ViewComplaintDetails = ({ setActive, complaintId, societyId }) => {
                                         <FiUser size={16} />
                                         <div>
                                             <small className="text-muted d-block">RESIDENT</small>
+                                            
                                             <span className="fw-semibold text-dark">
-                                                {complaintDetails.resident_name || "Rahul Sharma"}
+                                                {complaintDetails.raised_by?.name || "-"}
                                             </span>
                                         </div>
                                     </div>
@@ -413,43 +455,64 @@ const ViewComplaintDetails = ({ setActive, complaintId, societyId }) => {
 
                         {/* Activity Log */}
                         <div className="card shadow-sm border mt-4 text-start">
-                            <div className="card-header bg-white fw-bold">
-                                Activity Log
+                            <div className="card-header bg-white fw-bold d-flex align-items-center justify-content-between">
+                                <span>Activity Log</span>
+                                {activityCount > 0 && (
+                                    <span className="badge bg-light text-dark">{activityCount}</span>
+                                )}
                             </div>
                             <div className="card-body">
-                                <div className="unauth-timeline">
-
-                                    <div className="unauth-timeline-item active">
-                                        <h6 className="mb-1">Complaint Submitted</h6>
-                                        <small className="text-muted">
-                                            Resident submitted the complaint.
-                                        </small><br />
-                                        <small className="text-muted">
-                                            {formatDateTime(complaintDetails.created_at)}
-                                        </small>
+                                {activityLog.length === 0 ? (
+                                    <div className="text-muted small text-center py-3">
+                                        No activity yet.
                                     </div>
+                                ) : (
+                                    <div className="unauth-timeline">
+                                        {activityLog.map((item, idx) => {
+                                            const meta = getActivityMeta(item);
+                                            return (
+                                                <div
+                                                    key={item.comment_id ?? idx}
+                                                    className={`unauth-timeline-item ${idx === activityLog.length - 1 ? "active" : ""}`}
+                                                >
+                                                    <div className="d-flex align-items-center gap-2 mb-1">
+                                                        {meta.icon}
+                                                        <h6 className="mb-0">{meta.name}</h6>
+                                                        <span
+                                                            className={`badge ${meta.badgeLabel === "System" ? "bg-secondary" : "bg-primary"}`}
+                                                            style={{ fontSize: 10 }}
+                                                        >
+                                                            {meta.badgeLabel}
+                                                        </span>
+                                                    </div>
 
-                                    <div className="unauth-timeline-item">
-                                        <h6 className="mb-1">Under Review</h6>
-                                        <small className="text-muted">
-                                            Complaint assigned to management team.
-                                        </small>
+                                                    {item.comment && (
+                                                        <div className="d-flex align-items-start gap-2">
+                                                            <FiMessageSquare size={14} className="text-muted mt-1" />
+                                                            <small className="text-muted">
+                                                                {item.comment}
+                                                            </small>
+                                                        </div>
+                                                    )}
+
+                                                    {item.status && (
+                                                        <div className="mt-1">
+                                                            <Badge
+                                                                label={item.status}
+                                                                c={getStatusColor(item.status)}
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    <br />
+                                                    <small className="text-muted">
+                                                        {formatDateTime(item.created_at)}
+                                                    </small>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-
-                                    <div className="unauth-timeline-item">
-                                        <h6 className="mb-1">
-                                            {complaintDetails.status === "resolved" ? "Resolved"
-                                                : complaintDetails.status === "closed" ? "Closed"
-                                                    : "Pending Action"}
-                                        </h6>
-                                        <small className="text-muted">
-                                            {complaintDetails.status === "open" ? "Awaiting action..."
-                                                : complaintDetails.status === "in_progress" ? "In progress..."
-                                                    : complaintDetails.status || ""}
-                                        </small>
-                                    </div>
-
-                                </div>
+                                )}
                             </div>
                         </div>
 

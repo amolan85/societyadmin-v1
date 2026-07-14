@@ -520,53 +520,7 @@ const Polls = ({ setActive, setPollId }) => {
                             ))}
                         </div>
                     </div>
-
-                    {/* Quick Actions */}
-                    <div className="sv-card mb-3">
-                        <h6 className="pl-side-title text-start">
-                            <HiOutlineLightningBolt className="me-2 text-warning" size={18} />
-                            Quick Actions
-                        </h6>
-
-                        {[
-                            [
-                                <FaUsers className="text-primary" />,
-                                "Add New Poll",
-                                "Create a new public poll",
-                                goToCreatePoll,
-                            ],
-
-                            [
-                                <FaChartBar className="text-success" />,
-                                "Voting Reports",
-                                "View poll analytics",
-                                () => {
-                                    if (allPolls.length > 0) {
-                                        setPollId(allPolls[0].poll_id);
-                                        setActive("pollAnalytics");
-                                    }
-                                }
-                            ],
-
-                            [
-                                <FaBalanceScale style={{ color: "orange" }} />,
-                                "Upcoming Polls",
-                                "View scheduled polls",
-                                () => {
-                                    setTab("upcoming");
-                                    setPage(1);
-                                },
-                            ],
-                        ].map(([ic, lb, sub, onClick]) => (
-                            <button key={lb} className="qa mb-2" onClick={onClick || undefined}>
-                                <div className="qa-ico pl-qa-ico rounded-circle">{ic}</div>
-                                <div>
-                                    <div className="pl-qa-title">{lb}</div>
-                                    <div className="pl-qa-sub">{sub}</div>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
+ 
 
                     <div className="sv-card">
 

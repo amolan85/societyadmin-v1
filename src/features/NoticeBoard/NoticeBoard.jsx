@@ -14,8 +14,9 @@ import {
     FiCalendar,
     FiBriefcase,
     FiUsers,
-    FiEdit,
-    FiTrash2,
+    FiUser,
+    FiClock,
+    FiEye,
 } from "react-icons/fi";
 
 const NoticeBoard = ({ setActive, setSelectedNoticeData }) => {
@@ -427,85 +428,96 @@ const [totalRecords, setTotalRecords] = useState(0);
                                 ))}
                             </div>
 
-                            {/* ROWS */}
-                            {allNoticeBoard.map((p, i, arr) => {
-                                const noticeData = getNoticeIcon(p.notice_type);
-                                return (
-                                    <div
-                                        key={i}
-                                        className={`nb-post text-start ${i < arr.length - 1 ? "nb-border" : ""}`}
-                                    >
-                                        <div className="d-flex gap-3">
+                            {/* ROWS — Complaints-style cards */}
+                            {allNoticeBoard.map((p) => (
+                                <div
+                                    key={p.notice_id}
+                                    className="card border-0 shadow-sm rounded-3"
+                                    style={{ padding: "10px 14px", marginTop: 8 }}
+                                >
+                                    <div className="d-flex justify-content-between align-items-start gap-2">
 
-                                            <div className="nb-avatar" style={{ background: noticeData.bg }}>
-                                                {noticeData.icon}
+                                        <div className="text-start flex-grow-2 min-w-0">
+                                            <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                <span style={{ fontSize: 16, fontWeight: 600 }}>{p.title}</span>
+                                                <Badge
+                                                    label={p.notice_type}
+                                                    c={
+                                                        p.notice_type === "general" ? "blue"
+                                                            : p.notice_type === "maintenance" ? "orange"
+                                                                : p.notice_type === "emergency" ? "red"
+                                                                    : p.notice_type === "event" ? "green"
+                                                                        : p.notice_type === "legal" ? "purple"
+                                                                            : p.notice_type === "meeting" ? "peacock"
+                                                                                : "gray"
+                                                    }
+                                                />
                                             </div>
 
-                                            <div className="flex-grow-1">
-
-                                                <div className="d-flex justify-content-between align-items-start flex-wrap mb-1">
-
-                                                    {/* Left Side — title + type badge + STATUS BADGE */}
-                                                    <div className="d-flex align-items-center gap-2 flex-wrap">
-                                                        <span className="nb-title">{p.title}</span>
-                                                        <Badge
-                                                            label={p.notice_type}
-                                                            c={
-                                                                p.notice_type === "general" ? "blue"
-                                                                    : p.notice_type === "maintenance" ? "orange"
-                                                                        : p.notice_type === "emergency" ? "red"
-                                                                            : p.notice_type === "event" ? "green"
-                                                                                : p.notice_type === "legal" ? "purple"
-                                                                                    : p.notice_type === "meeting" ? "peacock"
-                                                                                        : "gray"
-                                                            }
-                                                        />
-                                                        {/* ── STATUS BADGE ── */}
-                                                        <Badge
-                                                            label={p.status}
-                                                            c={
-                                                                p.status === "published" ? "green"
-                                                                    : p.status === "draft" ? "orange"
-                                                                        : p.status === "archived" ? "red"
-                                                                            : "gray"
-                                                            }
-                                                        />
-                                                    </div>
-
-                                                    {/* Right Side — edit / delete */}
-                                                    <div className="d-flex align-items-center gap-3">
-                                                        {p.status === "draft" && (
-                                                            <FiEdit
-                                                                size={18}
-                                                                style={{ cursor: "pointer", color: "orange" }}
-                                                                onClick={() => getNoticeBoardById(p.notice_id)}
-                                                            />
-                                                        )}
-                                                        {p.locked && (
-                                                            <span className="nb-locked">🔒 Locked</span>
-                                                        )}
-                                                        <FiTrash2
-                                                            size={18}
-                                                            style={{ cursor: "pointer", color: "red" }}
-                                                            onClick={() => deleteNotice(p.notice_id)}
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <p className="nb-content">{p.description}</p>
-
-                                                <div className="nb-meta">
-                                                    👤 {name} • {timeAgo(p.publish_date)}
-                                                    {p.views && ` • 👁 ${p.views}`}
-                                                </div>
-
+                                            <div className="d-flex flex-wrap align-items-center gap-3 text-secondary" style={{ fontSize: 13 }}>
+                                                <div className="d-flex align-items-center gap-1"><FiUser size={12} /><span>{name}</span></div>
+                                                <div className="d-flex align-items-center gap-1"><FiClock size={12} /><span>{timeAgo(p.publish_date)}</span></div>
+                                                {p.views ? (
+                                                    <div className="d-flex align-items-center gap-1"><FiEye size={12} /><span>{p.views}</span></div>
+                                                ) : null}
+                                                {p.locked && <span className="nb-locked">🔒 Locked</span>}
                                             </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
 
-                            <Pagination page={page} total={totalPages} onChange={setPage} />
+                                        <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                                            <Badge
+                                                label={p.status}
+                                                c={
+                                                    p.status === "published" ? "green"
+                                                        : p.status === "draft" ? "orange"
+                                                            : p.status === "archived" ? "red"
+                                                                : "gray"
+                                                }
+                                            />
+
+                                            <div
+                                                className="member-action-dropdown dropdown flex-shrink-0"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <button
+                                                    className="member-action-btn"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                >
+                                                    ⋮
+                                                </button>
+                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                                    {p.status === "draft" && (
+                                                        <li>
+                                                            <button
+                                                                className="dropdown-item member-action-item"
+                                                                onClick={() => getNoticeBoardById(p.notice_id)}
+                                                            >
+                                                                Edit Notice
+                                                            </button>
+                                                        </li>
+                                                    )}
+                                                    <li><hr className="dropdown-divider" /></li>
+                                                    <li>
+                                                        <button
+                                                            className="dropdown-item member-action-item member-action-delete"
+                                                            onClick={() => deleteNotice(p.notice_id)}
+                                                        >
+                                                            Delete Notice
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            ))}
+
+                            <div className="sv-card p-0 mt-2">
+                                <Pagination page={page} total={totalPages} onChange={setPage} />
+                            </div>
 
                         </div>
                     </div>

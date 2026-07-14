@@ -6,7 +6,7 @@ import { Badge, Pagination } from '../../../components/Common/ReusableFunction';
 import { BsFiletypeCsv, BsFiletypePdf, BsFiletypeXls } from "react-icons/bs";
 import { BiExport } from 'react-icons/bi';
 import { HiOutlineUserGroup } from "react-icons/hi2";
-import { FiFilter, FiSearch, FiUsers } from 'react-icons/fi';
+import { FiFilter, FiSearch, FiUsers, FiMapPin, FiPhone, FiTag, FiClock, FiTruck } from 'react-icons/fi';
 import { toast } from "react-toastify";
 import {
     CreateVisitorApi, ListVisitorsApi,
@@ -498,6 +498,25 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
             });
     };
 
+    // ── entry/approval status → Badge label + color, shared between the
+    // card meta area and the old table cell logic ──
+    const entryStatusBadge = (v) => {
+        const s = (v.entry_status || "").toLowerCase();
+        if (s === "waiting") return { label: "Waiting", c: "orange" };
+        if (s === "inside") return { label: "Inside", c: "blue" };
+        if (["complete", "completed"].includes(s)) return { label: "Completed", c: "green" };
+        if (s === "cancelled") return { label: "Cancelled", c: "red" };
+        return { label: "-", c: "grey" };
+    };
+
+    const approvalStatusBadge = (v) => {
+        const s = v.approval_status;
+        if (s === "pending") return { label: "Pending", c: "yellow" };
+        if (s === "approved") return { label: "Approved", c: "green" };
+        if (s === "rejected") return { label: "Rejected", c: "red" };
+        return { label: "-", c: "grey" };
+    };
+
     return (
         <>
             <div className="pg cp-wrap">
@@ -726,219 +745,183 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                     </div>
                 </div>
 
-                {/* Table */}
-                <div className="sv-card p-0">
-                    <div className="sa-table-wrap">
-                        <table className="sv-tbl">
-                            <thead>
-                                <tr>
-                                    {["VISITOR", "UNIT", "TYPE", "PURPOSE / PARCEL", "VEHICLE", "CHECK IN", "CHECK OUT", "ENTRY STATUS", "STATUS", "ACTIONS"].map(h => (
-                                        <th key={h}>{h}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {visitorsList.map((v, i) => (
-                                    <tr className="text-start" key={i}>
-                                        <td>
-                                            <div className="d-flex align-items-center gap-2">
-                                                <img
-                                                    src={
-                                                        v.photo_url?.startsWith("http")
-                                                            ? v.photo_url
-                                                            : "../src/assets/profile.png"
-                                                    }
-                                                    alt="Profile"
-                                                    width={38}
-                                                    height={38}
-                                                    className="rounded-circle object-fit-cover flex-shrink-0"
-                                                    onError={(e) => { e.target.src = "../src/assets/profile.png"; }}
+                {/* Cards — Complaints-style row format */}
+                {visitorsList.length === 0 ? (
+                    <div className="sv-card text-center py-5 text-muted">
+                        No Visitors Found
+                    </div>
+                ) : (
+                    visitorsList.map((v, i) => {
+                        const entryBadge = entryStatusBadge(v);
+                        const approvalBadge = approvalStatusBadge(v);
+                        return (
+                            <div
+                                key={v.id || i}
+                                className="card border-0 shadow-sm rounded-3"
+                                style={{ padding: "10px 14px", marginTop: 8 }}
+                            >
+                                <div className="d-flex justify-content-between align-items-start gap-2">
+
+                                    <div className="d-flex gap-2 flex-grow-2 min-w-0">
+                                        <img
+                                            src={
+                                                v.photo_url?.startsWith("http")
+                                                    ? v.photo_url
+                                                    : "../src/assets/profile.png"
+                                            }
+                                            alt="Profile"
+                                            width={38}
+                                            height={38}
+                                            className="rounded-circle object-fit-cover flex-shrink-0"
+                                            onError={(e) => { e.target.src = "../src/assets/profile.png"; }}
+                                        />
+
+                                        <div className="text-start min-w-0">
+                                            <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                <span style={{ fontSize: 16, fontWeight: 600 }}>{v.visitor_name || "-"}</span>
+                                                <Badge
+                                                    label={v.visitor_type === "delivery" ? "Delivery" : "Guest"}
+                                                    c={v.visitor_type === "delivery" ? "orange" : "blue"}
                                                 />
-                                                <div>
-                                                    <div className="fw-semibold">
-                                                        {v.visitor_name || "-"}
-                                                    </div>
-                                                    <small className="text-muted">
-                                                        {v.mobile || "-"}
-                                                    </small>
+                                            </div>
+
+                                            <div className="d-flex flex-wrap align-items-center gap-3 text-secondary" style={{ fontSize: 13 }}>
+                                                <div className="d-flex align-items-center gap-1"><FiPhone size={12} /><span>{v.mobile || "-"}</span></div>
+                                                <div className="d-flex align-items-center gap-1"><FiMapPin size={12} /><span>{v.flat_number || "-"}</span></div>
+                                                <div className="d-flex align-items-center gap-1">
+                                                    <FiTag size={12} />
+                                                    <span>{v.visitor_type === "delivery" ? (v.parcel_description || "-") : (v.purpose || "-")}</span>
+                                                </div>
+                                                {v.vehicle_number && (
+                                                    <div className="d-flex align-items-center gap-1"><FiTruck size={12} /><span>{v.vehicle_number}</span></div>
+                                                )}
+                                                <div className="d-flex align-items-center gap-1">
+                                                    <FiClock size={12} />
+                                                    <span>In: {fmt(v.check_in_time, "time")}</span>
+                                                </div>
+                                                <div className="d-flex align-items-center gap-1">
+                                                    <FiClock size={12} />
+                                                    <span>Out: {fmt(v.check_out_time, "time")}</span>
                                                 </div>
                                             </div>
-                                        </td>
-                                        <td>{v.flat_number || "-"}</td>
-                                        <td>
-                                            <Badge
-                                                label={v.visitor_type === "delivery" ? "Delivery" : "Guest"}
-                                                c={v.visitor_type === "delivery" ? "orange" : "blue"}
-                                            />
-                                        </td>
-                                        <td>
-                                            <div className="fw-semibold">
-                                                {v.visitor_type === "delivery" ? v.parcel_description : v.purpose}
-                                            </div>
-                                            {v.coming_from && <small className="text-muted">From: {v.coming_from}</small>}
-                                        </td>
-                                        <td>{v.vehicle_number || <span className="text-muted">—</span>}</td>
-                                        <td>
-                                            <div>{fmt(v.check_in_time, "time")}</div>
-                                            <small className="text-muted">{fmt(v.check_in_time, "date")}</small>
-                                        </td>
-                                        <td>
-                                            <div>{fmt(v.check_out_time, "time")}</div>
-                                            <small className="text-muted">{fmt(v.check_out_time, "date")}</small>
-                                        </td>
-                                        <td>
-                                            <Badge
-                                                label={
-                                                    v.entry_status === "waiting"
-                                                        ? "Waiting"
-                                                        : v.entry_status === "inside"
-                                                            ? "Inside"
-                                                            : ["complete", "completed"].includes(v.entry_status?.toLowerCase())
-                                                                ? "Completed"
-                                                                : v.entry_status === "cancelled"
-                                                                    ? "Cancelled"
-                                                                    : "-"
-                                                }
-                                                c={
-                                                    v.entry_status === "waiting"
-                                                        ? "orange"
-                                                        : v.entry_status === "inside"
-                                                            ? "blue"
-                                                            : ["complete", "completed"].includes(v.entry_status?.toLowerCase())
-                                                                ? "green"
-                                                                : v.entry_status === "cancelled"
-                                                                    ? "red"
-                                                                    : "grey"
-                                                }
-                                            />
-                                        </td>
-                                        <td>
-                                            <Badge
-                                                label={
-                                                    v.approval_status === "pending"
-                                                        ? "Pending"
-                                                        : v.approval_status === "approved"
-                                                            ? "Approved"
-                                                            : v.approval_status === "rejected"
-                                                                ? "Rejected"
-                                                                : "-"
-                                                }
-                                                c={
-                                                    v.approval_status === "pending"
-                                                        ? "yellow"
-                                                        : v.approval_status === "approved"
-                                                            ? "green"
-                                                            : v.approval_status === "rejected"
-                                                                ? "red"
-                                                                : "grey"
-                                                }
-                                            />
-                                        </td>
-                                        <td>
-                                            <div className="member-action-dropdown dropdown">
-                                                <button className="member-action-btn" type="button" data-bs-toggle="dropdown">⋮</button>
-                                                <ul className="dropdown-menu member-action-menu dropdown-menu-end">
+                                        </div>
+                                    </div>
 
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            onClick={() => {
-                                                                setVisitorId(v.id);
-                                                                setActive("visitorDetailsPage");
-                                                            }}
-                                                        >
-                                                            View Details
-                                                        </button>
-                                                    </li>
+                                    <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                                        <Badge label={entryBadge.label} c={entryBadge.c} />
+                                        <Badge label={approvalBadge.label} c={approvalBadge.c} />
 
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            disabled={v.approval_status !== "pending"}
-                                                            onClick={() => {
-                                                                if (v.approval_status !== "pending") return;
-                                                                resetForm();
-                                                                setIsEdit(true);
-                                                                setEditVisitorId(v.id);
-                                                                GetVisitorDetailsById(v.id);
-                                                                setShow(true);
-                                                            }}
-                                                        >
-                                                            Edit Visitor
-                                                        </button>
-                                                    </li>
+                                        <div
+                                            className="member-action-dropdown dropdown flex-shrink-0"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <button className="member-action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">⋮</button>
+                                            <ul className="dropdown-menu member-action-menu dropdown-menu-end">
 
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            disabled={v.approval_status !== "pending"}
-                                                            onClick={() => {
-                                                                if (v.approval_status !== "pending") return;
-                                                                setSelectedVisitor(v);
-                                                                setApprovalModal(true);
-                                                            }}
-                                                        >
-                                                            Approve / Reject
-                                                        </button>
-                                                    </li>
+                                                <li>
+                                                    <button
+                                                        className="dropdown-item member-action-item"
+                                                        onClick={() => {
+                                                            setVisitorId(v.id);
+                                                            setActive("visitorDetailsPage");
+                                                        }}
+                                                    >
+                                                        View Details
+                                                    </button>
+                                                </li>
 
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            disabled={!(v.entry_status === "checked_in" || v.entry_status === "inside")}
-                                                            onClick={() => {
-                                                                if (!(v.entry_status === "checked_in" || v.entry_status === "inside")) return;
-                                                                handleCheckout(v.id);
-                                                            }}
-                                                        >
-                                                            Checkout
-                                                        </button>
-                                                    </li>
+                                                <li>
+                                                    <button
+                                                        className="dropdown-item member-action-item"
+                                                        disabled={v.approval_status !== "pending"}
+                                                        onClick={() => {
+                                                            if (v.approval_status !== "pending") return;
+                                                            resetForm();
+                                                            setIsEdit(true);
+                                                            setEditVisitorId(v.id);
+                                                            GetVisitorDetailsById(v.id);
+                                                            setShow(true);
+                                                        }}
+                                                    >
+                                                        Edit Visitor
+                                                    </button>
+                                                </li>
 
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item"
-                                                            disabled={
+                                                <li>
+                                                    <button
+                                                        className="dropdown-item member-action-item"
+                                                        disabled={v.approval_status !== "pending"}
+                                                        onClick={() => {
+                                                            if (v.approval_status !== "pending") return;
+                                                            setSelectedVisitor(v);
+                                                            setApprovalModal(true);
+                                                        }}
+                                                    >
+                                                        Approve / Reject
+                                                    </button>
+                                                </li>
+
+                                                <li>
+                                                    <button
+                                                        className="dropdown-item member-action-item"
+                                                        disabled={!(v.entry_status === "checked_in" || v.entry_status === "inside")}
+                                                        onClick={() => {
+                                                            if (!(v.entry_status === "checked_in" || v.entry_status === "inside")) return;
+                                                            handleCheckout(v.id);
+                                                        }}
+                                                    >
+                                                        Checkout
+                                                    </button>
+                                                </li>
+
+                                                <li>
+                                                    <button
+                                                        className="dropdown-item member-action-item"
+                                                        disabled={
+                                                            v.approval_status === "pending" ||
+                                                            v.approval_status === "rejected" ||
+                                                            !!v.check_out_time ||
+                                                            v.entry_status === "checked_out"
+                                                        }
+                                                        onClick={() => {
+                                                            if (
                                                                 v.approval_status === "pending" ||
                                                                 v.approval_status === "rejected" ||
                                                                 !!v.check_out_time ||
                                                                 v.entry_status === "checked_out"
-                                                            }
-                                                            onClick={() => {
-                                                                if (
-                                                                    v.approval_status === "pending" ||
-                                                                    v.approval_status === "rejected" ||
-                                                                    !!v.check_out_time ||
-                                                                    v.entry_status === "checked_out"
-                                                                ) return;
-                                                                handleOpenAllotParking(v);
-                                                            }}
-                                                        >
-                                                            Allot Parking
-                                                        </button>
-                                                    </li>
-                                                    <li>
-                                                        <button
-                                                            className="dropdown-item member-action-item text-danger"
-                                                            disabled
-                                                            style={{
-                                                                color: "#6c757d",
-                                                                cursor: "not-allowed",
-                                                                opacity: 0.6
-                                                            }}
-                                                            onClick={() => handleDelete(v.id)}
-                                                        >
-                                                            Delete Visitor
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                                            ) return;
+                                                            handleOpenAllotParking(v);
+                                                        }}
+                                                    >
+                                                        Allot Parking
+                                                    </button>
+                                                </li>
+                                                <li><hr className="dropdown-divider" /></li>
+                                                <li>
+                                                    <button
+                                                        className="dropdown-item member-action-item member-action-delete"
+                                                        disabled
+                                                        style={{
+                                                            color: "#6c757d",
+                                                            cursor: "not-allowed",
+                                                            opacity: 0.6
+                                                        }}
+                                                        onClick={() => handleDelete(v.id)}
+                                                    >
+                                                        Delete Visitor
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+
+                <div className="sv-card p-0 mt-2">
                     <Pagination page={page} total={totalPages} onChange={handlePageChange} />
                 </div>
             </div>

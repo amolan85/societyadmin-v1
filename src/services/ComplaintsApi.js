@@ -45,6 +45,29 @@ export const getComplaintsApi = async ({
         throw errors;
     });
 }
+//api Get complaints by Id
+export const GetComplaintByIdApi = async ({
+    societyId,
+    complaintId  
+}) => {
+    const url = UrlData + 'complaint/GetComplaintById';
+    const data = {
+        society_id: societyId,
+        complaint_id: complaintId 
+    }
+    return await apiClient({
+        method: 'post',
+        url: url,
+        data: data
+    }).then((response) => {
+        return response.data.data;
+    }).catch((error) => {
+        console.log(error);
+        const errors = ErrorHandler(error);
+        console.log(errors, "Errors all complaints");
+        throw errors;
+    });
+}
 
 //create complaint api
 export const createComplaintsApi = async (societyId, userId, category, unitId, title, description, unit, priority, file) => {
