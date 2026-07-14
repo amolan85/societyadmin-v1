@@ -444,7 +444,7 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
                                     </tr>
                                 ) : (
                                     slotsList.map((s, i) => (
-                                        <tr className="text-start" key={i}>
+                                    <tr key={i} className="text-start" style={{ cursor: "pointer" }} onClick={() => handleViewSlot(s)}>
                                             <td className="fw-semibold">{s.slot_number}</td>
                                             <td>
                                                 <div>{s.zone}</div>
@@ -458,7 +458,7 @@ const ParkingRegister = ({ setActive, setSelectedSlotId, setSelectedSocietyId })
                                                     c={s.slot_status === "allocated" ? "blue" : s.slot_status === "available" ? "green" : s.slot_status === "reserved" ? "purple" : "grey"}
                                                 />
                                             </td>
-                                            <td>
+                                            <td onClick={(e) => e.stopPropagation()}>
                                                 <div className="member-action-dropdown dropdown">
                                                     <button className="member-action-btn" type="button" data-bs-toggle="dropdown">⋮</button>
                                                     <ul className="dropdown-menu member-action-menu dropdown-menu-end">

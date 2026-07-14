@@ -871,10 +871,14 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                             </thead>
 
                             <tbody>
-                                {filteredData.map((item, index) => (
-                                    <tr key={index}>
+    {filteredData.map((item, index) => (
+        <tr
+            key={index}
+            style={{ cursor: "pointer" }}
+            onClick={() => getViewDetails(item.user_id)}
+        >
                                         {/* Unit */}
-                                        <td className="text-start">
+                                        <td className="text-start" onClick={(e) => e.stopPropagation()}>
                                             <div className="fw-bold">{item.block} - {item.flat_number}</div>
                                             <small className="text-muted">
                                                 Owner: {item.owner_name}
@@ -882,7 +886,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                                         </td>
 
                                         {/* Tenant */}
-                                        <td className="text-start">
+                                        <td className="text-start" onClick={(e) => e.stopPropagation()}>
                                             <div className="d-flex align-items-center gap-2">
 
                                                 <img
@@ -907,7 +911,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                                         </td>
 
                                         {/* Lease */}
-                                        <td className="text-start">
+                                        <td className="text-start" onClick={(e) => e.stopPropagation()}>
                                             <div className="lease-date">
                                                 {item.start_date ? formatDate(item.start_date) : ""}
 
@@ -950,7 +954,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                                             </small>
                                         </td> */}
                                         {/* KYC */}
-                                        <td className="text-start">
+                                        <td className="text-start" onClick={(e) => e.stopPropagation()}>
                                             <Badge
                                                 label={item.occupant_status}
                                                 c={
@@ -966,7 +970,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
 
                                         </td>
                                         {/* Agreement */}
-                                        <td className="text-start">
+                                        <td className="text-start" onClick={(e) => e.stopPropagation()}>
 
                                             <Badge
                                                 label={item.documents === 1 ? "Uploaded" : "Not Uploaded"}
@@ -990,7 +994,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                                                 {item.action}
                                             </button>
                                         </td> */}
-                                        <td className="text-start">
+                                        <td className="text-start" onClick={(e) => e.stopPropagation()}>
                                             <div className="member-action-dropdown dropdown">
                                                 <button
                                                     className="member-action-btn"
@@ -1229,7 +1233,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                                     <h6>
                                         Are you sure you want to delete this tenant?
                                     </h6>
- 
+
 
                                 </div>
 

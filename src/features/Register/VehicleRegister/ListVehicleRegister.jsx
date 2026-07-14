@@ -225,6 +225,11 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
     };
 
 
+    const openVehicleDetails = (vehicleId) => {
+        setVehicleId(vehicleId);
+        setActive("vehicleDetailsPage");
+    };
+
 
     const handleSubmit = async (validateOnly = false) => {
 
@@ -351,7 +356,7 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <div className="d-flex align-items-center gap-3">
                         <div className="bc-header-icon">
-                            <FaCar  size={20} color="#2563eb" />
+                            <FaCar size={20} color="#2563eb" />
                         </div>
 
                         <div className="text-start">
@@ -459,11 +464,17 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                 ) : filteredVehicles.length === 0 ? (
                     <div className="sv-card text-center py-5 text-muted">No vehicles found</div>
                 ) : (
+
                     filteredVehicles.map((v, i) => (
                         <div
                             key={v.vehicle_id || i}
                             className="card border-0 shadow-sm rounded-3"
-                            style={{ padding: "10px 14px", marginTop: 8 }}
+                            style={{
+                                padding: "10px 14px",
+                                marginTop: 8,
+                                cursor: "pointer"
+                            }}
+                            onClick={() => openVehicleDetails(v.vehicle_id)}
                         >
                             <div className="d-flex justify-content-between align-items-start gap-2">
 
@@ -516,18 +527,20 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                                             <li>
                                                 <button
                                                     className="dropdown-item member-action-item"
-                                                    onClick={() => {
-                                                        setVehicleId(v.vehicle_id);
-                                                        setActive("vehicleDetailsPage");
-                                                    }}
-                                                >
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openVehicleDetails(v.vehicle_id);
+                                                    }}                                                >
                                                     View Details
                                                 </button>
                                             </li>
                                             <li>
                                                 <button
                                                     className="dropdown-item member-action-item"
-                                                    onClick={() => handleEditOpen(v.vehicle_id)}
+                                                    onClick={() => handleEditOpen(v.vehicle_id)} onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEditOpen(v.vehicle_id);
+                                                    }}
                                                 >
                                                     Edit Vehicle
                                                 </button>
@@ -535,7 +548,10 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                                             <li>
                                                 <button
                                                     className="dropdown-item member-action-item"
-                                                    onClick={() => handleAllocateParking(v)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleAllocateParking(v);
+                                                    }}
                                                 >
                                                     Allocate Parking
                                                 </button>
@@ -544,7 +560,10 @@ const ListVehicleRegister = ({ setActive, setVehicleId }) => {
                                             <li>
                                                 <button
                                                     className="dropdown-item member-action-item member-action-delete"
-                                                    onClick={() => handleDelete(v.vehicle_id, v.vehicle_number)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDelete(v.vehicle_id, v.vehicle_number);
+                                                    }}
                                                 >
                                                     Delete Vehicle
                                                 </button>

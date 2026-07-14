@@ -96,16 +96,9 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
         { id: "Active", value: "active", icon: <FiCheckCircle size={15} /> },
         { id: "Released", value: "released", icon: <FiLogOut size={15} /> },
     ];
-    const handleViewDetails = async (visitorParkingId) => {
-        try {
-            const data = await getVisitorParkingByIdApi(societyId, visitorParkingId);
-            console.log("Visitor Detail:", data);
-            setVisitorParkingId(visitorParkingId);   // parent me ID save
-            setActive("visitorDetails");              // detail page pe navigate
-        } catch (error) {
-            console.error("Error fetching visitor detail:", error);
-            toast.error("Failed to fetch visitor details");
-        }
+    const handleViewDetails = (visitorParkingId) => {
+        setVisitorParkingId(visitorParkingId);   // parent me ID save
+        setActive("visitorDetails");              // detail page pe navigate (VisitorDetails fetches its own data)
     };
     const handleConfirmRelease = async () => {
         try {
@@ -1061,7 +1054,11 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
                                     const released = fmtDateTime(item.released_at);
 
                                     return (
-                                        <tr key={index}>
+                                        <tr
+                                            key={index}
+                                            onClick={() => handleViewDetails(item.id)}
+                                            style={{ cursor: "pointer" }}
+                                        >
                                             <td className="text-start">
                                                 <div className="d-flex align-items-center gap-2">
                                                     <div
@@ -1132,12 +1129,15 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
                                                 />
                                             </td>
 
-                                            <td className="text-start">
+                                            <td className="text-start" onClick={(e) => e.stopPropagation()}>
                                                 {item.status === "active" ? (
                                                     <button
                                                         className="btn btn-sm btn-outline-danger rounded-pill px-3"
                                                         style={{ fontSize: 12, fontWeight: 500 }}
-                                                        onClick={() => handleReleaseParking(item)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleReleaseParking(item);
+                                                        }}
                                                     >
                                                         Release
                                                     </button>
@@ -1146,7 +1146,7 @@ const VisitorParkingList = ({ setActive, setMemberId, setFlatId, setVisitorParki
                                                 )}
                                             </td>
 
-                                            <td className="text-start">
+                                            <td className="text-start" onClick={(e) => e.stopPropagation()}>
                                                 <div className="member-action-dropdown dropdown">
                                                     <button
                                                         className="member-action-btn"

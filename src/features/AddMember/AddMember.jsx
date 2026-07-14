@@ -80,7 +80,7 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
   const [savingEdit, setSavingEdit] = useState(false);
 
   //loader
-  const { setLoading } = useLoader(); 
+  const { setLoading } = useLoader();
 
 
   const addMemberType = [
@@ -224,13 +224,13 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
     } else if (!/\S+@\S+\.\S+/.test(emailId)) {
       errors.emailId = "Invalid email";
     }
-  
+
     if (!mobileNo) {
       errors.mobileNo = "required";
     } else if (!/^[0-9]{10}$/.test(mobileNo)) {
       errors.mobileNo = "Invalid mobile no.";
     }
-  
+
     if (!blocks) {
       errors.blocks = "required";
     }
@@ -295,11 +295,11 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
       const validationErrors = validateForm();
 
       if (Object.keys(validationErrors).length > 0) {
-    setErrors(validationErrors);
-    throw new Error("Validation Failed");
-}
+        setErrors(validationErrors);
+        throw new Error("Validation Failed");
+      }
 
-      
+
 
       if (mode === "edit") {
         await UpdateMemberApi(
@@ -458,34 +458,39 @@ const AddMember = ({ setActive, setMemberId, setFlatId }) => {
       console.log(error);
     }
   };
-  
+
+  const handleRowClick = (member) => {
+    getMembersById(member.user_id, member.flat_id);
+  };
+
+
   const handleDelete = (memberId) => {
     setSelectedMemberId(memberId);
     setShowDeleteModal(true);
-};
+  };
 
-const confirmDelete = async () => {
+  const confirmDelete = async () => {
     try {
-        setDeleting(true);
-        setLoading(true);
+      setDeleting(true);
+      setLoading(true);
 
-        await deleteMembersApi(selectedMemberId, societyId);
+      await deleteMembersApi(selectedMemberId, societyId);
 
-        toast.success("Member deleted successfully");
+      toast.success("Member deleted successfully");
 
-        setShowDeleteModal(false);
-        setSelectedMemberId(null);
+      setShowDeleteModal(false);
+      setSelectedMemberId(null);
 
-        await getMembers(societyId, page);
-        await fetchMemberStats(societyId);
+      await getMembers(societyId, page);
+      await fetchMemberStats(societyId);
 
     } catch (error) {
-        toast.error(error);
+      toast.error(error);
     } finally {
-        setDeleting(false);
-        setLoading(false);
+      setDeleting(false);
+      setLoading(false);
     }
-};
+  };
 
   const resetForm = () => {
     setFirstName("");
@@ -545,7 +550,7 @@ const confirmDelete = async () => {
       setTableLoading(false); // ✅ local
     }
   };
-  
+
   const downloadExcel = async () => {
     exportFile({
       data: exportData,
@@ -787,59 +792,61 @@ const confirmDelete = async () => {
           </div>
 
         </div>
-        
+
 
         <>
-    {allMembers.map((member) => (
-        <div
-            key={member.user_id}
-            className="card border-0 shadow-sm rounded-3"
-            style={{
+          {allMembers.map((member) => (
+            <div
+              key={member.user_id}
+              className="card border-0 shadow-sm rounded-3 member-row"
+              style={{
                 padding: "8px 10px",
-                marginTop: "6px"
-            }}
-        >
-            <div className="d-flex justify-content-between align-items-start">
+                marginTop: "6px",
+                cursor: "pointer"
+              }}
+              onClick={() => handleRowClick(member)}
+            >
+              <div className="d-flex justify-content-between align-items-start">
 
                 {/* Left Side */}
 
                 <div className="text-start flex-grow-1">
 
-                    <div className="d-flex align-items-center gap-3">
+                  <div className="d-flex align-items-center gap-3">
 
-                        <img
-                            src={member.profile_url || "../src/assets/profile.png"}
-                            alt=""
-                            width={38}
-                            height={38}
-                            className="rounded-circle object-fit-cover"
-                        />
+                    <img
+                      src={member.profile_url || "../src/assets/profile.png"}
+                      alt=""
+                      width={38}
+                      height={38}
+                      className="rounded-circle object-fit-cover"
+                    />
 
-                        <div>
+                    <div>
 
-                            <h6 className="mb-1 fw-medium" style={{fontSize: "16px",lineHeight: "20px",marginBottom: "2px",}}>
-                               {member.first_name} {member.last_name}
-                            </h6>
+                      <h6 className="mb-1 fw-medium" style={{ fontSize: "16px", lineHeight: "20px", marginBottom: "2px", }}>
+                        {member.first_name} {member.last_name}
+                      </h6>
 
-                            <div className="d-flex flex-wrap gap-3 text-secondary small"  style={{fontSize: "14px",lineHeight: "18px",}}>
+                      <div className="d-flex flex-wrap gap-3 text-secondary small" style={{ fontSize: "14px", lineHeight: "18px", }}>
 
-                                <span>
-                                      {member.email}
-                                </span>
+                        <span>
+                          {member.email}
+                        </span>
 
-                                <span>
-                                      {member.mobile}
-                                </span>
+                        <span>
+                          {member.mobile}
+                        </span>
 
-                                <span>
-                                      {member.flat_number}
-                                </span>
+                        <span>
+                          {member.flat_number}
+                        </span>
 
-                            </div>
-
-                        </div>
+                      </div>
 
                     </div>
+
+                  </div>
 
                 </div>
 
@@ -847,107 +854,108 @@ const confirmDelete = async () => {
 
                 <div className="d-flex align-items-center gap-2">
 
-                    <Badge
-                        label={
-                            member.occupancy_type === "tenant_relative"
-                                ? "Tenant Family"
-                                : member.occupancy_type === "owner_relative"
-                                    ? "Owner Family"
-                                    : member.occupancy_type
-                        }
-                        c={
-                            member.occupancy_type === "owner"
-                                ? "blue"
-                                : member.occupancy_type === "tenant"
-                                    ? "pink"
-                                    : "gray"
-                        }
-                    />
+                  <Badge
+                    label={
+                      member.occupancy_type === "tenant_relative"
+                        ? "Tenant Family"
+                        : member.occupancy_type === "owner_relative"
+                          ? "Owner Family"
+                          : member.occupancy_type
+                    }
+                    c={
+                      member.occupancy_type === "owner"
+                        ? "blue"
+                        : member.occupancy_type === "tenant"
+                          ? "pink"
+                          : "gray"
+                    }
+                  />
 
-                    <Badge
-                        label={
-                            member.occupant_status === "Approved"
-                                ? "Active"
-                                : member.occupant_status
-                        }
-                        c={
-                            member.occupant_status === "Approved"
-                                ? "green"
-                                : "yellow"
-                        }
-                    />
+                  <Badge
+                    label={
+                      member.occupant_status === "Approved"
+                        ? "Active"
+                        : member.occupant_status
+                    }
+                    c={
+                      member.occupant_status === "Approved"
+                        ? "green"
+                        : "yellow"
+                    }
+                  />
 
-                    <div className="dropdown">
+                  <div className="dropdown" onClick={(e) => e.stopPropagation()}>
+
+                    <button
+                      className="member-action-btn"
+                      data-bs-toggle="dropdown"
+                    >
+                      ⋮
+                    </button>
+
+                    <ul className="dropdown-menu dropdown-menu-end">
+
+                      <li>
 
                         <button
-                            className="member-action-btn"
-                            data-bs-toggle="dropdown"
+                          className="dropdown-item"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            getMembersById(member.user_id, member.flat_id);
+                          }}
                         >
-                            ⋮
+                          View Profile
                         </button>
+                      </li>
 
-                        <ul className="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <button
+                          className="dropdown-item"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMode("edit");
+                            setShow(true);
+                            GetMemberDetailsById(member.user_id);
+                          }}
+                        >
+                          Edit Member
+                        </button>
+                      </li>
 
-                            <li>
-                                <button
-                                    className="dropdown-item"
-                                    onClick={() =>
-                                        getMembersById(
-                                            member.user_id,
-                                            member.flat_id
-                                        )
-                                    }
-                                >
-                                    View Profile
-                                </button>
-                            </li>
+                      <li>
+                        <hr className="dropdown-divider" />
+                      </li>
 
-                            <li>
-                                <button
-                                    className="dropdown-item"
-                                    onClick={() => {
-                                        setMode("edit");
-                                        setShow(true);
-                                        GetMemberDetailsById(member.user_id);
-                                    }}
-                                >
-                                    Edit Member
-                                </button>
-                            </li>
+                      <li>
+                        <button
+                          className="dropdown-item text-danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(member.user_id);
+                          }}
+                        >
+                          Delete Member
+                        </button>
+                      </li>
 
-                            <li>
-                                <hr className="dropdown-divider" />
-                            </li>
+                    </ul>
 
-                            <li>
-                                <button
-                                    className="dropdown-item text-danger"
-                                    onClick={() =>
-                                        handleDelete(member.user_id)
-                                    }
-                                >
-                                    Delete Member
-                                </button>
-                            </li>
-
-                        </ul>
-
-                    </div>
+                  </div>
 
                 </div>
 
+              </div>
             </div>
-        </div>
-    ))}
+          ))}
 
-    <div className="sv-card p-0 mt-2">
-        <Pagination
-            page={page}
-            total={total}
-            onChange={handlePageChange}
-        />
-    </div>
-</>
+          <div className="sv-card p-0 mt-2">
+            <Pagination
+              page={page}
+              total={total}
+              onChange={handlePageChange}
+            />
+          </div>
+        </>
       </div>
 
       {/* member modal */}
@@ -997,7 +1005,7 @@ const confirmDelete = async () => {
         ownershipDocuments={ownershipDocuments}
         setOwnershipDocuments={setOwnershipDocuments}
         errors={errors}
-        setErrors={setErrors} 
+        setErrors={setErrors}
         errorText={errorText}
         handleSubmit={attemptSubmit}
       />
@@ -1073,61 +1081,61 @@ const confirmDelete = async () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-<div
-    className={`modal fade ${showDeleteModal ? "show d-block" : ""}`}
-    tabIndex="-1"
-    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
->
-    <div className="modal-dialog modal-dialog-centered">
+      <div
+        className={`modal fade ${showDeleteModal ? "show d-block" : ""}`}
+        tabIndex="-1"
+        style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+      >
+        <div className="modal-dialog modal-dialog-centered">
 
-        <div className="modal-content">
+          <div className="modal-content">
 
             <div className="modal-header">
-                <h5 className="modal-title">
-                    Confirm Delete
-                </h5>
+              <h5 className="modal-title">
+                Confirm Delete
+              </h5>
 
-                <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setShowDeleteModal(false)}
-                    disabled={deleting}
-                />
+              <button
+                type="button"
+                className="btn-close"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+              />
             </div>
 
             <div className="modal-body text-start">
 
-                <p>
-                    Are you sure you want to
-                    <strong> delete this member?</strong>
-                </p>
+              <p>
+                Are you sure you want to
+                <strong> delete this member?</strong>
+              </p>
 
             </div>
 
             <div className="modal-footer">
 
-                <button
-                    className="btn btn-secondary"
-                    onClick={() => setShowDeleteModal(false)}
-                    disabled={deleting}
-                >
-                    Cancel
-                </button>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
 
-                <button
-                    className="btn btn-danger"
-                    onClick={confirmDelete}
-                    disabled={deleting}
-                >
-                    {deleting ? "Deleting..." : "Delete"}
-                </button>
+              <button
+                className="btn btn-danger"
+                onClick={confirmDelete}
+                disabled={deleting}
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
 
             </div>
 
-        </div>
+          </div>
 
-    </div>
-</div>
+        </div>
+      </div>
     </>
 
   );

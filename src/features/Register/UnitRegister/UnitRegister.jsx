@@ -54,10 +54,10 @@ const UnitRegister = ({ setActive, setFlatId }) => {
   const [selectedRange, setSelectedRange] = useState("all");
   const [tableLoading, setTableLoading] = useState(true);
   const [isAssigningOwner, setIsAssigningOwner] = useState(false); // true when modal opened via "Assign Owner"
-// Delete Confirmation Modal
-const [showDeleteModal, setShowDeleteModal] = useState(false);
-const [deleteUnitId, setDeleteUnitId] = useState(null);
-const [deleteLoading, setDeleteLoading] = useState(false);
+  // Delete Confirmation Modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteUnitId, setDeleteUnitId] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     SessionData();
@@ -353,30 +353,30 @@ const [deleteLoading, setDeleteLoading] = useState(false);
   //   }
   // };
   const handleDelete = (unitId) => {
-  setDeleteUnitId(unitId);
-  setShowDeleteModal(true);
-};
+    setDeleteUnitId(unitId);
+    setShowDeleteModal(true);
+  };
 
-const confirmDelete = async () => {
-  try {
-    setDeleteLoading(true);
+  const confirmDelete = async () => {
+    try {
+      setDeleteLoading(true);
 
-    await deleteUnitApi(deleteUnitId,societyId);
+      await deleteUnitApi(deleteUnitId, societyId);
 
-    toast.success("Unit deleted successfully");
+      toast.success("Unit deleted successfully");
 
-    setShowDeleteModal(false);
-    setDeleteUnitId(null);
+      setShowDeleteModal(false);
+      setDeleteUnitId(null);
 
-    await getAllUnits(societyId, page);
+      await getAllUnits(societyId, page);
 
-  } catch (error) {
-    console.log(error);
-    toast.error("Unable to delete unit");
-  } finally {
-    setDeleteLoading(false);
-  }
-};
+    } catch (error) {
+      console.log(error);
+      toast.error("Unable to delete unit");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
   const exportData =
     selectedRange === "all"
       ? allUnitsWithoutPagination
@@ -609,9 +609,15 @@ const confirmDelete = async () => {
                   }
                 </tr>
               </thead>
+
               <tbody>
                 {allUnits.map((s, i) => (
-                  <tr className="text-start" key={i}>
+                  <tr
+                    key={i}
+                    className="text-start"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => getFlatById(s.flat_id)}
+                  >
                     <td className="sa-name">{s.flat_number} </td>
 
                     <td className="sa-name">
@@ -714,6 +720,7 @@ const confirmDelete = async () => {
                           type="button"
                           data-bs-toggle="dropdown"
                           aria-expanded="false"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           ⋮
                         </button>
@@ -732,7 +739,8 @@ const confirmDelete = async () => {
                             <button
                               className="dropdown-item member-action-item"
                               // onClick={() => handleEdit(s)}
-                              onClick={async () => {
+                              onClick={async (e) => {
+                                e.stopPropagation();
                                 setMode("edit");
                                 await GetFlatDetailsById(s.flat_id);
                                 setShow(true);
@@ -746,7 +754,10 @@ const confirmDelete = async () => {
                             <li>
                               <button
                                 className="dropdown-item member-action-item"
-                                onClick={() => handleAssignOwner(s)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAssignOwner(s);
+                                }}
                               >
                                 Assign Owner
                               </button>
@@ -760,7 +771,10 @@ const confirmDelete = async () => {
                           <li>
                             <button
                               className="dropdown-item member-action-item member-action-delete"
-                              onClick={() => handleDelete(s.flat_id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(s.flat_id);
+                              }}
                             >
                               Delete Unit
                             </button>
@@ -1000,64 +1014,64 @@ const confirmDelete = async () => {
         </>
       )}
       {/* Delete Confirmation Modal */}
-<div
-  className={`modal fade ${showDeleteModal ? "show d-block" : ""}`}
-  tabIndex="-1"
-  style={{
-    backgroundColor: "rgba(0,0,0,0.5)"
-  }}
->
-  <div className="modal-dialog modal-dialog-centered">
-    <div className="modal-content">
+      <div
+        className={`modal fade ${showDeleteModal ? "show d-block" : ""}`}
+        tabIndex="-1"
+        style={{
+          backgroundColor: "rgba(0,0,0,0.5)"
+        }}
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
 
-      <div className="modal-header">
-        <h5 className="modal-title">
-          Delete Unit
-        </h5>
+            <div className="modal-header">
+              <h5 className="modal-title">
+                Delete Unit
+              </h5>
 
-        <button
-          className="btn-close"
-          onClick={() => {
-            setShowDeleteModal(false);
-            setDeleteUnitId(null);
-          }}
-        />
+              <button
+                className="btn-close"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteUnitId(null);
+                }}
+              />
+            </div>
+
+            <div className="modal-body text-center">
+
+              <p className="text-muted">
+                Are you sure you want to delete?
+
+              </p>
+
+            </div>
+
+            <div className="modal-footer">
+
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteUnitId(null);
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="btn btn-danger"
+                onClick={confirmDelete}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? "Deleting..." : "Delete"}
+              </button>
+
+            </div>
+
+          </div>
+        </div>
       </div>
-
-      <div className="modal-body text-center">
-
-        <p className="text-muted">
-        Are you sure you want to delete?
-         
-         </p>
-
-      </div>
-
-      <div className="modal-footer">
-
-        <button
-          className="btn btn-secondary"
-          onClick={() => {
-            setShowDeleteModal(false);
-            setDeleteUnitId(null);
-          }}
-        >
-          Cancel
-        </button>
-
-        <button
-          className="btn btn-danger"
-          onClick={confirmDelete}
-          disabled={deleteLoading}
-        >
-          {deleteLoading ? "Deleting..." : "Delete"}
-        </button>
-
-      </div>
-
-    </div>
-  </div>
-</div>
     </>
   );
 };

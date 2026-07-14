@@ -517,6 +517,11 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
         return { label: "-", c: "grey" };
     };
 
+    const handleViewDetails = (visitorId) => {
+        setVisitorId(visitorId);
+        setActive("visitorDetailsPage");
+    };
+
     return (
         <>
             <div className="pg cp-wrap">
@@ -758,7 +763,12 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                             <div
                                 key={v.id || i}
                                 className="card border-0 shadow-sm rounded-3"
-                                style={{ padding: "10px 14px", marginTop: 8 }}
+                                style={{
+                                    padding: "10px 14px",
+                                    marginTop: 8,
+                                    cursor: "pointer"
+                                }}
+                                onClick={() => handleViewDetails(v.id)}
                             >
                                 <div className="d-flex justify-content-between align-items-start gap-2">
 
@@ -778,7 +788,7 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
 
                                         <div className="text-start min-w-0">
                                             <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                                <span style={{ fontSize: 16, fontWeight: 600 }}>{v.visitor_name || "-"}</span>
+                                                <span style={{ fontSize: 13, fontWeight: 600 }}>{v.visitor_name || "-"}</span>
                                                 <Badge
                                                     label={v.visitor_type === "delivery" ? "Delivery" : "Guest"}
                                                     c={v.visitor_type === "delivery" ? "orange" : "blue"}
@@ -821,7 +831,8 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                 <li>
                                                     <button
                                                         className="dropdown-item member-action-item"
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             setVisitorId(v.id);
                                                             setActive("visitorDetailsPage");
                                                         }}
@@ -834,8 +845,9 @@ const VisitorRegister = ({ setActive, setVisitorId }) => {
                                                     <button
                                                         className="dropdown-item member-action-item"
                                                         disabled={v.approval_status !== "pending"}
-                                                        onClick={() => {
+                                                        onClick={(e) => {
                                                             if (v.approval_status !== "pending") return;
+                                                            e.stopPropagation();
                                                             resetForm();
                                                             setIsEdit(true);
                                                             setEditVisitorId(v.id);
