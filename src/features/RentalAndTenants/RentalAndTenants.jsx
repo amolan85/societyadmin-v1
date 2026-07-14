@@ -871,14 +871,14 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                             </thead>
 
                             <tbody>
-    {filteredData.map((item, index) => (
-        <tr
-            key={index}
-            style={{ cursor: "pointer" }}
-            onClick={() => getViewDetails(item.user_id)}
-        >
+                                {filteredData.map((item, index) => (
+                                    <tr
+                                        key={index}
+                                        style={{ cursor: "pointer" }}
+                                        onClick={() => getViewDetails(item.user_id)}
+                                    >
                                         {/* Unit */}
-                                        <td className="text-start" onClick={(e) => e.stopPropagation()}>
+                                        <td className="text-start">
                                             <div className="fw-bold">{item.block} - {item.flat_number}</div>
                                             <small className="text-muted">
                                                 Owner: {item.owner_name}
@@ -886,7 +886,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                                         </td>
 
                                         {/* Tenant */}
-                                        <td className="text-start" onClick={(e) => e.stopPropagation()}>
+                                        <td className="text-start">
                                             <div className="d-flex align-items-center gap-2">
 
                                                 <img
@@ -911,7 +911,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                                         </td>
 
                                         {/* Lease */}
-                                        <td className="text-start" onClick={(e) => e.stopPropagation()}>
+                                        <td className="text-start">
                                             <div className="lease-date">
                                                 {item.start_date ? formatDate(item.start_date) : ""}
 
@@ -935,26 +935,8 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                                                     : ""}
                                             </small>
                                         </td>
-                                        {/* <td className="text-start">
-                                            <div className="text-start">
-                                                {item.start_date ? formatDate(item.start_date) : ""}
-
-                                                {item.end_date && !isNaN(new Date(item.end_date))
-                                                    ? ` - ${formatDate(item.end_date)}`
-                                                    : ""}
-                                            </div>
-
-                                            <small>
-                                                {item.start_date &&
-                                                    item.end_date &&
-                                                    !isNaN(new Date(item.start_date)) &&
-                                                    !isNaN(new Date(item.end_date))
-                                                    ? getDuration(item.start_date, item.end_date)
-                                                    : ""}
-                                            </small>
-                                        </td> */}
                                         {/* KYC */}
-                                        <td className="text-start" onClick={(e) => e.stopPropagation()}>
+                                        <td className="text-start">
                                             <Badge
                                                 label={item.occupant_status}
                                                 c={
@@ -970,7 +952,7 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
 
                                         </td>
                                         {/* Agreement */}
-                                        <td className="text-start" onClick={(e) => e.stopPropagation()}>
+                                        <td className="text-start">
 
                                             <Badge
                                                 label={item.documents === 1 ? "Uploaded" : "Not Uploaded"}
@@ -986,14 +968,6 @@ const RentalAndTenants = ({ setActive, setTenantId }) => {
                                         </td>
 
                                         {/* Action */}
-                                        {/* <td className="text-start">
-                                            <button
-                                                className={`btn btn-sm btn-outline-${item.actionColor}`}
-                                           onClick={()=>setActive("rentalsApplication")}
-                                           >
-                                                {item.action}
-                                            </button>
-                                        </td> */}
                                         <td className="text-start" onClick={(e) => e.stopPropagation()}>
                                             <div className="member-action-dropdown dropdown">
                                                 <button
